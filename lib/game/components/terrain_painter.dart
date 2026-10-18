@@ -126,13 +126,16 @@ Uint8List? buildChunkPixels(
       if ((x + y) % 47 == 0) k -= 0.12;
       return _shade((0xA6, 0x7C, 0x4E), k);
     case TerrainMaterial.leaves:
-      final blob = (_hash(x ~/ 5, y ~/ 5) % 100) / 100.0;
-      final k = 0.12 - math.min(run, 50) / 50 * 0.35 +
-          (blob > 0.6 ? 0.12 : -0.06) + noise * 0.1;
+      // Smooth overlapping leaf clusters rather than square blocks.
+      final blob = math.sin(x * 0.31 + math.sin(y * 0.27) * 2.4) *
+          math.cos(y * 0.29 + math.sin(x * 0.19) * 2.1);
+      final k = 0.1 - math.min(run, 50) / 50 * 0.35 + blob * 0.13 +
+          noise * 0.07;
       return _shade(_rgb(PaintKitless.toneArgb(map.grassArgb, -0.2)), k);
     case TerrainMaterial.stone:
-      final patch = (_hash(x ~/ 6, y ~/ 6) % 100) / 100.0 - 0.5;
-      var k = patch * 0.14 + noise * 0.08 + 0.05 - math.min(run, 40) / 40 * 0.15;
+      final patch = math.sin(x * 0.12 + math.sin(y * 0.1) * 3) *
+          math.cos(y * 0.14 + math.sin(x * 0.08) * 2) * 0.5;
+      var k = patch * 0.16 + noise * 0.08 + 0.05 - math.min(run, 40) / 40 * 0.15;
       if (_hash(x ~/ 2, y) % 157 == 0) k -= 0.3; // cracks
       return _shade((0x8C, 0x88, 0x82), k);
     case TerrainMaterial.metal:

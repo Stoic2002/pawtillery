@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/game_theme.dart';
+
 import '../../config/controls.dart';
 import '../../config/weapons.dart';
 import '../../game/hud_state.dart';
@@ -68,8 +70,7 @@ class ArenaHud extends StatelessWidget {
                         child: _WalkButtons(
                           game: game,
                           enabled: hud.canMove,
-                          onWalk: () =>
-                              tutorial?.complete(TutorialStep.walk),
+                          onWalk: () => tutorial?.complete(TutorialStep.walk),
                         ),
                       ),
                       Align(
@@ -128,12 +129,12 @@ class _TopLeft extends StatelessWidget {
     final clockText = clock == null
         ? null
         : (hud.phase == TurnPhase.retreat
-            ? l10n.hudRetreat(clock)
-            : l10n.hudSeconds(clock));
+              ? l10n.hudRetreat(clock)
+              : l10n.hudSeconds(clock));
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton.filledTonal(
+        _GlassIconButton(
           tooltip: l10n.hudPause,
           constraints: const BoxConstraints.tightFor(width: 48, height: 48),
           onPressed: onPause,
@@ -148,15 +149,25 @@ class _TopLeft extends StatelessWidget {
               children: [
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 140),
-                  child: Text(teamName,
-                      style: _chipText, overflow: TextOverflow.ellipsis),
+                  child: Text(
+                    teamName,
+                    style: _chipText,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 if (clockText != null) ...[
                   const SizedBox(width: 10),
+                  Icon(
+                    Icons.timer_outlined,
+                    size: 16,
+                    color: clock! <= 5 ? GameColors.danger : GameColors.textDim,
+                  ),
+                  const SizedBox(width: 3),
                   Text(
                     clockText,
                     style: _chipText.copyWith(
-                      color: clock! <= 5 ? Colors.orangeAccent : Colors.white,
+                      fontSize: 15,
+                      color: clock <= 5 ? GameColors.danger : GameColors.text,
                       fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
@@ -178,22 +189,11 @@ class _TopCenter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final wind = hud.wind;
-    final icon = wind == 0
-        ? Icons.remove
-        : (wind > 0 ? Icons.arrow_forward : Icons.arrow_back);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         _Chip(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, color: Colors.white, size: 20),
-              const SizedBox(width: 6),
-              Text(l10n.hudWind(wind), style: _chipText),
-            ],
-          ),
+          child: _WindGauge(wind: hud.wind, label: l10n.hudWind(hud.wind)),
         ),
         if (hud.suddenDeath) ...[
           const SizedBox(height: 4),
@@ -203,15 +203,82 @@ class _TopCenter extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 4),
-        for (var team = 0; team < hud.teamHp.length; team++)
-          Padding(
-            padding: const EdgeInsets.only(top: 3),
-            child: _TeamHpBar(
-              color: Color(teamColors[team]),
-              hp: hud.teamHp[team],
-              maxHp: hud.teamMaxHp[team],
-            ),
+        _Chip(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              for (var team = 0; team < hud.teamHp.length; team++)
+                Padding(
+                  padding: EdgeInsets.only(top: team == 0 ? 0 : 4),
+                  child: _TeamHpBar(
+                    color: Color(teamColors[team]),
+                    hp: hud.teamHp[team],
+                    maxHp: hud.teamMaxHp[team],
+                  ),
+                ),
+            ],
           ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Wind as a centred gauge: the bar grows left or right with strength.
+class _WindGauge extends StatelessWidget {
+  const _WindGauge({required this.wind, required this.label});
+
+  final int wind;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    const half = 52.0;
+    final fill = (wind.abs() / 10).clamp(0.0, 1.0) * half;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.air, size: 18, color: GameColors.textDim),
+        const SizedBox(width: 6),
+        SizedBox(
+          width: half * 2,
+          height: 10,
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0x33FFFFFF),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              Positioned(
+                left: wind < 0 ? half - fill : half,
+                width: fill,
+                top: 0,
+                bottom: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: wind < 0
+                          ? const [GameColors.accentDeep, GameColors.accent]
+                          : const [GameColors.accent, GameColors.accentDeep],
+                    ),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: half - 1,
+                width: 2,
+                top: 0,
+                bottom: 0,
+                child: Container(color: GameColors.text),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(label, style: _chipText),
       ],
     );
   }
@@ -238,18 +305,26 @@ class _TeamHpBar extends StatelessWidget {
       children: [
         Container(
           width: _width,
-          height: 8,
+          height: 10,
           decoration: BoxDecoration(
             color: const Color(0x66000000),
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(5),
           ),
           alignment: Alignment.centerLeft,
           child: FractionallySizedBox(
             widthFactor: fraction,
             child: Container(
               decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(4),
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color.lerp(color, Colors.white, 0.3)!,
+                    color,
+                    Color.lerp(color, Colors.black, 0.25)!,
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(5),
               ),
             ),
           ),
@@ -257,10 +332,11 @@ class _TeamHpBar extends StatelessWidget {
         const SizedBox(width: 6),
         SizedBox(
           width: 30,
-          child: Text('$hp',
-              style: _chipText.copyWith(
-                  fontSize: 12,
-                  shadows: const [Shadow(blurRadius: 3)])),
+          child: Text(
+            '$hp',
+            textAlign: TextAlign.right,
+            style: _chipText.copyWith(fontSize: 12),
+          ),
         ),
       ],
     );
@@ -280,7 +356,7 @@ class _TopRight extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        IconButton.filledTonal(
+        _GlassIconButton(
           tooltip: l10n.hudCenterCamera,
           constraints: const BoxConstraints.tightFor(width: 48, height: 48),
           onPressed: game.centerOnActiveUnit,
@@ -403,7 +479,6 @@ class _HoldButtonState extends State<_HoldButton> {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Semantics(
       button: true,
       label: widget.label,
@@ -416,15 +491,23 @@ class _HoldButtonState extends State<_HoldButton> {
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: !widget.enabled
-                ? scheme.surfaceContainerHighest.withValues(alpha: 0.4)
-                : (_down ? scheme.primary : scheme.secondaryContainer),
+            color: _down ? GameColors.accent : GameColors.glass,
             shape: BoxShape.circle,
+            border: Border.all(color: GameColors.glassBorder, width: 1.5),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x40000000),
+                blurRadius: 8,
+                offset: Offset(0, 3),
+              ),
+            ],
           ),
           child: Icon(
             widget.icon,
             size: 40,
-            color: _down ? scheme.onPrimary : scheme.onSecondaryContainer,
+            color: !widget.enabled
+                ? const Color(0x55FFFFFF)
+                : (_down ? const Color(0xFF2A1A05) : GameColors.text),
           ),
         ),
       ),
@@ -490,14 +573,14 @@ class _JumpButtons extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton.filledTonal(
+        _GlassIconButton(
           tooltip: l10n.hudJump,
           constraints: const BoxConstraints.tightFor(width: 52, height: 52),
           onPressed: enabled ? () => game.jump(JumpKind.forward) : null,
           icon: const Icon(Icons.trending_up),
         ),
         const SizedBox(width: 6),
-        IconButton.filledTonal(
+        _GlassIconButton(
           tooltip: l10n.hudHighJump,
           constraints: const BoxConstraints.tightFor(width: 52, height: 52),
           onPressed: enabled ? () => game.jump(JumpKind.high) : null,
@@ -561,11 +644,11 @@ class _WeaponButton extends StatelessWidget {
                       Text(
                         weapon.isSignature
                             ? (unit != null && game.sim.canUse(unit, weapon)
-                                ? l10n.hudSignature
-                                : l10n.hudUsed)
+                                  ? l10n.hudSignature
+                                  : l10n.hudUsed)
                             : (ammo == null
-                                ? l10n.hudAmmoUnlimited
-                                : l10n.hudAmmoLeft(ammo)),
+                                  ? l10n.hudAmmoUnlimited
+                                  : l10n.hudAmmoLeft(ammo)),
                         style: _debugText,
                       ),
                     ],
@@ -626,8 +709,7 @@ class _AimControls extends StatelessWidget {
               _FuseSelector(game: game, seconds: aim.fuseSeconds),
               const SizedBox(height: 4),
             ],
-            if (mode == AimMode.angleAndPower ||
-                mode == AimMode.direction)
+            if (mode == AimMode.angleAndPower || mode == AimMode.direction)
               _Stepper(
                 label: l10n.hudAngle(aim.angle),
                 onMinus: () => game.adjustAngle(-ControlsConfig.angleStep),
@@ -651,8 +733,9 @@ class _AimControls extends StatelessWidget {
               TextButton(
                 style: TextButton.styleFrom(
                   minimumSize: const Size(88, 48),
-                  backgroundColor: const Color(0x99000000),
-                  foregroundColor: Colors.white,
+                  backgroundColor: GameColors.glass,
+                  foregroundColor: GameColors.text,
+                  side: const BorderSide(color: GameColors.glassBorder),
                 ),
                 onPressed: game.cancelAim,
                 child: Text(l10n.hudCancel),
@@ -661,9 +744,17 @@ class _AimControls extends StatelessWidget {
             ],
             FilledButton(
               style: FilledButton.styleFrom(
-                minimumSize: const Size(88, 88),
-                shape: const CircleBorder(),
-                backgroundColor: Colors.deepOrange,
+                minimumSize: const Size(92, 92),
+                shape: const CircleBorder(
+                  side: BorderSide(color: Color(0x88FFFFFF), width: 2),
+                ),
+                backgroundColor: GameColors.accentDeep,
+                foregroundColor: Colors.white,
+                elevation: 6,
+                textStyle: const TextStyle(
+                  fontSize: 17,
+                  fontWeight: FontWeight.w900,
+                ),
               ),
               onPressed: game.fire,
               child: Text(
@@ -712,7 +803,7 @@ class _Stepper extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton.filledTonal(
+        _GlassIconButton(
           tooltip: l10n.hudDecrease,
           constraints: const BoxConstraints.tightFor(width: 48, height: 48),
           onPressed: onMinus,
@@ -725,7 +816,7 @@ class _Stepper extends StatelessWidget {
             child: Text(label, style: _chipText, textAlign: TextAlign.center),
           ),
         ),
-        IconButton.filledTonal(
+        _GlassIconButton(
           tooltip: l10n.hudIncrease,
           constraints: const BoxConstraints.tightFor(width: 48, height: 48),
           onPressed: onPlus,
@@ -757,9 +848,9 @@ class _TurnBanner extends StatelessWidget {
           child: Text(
             l10n.turnBanner(name),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+            ),
           ),
         ),
       ),
@@ -774,20 +865,58 @@ class _Chip extends StatelessWidget {
   final Color? border;
 
   @override
+  Widget build(BuildContext context) =>
+      GlassPanel(accent: border, radius: 12, child: child);
+}
+
+/// Round frosted icon button used throughout the HUD.
+class _GlassIconButton extends StatelessWidget {
+  const _GlassIconButton({
+    required this.tooltip,
+    required this.onPressed,
+    required this.icon,
+    this.constraints = const BoxConstraints.tightFor(width: 48, height: 48),
+  });
+
+  final String tooltip;
+  final VoidCallback? onPressed;
+  final Widget icon;
+  final BoxConstraints constraints;
+
+  @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0x99000000),
-        borderRadius: const BorderRadius.all(Radius.circular(8)),
-        border: border == null ? null : Border.all(color: border!, width: 2),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: child,
+    final size = constraints.maxWidth.isFinite ? constraints.maxWidth : 48.0;
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: GameColors.glass,
+        shape: const CircleBorder(
+          side: BorderSide(color: GameColors.glassBorder, width: 1.2),
+        ),
+        elevation: 3,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onPressed,
+          child: SizedBox.square(
+            dimension: size,
+            child: IconTheme(
+              data: IconThemeData(
+                color: onPressed == null
+                    ? const Color(0x55FFFFFF)
+                    : GameColors.text,
+                size: 24,
+              ),
+              child: Center(child: icon),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-const _chipText = TextStyle(color: Colors.white, fontWeight: FontWeight.w600);
+const _chipText = TextStyle(
+  color: GameColors.text,
+  fontWeight: FontWeight.w700,
+);
 const _debugText = TextStyle(color: Colors.white70, fontSize: 11);

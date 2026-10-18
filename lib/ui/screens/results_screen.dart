@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/match_config.dart';
 import '../../l10n/app_localizations.dart';
+import '../widgets/menu_backdrop.dart';
 import 'arena_screen.dart';
 
 /// What the results screen shows; computed when the match ends.
@@ -45,113 +46,123 @@ class ResultsScreen extends StatelessWidget {
     final topTeam = result.topUnitTeam;
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 640),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.emoji_events,
+      body: MenuBackdrop(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(24),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 640),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.emoji_events,
                       size: 56,
                       color: winner == null
                           ? Theme.of(context).colorScheme.outline
-                          : Color(result.teamColors[winner])),
-                  Text(
-                    winner == null
-                        ? l10n.resultDraw
-                        : l10n.resultWinner(result.teamNames[winner]),
-                    textAlign: TextAlign.center,
-                    style: text.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      color: winner == null
-                          ? null
                           : Color(result.teamColors[winner]),
                     ),
-                  ),
-                  Text(l10n.resultTurns(result.turns), style: text.bodySmall),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 16,
-                    runSpacing: 16,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      _StatCard(
-                        title: l10n.resultMostDamage,
-                        child: Text(
-                          topTeam == null
-                              ? l10n.resultNoDamage
-                              : l10n.resultMostDamageValue(
-                                  result.topUnitName ?? '',
-                                  result.teamNames[topTeam],
-                                  result.topDamage ?? 0,
-                                ),
-                        ),
+                    Text(
+                      winner == null
+                          ? l10n.resultDraw
+                          : l10n.resultWinner(result.teamNames[winner]),
+                      textAlign: TextAlign.center,
+                      style: text.headlineMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: winner == null
+                            ? null
+                            : Color(result.teamColors[winner]),
                       ),
-                      _StatCard(
-                        title: l10n.resultKills,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            for (var t = 0; t < result.teamNames.length; t++)
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 6,
-                                    backgroundColor:
-                                        Color(result.teamColors[t]),
+                    ),
+                    Text(l10n.resultTurns(result.turns), style: text.bodySmall),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 16,
+                      runSpacing: 16,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        _StatCard(
+                          title: l10n.resultMostDamage,
+                          child: Text(
+                            topTeam == null
+                                ? l10n.resultNoDamage
+                                : l10n.resultMostDamageValue(
+                                    result.topUnitName ?? '',
+                                    result.teamNames[topTeam],
+                                    result.topDamage ?? 0,
                                   ),
-                                  const SizedBox(width: 8),
-                                  Flexible(
-                                    child: Text(
-                                      '${result.teamNames[t]}: '
-                                      '${result.knockouts[t]}',
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    alignment: WrapAlignment.center,
-                    children: [
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                            minimumSize: const Size(150, 48)),
-                        onPressed: () => Navigator.of(context).pushReplacement(
-                          MaterialPageRoute<void>(
-                            builder: (_) => ArenaScreen(config: config),
                           ),
                         ),
-                        icon: const Icon(Icons.replay),
-                        label: Text(l10n.resultPlayAgain),
-                      ),
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(150, 48)),
-                        onPressed: () => Navigator.of(context).pop(),
-                        child: Text(l10n.resultChangeTeams),
-                      ),
-                      OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(150, 48)),
-                        onPressed: () => Navigator.of(context)
-                            .popUntil((route) => route.isFirst),
-                        child: Text(l10n.resultMainMenu),
-                      ),
-                    ],
-                  ),
-                ],
+                        _StatCard(
+                          title: l10n.resultKills,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              for (var t = 0; t < result.teamNames.length; t++)
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    CircleAvatar(
+                                      radius: 6,
+                                      backgroundColor: Color(
+                                        result.teamColors[t],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: Text(
+                                        '${result.teamNames[t]}: '
+                                        '${result.knockouts[t]}',
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 8,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(150, 48),
+                          ),
+                          onPressed: () =>
+                              Navigator.of(context).pushReplacement(
+                                MaterialPageRoute<void>(
+                                  builder: (_) => ArenaScreen(config: config),
+                                ),
+                              ),
+                          icon: const Icon(Icons.replay),
+                          label: Text(l10n.resultPlayAgain),
+                        ),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(150, 48),
+                          ),
+                          onPressed: () => Navigator.of(context).pop(),
+                          child: Text(l10n.resultChangeTeams),
+                        ),
+                        OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(150, 48),
+                          ),
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).popUntil((route) => route.isFirst),
+                          child: Text(l10n.resultMainMenu),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -169,19 +180,19 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: 290,
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: Theme.of(context).textTheme.titleSmall),
-                const SizedBox(height: 8),
-                child,
-              ],
-            ),
-          ),
+    width: 290,
+    child: Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(title, style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: 8),
+            child,
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }

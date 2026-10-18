@@ -284,3 +284,39 @@ Decisions not spelled out in the PRD. Simplest option chosen, logged here.
   cluster blasts, explosion < 4 ms, cold start < 3 s, < 300 MB, < 50 MB
   download). The readouts are in place; numbers to be filled in from a
   profile-mode run.
+
+## Visual pass (2026-10-18)
+
+Player feedback: UI and art felt unfinished (letters for animals, no
+weapon visuals, plain maps). Direction chosen by the owner: drawn in code,
+semi-realistic rather than cartoon, system font kept.
+
+- **Animals** (`lib/game/art/animal_art.dart`): side-view anatomy per family,
+  gradient shading from one top-left light, darker far legs for depth,
+  contact shadow, breed coat patterns clipped to the body, team collar,
+  idle/walk/air poses. Each (breed, team, pose) is recorded once into a
+  `Picture`; the arena only replays and transforms it. Visuals are a bit
+  larger than the 24 px hit circle, like most artillery games.
+- **Breeds** gained a marking colour, a `CoatPattern` and long fur; still
+  purely cosmetic.
+- **Weapons** (`lib/game/art/weapon_art.dart`): shaded art for every
+  projectile, mines and all menu icons (same code paints both).
+- **Map materials:** each ground pixel has a material (soil, wood, leaves,
+  stone, metal, crate, concrete) in the map PNG's red channel (green = 200
+  marks it). Render only; the sim still reads alpha, so gameplay and
+  determinism are unchanged. Benteng walls render as stone.
+- **Terrain texture** restarts its depth where the material changes, so
+  objects don't cast "shadow columns" into the ground under them.
+- **Craters** get a burnt rim drawn with `srcATop` (only on remaining
+  ground); tunnels and dashes don't.
+- **Scenery:** per-theme parallax layers (0.2–0.65 of camera speed) with
+  atmospheric haze, a sun glow, soft drifting clouds; animated water;
+  surface decorations that vanish when their ground is destroyed. All
+  visual-only randomness is seeded from the map id, never the sim.
+- **UI theme** (`lib/app/game_theme.dart`): dark slate + amber accent,
+  frosted glass panels, round glass HUD buttons, wind gauge, grouped team
+  HP bars, scenic static backdrop on menu/results (static so menus cost
+  nothing and widget tests can settle).
+- **Gallery test:** `RENDER_GALLERY=1 flutter test test/art/gallery_test.dart`
+  writes PNGs of every breed, weapon and map to `build/gallery/` for quick
+  art review; without the flag it still smoke-tests every painter.

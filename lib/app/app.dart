@@ -7,6 +7,7 @@ import '../services/settings_store.dart';
 import '../ui/screens/main_menu_screen.dart';
 import '../ui/screens/splash_screen.dart';
 import 'app_services.dart';
+import 'game_theme.dart';
 
 class PawtilleryApp extends StatefulWidget {
   const PawtilleryApp({super.key, this.locale, this.settings});
@@ -76,11 +77,7 @@ class _PawtilleryAppState extends State<PawtilleryApp> {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         localeResolutionCallback: resolveAppLocale,
-        theme: ThemeData(
-          colorScheme:
-              ColorScheme.fromSeed(seedColor: const Color(0xFFE08A2E)),
-          visualDensity: VisualDensity.standard,
-        ),
+        theme: GameTheme.build(),
         home: home,
       );
 }

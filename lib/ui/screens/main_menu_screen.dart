@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../app/app_services.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/audio_service.dart';
+import '../../app/game_theme.dart';
+import '../widgets/menu_backdrop.dart';
 import '../widgets/paw_logo.dart';
 import 'about_screen.dart';
 import 'how_to_play_screen.dart';
@@ -17,63 +19,82 @@ class MainMenuScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     void open(Widget screen) {
       AppServices.of(context).audio.play(Sfx.ui);
-      Navigator.of(context)
-          .push(MaterialPageRoute<void>(builder: (_) => screen));
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => screen));
     }
 
     return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: 48,
-              runSpacing: 24,
-              children: [
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const PawLogo(size: 110),
-                    Text(l10n.appTitle,
-                        style: Theme.of(context).textTheme.displaySmall),
-                  ],
-                ),
-                // Fixed width: a stretched column would take the whole row
-                // and push the buttons below the logo, off a landscape
-                // phone screen.
-                SizedBox(
-                  width: 260,
-                  child: Column(
+      body: MenuBackdrop(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: 48,
+                runSpacing: 24,
+                children: [
+                  Column(
                     mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                            minimumSize: const Size(240, 56)),
-                        onPressed: () => open(const SetupScreen()),
-                        child: Text(l10n.menuPlay,
-                            style: const TextStyle(fontSize: 18)),
+                      const PawLogo(size: 96, color: GameColors.accent),
+                      Text(
+                        l10n.appTitle,
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1,
+                              shadows: const [
+                                Shadow(
+                                  color: Color(0xAA000000),
+                                  blurRadius: 12,
+                                ),
+                              ],
+                            ),
                       ),
-                      const SizedBox(height: 10),
-                      for (final (label, screen) in [
-                        (l10n.menuHowToPlay, const HowToPlayScreen()),
-                        (l10n.menuSettings, const SettingsScreen()),
-                        (l10n.menuAbout, const AboutScreen()),
-                      ]) ...[
-                        OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(240, 48)),
-                          onPressed: () => open(screen),
-                          child: Text(label),
-                        ),
-                        const SizedBox(height: 8),
-                      ],
                     ],
                   ),
-                ),
-              ],
+                  // Fixed width: a stretched column would take the whole row
+                  // and push the buttons below the logo, off a landscape
+                  // phone screen.
+                  SizedBox(
+                    width: 260,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        FilledButton(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(240, 56),
+                          ),
+                          onPressed: () => open(const SetupScreen()),
+                          child: Text(
+                            l10n.menuPlay,
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        for (final (label, screen) in [
+                          (l10n.menuHowToPlay, const HowToPlayScreen()),
+                          (l10n.menuSettings, const SettingsScreen()),
+                          (l10n.menuAbout, const AboutScreen()),
+                        ]) ...[
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              minimumSize: const Size(240, 48),
+                            ),
+                            onPressed: () => open(screen),
+                            child: Text(label),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
