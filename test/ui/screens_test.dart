@@ -49,16 +49,16 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final (button, title) in [
-      ('How to Play', 'Move'),
+      ('How to Play', 'MOVE'),
       ('Settings', 'Language'),
-      ('About', 'Privacy policy'),
-      ('Play', 'New Match'),
+      ('About', 'PRIVACY POLICY'),
+      ('PLAY', 'NEW MATCH'),
     ]) {
       await tester.tap(find.text(button));
       await tester.pumpAndSettle();
       expect(find.text(title), findsWidgets, reason: button);
       await _back(tester);
-      expect(find.text('Play'), findsOneWidget);
+      expect(find.text('PLAY'), findsOneWidget);
     }
   });
 
@@ -69,24 +69,24 @@ void main() {
     await tester.pumpWidget(
         PawtilleryApp(locale: const Locale('en'), settings: settings));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Play'));
+    await tester.tap(find.text('PLAY'));
     await tester.pumpAndSettle();
 
-    // Tab label + the name field's hint.
-    expect(find.text('Red Team'), findsWidgets);
-    expect(find.text('Blue Team'), findsWidgets);
-    expect(find.text('Yellow Team'), findsNothing);
+    // Team index tabs in spaced capitals.
+    expect(find.text('RED TEAM'), findsOneWidget);
+    expect(find.text('BLUE TEAM'), findsOneWidget);
+    expect(find.text('YELLOW TEAM'), findsNothing);
     await tester.tap(find.text('4').first);
     await tester.pumpAndSettle();
-    expect(find.text('Yellow Team'), findsOneWidget);
+    expect(find.text('YELLOW TEAM'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.byIcon(Icons.casino_outlined).first);
+    await tester.tap(find.text('Random').first); // the header button
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
     expect(settings.lastMatch(const []), isNull);
-    await tester.tap(find.text('Start'));
+    await tester.tap(find.text('START'));
     await tester.pump();
     final saved = settings.lastMatch(const [])!;
     expect(saved.teams, hasLength(4), reason: 'the setup on screen is saved');
@@ -107,7 +107,7 @@ void main() {
     expect(settings.languageCode, 'id');
     expect(find.text('Bahasa'), findsOneWidget);
     await _back(tester);
-    expect(find.text('Main'), findsOneWidget);
+    expect(find.text('MAIN'), findsOneWidget);
     expect(find.text('Cara Bermain'), findsOneWidget);
   });
 
@@ -135,15 +135,15 @@ void main() {
     ));
     await tester.tap(find.text('pause'));
     await tester.pumpAndSettle();
-    expect(find.text('Paused'), findsOneWidget);
+    expect(find.text('PAUSED'), findsOneWidget);
     await tester.tap(find.text('Resume'));
     await tester.pumpAndSettle();
     expect(choice, PauseChoice.resume);
 
     await tester.tap(find.text('exit'));
     await tester.pumpAndSettle();
-    expect(find.text('Leave the match?'), findsOneWidget);
-    await tester.tap(find.text('Cancel'));
+    expect(find.text('LEAVE THE MATCH?'), findsOneWidget);
+    await tester.tap(find.text('CANCEL'));
     await tester.pumpAndSettle();
     expect(leave, isFalse);
   });
@@ -168,10 +168,10 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    expect(find.text('Blue Team wins!'), findsOneWidget);
+    expect(find.text('BLUE TEAM WINS'), findsOneWidget);
     expect(find.text('Milo (Blue Team): 142 HP'), findsOneWidget);
-    expect(find.text('Kucing Garong: 1'), findsOneWidget);
-    expect(find.text('17 turns'), findsOneWidget);
+    expect(find.text('Kucing Garong'), findsOneWidget);
+    expect(find.text('Observed over 17 turns'), findsOneWidget);
   });
 
   testWidgets('every screen fits in Indonesian without overflow',
@@ -180,7 +180,7 @@ void main() {
     final settings = await _settings()..languageCode = 'id';
     await tester.pumpWidget(PawtilleryApp(settings: settings));
     await tester.pumpAndSettle();
-    for (final button in ['Main', 'Cara Bermain', 'Pengaturan', 'Tentang']) {
+    for (final button in ['MAIN', 'Cara Bermain', 'Pengaturan', 'Tentang']) {
       await tester.tap(find.text(button));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: button);

@@ -13,6 +13,7 @@ void main() {
   final keys = <String>{
     for (final f in Families.all) ...[
       f.nameKey,
+      f.latinKey,
       f.passive.nameKey,
       f.passive.descriptionKey,
     ],

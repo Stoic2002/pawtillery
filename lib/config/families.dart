@@ -78,6 +78,7 @@ class FamilyDef {
   const FamilyDef({
     required this.id,
     required this.nameKey,
+    required this.latinKey,
     required this.passive,
     required this.signatureWeaponId,
     required this.feature,
@@ -85,6 +86,9 @@ class FamilyDef {
 
   final String id;
   final String nameKey;
+
+  /// ARB key of the scientific name (field-guide voice).
+  final String latinKey;
   final PassiveDef passive;
   final String signatureWeaponId;
   final PlaceholderFeature feature;
@@ -94,6 +98,7 @@ abstract final class Families {
   static const cat = FamilyDef(
     id: 'cat',
     nameKey: 'familyCat',
+    latinKey: 'familyCatLatin',
     signatureWeaponId: 'hairball',
     feature: PlaceholderFeature.pointyEars,
     passive: PassiveDef(
@@ -106,6 +111,7 @@ abstract final class Families {
   static const dog = FamilyDef(
     id: 'dog',
     nameKey: 'familyDog',
+    latinKey: 'familyDogLatin',
     signatureWeaponId: 'boneBoomerang',
     feature: PlaceholderFeature.floppyEars,
     passive: PassiveDef(
@@ -118,6 +124,7 @@ abstract final class Families {
   static const rabbit = FamilyDef(
     id: 'rabbit',
     nameKey: 'familyRabbit',
+    latinKey: 'familyRabbitLatin',
     signatureWeaponId: 'drillCarrot',
     feature: PlaceholderFeature.longEars,
     passive: PassiveDef(
@@ -130,6 +137,7 @@ abstract final class Families {
   static const bird = FamilyDef(
     id: 'bird',
     nameKey: 'familyBird',
+    latinKey: 'familyBirdLatin',
     signatureWeaponId: 'eggStrike',
     feature: PlaceholderFeature.beak,
     passive: PassiveDef(
@@ -143,6 +151,7 @@ abstract final class Families {
   static const hamster = FamilyDef(
     id: 'hamster',
     nameKey: 'familyHamster',
+    latinKey: 'familyHamsterLatin',
     signatureWeaponId: 'seedMines',
     feature: PlaceholderFeature.roundEars,
     passive: PassiveDef(
@@ -156,6 +165,7 @@ abstract final class Families {
   static const duck = FamilyDef(
     id: 'duck',
     nameKey: 'familyDuck',
+    latinKey: 'familyDuckLatin',
     signatureWeaponId: 'boomDuck',
     feature: PlaceholderFeature.bill,
     passive: PassiveDef(
@@ -169,6 +179,7 @@ abstract final class Families {
   static const chicken = FamilyDef(
     id: 'chicken',
     nameKey: 'familyChicken',
+    latinKey: 'familyChickenLatin',
     signatureWeaponId: 'startleCrow',
     feature: PlaceholderFeature.comb,
     passive: PassiveDef(
@@ -181,6 +192,7 @@ abstract final class Families {
   static const turtle = FamilyDef(
     id: 'turtle',
     nameKey: 'familyTurtle',
+    latinKey: 'familyTurtleLatin',
     signatureWeaponId: 'fortress',
     feature: PlaceholderFeature.shell,
     passive: PassiveDef(
@@ -194,6 +206,7 @@ abstract final class Families {
   static const goat = FamilyDef(
     id: 'goat',
     nameKey: 'familyGoat',
+    latinKey: 'familyGoatLatin',
     signatureWeaponId: 'headbutt',
     feature: PlaceholderFeature.horns,
     passive: PassiveDef(
@@ -206,6 +219,7 @@ abstract final class Families {
   static const monkey = FamilyDef(
     id: 'monkey',
     nameKey: 'familyMonkey',
+    latinKey: 'familyMonkeyLatin',
     signatureWeaponId: 'coconut',
     feature: PlaceholderFeature.sideEars,
     passive: PassiveDef(

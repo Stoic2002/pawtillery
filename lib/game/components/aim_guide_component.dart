@@ -45,10 +45,10 @@ class AimGuideComponent extends Component {
   // Numbers and units only, so no ARB entry is needed.
   final TextPaint _readout = TextPaint(
     style: const TextStyle(
+      fontFamily: 'OldStandard',
       fontSize: 13,
-      fontWeight: FontWeight.w800,
-      color: ui.Color(0xFFFFFFFF),
-      shadows: [Shadow(color: ui.Color(0xFF000000), blurRadius: 3)],
+      color: ui.Color(0xFF2B2620),
+      shadows: [Shadow(color: ui.Color(0xFFEFE6D2), blurRadius: 4)],
     ),
   );
 

@@ -87,7 +87,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
       ],
       unitNames: _unitNames,
       timings: TurnTimings(
-          turnTicks: config.turnSeconds * MatchDefaults.ticksPerSecond),
+        turnTicks: config.turnSeconds * MatchDefaults.ticksPerSecond,
+      ),
       suddenDeathAfterTicks: config.suddenDeathMinutes == null
           ? null
           : config.suddenDeathMinutes! * 60 * MatchDefaults.ticksPerSecond,
@@ -136,9 +137,11 @@ class _ArenaScreenState extends State<ArenaScreen> {
     );
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
-        builder: (_) => ResultsScreen(result: result, config: widget.config),
-      ));
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => ResultsScreen(result: result, config: widget.config),
+        ),
+      );
     });
   }
 
@@ -153,8 +156,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
       final choice = await showPauseDialog(context);
       if (!mounted) return;
       if (choice == PauseChoice.settings) {
-        await Navigator.of(context).push(MaterialPageRoute<void>(
-            builder: (_) => const SettingsScreen()));
+        await Navigator.of(
+          context,
+        ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen()));
         if (!mounted) return;
         game.showAimGuide = AppServices.of(context).settings.showAimGuide;
         continue;
@@ -279,14 +283,14 @@ class _ArenaScreenState extends State<ArenaScreen> {
               future: game.loaded,
               builder: (context, snapshot) =>
                   snapshot.connectionState == ConnectionState.done
-                      ? ArenaHud(
-                          game: game,
-                          seed: _seed,
-                          teamNames: _teamNames,
-                          onPause: _pause,
-                          tutorial: _tutorial,
-                        )
-                      : const SizedBox.shrink(),
+                  ? ArenaHud(
+                      game: game,
+                      seed: _seed,
+                      teamNames: _teamNames,
+                      onPause: _pause,
+                      tutorial: _tutorial,
+                    )
+                  : const SizedBox.shrink(),
             ),
           ],
         ),

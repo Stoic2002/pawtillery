@@ -257,13 +257,13 @@ abstract class AppLocalizations {
   /// Result title.
   ///
   /// In en, this message translates to:
-  /// **'{team} wins!'**
+  /// **'{team} wins'**
   String resultWinner(String team);
 
   /// Result title when nobody survives.
   ///
   /// In en, this message translates to:
-  /// **'Draw!'**
+  /// **'A draw'**
   String get resultDraw;
 
   /// Result button.
@@ -881,7 +881,7 @@ abstract class AppLocalizations {
   /// Weapon menu title and button label.
   ///
   /// In en, this message translates to:
-  /// **'Weapons'**
+  /// **'Arms'**
   String get hudWeapons;
 
   /// Badge on a family signature weapon.
@@ -1115,7 +1115,7 @@ abstract class AppLocalizations {
   /// Shown while sudden death is on.
   ///
   /// In en, this message translates to:
-  /// **'Sudden death!'**
+  /// **'Sudden death'**
   String get hudSuddenDeath;
 
   /// Pause dialog title.
@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// Match length.
   ///
   /// In en, this message translates to:
-  /// **'{count} turns'**
+  /// **'Observed over {count} turns'**
   String resultTurns(int count);
 
   /// How-to-play next page.
@@ -1403,7 +1403,7 @@ abstract class AppLocalizations {
   /// Tutorial step 4.
   ///
   /// In en, this message translates to:
-  /// **'Press Fire!'**
+  /// **'Press Fire'**
   String get tutorialFire;
 
   /// Tutorial skip button.
@@ -1417,6 +1417,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{fps} fps · worst {worstMs} ms'**
   String debugFps(int fps, String worstMs);
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Felis catus'**
+  String get familyCatLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Canis familiaris'**
+  String get familyDogLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Oryctolagus cuniculus'**
+  String get familyRabbitLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Aves'**
+  String get familyBirdLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Cricetinae'**
+  String get familyHamsterLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Anas platyrhynchos'**
+  String get familyDuckLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Gallus gallus'**
+  String get familyChickenLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Testudines'**
+  String get familyTurtleLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Capra hircus'**
+  String get familyGoatLatin;
+
+  /// Scientific name, shown in italic. Not translated.
+  ///
+  /// In en, this message translates to:
+  /// **'Primates'**
+  String get familyMonkeyLatin;
+
+  /// Italic line under the title.
+  ///
+  /// In en, this message translates to:
+  /// **'A field guide to backyard artillery'**
+  String get menuSubtitle;
+
+  /// Heading above the menu entries.
+  ///
+  /// In en, this message translates to:
+  /// **'Contents'**
+  String get menuContents;
+
+  /// Plate number on an engraving.
+  ///
+  /// In en, this message translates to:
+  /// **'Pl. {number}'**
+  String plateNumber(String number);
+
+  /// Catalogue dialog title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a family'**
+  String get setupChooseFamily;
+
+  /// Catalogue dialog title.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a breed'**
+  String get setupChooseBreed;
+
+  /// Heading of the match options.
+  ///
+  /// In en, this message translates to:
+  /// **'Conditions'**
+  String get setupConditions;
+
+  /// Results page heading.
+  ///
+  /// In en, this message translates to:
+  /// **'Field report'**
+  String get resultReport;
+
+  /// Rubber stamp across the winning team.
+  ///
+  /// In en, this message translates to:
+  /// **'Prevails'**
+  String get resultStampWin;
+
+  /// Checkbox state.
+  ///
+  /// In en, this message translates to:
+  /// **'On'**
+  String get settingsOn;
 }
 
 class _AppLocalizationsDelegate

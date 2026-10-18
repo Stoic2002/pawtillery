@@ -29,8 +29,16 @@ flutter:
 
   # Asset folders are registered as soon as they contain real files
   # (Flutter rejects missing directories). See docs/decisions.md.
+  fonts:
+    - family: OldStandard
+      fonts:
+        - asset: assets/fonts/OldStandard-Regular.ttf
+        - asset: assets/fonts/OldStandard-Italic.ttf
+          style: italic
+
   assets:
     - assets/CREDITS.md
+    - assets/fonts/licenses/
     - assets/audio/
     - assets/maps/sandbox/
     - assets/maps/backyard/

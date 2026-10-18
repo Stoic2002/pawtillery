@@ -142,7 +142,7 @@
   "@hudCenterCamera": {
     "description": "Accessibility label."
   },
-  "resultWinner": "{team} wins!",
+  "resultWinner": "{team} wins",
   "@resultWinner": {
     "description": "Result title.",
     "placeholders": {
@@ -151,7 +151,7 @@
       }
     }
   },
-  "resultDraw": "Draw!",
+  "resultDraw": "A draw",
   "@resultDraw": {
     "description": "Result title when nobody survives."
   },
@@ -568,7 +568,7 @@
   "@breedMonkeyKapusin": {
     "description": "Breed name (common breed name, usually untranslated)."
   },
-  "hudWeapons": "Weapons",
+  "hudWeapons": "Arms",
   "@hudWeapons": {
     "description": "Weapon menu title and button label."
   },
@@ -739,7 +739,7 @@
   "@hudPause": {
     "description": "Pause button tooltip."
   },
-  "hudSuddenDeath": "Sudden death!",
+  "hudSuddenDeath": "Sudden death",
   "@hudSuddenDeath": {
     "description": "Shown while sudden death is on."
   },
@@ -802,7 +802,7 @@
   "@resultKills": {
     "description": "Results stat title."
   },
-  "resultTurns": "{count} turns",
+  "resultTurns": "Observed over {count} turns",
   "@resultTurns": {
     "description": "Match length.",
     "placeholders": {
@@ -952,7 +952,7 @@
   "@tutorialAim": {
     "description": "Tutorial step 3."
   },
-  "tutorialFire": "Press Fire!",
+  "tutorialFire": "Press Fire",
   "@tutorialFire": {
     "description": "Tutorial step 4."
   },
@@ -971,5 +971,86 @@
         "type": "String"
       }
     }
+  },
+  "familyCatLatin": "Felis catus",
+  "@familyCatLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyDogLatin": "Canis familiaris",
+  "@familyDogLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyRabbitLatin": "Oryctolagus cuniculus",
+  "@familyRabbitLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyBirdLatin": "Aves",
+  "@familyBirdLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyHamsterLatin": "Cricetinae",
+  "@familyHamsterLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyDuckLatin": "Anas platyrhynchos",
+  "@familyDuckLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyChickenLatin": "Gallus gallus",
+  "@familyChickenLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyTurtleLatin": "Testudines",
+  "@familyTurtleLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyGoatLatin": "Capra hircus",
+  "@familyGoatLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "familyMonkeyLatin": "Primates",
+  "@familyMonkeyLatin": {
+    "description": "Scientific name, shown in italic. Not translated."
+  },
+  "menuSubtitle": "A field guide to backyard artillery",
+  "@menuSubtitle": {
+    "description": "Italic line under the title."
+  },
+  "menuContents": "Contents",
+  "@menuContents": {
+    "description": "Heading above the menu entries."
+  },
+  "plateNumber": "Pl. {number}",
+  "@plateNumber": {
+    "description": "Plate number on an engraving.",
+    "placeholders": {
+      "number": {
+        "type": "String"
+      }
+    }
+  },
+  "setupChooseFamily": "Choose a family",
+  "@setupChooseFamily": {
+    "description": "Catalogue dialog title."
+  },
+  "setupChooseBreed": "Choose a breed",
+  "@setupChooseBreed": {
+    "description": "Catalogue dialog title."
+  },
+  "setupConditions": "Conditions",
+  "@setupConditions": {
+    "description": "Heading of the match options."
+  },
+  "resultReport": "Field report",
+  "@resultReport": {
+    "description": "Results page heading."
+  },
+  "resultStampWin": "Prevails",
+  "@resultStampWin": {
+    "description": "Rubber stamp across the winning team."
+  },
+  "settingsOn": "On",
+  "@settingsOn": {
+    "description": "Checkbox state."
   }
 }

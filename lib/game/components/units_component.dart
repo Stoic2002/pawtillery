@@ -33,30 +33,35 @@ class UnitsComponent extends Component {
   final Map<int, double> _walkTime = {};
   double _time = 0;
 
-  final ui.Paint _pill = ui.Paint();
-  final ui.Paint _pillEdge = ui.Paint()
+  final ui.Paint _tag = ui.Paint()..color = const ui.Color(0xF2EFE6D2);
+  final ui.Paint _tagEdge = ui.Paint()
     ..style = ui.PaintingStyle.stroke
-    ..strokeWidth = 1
-    ..color = const ui.Color(0x66000000);
+    ..strokeWidth = 1.2;
   final ui.Paint _marker = ui.Paint()..color = const ui.Color(0xFFFFFFFF);
   final ui.Paint _markerEdge = ui.Paint()
     ..style = ui.PaintingStyle.stroke
     ..strokeWidth = 1.5
     ..color = const ui.Color(0xAA000000);
 
-  final TextPaint _hpText = TextPaint(
-    style: const TextStyle(
-      fontSize: 10,
-      fontWeight: FontWeight.w800,
-      color: ui.Color(0xFFFFFFFF),
-    ),
-  );
+  // The field-guide face (docs/art_style_guide.md): HP in the team's ink
+  // on a paper tag, the name in italic ink above.
+  late final List<TextPaint> _hpText = [
+    for (final argb in teamColors)
+      TextPaint(
+        style: TextStyle(
+          fontFamily: 'OldStandard',
+          fontSize: 11,
+          color: ui.Color(argb),
+        ),
+      ),
+  ];
   final TextPaint _nameText = TextPaint(
     style: const TextStyle(
-      fontSize: 10,
-      fontWeight: FontWeight.w600,
-      color: ui.Color(0xFFFFFFFF),
-      shadows: [Shadow(color: ui.Color(0xCC000000), blurRadius: 2)],
+      fontFamily: 'OldStandard',
+      fontSize: 10.5,
+      fontStyle: FontStyle.italic,
+      color: ui.Color(0xFF2B2620),
+      shadows: [Shadow(color: ui.Color(0xCCEFE6D2), blurRadius: 3)],
     ),
   );
 
@@ -125,21 +130,21 @@ class UnitsComponent extends Component {
 
   void _drawLabels(ui.Canvas canvas, Unit u, double top) {
     final hp = '${math.max(0, u.hp)}';
-    final width = 8.0 + hp.length * 6.5;
-    final pill = ui.RRect.fromRectAndRadius(
+    final width = 10.0 + hp.length * 6.5;
+    final tag = ui.RRect.fromRectAndRadius(
       ui.Rect.fromCenter(
-          center: ui.Offset(u.centerX, top - 6), width: width, height: 12),
-      const ui.Radius.circular(6),
+          center: ui.Offset(u.centerX, top - 6), width: width, height: 13),
+      const ui.Radius.circular(1.5),
     );
-    _pill.color = ui.Color(teamColors[u.team]).withValues(alpha: 0.92);
+    _tagEdge.color = ui.Color(teamColors[u.team]);
     canvas
-      ..drawRRect(pill, _pill)
-      ..drawRRect(pill, _pillEdge);
-    _hpText.render(canvas, hp, Vector2(u.centerX, top - 6),
+      ..drawRRect(tag, _tag)
+      ..drawRRect(tag, _tagEdge);
+    _hpText[u.team].render(canvas, hp, Vector2(u.centerX, top - 6),
         anchor: Anchor.center);
     final name = u.id < unitNames.length ? unitNames[u.id] : '';
     if (name.isNotEmpty) {
-      _nameText.render(canvas, name, Vector2(u.centerX, top - 13),
+      _nameText.render(canvas, name, Vector2(u.centerX, top - 13.5),
           anchor: Anchor.bottomCenter);
     }
   }

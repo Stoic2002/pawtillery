@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../app/match_config.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/menu_backdrop.dart';
+import '../../app/field_palette.dart';
+import '../widgets/field/paper.dart';
+import '../widgets/field/stamp.dart';
 import 'arena_screen.dart';
 
 /// What the results screen shows; computed when the match ends.
@@ -30,8 +32,9 @@ class MatchResult {
 }
 
 /// Results (PRD: Hasil — tim pemenang, statistik singkat, Main Lagi, Menu
-/// Utama). Sits where the arena was, so "Change teams" is simply going back
-/// to the setup screen underneath.
+/// Utama) as a field report, the winner stamped across it in the team's
+/// ink. Sits where the arena was, so "Change teams" is simply going back to
+/// the setup screen underneath.
 class ResultsScreen extends StatelessWidget {
   const ResultsScreen({super.key, required this.result, required this.config});
 
@@ -41,129 +44,104 @@ class ResultsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final text = Theme.of(context).textTheme;
     final winner = result.winnerTeam;
     final topTeam = result.topUnitTeam;
+    final winnerInk = winner == null
+        ? FieldPalette.inkSoft
+        : Color(result.teamColors[winner]);
+
+    final report = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        SpacedTitle(l10n.resultReport, size: 22, spacing: 6),
+        Text(
+          l10n.resultTurns(result.turns),
+          style: const TextStyle(
+            fontStyle: FontStyle.italic,
+            color: FieldPalette.inkSoft,
+          ),
+        ),
+        const SizedBox(height: 6),
+        const LeafRule(width: 240),
+        const SizedBox(height: 14),
+        StampMark(
+          label: winner == null
+              ? l10n.resultDraw
+              : l10n.resultWinner(result.teamNames[winner]),
+          color: winnerInk,
+          fontSize: 24,
+        ),
+        const SizedBox(height: 18),
+        SizedBox(
+          width: 420,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _ReportLine(
+                label: l10n.resultMostDamage,
+                value: topTeam == null
+                    ? l10n.resultNoDamage
+                    : l10n.resultMostDamageValue(
+                        result.topUnitName ?? '',
+                        result.teamNames[topTeam],
+                        result.topDamage ?? 0,
+                      ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                l10n.resultKills,
+                style: const TextStyle(
+                  fontStyle: FontStyle.italic,
+                  color: FieldPalette.inkSoft,
+                ),
+              ),
+              for (var t = 0; t < result.teamNames.length; t++)
+                _ReportLine(
+                  label: result.teamNames[t],
+                  value: '${result.knockouts[t]}',
+                  ink: Color(result.teamColors[t]),
+                ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+        Wrap(
+          spacing: 16,
+          runSpacing: 10,
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            StampButton(
+              label: l10n.resultPlayAgain,
+              minWidth: 150,
+              fontSize: 16,
+              onPressed: () => Navigator.of(context).pushReplacement(
+                MaterialPageRoute<void>(
+                  builder: (_) => ArenaScreen(config: config),
+                ),
+              ),
+            ),
+            InkButton(
+              label: l10n.resultChangeTeams,
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            InkButton(
+              label: l10n.resultMainMenu,
+              onPressed: () =>
+                  Navigator.of(context).popUntil((route) => route.isFirst),
+            ),
+          ],
+        ),
+      ],
+    );
 
     return Scaffold(
-      body: MenuBackdrop(
+      body: PaperAtmosphere(
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 640),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.emoji_events,
-                      size: 56,
-                      color: winner == null
-                          ? Theme.of(context).colorScheme.outline
-                          : Color(result.teamColors[winner]),
-                    ),
-                    Text(
-                      winner == null
-                          ? l10n.resultDraw
-                          : l10n.resultWinner(result.teamNames[winner]),
-                      textAlign: TextAlign.center,
-                      style: text.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: winner == null
-                            ? null
-                            : Color(result.teamColors[winner]),
-                      ),
-                    ),
-                    Text(l10n.resultTurns(result.turns), style: text.bodySmall),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 16,
-                      runSpacing: 16,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        _StatCard(
-                          title: l10n.resultMostDamage,
-                          child: Text(
-                            topTeam == null
-                                ? l10n.resultNoDamage
-                                : l10n.resultMostDamageValue(
-                                    result.topUnitName ?? '',
-                                    result.teamNames[topTeam],
-                                    result.topDamage ?? 0,
-                                  ),
-                          ),
-                        ),
-                        _StatCard(
-                          title: l10n.resultKills,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              for (var t = 0; t < result.teamNames.length; t++)
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 6,
-                                      backgroundColor: Color(
-                                        result.teamColors[t],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Flexible(
-                                      child: Text(
-                                        '${result.teamNames[t]}: '
-                                        '${result.knockouts[t]}',
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Wrap(
-                      spacing: 12,
-                      runSpacing: 8,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            minimumSize: const Size(150, 48),
-                          ),
-                          onPressed: () =>
-                              Navigator.of(context).pushReplacement(
-                                MaterialPageRoute<void>(
-                                  builder: (_) => ArenaScreen(config: config),
-                                ),
-                              ),
-                          icon: const Icon(Icons.replay),
-                          label: Text(l10n.resultPlayAgain),
-                        ),
-                        OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(150, 48),
-                          ),
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(l10n.resultChangeTeams),
-                        ),
-                        OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(150, 48),
-                          ),
-                          onPressed: () => Navigator.of(
-                            context,
-                          ).popUntil((route) => route.isFirst),
-                          child: Text(l10n.resultMainMenu),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              padding: const EdgeInsets.all(20),
+              child: report,
             ),
           ),
         ),
@@ -172,27 +150,44 @@ class ResultsScreen extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({required this.title, required this.child});
+/// One line of the report: label, dot leaders, value.
+class _ReportLine extends StatelessWidget {
+  const _ReportLine({required this.label, required this.value, this.ink});
 
-  final String title;
-  final Widget child;
+  final String label;
+  final String value;
+  final Color? ink;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    width: 290,
-    child: Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: Theme.of(context).textTheme.titleSmall),
-            const SizedBox(height: 8),
-            child,
-          ],
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 3),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        if (ink != null) ...[
+          Container(width: 9, height: 9, color: ink),
+          const SizedBox(width: 8),
+        ],
+        Flexible(
+          child: Text(
+            label,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontSize: 16),
+          ),
         ),
-      ),
+        const Expanded(
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 6),
+            child: Text(
+              '·························································',
+              maxLines: 1,
+              overflow: TextOverflow.clip,
+              style: TextStyle(color: FieldPalette.pencil),
+            ),
+          ),
+        ),
+        Text(value, style: const TextStyle(fontSize: 16)),
+      ],
     ),
   );
 }

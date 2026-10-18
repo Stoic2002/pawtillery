@@ -102,11 +102,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String resultWinner(String team) {
-    return '$team wins!';
+    return '$team wins';
   }
 
   @override
-  String get resultDraw => 'Draw!';
+  String get resultDraw => 'A draw';
 
   @override
   String get resultPlayAgain => 'Play again';
@@ -421,7 +421,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get breedMonkeyKapusin => 'Kapusin';
 
   @override
-  String get hudWeapons => 'Weapons';
+  String get hudWeapons => 'Arms';
 
   @override
   String get hudSignature => 'Signature';
@@ -545,7 +545,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hudPause => 'Pause';
 
   @override
-  String get hudSuddenDeath => 'Sudden death!';
+  String get hudSuddenDeath => 'Sudden death';
 
   @override
   String get pauseTitle => 'Paused';
@@ -587,7 +587,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String resultTurns(int count) {
-    return '$count turns';
+    return 'Observed over $count turns';
   }
 
   @override
@@ -703,7 +703,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tutorialAim => 'Drag anywhere to aim, like a slingshot';
 
   @override
-  String get tutorialFire => 'Press Fire!';
+  String get tutorialFire => 'Press Fire';
 
   @override
   String get tutorialSkip => 'Skip tutorial';
@@ -712,4 +712,63 @@ class AppLocalizationsEn extends AppLocalizations {
   String debugFps(int fps, String worstMs) {
     return '$fps fps · worst $worstMs ms';
   }
+
+  @override
+  String get familyCatLatin => 'Felis catus';
+
+  @override
+  String get familyDogLatin => 'Canis familiaris';
+
+  @override
+  String get familyRabbitLatin => 'Oryctolagus cuniculus';
+
+  @override
+  String get familyBirdLatin => 'Aves';
+
+  @override
+  String get familyHamsterLatin => 'Cricetinae';
+
+  @override
+  String get familyDuckLatin => 'Anas platyrhynchos';
+
+  @override
+  String get familyChickenLatin => 'Gallus gallus';
+
+  @override
+  String get familyTurtleLatin => 'Testudines';
+
+  @override
+  String get familyGoatLatin => 'Capra hircus';
+
+  @override
+  String get familyMonkeyLatin => 'Primates';
+
+  @override
+  String get menuSubtitle => 'A field guide to backyard artillery';
+
+  @override
+  String get menuContents => 'Contents';
+
+  @override
+  String plateNumber(String number) {
+    return 'Pl. $number';
+  }
+
+  @override
+  String get setupChooseFamily => 'Choose a family';
+
+  @override
+  String get setupChooseBreed => 'Choose a breed';
+
+  @override
+  String get setupConditions => 'Conditions';
+
+  @override
+  String get resultReport => 'Field report';
+
+  @override
+  String get resultStampWin => 'Prevails';
+
+  @override
+  String get settingsOn => 'On';
 }

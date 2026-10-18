@@ -5,4 +5,4 @@ and license, and shown on the About screen.
 
 | Asset | Path | Author / source | License |
 | --- | --- | --- | --- |
-| _(none yet — all visuals are procedural placeholders)_ | | | |
+| Old Standard TT (Regular, Italic) | `assets/fonts/OldStandard-*.ttf` | The Old Standard Project Authors | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-OldStandard.txt`) |

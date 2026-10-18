@@ -313,10 +313,39 @@ semi-realistic rather than cartoon, system font kept.
   atmospheric haze, a sun glow, soft drifting clouds; animated water;
   surface decorations that vanish when their ground is destroyed. All
   visual-only randomness is seeded from the map id, never the sim.
-- **UI theme** (`lib/app/game_theme.dart`): dark slate + amber accent,
-  frosted glass panels, round glass HUD buttons, wind gauge, grouped team
-  HP bars, scenic static backdrop on menu/results (static so menus cost
-  nothing and widget tests can settle).
+- **UI theme:** the first dark "glass + amber" theme was rejected by the
+  developer as generic (see "Field guide identity" below); replaced.
 - **Gallery test:** `RENDER_GALLERY=1 flutter test test/art/gallery_test.dart`
   writes PNGs of every breed, weapon and map to `build/gallery/` for quick
   art review; without the flag it still smoke-tests every painter.
+
+## Field guide identity (2026-10-18)
+
+The developer compared the UI with Stillroom and found it generic. The
+difference was identity, not polish: Stillroom has a one-line concept, a
+named palette with meanings, a period typeface, UI built as objects of its
+world, square hairline shapes, an atmosphere layer and restraint.
+
+- **Concept chosen:** "A naturalist's field journal that went to war."
+  Written up in `docs/art_style_guide.md`, which every screen now follows.
+- **Type:** Old Standard TT (SIL OFL), copied from the developer's own
+  Stillroom assets with its licence (no download), one weight, titles in
+  spaced capitals, Latin names and asides in italic.
+- **Palette** (`lib/app/field_palette.dart`): paper, ink, pencil, one stamp
+  red that means "do it" or "it hurt"; team colours became printer's inks.
+- **Kit** (`lib/ui/widgets/field/`): paper atmosphere (fibres, specks, warm
+  vignette), paper panels with tape and double rules, leaf rules, rubber
+  stamp buttons (always on paper so they read over the scene), table of
+  contents entries, ink-drawn icons (no Material icons on screen),
+  engraved plates (the colour art run through an ink/paper duotone
+  matrix), catalogue sheets, specimen tags, tally marks.
+- **Screens:** main menu as a journal spread; setup as a field roster with
+  catalogues of plates instead of dropdowns; How to Play as journal pages;
+  Settings as a printed form; About as a colophon; results as a field
+  report with the winner stamped in the team's ink; pause and confirm as
+  taped paper sheets; the weapon menu as a catalogue of arms.
+- **Arena:** the world stays painted in colour; only the HUD is paper and
+  ink (turn slip, wind scale, hatched HP tally, paper tokens, Fire seal).
+  Unit tags use the book face with HP in the team's ink.
+- **Copy voice:** no exclamation marks in UI chrome ("Sudden death",
+  "A draw", "Observed over 17 turns").
