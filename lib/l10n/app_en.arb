@@ -1,0 +1,82 @@
+{
+  "@@locale": "en",
+  "appTitle": "Pawtillery",
+  "@appTitle": {
+    "description": "Working title of the game."
+  },
+  "menuPlay": "Play",
+  "@menuPlay": {
+    "description": "Main menu button that starts a match."
+  },
+  "arenaPlaceholder": "Test field",
+  "@arenaPlaceholder": {
+    "description": "Temporary label shown in the arena until gameplay exists."
+  },
+  "back": "Back",
+  "@back": {
+    "description": "Generic back button."
+  },
+  "hudAngle": "Angle {value}°",
+  "@hudAngle": {
+    "description": "Current aim angle in degrees.",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "hudPower": "Power {value}%",
+  "@hudPower": {
+    "description": "Current shot power in percent.",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "hudWind": "Wind {value}",
+  "@hudWind": {
+    "description": "Wind strength, -10..10.",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "hudFire": "Fire",
+  "@hudFire": {
+    "description": "Fire button."
+  },
+  "hudDecrease": "Decrease",
+  "@hudDecrease": {
+    "description": "Accessibility label for minus buttons."
+  },
+  "hudIncrease": "Increase",
+  "@hudIncrease": {
+    "description": "Accessibility label for plus buttons."
+  },
+  "hudTapHint": "Tap the map to blast a hole",
+  "@hudTapHint": {
+    "description": "Test-bench hint."
+  },
+  "debugExplosionTime": "Explosion {lastMs} ms (max {maxMs} ms)",
+  "@debugExplosionTime": {
+    "description": "Debug-only timing readout.",
+    "placeholders": {
+      "lastMs": {
+        "type": "String"
+      },
+      "maxMs": {
+        "type": "String"
+      }
+    }
+  },
+  "weaponRock": "Rock Toss",
+  "@weaponRock": {
+    "description": "Basic thrown-rock weapon."
+  },
+  "mapSandbox": "Test Field",
+  "@mapSandbox": {
+    "description": "Name of the test map."
+  }
+}

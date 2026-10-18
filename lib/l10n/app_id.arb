@@ -1,0 +1,17 @@
+{
+  "@@locale": "id",
+  "appTitle": "Pawtillery",
+  "menuPlay": "Main",
+  "arenaPlaceholder": "Lapangan uji",
+  "back": "Kembali",
+  "hudAngle": "Sudut {value}°",
+  "hudPower": "Kekuatan {value}%",
+  "hudWind": "Angin {value}",
+  "hudFire": "Tembak",
+  "hudDecrease": "Kurangi",
+  "hudIncrease": "Tambah",
+  "hudTapHint": "Ketuk peta untuk meledakkan tanah",
+  "debugExplosionTime": "Ledakan {lastMs} ms (maks {maxMs} ms)",
+  "weaponRock": "Batu Lempar",
+  "mapSandbox": "Lapangan Uji"
+}

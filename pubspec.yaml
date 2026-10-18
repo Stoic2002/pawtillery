@@ -1,0 +1,33 @@
+name: pawtillery
+description: "Pawtillery — turn-based 2D animal artillery game (hotseat)."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.5
+
+# Only packages listed in the PRD (Arsitektur teknis) are allowed here.
+dependencies:
+  flame: ^1.38.2
+  flame_audio: ^2.12.2
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+  shared_preferences: ^2.5.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  # Asset folders are registered as soon as they contain real files
+  # (Flutter rejects missing directories). See docs/decisions.md.
+  assets:
+    - assets/maps/sandbox/
