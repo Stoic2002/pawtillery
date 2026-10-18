@@ -554,7 +554,7 @@ class SimWorld implements SimContext {
       final outcome = FlightBehavior.of(p.weapon).tick(p, this);
       if (outcome == FlightOutcome.flying) continue;
       _projectiles.removeAt(i);
-      _events.add(ProjectileRemoved(p.id, outcome));
+      _events.add(ProjectileRemoved(p.id, outcome, x: p.x, y: p.y));
     }
     _projectiles.addAll(_spawned);
     _spawned.clear();
@@ -609,6 +609,7 @@ class SimWorld implements SimContext {
         UnitPhysics.checkSupport(u, terrain);
         if (!u.grounded) {
           final fell = UnitPhysics.stepAirborne(u, terrain);
+          if (fell != null) _events.add(UnitLanded(u.id, fell));
           if (fell != null && u.stats.fallDamage) {
             final damage =
                 Damage.fall(fell, threshold: u.stats.fallDamageThreshold);

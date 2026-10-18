@@ -1381,6 +1381,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Link copied'**
   String get aboutLinkCopied;
+
+  /// Tutorial step 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold an arrow to walk'**
+  String get tutorialWalk;
+
+  /// Tutorial step 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap here to choose a weapon'**
+  String get tutorialWeapons;
+
+  /// Tutorial step 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag anywhere to aim, like a slingshot'**
+  String get tutorialAim;
+
+  /// Tutorial step 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Press Fire!'**
+  String get tutorialFire;
+
+  /// Tutorial skip button.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip tutorial'**
+  String get tutorialSkip;
+
+  /// Debug-only frame rate readout.
+  ///
+  /// In en, this message translates to:
+  /// **'{fps} fps · worst {worstMs} ms'**
+  String debugFps(int fps, String worstMs);
 }
 
 class _AppLocalizationsDelegate

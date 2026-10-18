@@ -242,3 +242,45 @@ Decisions not spelled out in the PRD. Simplest option chosen, logged here.
 - **Settings stored but not yet used:** music/effects volume and vibration
   are saved now and wired to audio and haptics in M5; "show the tutorial
   again" resets a flag the M5 tutorial will read.
+
+## M5 — Polish (2026-10-18)
+
+- **Particles are one pooled component** (`lib/game/effects/particle_system.dart`):
+  800 slots in typed arrays, swap-remove on death, no object per particle,
+  dropped when full. Explosions (flash, debris in the map's dirt colour,
+  sparks, smoke), rings for shockwaves/punches, dust on hard landings and
+  digging, splashes when anything hits the water. Visual only: its own
+  unseeded RNG, never read by the sim.
+- **Projectile pooling:** rendering already has zero objects per projectile
+  (one component draws the sim list). The sim's `Projectile` objects are a
+  handful per turn, so pooling them would add risk to determinism for no
+  measurable gain; revisit only if profiling shows GC from them.
+- **Audio** (`lib/services/audio_service.dart`) maps sim events to the PRD
+  sound list and loads files by name from `assets/audio/` (README there).
+  Missing files are silent and never touch the audio plugin, so the build
+  works with no audio at all. The same sound plays at most every 60 ms
+  (cluster blasts). Music switches menu ↔ match; volumes follow Settings
+  live.
+- **Haptics** use Flutter's `HapticFeedback` (no extra package or
+  permission): light on firing, medium/heavy on blasts (≥ 50 px radius),
+  at most one per 80 ms, off when Settings says so.
+- **Tutorial:** four tooltips (walk → weapons → aim → fire) that advance
+  when the player does the thing; doing a later step skips earlier ones.
+  Only in the first turn of the first match (PRD), skippable; finishing or
+  skipping sets the flag Settings can reset.
+- **FPS readout** (debug/profile only): average fps and worst frame per
+  half second, next to the explosion timing, for checking the PRD targets
+  on the test phone.
+- **HUD publish only after a sim step:** on 90/120 Hz phones there are more
+  frames than ticks; the HUD only shows sim state, so the extra frames now
+  skip that work.
+- **Crash soak test** (`test/game/soak_test.dart`): a bot plays 20 full
+  matches across all 3 maps with 2–4 teams, 1–4 units, random families and
+  random usable weapons (all 17 non-skip weapons get used), with sudden
+  death so every match ends. Checks that each ends with only the winner
+  standing. This covers the sim; crash-free UI over 20 matches still needs
+  the device run.
+- **Performance targets need the test phone** (60 fps, ≥ 50 during
+  cluster blasts, explosion < 4 ms, cold start < 3 s, < 300 MB, < 50 MB
+  download). The readouts are in place; numbers to be filled in from a
+  profile-mode run.

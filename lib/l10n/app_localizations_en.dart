@@ -692,4 +692,24 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutLinkCopied => 'Link copied';
+
+  @override
+  String get tutorialWalk => 'Hold an arrow to walk';
+
+  @override
+  String get tutorialWeapons => 'Tap here to choose a weapon';
+
+  @override
+  String get tutorialAim => 'Drag anywhere to aim, like a slingshot';
+
+  @override
+  String get tutorialFire => 'Press Fire!';
+
+  @override
+  String get tutorialSkip => 'Skip tutorial';
+
+  @override
+  String debugFps(int fps, String worstMs) {
+    return '$fps fps · worst $worstMs ms';
+  }
 }

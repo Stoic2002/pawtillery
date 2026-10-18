@@ -11,12 +11,15 @@ import '../../config/match_defaults.dart';
 import '../../config/teams.dart';
 import '../../config/weapons.dart';
 import '../../game/hud_state.dart';
+import '../../services/audio_service.dart';
 import '../../game/pawtillery_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
+import '../../sim/events.dart';
 import '../../sim/turn_manager.dart';
 import '../hud/arena_hud.dart';
 import '../hud/pause_dialog.dart';
+import '../hud/tutorial.dart';
 import 'results_screen.dart';
 import 'settings_screen.dart';
 
@@ -47,6 +50,8 @@ class _ArenaScreenState extends State<ArenaScreen> {
   late List<String> _teamNames;
   late List<String> _unitNames;
   bool _paused = false;
+  AudioService? _audio;
+  TutorialController? _tutorial;
   bool _finished = false;
 
   _GestureMode _mode = _GestureMode.none;
@@ -94,6 +99,26 @@ class _ArenaScreenState extends State<ArenaScreen> {
       showAimGuide: AppServices.of(context).settings.showAimGuide,
     );
     game.hud.addListener(_onHudChanged);
+    final services = AppServices.of(context);
+    final haptics = Haptics(services.settings);
+    _audio = services.audio..playMusic(Music.match).ignore();
+    if (!services.settings.tutorialDone) {
+      final tutorial = _tutorial = TutorialController();
+      tutorial.addListener(() {
+        if (tutorial.isDone) services.settings.tutorialDone = true;
+      });
+      game.aim.addListener(() {
+        if (game.aim.value.active) tutorial.complete(TutorialStep.aim);
+      });
+    }
+    game.onEvent = (event) {
+      final sfx = AudioService.sfxFor(event);
+      if (sfx != null) services.audio.play(sfx);
+      haptics.onEvent(event);
+      if (event is WeaponUsed) _tutorial?.complete(TutorialStep.fire);
+      // PRD: the tutorial belongs to the first turn only.
+      if (event is TurnStarted) _tutorial?.skip();
+    };
     return _game = game;
   }
 
@@ -226,7 +251,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   @override
   void dispose() {
+    _tutorial?.dispose();
     _game?.hud.removeListener(_onHudChanged);
+    _audio?.playMusic(Music.menu).ignore();
     super.dispose();
   }
 
@@ -262,6 +289,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                           seed: _seed,
                           teamNames: _teamNames,
                           onPause: _pause,
+                          tutorial: _tutorial,
                         )
                       : const SizedBox.shrink(),
             ),

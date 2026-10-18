@@ -9,6 +9,7 @@ import '../../l10n/app_localizations.dart';
 import '../../sim/inputs.dart';
 import '../../sim/turn_manager.dart';
 import '../../l10n/l10n_lookup.g.dart';
+import 'tutorial.dart';
 import 'weapon_menu.dart';
 
 /// Arena HUD. Everything sits along the screen edges so the middle of the
@@ -20,12 +21,16 @@ class ArenaHud extends StatelessWidget {
     required this.seed,
     required this.teamNames,
     required this.onPause,
+    this.tutorial,
   });
 
   final PawtilleryGame game;
   final int seed;
   final List<String> teamNames;
   final VoidCallback onPause;
+
+  /// First-match tutorial, if it should show.
+  final TutorialController? tutorial;
 
   @override
   Widget build(BuildContext context) {
@@ -60,11 +65,21 @@ class ArenaHud extends StatelessWidget {
                     if (!hud.isOver) ...[
                       Align(
                         alignment: Alignment.bottomLeft,
-                        child: _WalkButtons(game: game, enabled: hud.canMove),
+                        child: _WalkButtons(
+                          game: game,
+                          enabled: hud.canMove,
+                          onWalk: () =>
+                              tutorial?.complete(TutorialStep.walk),
+                        ),
                       ),
                       Align(
                         alignment: Alignment.bottomRight,
-                        child: _ActionCluster(game: game, hud: hud),
+                        child: _ActionCluster(
+                          game: game,
+                          hud: hud,
+                          onOpenWeapons: () =>
+                              tutorial?.complete(TutorialStep.weapons),
+                        ),
                       ),
                     ],
                   ],
@@ -73,6 +88,11 @@ class ArenaHud extends StatelessWidget {
             ),
             // Upper third: the camera centres the active unit, so a centred
             // banner would hide it.
+            if (tutorial != null)
+              TutorialOverlay(
+                controller: tutorial!,
+                visible: hud.phase == TurnPhase.action,
+              ),
             if (hud.phase == TurnPhase.turnStart)
               Align(
                 alignment: const Alignment(0, -0.4),
@@ -269,6 +289,20 @@ class _TopRight extends StatelessWidget {
         if (kDebugMode || kProfileMode) ...[
           const SizedBox(height: 4),
           _Chip(child: Text(l10n.debugSeed(seed), style: _debugText)),
+          ValueListenableBuilder<FrameStats?>(
+            valueListenable: game.frameStats,
+            builder: (context, f, _) => f == null
+                ? const SizedBox.shrink()
+                : Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: _Chip(
+                      child: Text(
+                        l10n.debugFps(f.fps, f.worstMs.toStringAsFixed(1)),
+                        style: _debugText,
+                      ),
+                    ),
+                  ),
+          ),
           ValueListenableBuilder<ExplosionTiming?>(
             valueListenable: game.explosionTiming,
             builder: (context, t, _) => t == null
@@ -295,10 +329,15 @@ class _TopRight extends StatelessWidget {
 /// Hold-to-walk buttons. Uses raw pointer events so walking starts on touch
 /// down, with no tap delay.
 class _WalkButtons extends StatelessWidget {
-  const _WalkButtons({required this.game, required this.enabled});
+  const _WalkButtons({
+    required this.game,
+    required this.enabled,
+    required this.onWalk,
+  });
 
   final PawtilleryGame game;
   final bool enabled;
+  final VoidCallback onWalk;
 
   @override
   Widget build(BuildContext context) {
@@ -310,14 +349,20 @@ class _WalkButtons extends StatelessWidget {
           label: l10n.hudWalkLeft,
           icon: Icons.arrow_left,
           enabled: enabled,
-          onHold: (down) => game.setWalk(down ? -1 : 0),
+          onHold: (down) {
+            if (down) onWalk();
+            game.setWalk(down ? -1 : 0);
+          },
         ),
         const SizedBox(width: 12),
         _HoldButton(
           label: l10n.hudWalkRight,
           icon: Icons.arrow_right,
           enabled: enabled,
-          onHold: (down) => game.setWalk(down ? 1 : 0),
+          onHold: (down) {
+            if (down) onWalk();
+            game.setWalk(down ? 1 : 0);
+          },
         ),
       ],
     );
@@ -390,10 +435,15 @@ class _HoldButtonState extends State<_HoldButton> {
 /// Bottom-right: weapon button, jumps, and the controls for the current
 /// weapon's aim mode (or a hint for how to aim it).
 class _ActionCluster extends StatelessWidget {
-  const _ActionCluster({required this.game, required this.hud});
+  const _ActionCluster({
+    required this.game,
+    required this.hud,
+    required this.onOpenWeapons,
+  });
 
   final PawtilleryGame game;
   final HudState hud;
+  final VoidCallback onOpenWeapons;
 
   @override
   Widget build(BuildContext context) {
@@ -411,7 +461,12 @@ class _ActionCluster extends StatelessWidget {
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _WeaponButton(game: game, weapon: weapon, enabled: canAim),
+                _WeaponButton(
+                  game: game,
+                  weapon: weapon,
+                  enabled: canAim,
+                  onOpen: onOpenWeapons,
+                ),
                 const SizedBox(height: 8),
                 _JumpButtons(game: game, enabled: hud.canMove),
               ],
@@ -458,11 +513,13 @@ class _WeaponButton extends StatelessWidget {
     required this.game,
     required this.weapon,
     required this.enabled,
+    required this.onOpen,
   });
 
   final PawtilleryGame game;
   final WeaponDef weapon;
   final bool enabled;
+  final VoidCallback onOpen;
 
   @override
   Widget build(BuildContext context) {
@@ -476,7 +533,12 @@ class _WeaponButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: enabled ? () => showWeaponMenu(context, game) : null,
+          onTap: enabled
+              ? () {
+                  onOpen();
+                  showWeaponMenu(context, game);
+                }
+              : null,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
             child: Row(

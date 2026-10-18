@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import '../l10n/app_localizations.dart';
+import '../services/audio_service.dart';
 import '../services/settings_store.dart';
 import '../ui/screens/main_menu_screen.dart';
 import '../ui/screens/splash_screen.dart';
@@ -22,22 +23,31 @@ class PawtilleryApp extends StatefulWidget {
 }
 
 class _PawtilleryAppState extends State<PawtilleryApp> {
-  late final Future<SettingsStore> _settings = widget.settings != null
-      ? Future.value(widget.settings)
-      : SettingsStore.load();
+  late final Future<(SettingsStore, AudioService)> _services = _load();
+
+  Future<(SettingsStore, AudioService)> _load() async {
+    final injected = widget.settings;
+    if (injected != null) return (injected, AudioService.silent(injected));
+    final settings = await SettingsStore.load();
+    final audio = await AudioService.create(settings);
+    audio.playMusic(Music.menu).ignore();
+    return (settings, audio);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<SettingsStore>(
-      future: _settings,
+    return FutureBuilder<(SettingsStore, AudioService)>(
+      future: _services,
       builder: (context, snapshot) {
-        final settings = snapshot.data;
-        if (settings == null) {
+        final services = snapshot.data;
+        if (services == null) {
           return _materialApp(
               locale: widget.locale, home: const SplashScreen());
         }
+        final (settings, audio) = services;
         return AppServices(
           settings: settings,
+          audio: audio,
           child: ListenableBuilder(
             listenable: settings,
             builder: (context, _) {

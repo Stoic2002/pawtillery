@@ -939,5 +939,37 @@
   "aboutLinkCopied": "Link copied",
   "@aboutLinkCopied": {
     "description": "Snackbar."
+  },
+  "tutorialWalk": "Hold an arrow to walk",
+  "@tutorialWalk": {
+    "description": "Tutorial step 1."
+  },
+  "tutorialWeapons": "Tap here to choose a weapon",
+  "@tutorialWeapons": {
+    "description": "Tutorial step 2."
+  },
+  "tutorialAim": "Drag anywhere to aim, like a slingshot",
+  "@tutorialAim": {
+    "description": "Tutorial step 3."
+  },
+  "tutorialFire": "Press Fire!",
+  "@tutorialFire": {
+    "description": "Tutorial step 4."
+  },
+  "tutorialSkip": "Skip tutorial",
+  "@tutorialSkip": {
+    "description": "Tutorial skip button."
+  },
+  "debugFps": "{fps} fps · worst {worstMs} ms",
+  "@debugFps": {
+    "description": "Debug-only frame rate readout.",
+    "placeholders": {
+      "fps": {
+        "type": "int"
+      },
+      "worstMs": {
+        "type": "String"
+      }
+    }
   }
 }

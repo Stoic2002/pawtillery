@@ -11,6 +11,7 @@ import '../../config/match_defaults.dart';
 import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
+import '../../services/audio_service.dart';
 import '../widgets/unit_avatar.dart';
 import 'arena_screen.dart';
 
@@ -48,6 +49,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
   Future<void> _start() async {
     final config = _config!;
+    AppServices.of(context).audio.play(Sfx.ui);
     await AppServices.of(context).settings.saveMatch(config);
     if (!mounted) return;
     Navigator.of(context).push(

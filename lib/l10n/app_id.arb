@@ -213,5 +213,11 @@
   "aboutPrivacy": "Kebijakan privasi",
   "aboutPrivacyNote": "Game ini tidak mengumpulkan data apa pun. Kebijakan lengkap:",
   "aboutCopyLink": "Salin tautan",
-  "aboutLinkCopied": "Tautan disalin"
+  "aboutLinkCopied": "Tautan disalin",
+  "tutorialWalk": "Tahan tombol panah untuk berjalan",
+  "tutorialWeapons": "Ketuk di sini untuk memilih senjata",
+  "tutorialAim": "Seret di mana saja untuk membidik, seperti ketapel",
+  "tutorialFire": "Tekan Tembak!",
+  "tutorialSkip": "Lewati tutorial",
+  "debugFps": "{fps} fps · terburuk {worstMs} ms"
 }

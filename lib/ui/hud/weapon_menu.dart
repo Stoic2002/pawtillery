@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../../app/app_services.dart';
 import '../../config/weapons.dart';
 import '../../game/pawtillery_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
+import '../../services/audio_service.dart';
 
 /// Weapon grid (PRD: Menu senjata): every shared weapon plus the active
 /// unit's signature weapon, with remaining ammo; signature marked.
@@ -36,6 +38,7 @@ Future<void> showWeaponMenu(BuildContext context, PawtilleryGame game) {
                           choice: c,
                           selected: c.weapon.id == game.aim.value.weaponId,
                           onTap: () {
+                            AppServices.of(context).audio.play(Sfx.ui);
                             game.selectWeapon(c.weapon.id);
                             Navigator.of(context).pop();
                           },

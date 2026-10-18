@@ -11,6 +11,7 @@ import '../config/match_defaults.dart';
 import '../config/weapons.dart';
 import '../sim/events.dart';
 import '../sim/inputs.dart';
+import '../sim/physics.dart';
 import '../sim/match_setup.dart';
 import '../sim/turn_manager.dart';
 import '../sim/world.dart';
@@ -20,7 +21,7 @@ import 'components/backdrop_components.dart';
 import 'components/projectiles_component.dart';
 import 'components/terrain_component.dart';
 import 'components/units_component.dart';
-import 'effects/explosion_flash.dart';
+import 'effects/particle_system.dart';
 import 'hud_state.dart';
 import 'map_loader.dart';
 import 'match_stats.dart';
@@ -31,6 +32,14 @@ class ExplosionTiming {
   const ExplosionTiming({required this.lastMs, required this.maxMs});
   final double lastMs;
   final double maxMs;
+}
+
+/// Frame rate over the last half second (debug/profile readout). PRD
+/// target: steady 60 fps, never below 50 during cluster explosions.
+class FrameStats {
+  const FrameStats({required this.fps, required this.worstMs});
+  final int fps;
+  final double worstMs;
 }
 
 /// One entry of the weapon menu for the active unit.
@@ -82,6 +91,10 @@ class PawtilleryGame extends FlameGame {
   bool showAimGuide;
 
   late final MatchStats stats;
+  final ParticleSystem particles = ParticleSystem();
+
+  /// Every sim event, for effects outside the game (sound, vibration).
+  void Function(SimEvent event)? onEvent;
 
   late final SimWorld sim;
   late final TerrainComponent _terrain;
@@ -98,6 +111,10 @@ class PawtilleryGame extends FlameGame {
     fuseSeconds: FuseConfig.defaultSeconds,
   ));
   final explosionTiming = ValueNotifier<ExplosionTiming?>(null);
+  final frameStats = ValueNotifier<FrameStats?>(null);
+  double _fpsWindow = 0;
+  double _fpsWorst = 0;
+  int _fpsFrames = 0;
 
   /// Each team keeps its last chosen weapon between turns.
   final Map<int, String> _weaponByTeam = {};
@@ -143,6 +160,7 @@ class PawtilleryGame extends FlameGame {
       WaterComponent(
           map: map, worldSize: worldSize, level: () => sim.waterLevel),
       _aimGuide,
+      particles,
     ]);
 
     _camera = ArenaCamera(camera: camera, worldSize: worldSize)
@@ -317,6 +335,7 @@ class PawtilleryGame extends FlameGame {
   @override
   void update(double dt) {
     super.update(dt);
+    if (kDebugMode || kProfileMode) _measureFrame(dt);
     _accumulator += dt;
     var steps = 0;
     while (_accumulator >= MatchDefaults.tickSeconds &&
@@ -340,7 +359,24 @@ class PawtilleryGame extends FlameGame {
     } else if (!aim.value.active && canAim && weapon.aim == AimMode.none) {
       aim.value = aim.value.copyWith(active: true);
     }
-    _publishHud();
+    // The HUD only shows sim state, so skip the work on frames without a
+    // sim step (high-refresh screens run more frames than ticks).
+    if (steps > 0) _publishHud();
+  }
+
+  void _measureFrame(double dt) {
+    _fpsWindow += dt;
+    _fpsFrames++;
+    if (dt > _fpsWorst) _fpsWorst = dt;
+    if (_fpsWindow >= 0.5) {
+      frameStats.value = FrameStats(
+        fps: (_fpsFrames / _fpsWindow).round(),
+        worstMs: _fpsWorst * 1000,
+      );
+      _fpsWindow = 0;
+      _fpsFrames = 0;
+      _fpsWorst = 0;
+    }
   }
 
   void _stepSim() {
@@ -363,21 +399,41 @@ class PawtilleryGame extends FlameGame {
     var exploded = false;
     for (final event in events) {
       stats.record(event);
+      onEvent?.call(event);
       switch (event) {
         case ExplosionEvent(:final x, :final y, :final radius, :final carved):
           exploded = true;
-          if (carved != null) _terrain.carve(x, y, radius);
+          if (carved != null) {
+            _terrain.carve(x, y, radius);
+            particles.explosion(x.toDouble(), y.toDouble(), radius.toDouble(),
+                dirtArgb: map.dirtArgb);
+          } else {
+            particles.ring(x.toDouble(), y.toDouble(), radius.toDouble());
+          }
           _aimGuide.invalidate();
-          world.add(ExplosionFlash(
-              x: x.toDouble(), y: y.toDouble(), radius: radius.toDouble()));
         case TerrainCarved(:final x, :final y, :final radius):
           _terrain.carve(x, y, radius);
+          particles.dust(x.toDouble(), (y + radius).toDouble(), strength: 0.4);
           _aimGuide.invalidate();
         case TerrainAdded(:final area):
           _terrain.rebuild(area);
           _aimGuide.invalidate();
         case TurnStarted():
           _onTurnStarted();
+        case UnitLanded(:final unitId, :final fallDistance):
+          if (fallDistance > 30) {
+            final u = sim.units[unitId];
+            particles.dust(u.centerX, u.y,
+                strength: (fallDistance / 150).clamp(0.3, 1.5));
+          }
+        case ProjectileRemoved(:final outcome, :final x)
+            when outcome == FlightOutcome.water:
+          particles.splash(x, sim.waterLevel.toDouble(),
+              waterArgb: map.waterArgb);
+        case UnitDied(:final unitId, :final cause)
+            when cause == DeathCause.water:
+          particles.splash(sim.units[unitId].centerX, sim.waterLevel.toDouble(),
+              waterArgb: map.waterArgb);
         case ProjectileLaunched() ||
               ProjectileRemoved() ||
               UnitDamaged() ||
@@ -393,7 +449,6 @@ class PawtilleryGame extends FlameGame {
               SuddenDeathStarted() ||
               WaterRose() ||
               MatchEnded():
-          // Sound, haptics and particles hook in here (M5).
           break;
       }
     }
@@ -429,6 +484,7 @@ class PawtilleryGame extends FlameGame {
     hud.dispose();
     aim.dispose();
     explosionTiming.dispose();
+    frameStats.dispose();
     super.onDispose();
   }
 }

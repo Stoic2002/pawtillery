@@ -1,13 +1,20 @@
 import 'package:flutter/widgets.dart';
 
 import '../l10n/app_localizations.dart';
+import '../services/audio_service.dart';
 import '../services/settings_store.dart';
 
 /// Makes app-wide services reachable from any screen.
 class AppServices extends InheritedWidget {
-  const AppServices({super.key, required this.settings, required super.child});
+  const AppServices({
+    super.key,
+    required this.settings,
+    required this.audio,
+    required super.child,
+  });
 
   final SettingsStore settings;
+  final AudioService audio;
 
   static AppServices of(BuildContext context) {
     final services =
@@ -17,7 +24,8 @@ class AppServices extends InheritedWidget {
   }
 
   @override
-  bool updateShouldNotify(AppServices old) => settings != old.settings;
+  bool updateShouldNotify(AppServices old) =>
+      settings != old.settings || audio != old.audio;
 }
 
 /// Names the Random button picks from, for the current language.

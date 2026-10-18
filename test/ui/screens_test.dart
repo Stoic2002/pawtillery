@@ -4,6 +4,7 @@ import 'package:pawtillery/app/app.dart';
 import 'package:pawtillery/app/app_services.dart';
 import 'package:pawtillery/app/match_config.dart';
 import 'package:pawtillery/l10n/app_localizations.dart';
+import 'package:pawtillery/services/audio_service.dart';
 import 'package:pawtillery/services/settings_store.dart';
 import 'package:pawtillery/ui/hud/pause_dialog.dart';
 import 'package:pawtillery/ui/screens/results_screen.dart';
@@ -30,6 +31,7 @@ Future<SettingsStore> _settings() async {
 Widget _wrap(SettingsStore settings, Widget child, {Locale? locale}) =>
     AppServices(
       settings: settings,
+      audio: AudioService.silent(settings),
       child: MaterialApp(
         locale: locale ?? const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,

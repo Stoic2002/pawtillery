@@ -693,4 +693,25 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get aboutLinkCopied => 'Tautan disalin';
+
+  @override
+  String get tutorialWalk => 'Tahan tombol panah untuk berjalan';
+
+  @override
+  String get tutorialWeapons => 'Ketuk di sini untuk memilih senjata';
+
+  @override
+  String get tutorialAim =>
+      'Seret di mana saja untuk membidik, seperti ketapel';
+
+  @override
+  String get tutorialFire => 'Tekan Tembak!';
+
+  @override
+  String get tutorialSkip => 'Lewati tutorial';
+
+  @override
+  String debugFps(int fps, String worstMs) {
+    return '$fps fps · terburuk $worstMs ms';
+  }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../../app/app_services.dart';
 import '../../l10n/app_localizations.dart';
+import '../../services/audio_service.dart';
 import '../widgets/paw_logo.dart';
 import 'about_screen.dart';
 import 'how_to_play_screen.dart';
@@ -13,8 +15,11 @@ class MainMenuScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    void open(Widget screen) => Navigator.of(context)
-        .push(MaterialPageRoute<void>(builder: (_) => screen));
+    void open(Widget screen) {
+      AppServices.of(context).audio.play(Sfx.ui);
+      Navigator.of(context)
+          .push(MaterialPageRoute<void>(builder: (_) => screen));
+    }
 
     return Scaffold(
       body: SafeArea(

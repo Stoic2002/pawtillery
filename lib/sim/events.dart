@@ -29,9 +29,14 @@ final class ProjectileLaunched extends SimEvent {
 }
 
 final class ProjectileRemoved extends SimEvent {
-  const ProjectileRemoved(this.id, this.outcome);
+  const ProjectileRemoved(this.id, this.outcome,
+      {required this.x, required this.y});
   final int id;
   final FlightOutcome outcome;
+
+  /// Where it ended (splash, impact effects).
+  final double x;
+  final double y;
 }
 
 enum DamageCause {
@@ -109,6 +114,13 @@ final class MineTriggered extends SimEvent {
 final class MineRemoved extends SimEvent {
   const MineRemoved(this.mineId);
   final int mineId;
+}
+
+/// An airborne unit touched the ground after falling [fallDistance] px.
+final class UnitLanded extends SimEvent {
+  const UnitLanded(this.unitId, this.fallDistance);
+  final int unitId;
+  final double fallDistance;
 }
 
 final class UnitJumped extends SimEvent {

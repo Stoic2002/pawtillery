@@ -31,6 +31,7 @@ flutter:
   # (Flutter rejects missing directories). See docs/decisions.md.
   assets:
     - assets/CREDITS.md
+    - assets/audio/
     - assets/maps/sandbox/
     - assets/maps/backyard/
     - assets/maps/park/
