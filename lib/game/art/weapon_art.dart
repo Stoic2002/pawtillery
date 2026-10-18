@@ -88,17 +88,29 @@ abstract final class WeaponArt {
   }
 
   static void _rock(ui.Canvas c, double r, int argb) {
+    // Irregular pebble: uneven radii, smoothed with curves.
+    const radii = [1.0, 0.86, 0.94, 0.72, 0.9, 1.0, 0.8, 0.88, 0.76];
+    final pts = [
+      for (var i = 0; i < radii.length; i++)
+        ui.Offset(math.cos(i / radii.length * math.pi * 2 + 0.3) * r * radii[i],
+            math.sin(i / radii.length * math.pi * 2 + 0.3) * r * radii[i] * 0.82),
+    ];
     final path = ui.Path();
-    const pts = [1.0, 0.82, 0.95, 0.78, 1.0, 0.86, 0.92, 0.8];
     for (var i = 0; i < pts.length; i++) {
-      final a = i / pts.length * math.pi * 2;
-      final p = ui.Offset(math.cos(a) * r * pts[i], math.sin(a) * r * pts[i]);
-      i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
+      final a = pts[i];
+      final b = pts[(i + 1) % pts.length];
+      final mid = (a + b) / 2;
+      if (i == 0) path.moveTo(mid.dx, mid.dy);
+      final next = (b + pts[(i + 2) % pts.length]) / 2;
+      path.quadraticBezierTo(b.dx, b.dy, next.dx, next.dy);
     }
     path.close();
     _shaded(c, path, argb, light: 0.35);
-    c.drawCircle(ui.Offset(-r * 0.35, -r * 0.35), r * 0.18,
-        PaintKit.solid(0x55FFFFFF));
+    c
+      ..drawCircle(ui.Offset(-r * 0.3, -r * 0.3), r * 0.2,
+          PaintKit.solid(0x40FFFFFF))
+      ..drawCircle(ui.Offset(r * 0.25, r * 0.15), r * 0.12,
+          PaintKit.solid(0x33000000));
   }
 
   static void _grenade(ui.Canvas c) {
@@ -219,19 +231,26 @@ abstract final class WeaponArt {
     }
   }
 
+  /// Sunflower seed: a dark teardrop with pale lengthwise stripes.
   static void _seed(ui.Canvas c, double s) {
     final path = ui.Path()
-      ..moveTo(0, -6 * s)
-      ..quadraticBezierTo(4 * s, 0, 0, 6 * s)
-      ..quadraticBezierTo(-4 * s, 0, 0, -6 * s)
+      ..moveTo(0, -6.5 * s)
+      ..quadraticBezierTo(5 * s, -2 * s, 3.2 * s, 4 * s)
+      ..quadraticBezierTo(0, 7 * s, -3.2 * s, 4 * s)
+      ..quadraticBezierTo(-5 * s, -2 * s, 0, -6.5 * s)
       ..close();
-    _shaded(c, path, 0xFF3A3530);
+    _shaded(c, path, 0xFF3A3530, light: 0.4);
+    c
+      ..save()
+      ..clipPath(path);
     final stripe = ui.Paint()
-      ..color = const ui.Color(0xFFE8E0CC)
-      ..strokeWidth = 0.8 * s;
-    for (final x in [-1.3, 1.3]) {
-      c.drawLine(ui.Offset(x * s, -4 * s), ui.Offset(x * s, 4 * s), stripe);
+      ..color = const ui.Color(0x99D8D0BC)
+      ..strokeWidth = 0.7 * s;
+    for (final x in [-2.0, 0.0, 2.0]) {
+      c.drawLine(ui.Offset(x * s * 0.6, -5.5 * s), ui.Offset(x * s, 6 * s),
+          stripe);
     }
+    c.restore();
   }
 
   static void _coconut(ui.Canvas c) {

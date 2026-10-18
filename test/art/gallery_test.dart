@@ -4,7 +4,16 @@ import 'dart:ui' as ui;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pawtillery/config/breeds.dart';
 import 'package:pawtillery/config/families.dart';
+import 'dart:async';
+
+import 'package:flame/components.dart';
+import 'package:pawtillery/config/maps.dart';
 import 'package:pawtillery/config/weapons.dart';
+import 'package:pawtillery/game/components/backdrop_components.dart';
+import 'package:pawtillery/game/components/decor_component.dart';
+import 'package:pawtillery/game/components/scenery_component.dart';
+import 'package:pawtillery/game/components/terrain_painter.dart';
+import 'package:pawtillery/game/map_loader.dart';
 import 'package:pawtillery/game/art/animal_art.dart';
 import 'package:pawtillery/game/art/weapon_art.dart';
 
@@ -102,5 +111,39 @@ void main() {
     canvas.restore();
     await tester.runAsync(() => save(recorder.endRecording(),
         (cols * cell).round(), (rows * cell).round(), 'weapons'));
+  });
+
+  testWidgets('maps: scenery, terrain, decorations, water', (tester) async {
+    for (final map in Maps.all) {
+      await tester.runAsync(() async {
+        final data = await loadMapData(map.maskAsset);
+        final mask = data.mask;
+        final size = Vector2(mask.width.toDouble(), mask.height.toDouble());
+        final pixels = buildChunkPixels(
+            mask, map, data.materials, 0, 0, mask.width, mask.height)!;
+        final done = Completer<ui.Image>();
+        ui.decodeImageFromPixels(pixels, mask.width, mask.height,
+            ui.PixelFormat.rgba8888, done.complete);
+        final terrain = await done.future;
+        final decor = DecorComponent(mask: mask, map: map);
+        await decor.onLoad();
+        const scale = 0.4;
+        final recorder = ui.PictureRecorder();
+        final canvas = ui.Canvas(recorder)..scale(scale);
+        SkyComponent(map: map, worldSize: size).render(canvas);
+        SceneryComponent(
+          map: map,
+          worldSize: size,
+          cameraPosition: () => size / 2,
+        ).render(canvas);
+        canvas.drawImage(terrain, ui.Offset.zero, ui.Paint());
+        decor.render(canvas);
+        WaterComponent(map: map, worldSize: size, level: () => map.waterLevel)
+            .render(canvas);
+        await save(recorder.endRecording(), (size.x * scale).round(),
+            (size.y * scale).round(), 'map_${map.id}');
+        terrain.dispose();
+      });
+    }
   });
 }

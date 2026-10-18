@@ -18,7 +18,9 @@ import '../sim/world.dart';
 import 'camera/arena_camera.dart';
 import 'components/aim_guide_component.dart';
 import 'components/backdrop_components.dart';
+import 'components/decor_component.dart';
 import 'components/projectiles_component.dart';
+import 'components/scenery_component.dart';
 import 'components/terrain_component.dart';
 import 'components/units_component.dart';
 import 'effects/particle_system.dart';
@@ -125,7 +127,8 @@ class PawtilleryGame extends FlameGame {
 
   @override
   Future<void> onLoad() async {
-    final mask = await loadTerrainMask(map.maskAsset);
+    final mapData = await loadMapData(map.maskAsset);
+    final mask = mapData.mask;
     sim = SimWorld.newMatch(
       seed: seed,
       terrain: mask,
@@ -137,7 +140,8 @@ class PawtilleryGame extends FlameGame {
     stats = MatchStats(sim);
 
     final worldSize = Vector2(mask.width.toDouble(), mask.height.toDouble());
-    _terrain = TerrainComponent(mask: mask, map: map);
+    _terrain =
+        TerrainComponent(mask: mask, map: map, materials: mapData.materials);
     _aimGuide = AimGuideComponent(
       sim: sim,
       aim: () => aim.value,
@@ -145,7 +149,13 @@ class PawtilleryGame extends FlameGame {
     );
     await world.addAll([
       SkyComponent(map: map, worldSize: worldSize),
+      SceneryComponent(
+        map: map,
+        worldSize: worldSize,
+        cameraPosition: () => camera.viewfinder.position,
+      ),
       _terrain,
+      DecorComponent(mask: mask, map: map),
       UnitsComponent(
         sim,
         teamColors: teamColors,
@@ -407,7 +417,7 @@ class PawtilleryGame extends FlameGame {
           }
           _aimGuide.invalidate();
         case TerrainCarved(:final x, :final y, :final radius):
-          _terrain.carve(x, y, radius);
+          _terrain.carve(x, y, radius, scorch: false);
           particles.dust(x.toDouble(), (y + radius).toDouble(), strength: 0.4);
           _aimGuide.invalidate();
         case TerrainAdded(:final area):

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
@@ -13,12 +14,16 @@ class TerrainComponent extends PositionComponent {
   TerrainComponent({
     required this.mask,
     required this.map,
+    this.materials,
   }) : super(size: Vector2(mask.width.toDouble(), mask.height.toDouble()));
 
   static const int chunkSize = 256;
 
   final TerrainMask mask;
   final MapDef map;
+
+  /// Per-pixel [TerrainMaterial] index (render only).
+  final Uint8List? materials;
 
   late final int _cols = (mask.width + chunkSize - 1) ~/ chunkSize;
   late final int _rows = (mask.height + chunkSize - 1) ~/ chunkSize;
@@ -34,6 +39,19 @@ class TerrainComponent extends PositionComponent {
     ..filterQuality = ui.FilterQuality.none
     ..isAntiAlias = false;
   final ui.Paint _clearPaint = ui.Paint()..blendMode = ui.BlendMode.clear;
+
+  /// Burnt rim around blast craters, painted only onto remaining ground
+  /// (srcATop), so it never darkens the sky.
+  final ui.Paint _scorch = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeWidth = 6
+    ..color = const ui.Color(0x8A2A1A10)
+    ..blendMode = ui.BlendMode.srcATop;
+  final ui.Paint _scorchSoft = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeWidth = 12
+    ..color = const ui.Color(0x33201208)
+    ..blendMode = ui.BlendMode.srcATop;
 
   @override
   Future<void> onLoad() async {
@@ -52,7 +70,7 @@ class TerrainComponent extends PositionComponent {
     final y0 = row * chunkSize;
     final w = (mask.width - x0).clamp(0, chunkSize);
     final h = (mask.height - y0).clamp(0, chunkSize);
-    final pixels = buildChunkPixels(mask, map, x0, y0, w, h);
+    final pixels = buildChunkPixels(mask, map, materials, x0, y0, w, h);
     ui.Image? image;
     if (pixels != null) {
       final completer = Completer<ui.Image>();
@@ -69,8 +87,16 @@ class TerrainComponent extends PositionComponent {
     _shown[index] = version;
   }
 
-  /// Ground was added (Benteng): redraw the touched chunks from the mask.
-  void rebuild(IntRect area) {
+  /// Ground was added (Benteng): redraw the touched chunks from the mask,
+  /// drawing the new ground as [material].
+  void rebuild(IntRect area, {TerrainMaterial material = TerrainMaterial.stone}) {
+    final m = materials;
+    if (m != null) {
+      for (var y = area.top; y < area.bottom; y++) {
+        m.fillRange(y * mask.width + area.left, y * mask.width + area.right,
+            material.index);
+      }
+    }
     for (var row = area.top ~/ chunkSize;
         row <= (area.bottom - 1) ~/ chunkSize;
         row++) {
@@ -86,7 +112,7 @@ class TerrainComponent extends PositionComponent {
   /// Only chunks overlapping the circle are re-rendered. `toImageSync`
   /// returns at once and rasterises on the GPU thread, so the old image is
   /// never shown half-updated.
-  void carve(int cx, int cy, int radius) {
+  void carve(int cx, int cy, int radius, {bool scorch = true}) {
     final c0 = ((cx - radius) ~/ chunkSize).clamp(0, _cols - 1);
     final c1 = ((cx + radius) ~/ chunkSize).clamp(0, _cols - 1);
     final r0 = ((cy - radius) ~/ chunkSize).clamp(0, _rows - 1);
@@ -107,13 +133,16 @@ class TerrainComponent extends PositionComponent {
         final old = _chunks[index];
         if (old == null) continue;
         final recorder = ui.PictureRecorder();
-        ui.Canvas(recorder)
+        final local =
+            ui.Offset(centerX - col * chunkSize, centerY - row * chunkSize);
+        final c = ui.Canvas(recorder)
           ..drawImage(old, ui.Offset.zero, _paint)
-          ..drawCircle(
-            ui.Offset(centerX - col * chunkSize, centerY - row * chunkSize),
-            r,
-            _clearPaint,
-          );
+          ..drawCircle(local, r, _clearPaint);
+        if (scorch) {
+          c
+            ..drawCircle(local, r + 5, _scorchSoft)
+            ..drawCircle(local, r + 2.5, _scorch);
+        }
         final picture = recorder.endRecording();
         _chunks[index] = picture.toImageSync(old.width, old.height);
         picture.dispose();

@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
@@ -44,17 +45,58 @@ class WaterComponent extends Component {
   final Vector2 worldSize;
   final int Function() level;
 
-  late final ui.Paint _paint = ui.Paint()..color = ui.Color(map.waterArgb);
-  final ui.Paint _surface = ui.Paint()..color = const ui.Color(0x66FFFFFF);
+  final ui.Paint _body = ui.Paint();
+  final ui.Paint _crest = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeWidth = 2.5
+    ..color = const ui.Color(0x88FFFFFF);
+  final ui.Paint _glint = ui.Paint()..color = const ui.Color(0x55FFFFFF);
+  final ui.Path _wave = ui.Path();
+  double _time = 0;
+
+  @override
+  void update(double dt) => _time += dt;
 
   @override
   void render(ui.Canvas canvas) {
     const side = ControlsConfig.cameraMarginSide;
     final top = level().toDouble();
+    final left = -side;
+    final right = worldSize.x + side;
+    _wave.reset();
+    _wave.moveTo(left, worldSize.y);
+    for (var x = left; x <= right; x += 16) {
+      _wave.lineTo(
+          x,
+          top +
+              math.sin(x / 46 + _time * 1.8) * 2.2 +
+              math.sin(x / 19 - _time * 2.6) * 1.1);
+    }
+    _wave
+      ..lineTo(right, worldSize.y)
+      ..close();
+    final base = ui.Color(map.waterArgb);
+    _body.shader = ui.Gradient.linear(
+      ui.Offset(0, top),
+      ui.Offset(0, worldSize.y),
+      [
+        ui.Color.lerp(base, const ui.Color(0xFFFFFFFF), 0.18)!
+            .withValues(alpha: base.a),
+        ui.Color.lerp(base, const ui.Color(0xFF00101C), 0.5)!
+            .withValues(alpha: (base.a + 0.15).clamp(0, 1)),
+      ],
+    );
     canvas
-      ..drawRect(
-          ui.Rect.fromLTRB(-side, top, worldSize.x + side, worldSize.y), _paint)
-      ..drawRect(
-          ui.Rect.fromLTRB(-side, top, worldSize.x + side, top + 3), _surface);
+      ..drawPath(_wave, _body)
+      ..save()
+      ..clipRect(ui.Rect.fromLTRB(left, top - 6, right, top + 4))
+      ..drawPath(_wave, _crest)
+      ..restore();
+    // Drifting glints just under the surface.
+    for (var i = 0; i < 24; i++) {
+      final x = (i * 157.0 + _time * (10 + i % 5 * 4)) % (right - left) + left;
+      final y = top + 10 + (i * 37) % 60;
+      canvas.drawRect(ui.Rect.fromLTWH(x, y, 14 + (i % 3) * 6, 1.6), _glint);
+    }
   }
 }

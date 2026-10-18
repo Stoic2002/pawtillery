@@ -1,3 +1,19 @@
+/// Which background scenery and decorations a map gets.
+enum MapTheme { backyard, park, warehouse }
+
+/// How the ground is textured.
+enum TerrainStyle {
+  /// Grass on top, layered soil with pebbles below.
+  soil,
+
+  /// Concrete and wood with a dusty edge.
+  concrete,
+}
+
+/// What a piece of ground is made of; only changes how it is drawn.
+/// Encoded in the map PNG's red channel (see `tool/gen_maps.py`).
+enum TerrainMaterial { soil, wood, leaves, stone, metal, crate, concrete }
+
 /// Map data. Colours are plain ints (0xAARRGGBB) so this stays pure Dart.
 class MapDef {
   const MapDef({
@@ -11,6 +27,8 @@ class MapDef {
     required this.grassArgb,
     required this.waterArgb,
     this.grassThickness = 6,
+    this.theme = MapTheme.backyard,
+    this.terrainStyle = TerrainStyle.soil,
   });
 
   final String id;
@@ -30,6 +48,8 @@ class MapDef {
 
   /// Grass band drawn on exposed top edges, px.
   final int grassThickness;
+  final MapTheme theme;
+  final TerrainStyle terrainStyle;
 }
 
 abstract final class Maps {
@@ -55,6 +75,7 @@ abstract final class Maps {
     dirtArgb: 0xFF6D4C35,
     grassArgb: 0xFF8BC34A,
     waterArgb: 0xB0296F9E,
+    theme: MapTheme.park,
   );
 
   static const warehouse = MapDef(
@@ -64,10 +85,12 @@ abstract final class Maps {
     waterLevel: 1120,
     skyTopArgb: 0xFF37474F,
     skyBottomArgb: 0xFF78909C,
-    dirtArgb: 0xFF9E8B74,
-    grassArgb: 0xFFC9A55C,
+    dirtArgb: 0xFF8E8C88,
+    grassArgb: 0xFFB8B2A6,
     waterArgb: 0xB0285E7A,
     grassThickness: 3,
+    theme: MapTheme.warehouse,
+    terrainStyle: TerrainStyle.concrete,
   );
 
   /// Test bench from M1; used by tests, not offered to players.
