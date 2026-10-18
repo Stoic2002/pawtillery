@@ -9,9 +9,13 @@ class Projectile {
     required this.y,
     required this.vx,
     required this.vy,
+    this.ownerId,
   });
 
   final int id;
+
+  /// Unit that fired it, if any (for match statistics).
+  final int? ownerId;
   final WeaponDef weapon;
   double x;
   double y;

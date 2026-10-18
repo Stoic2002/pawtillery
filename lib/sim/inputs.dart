@@ -1,30 +1,39 @@
-/// Discrete player inputs fed into the simulation, one batch per tick.
-/// Coordinates are whole pixels so recorded inputs replay exactly.
+/// Discrete player inputs fed into the simulation, one batch per tick. They
+/// always act on the active unit and are ignored when the turn phase does
+/// not allow them. Values are whole numbers so recorded inputs replay
+/// exactly.
 sealed class SimInput {
   const SimInput();
 }
 
-/// M1 test bench: explosion at a world point (tap to blast).
-final class DebugExplode extends SimInput {
-  const DebugExplode({required this.x, required this.y, required this.radius});
+/// Walk one tick; sent every tick while a walk button is held.
+final class Walk extends SimInput {
+  const Walk(this.direction) : assert(direction == -1 || direction == 1);
 
-  final int x;
-  final int y;
-  final int radius;
+  /// -1 = left, 1 = right.
+  final int direction;
 }
 
-/// M1 test bench: fire the basic weapon from a fixed launcher. Ignored while
-/// a projectile is still in flight.
-final class DebugFire extends SimInput {
-  const DebugFire({
-    required this.x,
-    required this.y,
+enum JumpKind { forward, high }
+
+final class Jump extends SimInput {
+  const Jump(this.kind);
+  final JumpKind kind;
+}
+
+final class Fire extends SimInput {
+  const Fire({
     required this.angleDeg,
     required this.powerPercent,
+    required this.weaponId,
+    this.fuseTicks,
   });
 
-  final int x;
-  final int y;
+  /// 0 = right, 90 = up.
   final int angleDeg;
   final int powerPercent;
+  final String weaponId;
+
+  /// Player-chosen fuse for timed weapons (M3).
+  final int? fuseTicks;
 }

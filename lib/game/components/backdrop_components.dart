@@ -2,12 +2,21 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 
+import '../../config/controls.dart';
 import '../../config/maps.dart';
 
-/// Sky gradient behind the whole map.
+/// Sky gradient behind the whole map, extended over the area the camera
+/// may show past the map edges.
 class SkyComponent extends PositionComponent {
   SkyComponent({required this.map, required Vector2 worldSize})
-      : super(size: worldSize, priority: -10);
+      : super(
+          position: Vector2(-_side, -_top),
+          size: worldSize + Vector2(_side * 2, _top),
+          priority: -10,
+        );
+
+  static const double _side = ControlsConfig.cameraMarginSide;
+  static const double _top = ControlsConfig.cameraMarginTop;
 
   final MapDef map;
   late final ui.Paint _paint = ui.Paint()
@@ -21,13 +30,15 @@ class SkyComponent extends PositionComponent {
   void render(ui.Canvas canvas) => canvas.drawRect(size.toRect(), _paint);
 }
 
-/// Translucent water from [MapDef.waterLevel] to the bottom of the map,
-/// drawn over the terrain.
+/// Translucent water from [MapDef.waterLevel] to the bottom of the map
+/// (and across the side margins), drawn over the terrain.
 class WaterComponent extends PositionComponent {
   WaterComponent({required this.map, required Vector2 worldSize})
       : super(
-          position: Vector2(0, map.waterLevel.toDouble()),
-          size: Vector2(worldSize.x, worldSize.y - map.waterLevel),
+          position: Vector2(-ControlsConfig.cameraMarginSide,
+              map.waterLevel.toDouble()),
+          size: Vector2(worldSize.x + ControlsConfig.cameraMarginSide * 2,
+              worldSize.y - map.waterLevel),
           priority: 10,
         );
 

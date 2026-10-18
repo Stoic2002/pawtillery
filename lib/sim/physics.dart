@@ -5,8 +5,9 @@ import '../config/weapons.dart';
 import 'projectile.dart';
 import 'terrain_mask.dart';
 import 'trig.dart';
+import 'unit.dart';
 
-enum FlightOutcome { flying, hitTerrain, outOfBounds, expired }
+enum FlightOutcome { flying, hitTerrain, hitUnit, water, outOfBounds, expired }
 
 /// Hand-written projectile physics: semi-implicit Euler at the fixed tick,
 /// with per-pixel sub-stepping so fast projectiles can't skip thin ground.
@@ -22,11 +23,13 @@ abstract final class ProjectilePhysics {
     required double y,
     required int angleDeg,
     required int powerPercent,
+    int? ownerId,
   }) {
     final speed =
         powerPercent.clamp(0, 100) / 100 * PhysicsConfig.maxLaunchSpeed;
     return Projectile(
       id: id,
+      ownerId: ownerId,
       weapon: weapon,
       x: x,
       y: y,
@@ -36,8 +39,14 @@ abstract final class ProjectilePhysics {
   }
 
   /// Advances [p] by one tick. On a hit, [p] is left at the impact point.
-  static FlightOutcome step(Projectile p, TerrainMask terrain,
-      {required int wind}) {
+  /// Reaching [waterLevel] sinks the projectile without exploding.
+  static FlightOutcome step(
+    Projectile p,
+    TerrainMask terrain, {
+    required int wind,
+    required int waterLevel,
+    List<Unit> units = const [],
+  }) {
     if (p.weapon.affectedByWind) {
       p.vx += wind * PhysicsConfig.windAccelPerUnit * _dt;
     }
@@ -60,6 +69,18 @@ abstract final class ProjectilePhysics {
           ..y = sy;
         return FlightOutcome.outOfBounds;
       }
+      if (sy >= waterLevel) {
+        p
+          ..x = sx
+          ..y = sy;
+        return FlightOutcome.water;
+      }
+      if (_hitsUnit(sx, sy, units)) {
+        p
+          ..x = sx
+          ..y = sy;
+        return FlightOutcome.hitUnit;
+      }
       if (terrain.isSolid(sx.floor(), sy.floor())) {
         p
           ..x = sx
@@ -77,8 +98,20 @@ abstract final class ProjectilePhysics {
         : FlightOutcome.flying;
   }
 
+  static bool _hitsUnit(double x, double y, List<Unit> units) {
+    for (final u in units) {
+      if (!u.alive) continue;
+      final dx = x - u.centerX;
+      final dy = y - u.centerY;
+      final r = u.stats.hitRadius;
+      if (dx * dx + dy * dy <= r * r) return true;
+    }
+    return false;
+  }
+
   /// Path a shot would take with no wind, as flat [x0, y0, x1, y1, ...]
-  /// (one point per tick, ending at the impact point). Used by the aim guide.
+  /// (one point per tick, ending at the impact point). Ignores units. Used by
+  /// the aim guide.
   static List<double> predict({
     required WeaponDef weapon,
     required double x,
@@ -86,6 +119,7 @@ abstract final class ProjectilePhysics {
     required int angleDeg,
     required int powerPercent,
     required TerrainMask terrain,
+    required int waterLevel,
     int maxTicks = PhysicsConfig.maxProjectileTicks,
   }) {
     final p = launch(
@@ -98,7 +132,7 @@ abstract final class ProjectilePhysics {
     );
     final points = <double>[x, y];
     for (var i = 0; i < maxTicks; i++) {
-      final outcome = step(p, terrain, wind: 0);
+      final outcome = step(p, terrain, wind: 0, waterLevel: waterLevel);
       points
         ..add(p.x)
         ..add(p.y);

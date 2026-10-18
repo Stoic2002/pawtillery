@@ -4,8 +4,10 @@ import 'package:pawtillery/config/weapons.dart';
 import 'package:pawtillery/sim/physics.dart';
 import 'package:pawtillery/sim/projectile.dart';
 import 'package:pawtillery/sim/terrain_mask.dart';
+import 'package:pawtillery/sim/unit.dart';
 
 const _dt = PhysicsConfig.dt;
+const _noWater = 1 << 30;
 const _g = PhysicsConfig.gravity;
 const _windless = WeaponDef(
   id: 'test_windless',
@@ -35,7 +37,7 @@ void main() {
     final vx0 = p.vx, vy0 = p.vy;
     const n = 90;
     for (var i = 0; i < n; i++) {
-      expect(ProjectilePhysics.step(p, open, wind: 0), FlightOutcome.flying);
+      expect(ProjectilePhysics.step(p, open, wind: 0, waterLevel: _noWater), FlightOutcome.flying);
     }
     expect(p.vy, closeTo(vy0 + n * _g * _dt, 1e-9));
     expect(p.y,
@@ -47,8 +49,8 @@ void main() {
     final rock = _launch(90, 50, x: 2000, y: 2000);
     final stone = _launch(90, 50, x: 2000, y: 2000, weapon: _windless);
     for (var i = 0; i < 60; i++) {
-      ProjectilePhysics.step(rock, open, wind: 10);
-      ProjectilePhysics.step(stone, open, wind: 10);
+      ProjectilePhysics.step(rock, open, wind: 10, waterLevel: _noWater);
+      ProjectilePhysics.step(stone, open, wind: 10, waterLevel: _noWater);
     }
     // 1 s of wind 10: vx = 10 * accel * 1 s.
     expect(rock.vx, closeTo(10 * PhysicsConfig.windAccelPerUnit, 1e-9));
@@ -62,7 +64,7 @@ void main() {
         id: 0, weapon: _windless, x: 10, y: 100, vx: 3000, vy: 0);
     FlightOutcome outcome;
     do {
-      outcome = ProjectilePhysics.step(p, mask, wind: 0);
+      outcome = ProjectilePhysics.step(p, mask, wind: 0, waterLevel: _noWater);
     } while (outcome == FlightOutcome.flying);
     expect(outcome, FlightOutcome.hitTerrain);
     expect(p.x, inInclusiveRange(500, 501));
@@ -73,7 +75,7 @@ void main() {
     final p = _launch(0, 0, x: 200, y: 100, weapon: _windless);
     FlightOutcome outcome;
     do {
-      outcome = ProjectilePhysics.step(p, mask, wind: 0);
+      outcome = ProjectilePhysics.step(p, mask, wind: 0, waterLevel: _noWater);
     } while (outcome == FlightOutcome.flying);
     expect(outcome, FlightOutcome.hitTerrain);
     expect(p.y, inInclusiveRange(300, 301));
@@ -83,7 +85,7 @@ void main() {
   test('launching from inside ground hits immediately', () {
     final mask = TerrainMask(100, 100)..fillRect(0, 0, 100, 100);
     final p = _launch(45, 100, x: 50, y: 50);
-    expect(ProjectilePhysics.step(p, mask, wind: 0), FlightOutcome.hitTerrain);
+    expect(ProjectilePhysics.step(p, mask, wind: 0, waterLevel: _noWater), FlightOutcome.hitTerrain);
     expect(p.x, 50);
   });
 
@@ -98,7 +100,7 @@ void main() {
     var minY = up.y;
     FlightOutcome o;
     do {
-      o = ProjectilePhysics.step(up, mask, wind: 0);
+      o = ProjectilePhysics.step(up, mask, wind: 0, waterLevel: _noWater);
       if (up.y < minY) minY = up.y;
     } while (o == FlightOutcome.flying);
     expect(minY, lessThan(0));
@@ -115,16 +117,59 @@ void main() {
       angleDeg: 45,
       powerPercent: 70,
       terrain: mask,
+      waterLevel: _noWater,
     );
     final p = _launch(45, 70, x: 100, y: 700);
     FlightOutcome o;
     do {
-      o = ProjectilePhysics.step(p, mask, wind: 0);
+      o = ProjectilePhysics.step(p, mask, wind: 0, waterLevel: _noWater);
     } while (o == FlightOutcome.flying);
     expect(path[path.length - 2], p.x);
     expect(path.last, p.y);
     expect(path.last, inInclusiveRange(800, 801));
   });
+
+  test('reaching the water line sinks the projectile', () {
+    final mask = TerrainMask(400, 400)..fillRect(0, 350, 400, 50);
+    final p = _launch(0, 0, x: 200, y: 100);
+    FlightOutcome o;
+    do {
+      o = ProjectilePhysics.step(p, mask, wind: 0, waterLevel: 300);
+    } while (o == FlightOutcome.flying);
+    expect(o, FlightOutcome.water);
+    expect(p.y, inInclusiveRange(300, 301));
+  });
+
+  test('hits a unit standing in the path', () {
+    final mask = TerrainMask(1000, 400)..fillRect(0, 300, 1000, 100);
+    final target = Unit(id: 0, team: 1, x: 600, y: 300);
+    final p = Projectile(
+        id: 0, weapon: _windless, x: 100, y: 288, vx: 800, vy: -156);
+    FlightOutcome o;
+    do {
+      o = ProjectilePhysics.step(p, mask,
+          wind: 0, waterLevel: _noWater, units: [target]);
+    } while (o == FlightOutcome.flying);
+    expect(o, FlightOutcome.hitUnit);
+    expect(p.x, closeTo(target.centerX - target.stats.hitRadius, 2));
+  });
+
+  test('dead units are not hit', () {
+    final mask = TerrainMask(1000, 400);
+    final ghost = Unit(id: 0, team: 1, x: 600, y: 300)..alive = false;
+    final p = Projectile(
+        id: 0, weapon: _windless, x: 100, y: 288, vx: 800, vy: 0);
+    expect(_flyWith(p, mask, [ghost]), isNot(FlightOutcome.hitUnit));
+  });
+}
+
+FlightOutcome _flyWith(Projectile p, TerrainMask mask, List<Unit> units) {
+  FlightOutcome o;
+  do {
+    o = ProjectilePhysics.step(p, mask,
+        wind: 0, waterLevel: _noWater, units: units);
+  } while (o == FlightOutcome.flying);
+  return o;
 }
 
 Projectile _launch(int angle, int power,
@@ -135,7 +180,7 @@ Projectile _launch(int angle, int power,
 FlightOutcome _fly(Projectile p, TerrainMask mask) {
   FlightOutcome o;
   do {
-    o = ProjectilePhysics.step(p, mask, wind: 0);
+    o = ProjectilePhysics.step(p, mask, wind: 0, waterLevel: _noWater);
   } while (o == FlightOutcome.flying);
   return o;
 }

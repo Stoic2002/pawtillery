@@ -59,13 +59,8 @@ Decisions not spelled out in the PRD. Simplest option chosen, logged here.
   1 px seams at the 256 px borders.
 - **Crater edges have no grass/rim yet** (pure `BlendMode.clear`). Revisit in
   M5 polish.
-- **Test bench inputs:** `DebugExplode` (tap) and `DebugFire` (fixed launcher
-  in `lib/config/sandbox.dart`) go through the sim like real inputs. They are
-  replaced by units and real weapon inputs in M2.
-- **Wind re-rolls after every shot** as a stand-in for "per turn" until the
-  turn manager exists (M2).
-- **Camera fits the whole map** for M1 (`visibleGameSize`). Pan, pinch-zoom
-  and follow-projectile come with M2's controls.
+- **Test bench inputs** (`DebugExplode`, `DebugFire`, fixed launcher) were
+  removed in M2 in favour of units and real inputs.
 - **Explosion timing readout** (debug/profile builds only) measures sim step
   (mask carve) + chunk re-render scheduling on the main thread. Web debug
   showed 2–8 ms, which says nothing about Android; measure on the test device
@@ -76,3 +71,64 @@ Decisions not spelled out in the PRD. Simplest option chosen, logged here.
 - **Web is a visual smoke test only.** The sim's 32-bit integer math relies on
   native 64-bit ints, so results on web are not deterministic (web is a
   non-goal). `.claude/launch.json` serves `build/web` for that preview.
+
+## M2 — Units and turns (2026-10-18)
+
+- **Unit body is a 1 px column** 24 px tall standing on its feet pixel
+  (`lib/sim/unit.dart`); hits and blast distance use a 12 px circle around
+  the body centre. Simple, deterministic, and matches the climb rule.
+- **Walking:** 1 px steps; climbs up to `maxClimb` (6 px), follows slopes
+  down by as much, walks off anything steeper. Same code will drive
+  Bebek Peledak / Seruduk in M3.
+- **Jumps:** forward 160/240 px/s, high 40/300 px/s. Peaks ≈ 58 / 90 px,
+  kept under the 120 px fall threshold so a plain jump never hurts
+  (a playtest in the browser caught 380 px/s doing 3 damage).
+  ⚠ Kelinci's "2× higher" high jump will exceed the threshold; M3 must
+  decide whether jump-height passives also raise their fall threshold.
+- **Fall damage** is measured from the highest point of the airborne
+  stretch to the landing, for jumps, ledges and knockback alike.
+- **Blast distance** is from the explosion centre to the *edge* of the unit's
+  hit circle, so a blast that visibly overlaps a unit always hurts it.
+- **Knockback:** 9 px/s per damage point, along centre → unit plus an upward
+  lift of 0.5 (otherwise ground blasts only slide units sideways).
+- **Death timing:** water and leaving the map kill at once; HP ≤ 0 deaths
+  are resolved in the settle step, right before the winner check (PRD).
+  A unit at 0 HP can still be knocked around until then.
+- **Turn phases** (`lib/sim/turn_manager.dart`): banner (90 ticks, no input)
+  → action (turn clock) → retreat (3 s, starts the moment you fire, while
+  the shot is still flying) → settling (projectiles gone and every unit
+  grounded, 20 s safety cap) → next turn or match over.
+- **Turn order:** teams in setup order; within a team a per-team cursor gives
+  each living unit a turn in roster order. Dead units are skipped.
+- **Wind** rolls at the start of every turn from the sim RNG.
+- **Projectiles reaching the water line sink** without exploding.
+- **Shots start just outside the shooter's hit circle** (shared helper
+  `SimWorld.launchOrigin`, also used by the aim guide). Shooting straight up
+  can still hit yourself — friendly fire is on.
+- **Spawning:** topmost ground only (no caves), flat within ±3 px over
+  ±8 px, above water, ≥ 150 px apart; relaxes flatness then distance if a
+  map is crowded. A test checks the sandbox map fits 16 units for 20 seeds.
+- **Match seed** comes from `Random()` in the UI layer (never in the sim),
+  printed with `debugPrint` and shown in debug/profile builds.
+- **Controls:** one finger drags the slingshot when the unit may fire,
+  otherwise pans; two fingers always pan + pinch (a second finger turns an
+  aim drag into a camera gesture and restores the previous aim). Dragging
+  back into the 16 dp dead zone cancels. Fire and fine ±1 controls appear
+  only while aiming. Walk buttons use raw pointer events (no tap delay).
+- **Camera:** zoom 0.5–2 where 1 = one world px per dp; default 1. Follows a
+  projectile in flight, centres on the new active unit each turn, and nudges
+  back when the active unit moves out of the middle half of the screen.
+  Standing still never moves it, so players can look around.
+- **Angle/power readout next to the unit** shows only numbers and symbols,
+  so it is drawn in Flame without an ARB entry.
+- **Turn banner sits in the upper third**, not centred: the camera centres
+  the active unit, so a centred banner hid it.
+- **Placeholder units:** cream body, team-colour outline, eye on the facing
+  side, HP in team colour above. Family shapes and breed colours: M3.
+- **Dev match:** the main menu starts 2 teams × 2 units (`DevMatch` in
+  `lib/config/controls.dart`) until the setup screen (M4).
+- **Result card** is a minimal overlay; the full results screen and the
+  back-gesture pause dialog are M4.
+- **Acceptance test:** `test/game/full_match_test.dart` plays three 2×2
+  matches on the real map with a brute-force bot and checks each ends with
+  exactly the winner's units alive.

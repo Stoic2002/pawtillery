@@ -8,10 +8,6 @@
   "@menuPlay": {
     "description": "Main menu button that starts a match."
   },
-  "arenaPlaceholder": "Test field",
-  "@arenaPlaceholder": {
-    "description": "Temporary label shown in the arena until gameplay exists."
-  },
   "back": "Back",
   "@back": {
     "description": "Generic back button."
@@ -55,10 +51,6 @@
   "@hudIncrease": {
     "description": "Accessibility label for plus buttons."
   },
-  "hudTapHint": "Tap the map to blast a hole",
-  "@hudTapHint": {
-    "description": "Test-bench hint."
-  },
   "debugExplosionTime": "Explosion {lastMs} ms (max {maxMs} ms)",
   "@debugExplosionTime": {
     "description": "Debug-only timing readout.",
@@ -78,5 +70,106 @@
   "mapSandbox": "Test Field",
   "@mapSandbox": {
     "description": "Name of the test map."
+  },
+  "teamRed": "Red Team",
+  "@teamRed": {
+    "description": "Default name of team 1."
+  },
+  "teamBlue": "Blue Team",
+  "@teamBlue": {
+    "description": "Default name of team 2."
+  },
+  "teamGreen": "Green Team",
+  "@teamGreen": {
+    "description": "Default name of team 3."
+  },
+  "teamYellow": "Yellow Team",
+  "@teamYellow": {
+    "description": "Default name of team 4."
+  },
+  "turnBanner": "{team}'s turn",
+  "@turnBanner": {
+    "description": "Banner at the start of a turn.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "hudSeconds": "{value}s",
+  "@hudSeconds": {
+    "description": "Turn clock, whole seconds.",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "hudRetreat": "Retreat {value}s",
+  "@hudRetreat": {
+    "description": "Retreat clock after firing.",
+    "placeholders": {
+      "value": {
+        "type": "int"
+      }
+    }
+  },
+  "hudAimHint": "Drag to aim",
+  "@hudAimHint": {
+    "description": "Hint shown when the player may aim."
+  },
+  "hudCancel": "Cancel",
+  "@hudCancel": {
+    "description": "Cancel aiming."
+  },
+  "hudWalkLeft": "Walk left",
+  "@hudWalkLeft": {
+    "description": "Accessibility label."
+  },
+  "hudWalkRight": "Walk right",
+  "@hudWalkRight": {
+    "description": "Accessibility label."
+  },
+  "hudJump": "Jump",
+  "@hudJump": {
+    "description": "Forward jump button."
+  },
+  "hudHighJump": "High jump",
+  "@hudHighJump": {
+    "description": "High jump button."
+  },
+  "hudCenterCamera": "Center on active unit",
+  "@hudCenterCamera": {
+    "description": "Accessibility label."
+  },
+  "resultWinner": "{team} wins!",
+  "@resultWinner": {
+    "description": "Result title.",
+    "placeholders": {
+      "team": {
+        "type": "String"
+      }
+    }
+  },
+  "resultDraw": "Draw!",
+  "@resultDraw": {
+    "description": "Result title when nobody survives."
+  },
+  "resultPlayAgain": "Play again",
+  "@resultPlayAgain": {
+    "description": "Result button."
+  },
+  "resultMainMenu": "Main menu",
+  "@resultMainMenu": {
+    "description": "Result button."
+  },
+  "debugSeed": "Seed {seed}",
+  "@debugSeed": {
+    "description": "Debug-only match seed readout.",
+    "placeholders": {
+      "seed": {
+        "type": "int"
+      }
+    }
   }
 }

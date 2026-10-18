@@ -110,12 +110,6 @@ abstract class AppLocalizations {
   /// **'Play'**
   String get menuPlay;
 
-  /// Temporary label shown in the arena until gameplay exists.
-  ///
-  /// In en, this message translates to:
-  /// **'Test field'**
-  String get arenaPlaceholder;
-
   /// Generic back button.
   ///
   /// In en, this message translates to:
@@ -158,12 +152,6 @@ abstract class AppLocalizations {
   /// **'Increase'**
   String get hudIncrease;
 
-  /// Test-bench hint.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap the map to blast a hole'**
-  String get hudTapHint;
-
   /// Debug-only timing readout.
   ///
   /// In en, this message translates to:
@@ -181,6 +169,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Test Field'**
   String get mapSandbox;
+
+  /// Default name of team 1.
+  ///
+  /// In en, this message translates to:
+  /// **'Red Team'**
+  String get teamRed;
+
+  /// Default name of team 2.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue Team'**
+  String get teamBlue;
+
+  /// Default name of team 3.
+  ///
+  /// In en, this message translates to:
+  /// **'Green Team'**
+  String get teamGreen;
+
+  /// Default name of team 4.
+  ///
+  /// In en, this message translates to:
+  /// **'Yellow Team'**
+  String get teamYellow;
+
+  /// Banner at the start of a turn.
+  ///
+  /// In en, this message translates to:
+  /// **'{team}\'s turn'**
+  String turnBanner(String team);
+
+  /// Turn clock, whole seconds.
+  ///
+  /// In en, this message translates to:
+  /// **'{value}s'**
+  String hudSeconds(int value);
+
+  /// Retreat clock after firing.
+  ///
+  /// In en, this message translates to:
+  /// **'Retreat {value}s'**
+  String hudRetreat(int value);
+
+  /// Hint shown when the player may aim.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to aim'**
+  String get hudAimHint;
+
+  /// Cancel aiming.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get hudCancel;
+
+  /// Accessibility label.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk left'**
+  String get hudWalkLeft;
+
+  /// Accessibility label.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk right'**
+  String get hudWalkRight;
+
+  /// Forward jump button.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump'**
+  String get hudJump;
+
+  /// High jump button.
+  ///
+  /// In en, this message translates to:
+  /// **'High jump'**
+  String get hudHighJump;
+
+  /// Accessibility label.
+  ///
+  /// In en, this message translates to:
+  /// **'Center on active unit'**
+  String get hudCenterCamera;
+
+  /// Result title.
+  ///
+  /// In en, this message translates to:
+  /// **'{team} wins!'**
+  String resultWinner(String team);
+
+  /// Result title when nobody survives.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw!'**
+  String get resultDraw;
+
+  /// Result button.
+  ///
+  /// In en, this message translates to:
+  /// **'Play again'**
+  String get resultPlayAgain;
+
+  /// Result button.
+  ///
+  /// In en, this message translates to:
+  /// **'Main menu'**
+  String get resultMainMenu;
+
+  /// Debug-only match seed readout.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed {seed}'**
+  String debugSeed(int seed);
 }
 
 class _AppLocalizationsDelegate

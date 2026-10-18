@@ -50,4 +50,7 @@ abstract final class Weapons {
   );
 
   static const all = [rock];
+
+  static WeaponDef byId(String id) =>
+      all.firstWhere((w) => w.id == id, orElse: () => throw ArgumentError(id));
 }

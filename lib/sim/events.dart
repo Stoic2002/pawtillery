@@ -1,5 +1,6 @@
 import 'physics.dart';
 import 'terrain_mask.dart';
+import 'turn_manager.dart';
 
 /// Events emitted by the simulation for rendering, audio and UI to react to.
 sealed class SimEvent {
@@ -33,7 +34,41 @@ final class ProjectileRemoved extends SimEvent {
   final FlightOutcome outcome;
 }
 
-final class WindChanged extends SimEvent {
-  const WindChanged(this.wind);
-  final int wind;
+enum DamageCause { explosion, fall }
+
+final class UnitDamaged extends SimEvent {
+  const UnitDamaged(this.unitId, this.amount, this.cause);
+  final int unitId;
+  final int amount;
+  final DamageCause cause;
+}
+
+enum DeathCause { hp, water, outOfBounds }
+
+final class UnitDied extends SimEvent {
+  const UnitDied(this.unitId, this.cause);
+  final int unitId;
+  final DeathCause cause;
+}
+
+final class UnitJumped extends SimEvent {
+  const UnitJumped(this.unitId);
+  final int unitId;
+}
+
+final class TurnStarted extends SimEvent {
+  const TurnStarted({required this.team, required this.unitId});
+  final int team;
+  final int unitId;
+}
+
+final class PhaseChanged extends SimEvent {
+  const PhaseChanged(this.phase);
+  final TurnPhase phase;
+}
+
+/// [winnerTeam] is null for a draw.
+final class MatchEnded extends SimEvent {
+  const MatchEnded(this.winnerTeam);
+  final int? winnerTeam;
 }

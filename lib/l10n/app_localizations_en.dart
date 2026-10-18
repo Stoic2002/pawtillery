@@ -15,9 +15,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuPlay => 'Play';
 
   @override
-  String get arenaPlaceholder => 'Test field';
-
-  @override
   String get back => 'Back';
 
   @override
@@ -45,9 +42,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hudIncrease => 'Increase';
 
   @override
-  String get hudTapHint => 'Tap the map to blast a hole';
-
-  @override
   String debugExplosionTime(String lastMs, String maxMs) {
     return 'Explosion $lastMs ms (max $maxMs ms)';
   }
@@ -57,4 +51,71 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapSandbox => 'Test Field';
+
+  @override
+  String get teamRed => 'Red Team';
+
+  @override
+  String get teamBlue => 'Blue Team';
+
+  @override
+  String get teamGreen => 'Green Team';
+
+  @override
+  String get teamYellow => 'Yellow Team';
+
+  @override
+  String turnBanner(String team) {
+    return '$team\'s turn';
+  }
+
+  @override
+  String hudSeconds(int value) {
+    return '${value}s';
+  }
+
+  @override
+  String hudRetreat(int value) {
+    return 'Retreat ${value}s';
+  }
+
+  @override
+  String get hudAimHint => 'Drag to aim';
+
+  @override
+  String get hudCancel => 'Cancel';
+
+  @override
+  String get hudWalkLeft => 'Walk left';
+
+  @override
+  String get hudWalkRight => 'Walk right';
+
+  @override
+  String get hudJump => 'Jump';
+
+  @override
+  String get hudHighJump => 'High jump';
+
+  @override
+  String get hudCenterCamera => 'Center on active unit';
+
+  @override
+  String resultWinner(String team) {
+    return '$team wins!';
+  }
+
+  @override
+  String get resultDraw => 'Draw!';
+
+  @override
+  String get resultPlayAgain => 'Play again';
+
+  @override
+  String get resultMainMenu => 'Main menu';
+
+  @override
+  String debugSeed(int seed) {
+    return 'Seed $seed';
+  }
 }

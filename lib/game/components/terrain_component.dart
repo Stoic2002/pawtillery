@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
-import 'package:flame/events.dart';
 
 import '../../config/maps.dart';
 import '../../sim/terrain_mask.dart';
@@ -10,20 +9,16 @@ import 'terrain_painter.dart';
 
 /// Draws the terrain as a grid of chunk images. The sim's [TerrainMask] is
 /// the source of truth; explosions only re-render the chunks they touch.
-class TerrainComponent extends PositionComponent with TapCallbacks {
+class TerrainComponent extends PositionComponent {
   TerrainComponent({
     required this.mask,
     required this.map,
-    required this.onTap,
   }) : super(size: Vector2(mask.width.toDouble(), mask.height.toDouble()));
 
   static const int chunkSize = 256;
 
   final TerrainMask mask;
   final MapDef map;
-
-  /// Called with the tapped world position.
-  final void Function(Vector2 world) onTap;
 
   late final int _cols = (mask.width + chunkSize - 1) ~/ chunkSize;
   late final int _rows = (mask.height + chunkSize - 1) ~/ chunkSize;
@@ -107,9 +102,6 @@ class TerrainComponent extends PositionComponent with TapCallbacks {
       }
     }
   }
-
-  @override
-  void onTapDown(TapDownEvent event) => onTap(event.localPosition);
 
   @override
   void onRemove() {

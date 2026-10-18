@@ -15,9 +15,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get menuPlay => 'Main';
 
   @override
-  String get arenaPlaceholder => 'Lapangan uji';
-
-  @override
   String get back => 'Kembali';
 
   @override
@@ -45,9 +42,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get hudIncrease => 'Tambah';
 
   @override
-  String get hudTapHint => 'Ketuk peta untuk meledakkan tanah';
-
-  @override
   String debugExplosionTime(String lastMs, String maxMs) {
     return 'Ledakan $lastMs ms (maks $maxMs ms)';
   }
@@ -57,4 +51,71 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get mapSandbox => 'Lapangan Uji';
+
+  @override
+  String get teamRed => 'Tim Merah';
+
+  @override
+  String get teamBlue => 'Tim Biru';
+
+  @override
+  String get teamGreen => 'Tim Hijau';
+
+  @override
+  String get teamYellow => 'Tim Kuning';
+
+  @override
+  String turnBanner(String team) {
+    return 'Giliran $team';
+  }
+
+  @override
+  String hudSeconds(int value) {
+    return '$value dtk';
+  }
+
+  @override
+  String hudRetreat(int value) {
+    return 'Mundur $value dtk';
+  }
+
+  @override
+  String get hudAimHint => 'Seret untuk membidik';
+
+  @override
+  String get hudCancel => 'Batal';
+
+  @override
+  String get hudWalkLeft => 'Jalan ke kiri';
+
+  @override
+  String get hudWalkRight => 'Jalan ke kanan';
+
+  @override
+  String get hudJump => 'Lompat';
+
+  @override
+  String get hudHighJump => 'Lompat tinggi';
+
+  @override
+  String get hudCenterCamera => 'Pusatkan ke unit aktif';
+
+  @override
+  String resultWinner(String team) {
+    return '$team menang!';
+  }
+
+  @override
+  String get resultDraw => 'Seri!';
+
+  @override
+  String get resultPlayAgain => 'Main lagi';
+
+  @override
+  String get resultMainMenu => 'Menu utama';
+
+  @override
+  String debugSeed(int seed) {
+    return 'Seed $seed';
+  }
 }
