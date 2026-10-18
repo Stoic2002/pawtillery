@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../../app/app_services.dart';
 import '../../app/match_config.dart';
 import '../../config/controls.dart';
-import '../../config/families.dart';
 import '../../config/match_defaults.dart';
 import '../../config/teams.dart';
 import '../../config/weapons.dart';
@@ -87,10 +86,6 @@ class _ArenaScreenState extends State<ArenaScreen> {
         for (final t in config.teams) Teams.styles[t.styleIndex].colorArgb,
       ],
       unitNames: _unitNames,
-      familyLetters: {
-        for (final f in Families.all)
-          f.id: l10n.byKey(f.nameKey).characters.first.toUpperCase(),
-      },
       timings: TurnTimings(
           turnTicks: config.turnSeconds * MatchDefaults.ticksPerSecond),
       suddenDeathAfterTicks: config.suddenDeathMinutes == null

@@ -2,11 +2,11 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../config/breeds.dart';
 import '../../config/families.dart';
 import '../../config/teams.dart';
 import '../../config/weapons.dart';
 import '../../l10n/app_localizations.dart';
-import '../../l10n/l10n_lookup.g.dart';
 import '../hud/weapon_menu.dart';
 import '../widgets/unit_avatar.dart';
 
@@ -137,16 +137,13 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
 
 int get _red => Teams.styles[0].colorArgb;
 
-Widget _avatar(BuildContext context, FamilyDef f, {double size = 72}) {
-  final l10n = AppLocalizations.of(context);
-  return UnitAvatar(
-    familyId: f.id,
-    breedId: null,
-    teamArgb: _red,
-    letter: l10n.byKey(f.nameKey).characters.first.toUpperCase(),
-    size: size,
-  );
-}
+Widget _avatar(BuildContext context, FamilyDef f, {double size = 72}) =>
+    UnitAvatar(
+      familyId: f.id,
+      breedId: Breeds.ofFamily(f.id).first.id,
+      teamArgb: _red,
+      size: size,
+    );
 
 class _MoveArt extends StatelessWidget {
   const _MoveArt();

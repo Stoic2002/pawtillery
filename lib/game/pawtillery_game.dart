@@ -63,7 +63,6 @@ class PawtilleryGame extends FlameGame {
   PawtilleryGame({
     required this.seed,
     required this.rosters,
-    required this.familyLetters,
     required this.teamColors,
     required this.unitNames,
     required this.map,
@@ -74,9 +73,6 @@ class PawtilleryGame extends FlameGame {
 
   final int seed;
   final List<List<UnitSpec>> rosters;
-
-  /// Localized first letter of each family name, for placeholder units.
-  final Map<String, String> familyLetters;
 
   /// Colour (0xAARRGGBB) of each team, in roster order.
   final List<int> teamColors;
@@ -152,7 +148,6 @@ class PawtilleryGame extends FlameGame {
       _terrain,
       UnitsComponent(
         sim,
-        familyLetters: familyLetters,
         teamColors: teamColors,
         unitNames: unitNames,
       ),

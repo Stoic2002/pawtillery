@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
 import '../../config/weapons.dart';
+import '../../game/art/weapon_art.dart';
 import '../../game/pawtillery_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
@@ -124,7 +125,7 @@ class _WeaponTile extends StatelessWidget {
   }
 }
 
-/// Placeholder weapon icon: the weapon colour with its initial.
+/// Weapon icon: the weapon's own art on a dark round backdrop.
 class WeaponIcon extends StatelessWidget {
   const WeaponIcon({super.key, required this.weapon, required this.size});
 
@@ -132,27 +133,33 @@ class WeaponIcon extends StatelessWidget {
   final double size;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final color = Color(weapon.placeholderArgb);
-    final dark = color.computeLuminance() > 0.5;
-    return Container(
-      width: size,
-      height: size,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: color,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
-      ),
-      child: Text(
-        l10n.byKey(weapon.nameKey).characters.first.toUpperCase(),
-        style: TextStyle(
-          fontWeight: FontWeight.w900,
-          fontSize: size * 0.45,
-          color: dark ? Colors.black87 : Colors.white,
+  Widget build(BuildContext context) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          color: Color.alphaBlend(
+              Color(weapon.placeholderArgb).withValues(alpha: 0.25),
+              const Color(0xFF26303A)),
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0x55FFFFFF), width: 1.5),
         ),
-      ),
-    );
+        child: CustomPaint(painter: _IconPainter(weapon.id)),
+      );
+}
+
+class _IconPainter extends CustomPainter {
+  _IconPainter(this.id);
+  final String id;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas
+      ..save()
+      ..translate(size.width / 2, size.height / 2);
+    WeaponArt.icon(canvas, id, size.shortestSide * 0.78);
+    canvas.restore();
   }
+
+  @override
+  bool shouldRepaint(_IconPainter old) => old.id != id;
 }

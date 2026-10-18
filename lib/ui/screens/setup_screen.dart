@@ -425,7 +425,6 @@ class _UnitRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final family = Families.byId(unit.familyId);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -434,7 +433,6 @@ class _UnitRow extends StatelessWidget {
             familyId: unit.familyId,
             breedId: unit.breedId,
             teamArgb: teamArgb,
-            letter: l10n.byKey(family.nameKey).characters.first.toUpperCase(),
             size: 48,
           ),
           const SizedBox(width: 8),

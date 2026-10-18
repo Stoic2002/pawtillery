@@ -1,61 +1,54 @@
 import 'package:flutter/material.dart';
 
-import '../../game/components/unit_painter.dart';
+import '../../game/art/animal_art.dart';
 
-/// A unit's placeholder look in Flutter UI (setup, how to play).
+/// A unit's animal art in Flutter UI (setup, how to play).
 class UnitAvatar extends StatelessWidget {
   const UnitAvatar({
     super.key,
     required this.familyId,
     required this.breedId,
     required this.teamArgb,
-    this.letter,
     this.size = 44,
-    this.facing = 1,
   });
 
   final String? familyId;
   final String? breedId;
   final int teamArgb;
-  final String? letter;
   final double size;
-  final int facing;
 
   @override
   Widget build(BuildContext context) => SizedBox.square(
         dimension: size,
-        child: CustomPaint(
-          painter: _AvatarPainter(this),
-        ),
+        child: CustomPaint(painter: _AvatarPainter(this)),
       );
 }
 
 class _AvatarPainter extends CustomPainter {
   _AvatarPainter(this.avatar);
   final UnitAvatar avatar;
-  static final _painter = UnitPlaceholderPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Leave room above for ears, horns and combs.
-    final r = size.shortestSide * 0.3;
-    _painter.paint(
+    // The art is ~36 px tall and ~34 px wide around its feet.
+    final s = size.shortestSide / 42;
+    canvas
+      ..save()
+      ..translate(size.width / 2 - 1 * s, size.height * 0.92)
+      ..scale(s);
+    AnimalArt.draw(
       canvas,
-      center: Offset(size.width / 2, size.height * 0.6),
-      radius: r,
-      facing: avatar.facing,
-      teamArgb: avatar.teamArgb,
       familyId: avatar.familyId,
       breedId: avatar.breedId,
-      letter: avatar.letter,
+      teamArgb: avatar.teamArgb,
+      pose: AnimalPose.idle,
     );
+    canvas.restore();
   }
 
   @override
   bool shouldRepaint(_AvatarPainter old) =>
       old.avatar.familyId != avatar.familyId ||
       old.avatar.breedId != avatar.breedId ||
-      old.avatar.teamArgb != avatar.teamArgb ||
-      old.avatar.letter != avatar.letter ||
-      old.avatar.facing != avatar.facing;
+      old.avatar.teamArgb != avatar.teamArgb;
 }
