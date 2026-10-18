@@ -23,6 +23,7 @@ import 'components/units_component.dart';
 import 'effects/explosion_flash.dart';
 import 'hud_state.dart';
 import 'map_loader.dart';
+import 'match_stats.dart';
 
 /// Main-thread cost of the last explosion: sim step (mask carve, damage)
 /// plus scheduling the chunk re-render. PRD target: under 4 ms.
@@ -54,7 +55,12 @@ class PawtilleryGame extends FlameGame {
     required this.seed,
     required this.rosters,
     required this.familyLetters,
-    this.map = Maps.sandbox,
+    required this.teamColors,
+    required this.unitNames,
+    required this.map,
+    this.timings = const TurnTimings(),
+    this.suddenDeathAfterTicks,
+    this.showAimGuide = true,
   });
 
   final int seed;
@@ -62,7 +68,20 @@ class PawtilleryGame extends FlameGame {
 
   /// Localized first letter of each family name, for placeholder units.
   final Map<String, String> familyLetters;
+
+  /// Colour (0xAARRGGBB) of each team, in roster order.
+  final List<int> teamColors;
+
+  /// Display name of each unit, in roster order (= unit id).
+  final List<String> unitNames;
   final MapDef map;
+  final TurnTimings timings;
+  final int? suddenDeathAfterTicks;
+
+  /// Settings: draw the aim guide path (the readout always shows).
+  bool showAimGuide;
+
+  late final MatchStats stats;
 
   late final SimWorld sim;
   late final TerrainComponent _terrain;
@@ -99,17 +118,30 @@ class PawtilleryGame extends FlameGame {
       terrain: mask,
       waterLevel: map.waterLevel,
       rosters: rosters,
+      timings: timings,
+      suddenDeathAfterTicks: suddenDeathAfterTicks,
     );
+    stats = MatchStats(sim);
 
     final worldSize = Vector2(mask.width.toDouble(), mask.height.toDouble());
     _terrain = TerrainComponent(mask: mask, map: map);
-    _aimGuide = AimGuideComponent(sim: sim, aim: () => aim.value);
+    _aimGuide = AimGuideComponent(
+      sim: sim,
+      aim: () => aim.value,
+      showPath: () => showAimGuide,
+    );
     await world.addAll([
       SkyComponent(map: map, worldSize: worldSize),
       _terrain,
-      UnitsComponent(sim, familyLetters: familyLetters),
+      UnitsComponent(
+        sim,
+        familyLetters: familyLetters,
+        teamColors: teamColors,
+        unitNames: unitNames,
+      ),
       ProjectilesComponent(sim),
-      WaterComponent(map: map, worldSize: worldSize),
+      WaterComponent(
+          map: map, worldSize: worldSize, level: () => sim.waterLevel),
       _aimGuide,
     ]);
 
@@ -330,6 +362,7 @@ class PawtilleryGame extends FlameGame {
   bool _handleEvents(List<SimEvent> events) {
     var exploded = false;
     for (final event in events) {
+      stats.record(event);
       switch (event) {
         case ExplosionEvent(:final x, :final y, :final radius, :final carved):
           exploded = true;
@@ -357,6 +390,8 @@ class PawtilleryGame extends FlameGame {
               MineTriggered() ||
               MineRemoved() ||
               PhaseChanged() ||
+              SuddenDeathStarted() ||
+              WaterRose() ||
               MatchEnded():
           // Sound, haptics and particles hook in here (M5).
           break;
@@ -376,6 +411,7 @@ class PawtilleryGame extends FlameGame {
       wind: sim.wind,
       teamHp: sim.teamHp(),
       teamMaxHp: sim.teamMaxHp(),
+      suddenDeath: sim.suddenDeath,
       winnerTeam:
           sim.turn.phase == TurnPhase.matchOver ? sim.turn.winnerTeam : null,
     );

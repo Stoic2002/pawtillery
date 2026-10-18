@@ -21,4 +21,15 @@ abstract final class MatchDefaults {
   static const int turnSeconds = 45;
   static const int retreatSeconds = 3;
   static const int suddenDeathMinutes = 15;
+
+  // Choices offered on the setup screen (PRD: Pengaturan pertandingan).
+  static const teamCountOptions = [2, 3, 4];
+  static const unitsPerTeamOptions = [1, 2, 3, 4];
+  static const turnSecondsOptions = [30, 45, 60];
+
+  /// null = sudden death off.
+  static const suddenDeathOptions = <int?>[null, 10, 15];
+
+  /// Sudden death: how far the water rises at the end of every round, px.
+  static const int suddenDeathWaterRise = 20;
 }

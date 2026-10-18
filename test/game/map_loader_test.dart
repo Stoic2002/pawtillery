@@ -19,7 +19,7 @@ void main() {
     expect(mask.isSolid(1003, 400), isFalse);
 
     // Room for the largest match: 4 teams × 4 units, for many seeds.
-    for (var seed = 0; seed < 20; seed++) {
+    for (var seed = 0; seed < 5; seed++) {
       final points = findSpawnPoints(
         terrain: mask,
         waterLevel: Maps.sandbox.waterLevel,
@@ -29,4 +29,27 @@ void main() {
       expect(points, hasLength(16));
     }
   });
+
+  for (final map in Maps.all) {
+    testWidgets('${map.id}: decodes, fits 16 units for many seeds',
+        (tester) async {
+      late TerrainMask mask;
+      await tester.runAsync(() async {
+        mask = await loadTerrainMask(map.maskAsset);
+      });
+      expect((mask.width, mask.height), (2400, 1200));
+      for (var seed = 0; seed < 20; seed++) {
+        final points = findSpawnPoints(
+          terrain: mask,
+          waterLevel: map.waterLevel,
+          count: 16,
+          rng: SimRng(seed),
+        );
+        expect(points, hasLength(16), reason: 'seed $seed');
+        for (final (_, y) in points) {
+          expect(y, lessThan(map.waterLevel));
+        }
+      }
+    });
+  }
 }

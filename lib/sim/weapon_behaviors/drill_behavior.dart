@@ -19,7 +19,7 @@ class DrillBehavior extends FlightBehavior {
     if (p.mode == 0) {
       final o = ProjectilePhysics.step(p, ctx.terrain,
           wind: ctx.wind, waterLevel: ctx.waterLevel, units: ctx.units);
-      if (o == FlightOutcome.hitUnit) ctx.explode(p.x, p.y, p.weapon);
+      if (o == FlightOutcome.hitUnit) ctx.explode(p.x, p.y, p.weapon, sourceId: p.ownerId);
       if (o != FlightOutcome.hitTerrain) return o;
       final speed = sqrt(p.vx * p.vx + p.vy * p.vy);
       final scale = speed == 0 ? 0.0 : spec.speed / speed;
@@ -47,13 +47,13 @@ class DrillBehavior extends FlightBehavior {
       }
       if (p.y >= ctx.waterLevel) return FlightOutcome.water;
       if (ProjectilePhysics.unitAt(p.x, p.y, ctx.units) != null) {
-        ctx.explode(p.x, p.y, p.weapon);
+        ctx.explode(p.x, p.y, p.weapon, sourceId: p.ownerId);
         return FlightOutcome.hitUnit;
       }
     }
     ctx.carveTunnel(p.x.round(), p.y.round(), spec.tunnelRadius);
     if (p.traveled >= spec.length) {
-      ctx.explode(p.x, p.y, p.weapon);
+      ctx.explode(p.x, p.y, p.weapon, sourceId: p.ownerId);
       return FlightOutcome.finished;
     }
     return FlightOutcome.flying;

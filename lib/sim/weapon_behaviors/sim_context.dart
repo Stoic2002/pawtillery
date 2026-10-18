@@ -14,13 +14,14 @@ abstract interface class SimContext {
   List<Unit> get units;
 
   /// A blast with [weapon]'s damage, radius and knockback; carves terrain if
-  /// the weapon does.
-  void explode(double x, double y, WeaponDef weapon);
+  /// the weapon does. [sourceId] is the unit credited with the damage.
+  void explode(double x, double y, WeaponDef weapon, {int? sourceId});
 
   /// A direct hit without a blast: [damage] plus knockback along the unit
   /// vector ([dirX], [dirY]).
   void strikeUnit(
-      Unit unit, int damage, double dirX, double dirY, double knockbackScale);
+      Unit unit, int damage, double dirX, double dirY, double knockbackScale,
+      {int? sourceId});
 
   /// Removes terrain without hurting anyone (tunnels).
   void carveTunnel(int x, int y, int radius);

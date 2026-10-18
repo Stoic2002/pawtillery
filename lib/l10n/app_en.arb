@@ -617,5 +617,327 @@
   "hudDirectionHint": "Drag to pick a direction",
   "@hudDirectionHint": {
     "description": "Hint for direction-only weapons."
+  },
+  "splashLoading": "Loading…",
+  "@splashLoading": {
+    "description": "Splash screen."
+  },
+  "menuHowToPlay": "How to Play",
+  "@menuHowToPlay": {
+    "description": "Main menu button."
+  },
+  "menuSettings": "Settings",
+  "@menuSettings": {
+    "description": "Main menu / pause button."
+  },
+  "menuAbout": "About",
+  "@menuAbout": {
+    "description": "Main menu button."
+  },
+  "teamPurple": "Purple Team",
+  "@teamPurple": {
+    "description": "Default name of a purple team."
+  },
+  "teamOrange": "Orange Team",
+  "@teamOrange": {
+    "description": "Default name of an orange team."
+  },
+  "mapBackyard": "Backyard",
+  "@mapBackyard": {
+    "description": "Map name."
+  },
+  "mapPark": "City Park",
+  "@mapPark": {
+    "description": "Map name."
+  },
+  "mapWarehouse": "Old Warehouse",
+  "@mapWarehouse": {
+    "description": "Map name."
+  },
+  "unitNamePool": "Milo,Luna,Bobo,Kiki,Coco,Momo,Pip,Nala,Toby,Ziggy,Biscuit,Pepper,Mochi,Tofu,Nugget,Peanut,Waffle,Pixel",
+  "@unitNamePool": {
+    "description": "Comma-separated names the Random button picks from. Keep them short."
+  },
+  "setupTitle": "New Match",
+  "@setupTitle": {
+    "description": "Setup screen title."
+  },
+  "setupTeams": "Teams",
+  "@setupTeams": {
+    "description": "Number of teams option."
+  },
+  "setupUnitsPerTeam": "Units per team",
+  "@setupUnitsPerTeam": {
+    "description": "Option label."
+  },
+  "setupTurnTime": "Turn time",
+  "@setupTurnTime": {
+    "description": "Option label."
+  },
+  "setupMap": "Map",
+  "@setupMap": {
+    "description": "Option label."
+  },
+  "setupMapRandom": "Random",
+  "@setupMapRandom": {
+    "description": "Random map choice."
+  },
+  "setupSuddenDeath": "Sudden death",
+  "@setupSuddenDeath": {
+    "description": "Option label."
+  },
+  "setupOff": "Off",
+  "@setupOff": {
+    "description": "Sudden death disabled."
+  },
+  "setupMinutes": "After {minutes} min",
+  "@setupMinutes": {
+    "description": "Sudden death start time.",
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "setupRandomAll": "Random",
+  "@setupRandomAll": {
+    "description": "Fills every unit with a random family, breed and name."
+  },
+  "setupRandomUnit": "Randomize this unit",
+  "@setupRandomUnit": {
+    "description": "Tooltip."
+  },
+  "setupStart": "Start",
+  "@setupStart": {
+    "description": "Starts the match."
+  },
+  "setupTeamName": "Team name",
+  "@setupTeamName": {
+    "description": "Text field label."
+  },
+  "setupUnitName": "Name",
+  "@setupUnitName": {
+    "description": "Unit name field label."
+  },
+  "setupFamily": "Family",
+  "@setupFamily": {
+    "description": "Unit family dropdown label."
+  },
+  "setupBreed": "Breed",
+  "@setupBreed": {
+    "description": "Unit breed dropdown label."
+  },
+  "setupColor": "Team colour",
+  "@setupColor": {
+    "description": "Colour picker label."
+  },
+  "setupOptions": "Match options",
+  "@setupOptions": {
+    "description": "Section title."
+  },
+  "hudPause": "Pause",
+  "@hudPause": {
+    "description": "Pause button tooltip."
+  },
+  "hudSuddenDeath": "Sudden death!",
+  "@hudSuddenDeath": {
+    "description": "Shown while sudden death is on."
+  },
+  "pauseTitle": "Paused",
+  "@pauseTitle": {
+    "description": "Pause dialog title."
+  },
+  "pauseResume": "Resume",
+  "@pauseResume": {
+    "description": "Pause dialog button."
+  },
+  "pauseExit": "Exit to menu",
+  "@pauseExit": {
+    "description": "Pause dialog button."
+  },
+  "pauseExitConfirmTitle": "Leave the match?",
+  "@pauseExitConfirmTitle": {
+    "description": "Confirmation title."
+  },
+  "pauseExitConfirmBody": "This match will be lost.",
+  "@pauseExitConfirmBody": {
+    "description": "Confirmation text."
+  },
+  "dialogCancel": "Cancel",
+  "@dialogCancel": {
+    "description": "Generic dialog button."
+  },
+  "dialogLeave": "Leave",
+  "@dialogLeave": {
+    "description": "Confirms leaving the match."
+  },
+  "resultChangeTeams": "Change teams",
+  "@resultChangeTeams": {
+    "description": "Results button: back to setup."
+  },
+  "resultMostDamage": "Most damage",
+  "@resultMostDamage": {
+    "description": "Results stat title."
+  },
+  "resultMostDamageValue": "{name} ({team}): {damage} HP",
+  "@resultMostDamageValue": {
+    "description": "Best unit and its damage.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "team": {
+        "type": "String"
+      },
+      "damage": {
+        "type": "int"
+      }
+    }
+  },
+  "resultNoDamage": "Nobody landed a hit",
+  "@resultNoDamage": {
+    "description": "No damage was dealt."
+  },
+  "resultKills": "Knockouts per team",
+  "@resultKills": {
+    "description": "Results stat title."
+  },
+  "resultTurns": "{count} turns",
+  "@resultTurns": {
+    "description": "Match length.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "howNext": "Next",
+  "@howNext": {
+    "description": "How-to-play next page."
+  },
+  "howDone": "Got it",
+  "@howDone": {
+    "description": "How-to-play last page."
+  },
+  "howMoveTitle": "Move",
+  "@howMoveTitle": {
+    "description": "How-to-play page title."
+  },
+  "howMoveBody": "Hold the arrow buttons to walk. Two jump buttons: a forward hop and a high jump. Falling far hurts; water and the map edges are deadly.",
+  "@howMoveBody": {
+    "description": "How-to-play text."
+  },
+  "howAimTitle": "Aim and fire",
+  "@howAimTitle": {
+    "description": "How-to-play page title."
+  },
+  "howAimBody": "Drag anywhere with one finger, like a slingshot: pull back to aim, pull further for more power. Fine-tune with the ± buttons, then press Fire. Drag back to the start to cancel.",
+  "@howAimBody": {
+    "description": "How-to-play text."
+  },
+  "howWeaponsTitle": "Weapons",
+  "@howWeaponsTitle": {
+    "description": "How-to-play page title."
+  },
+  "howWeaponsBody": "Open the weapon menu to switch. Some weapons have limited ammo per team. Every family has one signature weapon each unit can use once per match.",
+  "@howWeaponsBody": {
+    "description": "How-to-play text."
+  },
+  "howWindTitle": "Wind and turns",
+  "@howWindTitle": {
+    "description": "How-to-play page title."
+  },
+  "howWindBody": "Wind changes every turn and pushes most thrown weapons. You get one shot per turn, then 3 seconds to run before the next team plays.",
+  "@howWindBody": {
+    "description": "How-to-play text."
+  },
+  "howFamiliesTitle": "Families",
+  "@howFamiliesTitle": {
+    "description": "How-to-play page title."
+  },
+  "howFamiliesBody": "Each family has a passive ability: cats survive one lethal hit, dogs are tougher, rabbits jump higher, birds glide, and more. Breeds only change the look.",
+  "@howFamiliesBody": {
+    "description": "How-to-play text."
+  },
+  "howWinTitle": "Winning",
+  "@howWinTitle": {
+    "description": "How-to-play page title."
+  },
+  "howWinBody": "The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, everyone drops to 1 HP and the water rises every round.",
+  "@howWinBody": {
+    "description": "How-to-play text."
+  },
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {
+    "description": "Settings label."
+  },
+  "settingsLanguageSystem": "Device language",
+  "@settingsLanguageSystem": {
+    "description": "Follow the phone language."
+  },
+  "languageEnglish": "English",
+  "@languageEnglish": {
+    "description": "Language name (in that language)."
+  },
+  "languageIndonesian": "Bahasa Indonesia",
+  "@languageIndonesian": {
+    "description": "Language name (in that language)."
+  },
+  "settingsMusic": "Music volume",
+  "@settingsMusic": {
+    "description": "Settings label."
+  },
+  "settingsSfx": "Sound effects volume",
+  "@settingsSfx": {
+    "description": "Settings label."
+  },
+  "settingsHaptics": "Vibration",
+  "@settingsHaptics": {
+    "description": "Settings label."
+  },
+  "settingsAimGuide": "Show aim guide",
+  "@settingsAimGuide": {
+    "description": "Settings label."
+  },
+  "settingsTutorial": "Show the tutorial again",
+  "@settingsTutorial": {
+    "description": "Settings action."
+  },
+  "settingsTutorialReset": "The tutorial will show in your next match.",
+  "@settingsTutorialReset": {
+    "description": "Confirmation snackbar."
+  },
+  "aboutVersion": "Version {version}",
+  "@aboutVersion": {
+    "description": "About screen.",
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "aboutDescription": "A turn-based animal artillery game for friends sharing one phone.",
+  "@aboutDescription": {
+    "description": "About screen tagline."
+  },
+  "aboutCredits": "Asset credits",
+  "@aboutCredits": {
+    "description": "About screen section."
+  },
+  "aboutPrivacy": "Privacy policy",
+  "@aboutPrivacy": {
+    "description": "About screen section."
+  },
+  "aboutPrivacyNote": "This game collects no data. Full policy:",
+  "@aboutPrivacyNote": {
+    "description": "About screen text."
+  },
+  "aboutCopyLink": "Copy link",
+  "@aboutCopyLink": {
+    "description": "Button."
+  },
+  "aboutLinkCopied": "Link copied",
+  "@aboutLinkCopied": {
+    "description": "Snackbar."
   }
 }

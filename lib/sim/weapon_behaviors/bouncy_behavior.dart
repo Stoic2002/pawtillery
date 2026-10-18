@@ -19,7 +19,7 @@ class BouncyBehavior extends FlightBehavior {
   @override
   FlightOutcome tick(Projectile p, SimContext ctx) {
     if (tickFuse(p)) {
-      ctx.explode(p.x, p.y, p.weapon);
+      ctx.explode(p.x, p.y, p.weapon, sourceId: p.ownerId);
       return FlightOutcome.finished;
     }
     if (p.resting) {

@@ -401,7 +401,7 @@ void main() {
   });
 }
 
-const _pinnedWeaponsHash = 1702245880;
+const _pinnedWeaponsHash = 2685680718;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {
@@ -422,12 +422,13 @@ class _FakeContext implements SimContext {
   final carves = <(int, int)>[];
 
   @override
-  void strikeUnit(Unit u, int damage, double dx, double dy, double k) =>
+  void strikeUnit(Unit u, int damage, double dx, double dy, double k,
+          {int? sourceId}) =>
       strikes.add((u.id, damage));
   @override
   void carveTunnel(int x, int y, int r) => carves.add((x, y));
   @override
-  void explode(double x, double y, WeaponDef weapon) {}
+  void explode(double x, double y, WeaponDef weapon, {int? sourceId}) {}
   @override
   void spawnProjectile(Projectile p) {}
   @override

@@ -44,10 +44,13 @@ enum DamageCause {
 }
 
 final class UnitDamaged extends SimEvent {
-  const UnitDamaged(this.unitId, this.amount, this.cause);
+  const UnitDamaged(this.unitId, this.amount, this.cause, {this.sourceUnitId});
   final int unitId;
   final int amount;
   final DamageCause cause;
+
+  /// The unit whose weapon caused it (null for falls and water).
+  final int? sourceUnitId;
 }
 
 enum DeathCause { hp, water, outOfBounds }
@@ -122,6 +125,17 @@ final class TurnStarted extends SimEvent {
 final class PhaseChanged extends SimEvent {
   const PhaseChanged(this.phase);
   final TurnPhase phase;
+}
+
+/// Sudden death began: every unit dropped to 1 HP.
+final class SuddenDeathStarted extends SimEvent {
+  const SuddenDeathStarted();
+}
+
+/// The water rose (sudden death) to [level].
+final class WaterRose extends SimEvent {
+  const WaterRose(this.level);
+  final int level;
 }
 
 /// [winnerTeam] is null for a draw.

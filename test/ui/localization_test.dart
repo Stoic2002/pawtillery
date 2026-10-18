@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pawtillery/app/app.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  setUp(() => SharedPreferences.setMockInitialValues({}));
+
   testWidgets('main menu shows English text', (tester) async {
     await tester.pumpWidget(const PawtilleryApp(locale: Locale('en')));
     await tester.pumpAndSettle();
@@ -17,10 +20,10 @@ void main() {
 
   test('non-Indonesian device languages fall back to English', () {
     const supported = [Locale('en'), Locale('id')];
-    expect(PawtilleryApp.resolveLocale(const Locale('id', 'ID'), supported),
+    expect(resolveAppLocale(const Locale('id', 'ID'), supported),
         const Locale('id'));
-    expect(PawtilleryApp.resolveLocale(const Locale('fr'), supported),
+    expect(resolveAppLocale(const Locale('fr'), supported),
         const Locale('en'));
-    expect(PawtilleryApp.resolveLocale(null, supported), const Locale('en'));
+    expect(resolveAppLocale(null, supported), const Locale('en'));
   });
 }

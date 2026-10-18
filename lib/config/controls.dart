@@ -24,10 +24,3 @@ abstract final class ControlsConfig {
   /// Camera catch-up rate when following a target, per second.
   static const double cameraFollowRate = 6;
 }
-
-/// Temporary match used from the main menu until the setup screen (M4):
-/// random families and breeds.
-abstract final class DevMatch {
-  static const int teamCount = 2;
-  static const int unitsPerTeam = 3;
-}

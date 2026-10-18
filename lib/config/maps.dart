@@ -33,7 +33,44 @@ class MapDef {
 }
 
 abstract final class Maps {
-  /// M1 test bench; replaced by the three themed maps in M4.
+  static const backyard = MapDef(
+    id: 'backyard',
+    nameKey: 'mapBackyard',
+    maskAsset: 'assets/maps/backyard/mask.png',
+    waterLevel: 1120,
+    skyTopArgb: 0xFF7EC8F5,
+    skyBottomArgb: 0xFFE3F4FF,
+    dirtArgb: 0xFF7B5232,
+    grassArgb: 0xFF4CAF50,
+    waterArgb: 0xB0337FD0,
+  );
+
+  static const park = MapDef(
+    id: 'park',
+    nameKey: 'mapPark',
+    maskAsset: 'assets/maps/park/mask.png',
+    waterLevel: 1120,
+    skyTopArgb: 0xFFFFA77A,
+    skyBottomArgb: 0xFFFFE8C8,
+    dirtArgb: 0xFF6D4C35,
+    grassArgb: 0xFF8BC34A,
+    waterArgb: 0xB0296F9E,
+  );
+
+  static const warehouse = MapDef(
+    id: 'warehouse',
+    nameKey: 'mapWarehouse',
+    maskAsset: 'assets/maps/warehouse/mask.png',
+    waterLevel: 1120,
+    skyTopArgb: 0xFF37474F,
+    skyBottomArgb: 0xFF78909C,
+    dirtArgb: 0xFF9E8B74,
+    grassArgb: 0xFFC9A55C,
+    waterArgb: 0xB0285E7A,
+    grassThickness: 3,
+  );
+
+  /// Test bench from M1; used by tests, not offered to players.
   static const sandbox = MapDef(
     id: 'sandbox',
     nameKey: 'mapSandbox',
@@ -46,5 +83,10 @@ abstract final class Maps {
     waterArgb: 0xB02F7FD8,
   );
 
-  static const all = [sandbox];
+  /// Maps players can pick (PRD: Peta 1.0).
+  static const all = [backyard, park, warehouse];
+
+  static MapDef byId(String id) => [...all, sandbox].firstWhere(
+      (m) => m.id == id,
+      orElse: () => throw ArgumentError('Unknown map: $id'));
 }

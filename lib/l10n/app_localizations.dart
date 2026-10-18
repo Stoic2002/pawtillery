@@ -937,6 +937,450 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Drag to pick a direction'**
   String get hudDirectionHint;
+
+  /// Splash screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading…'**
+  String get splashLoading;
+
+  /// Main menu button.
+  ///
+  /// In en, this message translates to:
+  /// **'How to Play'**
+  String get menuHowToPlay;
+
+  /// Main menu / pause button.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get menuSettings;
+
+  /// Main menu button.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get menuAbout;
+
+  /// Default name of a purple team.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple Team'**
+  String get teamPurple;
+
+  /// Default name of an orange team.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange Team'**
+  String get teamOrange;
+
+  /// Map name.
+  ///
+  /// In en, this message translates to:
+  /// **'Backyard'**
+  String get mapBackyard;
+
+  /// Map name.
+  ///
+  /// In en, this message translates to:
+  /// **'City Park'**
+  String get mapPark;
+
+  /// Map name.
+  ///
+  /// In en, this message translates to:
+  /// **'Old Warehouse'**
+  String get mapWarehouse;
+
+  /// Comma-separated names the Random button picks from. Keep them short.
+  ///
+  /// In en, this message translates to:
+  /// **'Milo,Luna,Bobo,Kiki,Coco,Momo,Pip,Nala,Toby,Ziggy,Biscuit,Pepper,Mochi,Tofu,Nugget,Peanut,Waffle,Pixel'**
+  String get unitNamePool;
+
+  /// Setup screen title.
+  ///
+  /// In en, this message translates to:
+  /// **'New Match'**
+  String get setupTitle;
+
+  /// Number of teams option.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get setupTeams;
+
+  /// Option label.
+  ///
+  /// In en, this message translates to:
+  /// **'Units per team'**
+  String get setupUnitsPerTeam;
+
+  /// Option label.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn time'**
+  String get setupTurnTime;
+
+  /// Option label.
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get setupMap;
+
+  /// Random map choice.
+  ///
+  /// In en, this message translates to:
+  /// **'Random'**
+  String get setupMapRandom;
+
+  /// Option label.
+  ///
+  /// In en, this message translates to:
+  /// **'Sudden death'**
+  String get setupSuddenDeath;
+
+  /// Sudden death disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get setupOff;
+
+  /// Sudden death start time.
+  ///
+  /// In en, this message translates to:
+  /// **'After {minutes} min'**
+  String setupMinutes(int minutes);
+
+  /// Fills every unit with a random family, breed and name.
+  ///
+  /// In en, this message translates to:
+  /// **'Random'**
+  String get setupRandomAll;
+
+  /// Tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Randomize this unit'**
+  String get setupRandomUnit;
+
+  /// Starts the match.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get setupStart;
+
+  /// Text field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Team name'**
+  String get setupTeamName;
+
+  /// Unit name field label.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get setupUnitName;
+
+  /// Unit family dropdown label.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get setupFamily;
+
+  /// Unit breed dropdown label.
+  ///
+  /// In en, this message translates to:
+  /// **'Breed'**
+  String get setupBreed;
+
+  /// Colour picker label.
+  ///
+  /// In en, this message translates to:
+  /// **'Team colour'**
+  String get setupColor;
+
+  /// Section title.
+  ///
+  /// In en, this message translates to:
+  /// **'Match options'**
+  String get setupOptions;
+
+  /// Pause button tooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Pause'**
+  String get hudPause;
+
+  /// Shown while sudden death is on.
+  ///
+  /// In en, this message translates to:
+  /// **'Sudden death!'**
+  String get hudSuddenDeath;
+
+  /// Pause dialog title.
+  ///
+  /// In en, this message translates to:
+  /// **'Paused'**
+  String get pauseTitle;
+
+  /// Pause dialog button.
+  ///
+  /// In en, this message translates to:
+  /// **'Resume'**
+  String get pauseResume;
+
+  /// Pause dialog button.
+  ///
+  /// In en, this message translates to:
+  /// **'Exit to menu'**
+  String get pauseExit;
+
+  /// Confirmation title.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the match?'**
+  String get pauseExitConfirmTitle;
+
+  /// Confirmation text.
+  ///
+  /// In en, this message translates to:
+  /// **'This match will be lost.'**
+  String get pauseExitConfirmBody;
+
+  /// Generic dialog button.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get dialogCancel;
+
+  /// Confirms leaving the match.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get dialogLeave;
+
+  /// Results button: back to setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Change teams'**
+  String get resultChangeTeams;
+
+  /// Results stat title.
+  ///
+  /// In en, this message translates to:
+  /// **'Most damage'**
+  String get resultMostDamage;
+
+  /// Best unit and its damage.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} ({team}): {damage} HP'**
+  String resultMostDamageValue(String name, String team, int damage);
+
+  /// No damage was dealt.
+  ///
+  /// In en, this message translates to:
+  /// **'Nobody landed a hit'**
+  String get resultNoDamage;
+
+  /// Results stat title.
+  ///
+  /// In en, this message translates to:
+  /// **'Knockouts per team'**
+  String get resultKills;
+
+  /// Match length.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} turns'**
+  String resultTurns(int count);
+
+  /// How-to-play next page.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get howNext;
+
+  /// How-to-play last page.
+  ///
+  /// In en, this message translates to:
+  /// **'Got it'**
+  String get howDone;
+
+  /// How-to-play page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Move'**
+  String get howMoveTitle;
+
+  /// How-to-play text.
+  ///
+  /// In en, this message translates to:
+  /// **'Hold the arrow buttons to walk. Two jump buttons: a forward hop and a high jump. Falling far hurts; water and the map edges are deadly.'**
+  String get howMoveBody;
+
+  /// How-to-play page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Aim and fire'**
+  String get howAimTitle;
+
+  /// How-to-play text.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag anywhere with one finger, like a slingshot: pull back to aim, pull further for more power. Fine-tune with the ± buttons, then press Fire. Drag back to the start to cancel.'**
+  String get howAimBody;
+
+  /// How-to-play page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Weapons'**
+  String get howWeaponsTitle;
+
+  /// How-to-play text.
+  ///
+  /// In en, this message translates to:
+  /// **'Open the weapon menu to switch. Some weapons have limited ammo per team. Every family has one signature weapon each unit can use once per match.'**
+  String get howWeaponsBody;
+
+  /// How-to-play page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind and turns'**
+  String get howWindTitle;
+
+  /// How-to-play text.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind changes every turn and pushes most thrown weapons. You get one shot per turn, then 3 seconds to run before the next team plays.'**
+  String get howWindBody;
+
+  /// How-to-play page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Families'**
+  String get howFamiliesTitle;
+
+  /// How-to-play text.
+  ///
+  /// In en, this message translates to:
+  /// **'Each family has a passive ability: cats survive one lethal hit, dogs are tougher, rabbits jump higher, birds glide, and more. Breeds only change the look.'**
+  String get howFamiliesBody;
+
+  /// How-to-play page title.
+  ///
+  /// In en, this message translates to:
+  /// **'Winning'**
+  String get howWinTitle;
+
+  /// How-to-play text.
+  ///
+  /// In en, this message translates to:
+  /// **'The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, everyone drops to 1 HP and the water rises every round.'**
+  String get howWinBody;
+
+  /// Settings label.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get settingsLanguage;
+
+  /// Follow the phone language.
+  ///
+  /// In en, this message translates to:
+  /// **'Device language'**
+  String get settingsLanguageSystem;
+
+  /// Language name (in that language).
+  ///
+  /// In en, this message translates to:
+  /// **'English'**
+  String get languageEnglish;
+
+  /// Language name (in that language).
+  ///
+  /// In en, this message translates to:
+  /// **'Bahasa Indonesia'**
+  String get languageIndonesian;
+
+  /// Settings label.
+  ///
+  /// In en, this message translates to:
+  /// **'Music volume'**
+  String get settingsMusic;
+
+  /// Settings label.
+  ///
+  /// In en, this message translates to:
+  /// **'Sound effects volume'**
+  String get settingsSfx;
+
+  /// Settings label.
+  ///
+  /// In en, this message translates to:
+  /// **'Vibration'**
+  String get settingsHaptics;
+
+  /// Settings label.
+  ///
+  /// In en, this message translates to:
+  /// **'Show aim guide'**
+  String get settingsAimGuide;
+
+  /// Settings action.
+  ///
+  /// In en, this message translates to:
+  /// **'Show the tutorial again'**
+  String get settingsTutorial;
+
+  /// Confirmation snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'The tutorial will show in your next match.'**
+  String get settingsTutorialReset;
+
+  /// About screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version}'**
+  String aboutVersion(String version);
+
+  /// About screen tagline.
+  ///
+  /// In en, this message translates to:
+  /// **'A turn-based animal artillery game for friends sharing one phone.'**
+  String get aboutDescription;
+
+  /// About screen section.
+  ///
+  /// In en, this message translates to:
+  /// **'Asset credits'**
+  String get aboutCredits;
+
+  /// About screen section.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy policy'**
+  String get aboutPrivacy;
+
+  /// About screen text.
+  ///
+  /// In en, this message translates to:
+  /// **'This game collects no data. Full policy:'**
+  String get aboutPrivacyNote;
+
+  /// Button.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get aboutCopyLink;
+
+  /// Snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get aboutLinkCopied;
 }
 
 class _AppLocalizationsDelegate

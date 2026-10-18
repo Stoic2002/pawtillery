@@ -41,7 +41,8 @@ class BoomerangBehavior extends FlightBehavior {
         if (ProjectilePhysics.unitAt(p.x, p.y, [u]) != null) {
           p.hitUnits.add(u.id);
           ctx.strikeUnit(
-              u, p.weapon.maxDamage, dirX, dirY, p.weapon.knockbackScale);
+              u, p.weapon.maxDamage, dirX, dirY, p.weapon.knockbackScale,
+              sourceId: p.ownerId);
         }
       }
       if (p.traveled >= p.range) {

@@ -17,7 +17,7 @@ class WalkerBehavior extends FlightBehavior {
     final body = p.body!;
     p.ageTicks++;
     if (tickFuse(p)) {
-      ctx.explode(body.centerX, body.centerY, p.weapon);
+      ctx.explode(body.centerX, body.centerY, p.weapon, sourceId: p.ownerId);
       return FlightOutcome.finished;
     }
 
@@ -46,7 +46,7 @@ class WalkerBehavior extends FlightBehavior {
       final dy = u.centerY - body.centerY;
       final reach = u.stats.hitRadius + body.stats.hitRadius;
       if (dx * dx + dy * dy <= reach * reach) {
-        ctx.explode(body.centerX, body.centerY, p.weapon);
+        ctx.explode(body.centerX, body.centerY, p.weapon, sourceId: p.ownerId);
         return FlightOutcome.hitUnit;
       }
     }

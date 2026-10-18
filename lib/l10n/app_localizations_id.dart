@@ -453,4 +453,244 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get hudDirectionHint => 'Seret untuk memilih arah';
+
+  @override
+  String get splashLoading => 'Memuat…';
+
+  @override
+  String get menuHowToPlay => 'Cara Bermain';
+
+  @override
+  String get menuSettings => 'Pengaturan';
+
+  @override
+  String get menuAbout => 'Tentang';
+
+  @override
+  String get teamPurple => 'Tim Ungu';
+
+  @override
+  String get teamOrange => 'Tim Oranye';
+
+  @override
+  String get mapBackyard => 'Halaman Rumah';
+
+  @override
+  String get mapPark => 'Taman Kota';
+
+  @override
+  String get mapWarehouse => 'Gudang Tua';
+
+  @override
+  String get unitNamePool =>
+      'Milo,Luna,Bobo,Kiki,Coco,Momo,Pipi,Nala,Tobi,Oyen,Belang,Gembul,Mochi,Tahu,Kacang,Cimol,Onde,Kerupuk';
+
+  @override
+  String get setupTitle => 'Pertandingan Baru';
+
+  @override
+  String get setupTeams => 'Tim';
+
+  @override
+  String get setupUnitsPerTeam => 'Unit per tim';
+
+  @override
+  String get setupTurnTime => 'Waktu giliran';
+
+  @override
+  String get setupMap => 'Peta';
+
+  @override
+  String get setupMapRandom => 'Acak';
+
+  @override
+  String get setupSuddenDeath => 'Mati mendadak';
+
+  @override
+  String get setupOff => 'Nonaktif';
+
+  @override
+  String setupMinutes(int minutes) {
+    return 'Setelah $minutes mnt';
+  }
+
+  @override
+  String get setupRandomAll => 'Acak';
+
+  @override
+  String get setupRandomUnit => 'Acak unit ini';
+
+  @override
+  String get setupStart => 'Mulai';
+
+  @override
+  String get setupTeamName => 'Nama tim';
+
+  @override
+  String get setupUnitName => 'Nama';
+
+  @override
+  String get setupFamily => 'Jenis';
+
+  @override
+  String get setupBreed => 'Ras';
+
+  @override
+  String get setupColor => 'Warna tim';
+
+  @override
+  String get setupOptions => 'Opsi pertandingan';
+
+  @override
+  String get hudPause => 'Jeda';
+
+  @override
+  String get hudSuddenDeath => 'Mati mendadak!';
+
+  @override
+  String get pauseTitle => 'Jeda';
+
+  @override
+  String get pauseResume => 'Lanjut';
+
+  @override
+  String get pauseExit => 'Keluar ke menu';
+
+  @override
+  String get pauseExitConfirmTitle => 'Tinggalkan pertandingan?';
+
+  @override
+  String get pauseExitConfirmBody => 'Pertandingan ini tidak akan disimpan.';
+
+  @override
+  String get dialogCancel => 'Batal';
+
+  @override
+  String get dialogLeave => 'Keluar';
+
+  @override
+  String get resultChangeTeams => 'Ubah tim';
+
+  @override
+  String get resultMostDamage => 'Damage terbanyak';
+
+  @override
+  String resultMostDamageValue(String name, String team, int damage) {
+    return '$name ($team): $damage HP';
+  }
+
+  @override
+  String get resultNoDamage => 'Belum ada yang kena';
+
+  @override
+  String get resultKills => 'Kill per tim';
+
+  @override
+  String resultTurns(int count) {
+    return '$count giliran';
+  }
+
+  @override
+  String get howNext => 'Lanjut';
+
+  @override
+  String get howDone => 'Mengerti';
+
+  @override
+  String get howMoveTitle => 'Bergerak';
+
+  @override
+  String get howMoveBody =>
+      'Tahan tombol panah untuk berjalan. Ada dua tombol lompat: lompat maju dan lompat tinggi. Jatuh terlalu tinggi melukai; air dan tepi peta mematikan.';
+
+  @override
+  String get howAimTitle => 'Bidik dan tembak';
+
+  @override
+  String get howAimBody =>
+      'Seret satu jari di mana saja seperti ketapel: tarik ke belakang untuk membidik, tarik lebih jauh untuk tenaga lebih besar. Atur halus dengan tombol ±, lalu tekan Tembak. Seret kembali ke titik awal untuk batal.';
+
+  @override
+  String get howWeaponsTitle => 'Senjata';
+
+  @override
+  String get howWeaponsBody =>
+      'Buka menu senjata untuk mengganti. Beberapa senjata punya amunisi terbatas per tim. Setiap jenis hewan punya satu senjata khas yang bisa dipakai sekali per unit per pertandingan.';
+
+  @override
+  String get howWindTitle => 'Angin dan giliran';
+
+  @override
+  String get howWindBody =>
+      'Angin berubah setiap giliran dan mendorong sebagian besar senjata lempar. Kamu menembak sekali per giliran, lalu punya 3 detik untuk menjauh sebelum tim berikutnya bermain.';
+
+  @override
+  String get howFamiliesTitle => 'Jenis hewan';
+
+  @override
+  String get howFamiliesBody =>
+      'Setiap jenis hewan punya kemampuan pasif: kucing selamat dari satu serangan mematikan, anjing lebih tangguh, kelinci lompat lebih tinggi, burung melayang, dan lainnya. Ras hanya mengubah tampilan.';
+
+  @override
+  String get howWinTitle => 'Menang';
+
+  @override
+  String get howWinBody =>
+      'Tim terakhir yang masih punya unit menang. Dua jari menggeser dan memperbesar kamera. Saat mati mendadak dimulai, semua unit tinggal 1 HP dan air naik setiap ronde.';
+
+  @override
+  String get settingsLanguage => 'Bahasa';
+
+  @override
+  String get settingsLanguageSystem => 'Bahasa perangkat';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageIndonesian => 'Bahasa Indonesia';
+
+  @override
+  String get settingsMusic => 'Volume musik';
+
+  @override
+  String get settingsSfx => 'Volume efek suara';
+
+  @override
+  String get settingsHaptics => 'Getaran';
+
+  @override
+  String get settingsAimGuide => 'Tampilkan garis bidikan';
+
+  @override
+  String get settingsTutorial => 'Tampilkan tutorial lagi';
+
+  @override
+  String get settingsTutorialReset =>
+      'Tutorial akan muncul di pertandingan berikutnya.';
+
+  @override
+  String aboutVersion(String version) {
+    return 'Versi $version';
+  }
+
+  @override
+  String get aboutDescription =>
+      'Game artileri hewan bergiliran untuk dimainkan bersama teman di satu HP.';
+
+  @override
+  String get aboutCredits => 'Kredit aset';
+
+  @override
+  String get aboutPrivacy => 'Kebijakan privasi';
+
+  @override
+  String get aboutPrivacyNote =>
+      'Game ini tidak mengumpulkan data apa pun. Kebijakan lengkap:';
+
+  @override
+  String get aboutCopyLink => 'Salin tautan';
+
+  @override
+  String get aboutLinkCopied => 'Tautan disalin';
 }

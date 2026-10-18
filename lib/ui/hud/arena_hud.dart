@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../config/controls.dart';
-import '../../config/teams.dart';
 import '../../config/weapons.dart';
 import '../../game/hud_state.dart';
 import '../../game/pawtillery_game.dart';
@@ -10,7 +9,6 @@ import '../../l10n/app_localizations.dart';
 import '../../sim/inputs.dart';
 import '../../sim/turn_manager.dart';
 import '../../l10n/l10n_lookup.g.dart';
-import '../widgets/l10n_lookup.dart';
 import 'weapon_menu.dart';
 
 /// Arena HUD. Everything sits along the screen edges so the middle of the
@@ -20,14 +18,14 @@ class ArenaHud extends StatelessWidget {
     super.key,
     required this.game,
     required this.seed,
-    required this.onBack,
-    required this.onPlayAgain,
+    required this.teamNames,
+    required this.onPause,
   });
 
   final PawtilleryGame game;
   final int seed;
-  final VoidCallback onBack;
-  final VoidCallback onPlayAgain;
+  final List<String> teamNames;
+  final VoidCallback onPause;
 
   @override
   Widget build(BuildContext context) {
@@ -44,11 +42,16 @@ class ArenaHud extends StatelessWidget {
                   children: [
                     Align(
                       alignment: Alignment.topLeft,
-                      child: _TopLeft(hud: hud, onBack: onBack),
+                      child: _TopLeft(
+                        hud: hud,
+                        teamName: teamNames[hud.activeTeam],
+                        teamColor: Color(game.teamColors[hud.activeTeam]),
+                        onPause: onPause,
+                      ),
                     ),
                     Align(
                       alignment: Alignment.topCenter,
-                      child: _TopCenter(hud: hud),
+                      child: _TopCenter(hud: hud, teamColors: game.teamColors),
                     ),
                     Align(
                       alignment: Alignment.topRight,
@@ -73,13 +76,10 @@ class ArenaHud extends StatelessWidget {
             if (hud.phase == TurnPhase.turnStart)
               Align(
                 alignment: const Alignment(0, -0.4),
-                child: _TurnBanner(team: hud.activeTeam),
-              ),
-            if (hud.isOver)
-              _ResultOverlay(
-                winnerTeam: hud.winnerTeam,
-                onPlayAgain: onPlayAgain,
-                onMainMenu: onBack,
+                child: _TurnBanner(
+                  name: teamNames[hud.activeTeam],
+                  color: Color(game.teamColors[hud.activeTeam]),
+                ),
               ),
           ],
         );
@@ -88,13 +88,18 @@ class ArenaHud extends StatelessWidget {
   }
 }
 
-Color _teamColor(int team) => Color(Teams.styles[team].colorArgb);
-
 class _TopLeft extends StatelessWidget {
-  const _TopLeft({required this.hud, required this.onBack});
+  const _TopLeft({
+    required this.hud,
+    required this.teamName,
+    required this.teamColor,
+    required this.onPause,
+  });
 
   final HudState hud;
-  final VoidCallback onBack;
+  final String teamName;
+  final Color teamColor;
+  final VoidCallback onPause;
 
   @override
   Widget build(BuildContext context) {
@@ -109,19 +114,23 @@ class _TopLeft extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton.filledTonal(
-          tooltip: l10n.back,
+          tooltip: l10n.hudPause,
           constraints: const BoxConstraints.tightFor(width: 48, height: 48),
-          onPressed: onBack,
-          icon: const Icon(Icons.arrow_back),
+          onPressed: onPause,
+          icon: const Icon(Icons.pause),
         ),
         const SizedBox(width: 8),
         if (!hud.isOver)
           _Chip(
-            border: _teamColor(hud.activeTeam),
+            border: teamColor,
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(l10n.teamName(hud.activeTeam), style: _chipText),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 140),
+                  child: Text(teamName,
+                      style: _chipText, overflow: TextOverflow.ellipsis),
+                ),
                 if (clockText != null) ...[
                   const SizedBox(width: 10),
                   Text(
@@ -141,9 +150,10 @@ class _TopLeft extends StatelessWidget {
 }
 
 class _TopCenter extends StatelessWidget {
-  const _TopCenter({required this.hud});
+  const _TopCenter({required this.hud, required this.teamColors});
 
   final HudState hud;
+  final List<int> teamColors;
 
   @override
   Widget build(BuildContext context) {
@@ -165,12 +175,19 @@ class _TopCenter extends StatelessWidget {
             ],
           ),
         ),
+        if (hud.suddenDeath) ...[
+          const SizedBox(height: 4),
+          _Chip(
+            border: Colors.lightBlueAccent,
+            child: Text(l10n.hudSuddenDeath, style: _chipText),
+          ),
+        ],
         const SizedBox(height: 4),
         for (var team = 0; team < hud.teamHp.length; team++)
           Padding(
             padding: const EdgeInsets.only(top: 3),
             child: _TeamHpBar(
-              color: _teamColor(team),
+              color: Color(teamColors[team]),
               hp: hud.teamHp[team],
               maxHp: hud.teamMaxHp[team],
             ),
@@ -658,9 +675,10 @@ class _Stepper extends StatelessWidget {
 }
 
 class _TurnBanner extends StatelessWidget {
-  const _TurnBanner({required this.team});
+  const _TurnBanner({required this.name, required this.color});
 
-  final int team;
+  final String name;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -670,79 +688,16 @@ class _TurnBanner extends StatelessWidget {
         decoration: BoxDecoration(
           color: const Color(0xCC000000),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _teamColor(team), width: 4),
+          border: Border.all(color: color, width: 4),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 14),
           child: Text(
-            l10n.turnBanner(l10n.teamName(team)),
+            l10n.turnBanner(name),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   color: Colors.white,
                   fontWeight: FontWeight.w800,
                 ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Minimal result card for M2; the full results screen comes in M4.
-class _ResultOverlay extends StatelessWidget {
-  const _ResultOverlay({
-    required this.winnerTeam,
-    required this.onPlayAgain,
-    required this.onMainMenu,
-  });
-
-  final int? winnerTeam;
-  final VoidCallback onPlayAgain;
-  final VoidCallback onMainMenu;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final winner = winnerTeam;
-    return ColoredBox(
-      color: const Color(0x88000000),
-      child: Center(
-        child: Card(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  winner == null
-                      ? l10n.resultDraw
-                      : l10n.resultWinner(l10n.teamName(winner)),
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        color: winner == null ? null : _teamColor(winner),
-                        fontWeight: FontWeight.w800,
-                      ),
-                ),
-                const SizedBox(height: 20),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 8,
-                  alignment: WrapAlignment.center,
-                  children: [
-                    FilledButton(
-                      style: FilledButton.styleFrom(
-                          minimumSize: const Size(140, 48)),
-                      onPressed: onPlayAgain,
-                      child: Text(l10n.resultPlayAgain),
-                    ),
-                    OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(140, 48)),
-                      onPressed: onMainMenu,
-                      child: Text(l10n.resultMainMenu),
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ),
         ),
       ),

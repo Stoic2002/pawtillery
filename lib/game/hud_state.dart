@@ -14,6 +14,7 @@ class HudState {
     required this.teamHp,
     required this.teamMaxHp,
     required this.winnerTeam,
+    this.suddenDeath = false,
   });
 
   final TurnPhase phase;
@@ -29,6 +30,7 @@ class HudState {
 
   /// Only meaningful when [phase] is [TurnPhase.matchOver]; null = draw.
   final int? winnerTeam;
+  final bool suddenDeath;
 
   bool get canMove =>
       phase == TurnPhase.action || phase == TurnPhase.retreat;
@@ -43,11 +45,13 @@ class HudState {
       other.wind == wind &&
       listEquals(other.teamHp, teamHp) &&
       listEquals(other.teamMaxHp, teamMaxHp) &&
+      other.suddenDeath == suddenDeath &&
       other.winnerTeam == winnerTeam;
 
   @override
   int get hashCode => Object.hash(phase, activeTeam, clockSeconds, wind,
-      Object.hashAll(teamHp), Object.hashAll(teamMaxHp), winnerTeam);
+      Object.hashAll(teamHp), Object.hashAll(teamMaxHp), winnerTeam,
+      suddenDeath);
 }
 
 /// The player's current weapon and aim. [active] = ready to fire: the

@@ -17,11 +17,17 @@ import '../hud_state.dart';
 /// - direction weapons: an arrow;
 /// - target weapons: a crosshair (green if allowed, red if not).
 class AimGuideComponent extends Component {
-  AimGuideComponent({required this.sim, required this.aim})
-      : super(priority: 6);
+  AimGuideComponent({
+    required this.sim,
+    required this.aim,
+    required this.showPath,
+  }) : super(priority: 6);
 
   final SimWorld sim;
   final AimState Function() aim;
+
+  /// Settings switch for the predicted path.
+  final bool Function() showPath;
 
   final ui.Paint _dot = ui.Paint()..color = const ui.Color(0xE6FFFFFF);
   final ui.Paint _dotEdge = ui.Paint()
@@ -60,7 +66,7 @@ class AimGuideComponent extends Component {
     final weapon = Weapons.byId(a.weaponId);
     final thrown = weapon.aim == AimMode.angleAndPower &&
         weapon.flight is! Boomerang;
-    if (!a.active || unit == null || !unit.alive || !thrown) {
+    if (!a.active || unit == null || !unit.alive || !thrown || !showPath()) {
       _path = const [];
       return;
     }
@@ -118,7 +124,7 @@ class AimGuideComponent extends Component {
     if (weapon.aim == AimMode.direction) {
       final start = center + dir * (unit.stats.hitRadius + 6);
       canvas.drawLine(start, start + dir * 40, _line);
-    } else if (flight is Boomerang) {
+    } else if (flight is Boomerang && showPath()) {
       final range = flight.minRange +
           (flight.maxRange - flight.minRange) * a.power / 100;
       final start = center + dir * (unit.stats.hitRadius + 6);

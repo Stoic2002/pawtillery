@@ -3,16 +3,22 @@ import 'dart:math' as math;
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
-import '../../config/breeds.dart';
+import '../../app/app_services.dart';
+import '../../app/match_config.dart';
 import '../../config/controls.dart';
 import '../../config/families.dart';
+import '../../config/match_defaults.dart';
+import '../../config/teams.dart';
 import '../../config/weapons.dart';
 import '../../game/hud_state.dart';
 import '../../game/pawtillery_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
-import '../../sim/match_setup.dart';
+import '../../sim/turn_manager.dart';
 import '../hud/arena_hud.dart';
+import '../hud/pause_dialog.dart';
+import 'results_screen.dart';
+import 'settings_screen.dart';
 
 /// Hosts the Flame game, routes touch gestures to it, and layers the
 /// Flutter HUD on top.
@@ -20,15 +26,12 @@ import '../hud/arena_hud.dart';
 /// Gestures (PRD: Kontrol sentuh): one finger drags the slingshot for
 /// weapons aimed that way (when the unit may fire), otherwise pans; a tap
 /// picks the target for target weapons; two fingers always pan and pinch.
+/// The back gesture opens the pause menu instead of leaving (PRD: API 36
+/// predictive back).
 class ArenaScreen extends StatefulWidget {
-  const ArenaScreen({
-    super.key,
-    required this.teamCount,
-    required this.unitsPerTeam,
-  });
+  const ArenaScreen({super.key, required this.config});
 
-  final int teamCount;
-  final int unitsPerTeam;
+  final MatchConfig config;
 
   @override
   State<ArenaScreen> createState() => _ArenaScreenState();
@@ -41,6 +44,10 @@ class _ArenaScreenState extends State<ArenaScreen> {
   // match can be replayed while debugging.
   late final int _seed = math.Random().nextInt(1 << 31);
   PawtilleryGame? _game;
+  late List<String> _teamNames;
+  late List<String> _unitNames;
+  bool _paused = false;
+  bool _finished = false;
 
   _GestureMode _mode = _GestureMode.none;
   Offset _aimStart = Offset.zero;
@@ -54,38 +61,94 @@ class _ArenaScreenState extends State<ArenaScreen> {
     debugPrint('Pawtillery match seed: $_seed');
   }
 
-  /// Until the setup screen exists (M4): random families and breeds,
-  /// derived from the match seed so a seed reproduces the whole match.
-  List<List<UnitSpec>> _randomRosters() {
-    final rng = math.Random(_seed);
-    return [
-      for (var t = 0; t < widget.teamCount; t++)
-        [
-          for (var k = 0; k < widget.unitsPerTeam; k++)
-            () {
-              final family = Families.all[rng.nextInt(Families.all.length)];
-              final breeds = Breeds.ofFamily(family.id);
-              return UnitSpec(
-                familyId: family.id,
-                breedId: breeds[rng.nextInt(breeds.length)].id,
-              );
-            }(),
-        ],
-    ];
-  }
-
   PawtilleryGame _gameFor(BuildContext context) {
     final existing = _game;
     if (existing != null) return existing;
     final l10n = AppLocalizations.of(context);
-    return _game = PawtilleryGame(
+    final config = widget.config;
+    _teamNames = [
+      for (final t in config.teams)
+        t.customName ?? l10n.byKey(Teams.styles[t.styleIndex].nameKey),
+    ];
+    _unitNames = [
+      for (final t in config.teams)
+        for (final u in t.units) u.name,
+    ];
+    final game = PawtilleryGame(
       seed: _seed,
-      rosters: _randomRosters(),
+      rosters: config.rosters(),
+      map: config.resolveMap(math.Random(_seed)),
+      teamColors: [
+        for (final t in config.teams) Teams.styles[t.styleIndex].colorArgb,
+      ],
+      unitNames: _unitNames,
       familyLetters: {
         for (final f in Families.all)
           f.id: l10n.byKey(f.nameKey).characters.first.toUpperCase(),
       },
+      timings: TurnTimings(
+          turnTicks: config.turnSeconds * MatchDefaults.ticksPerSecond),
+      suddenDeathAfterTicks: config.suddenDeathMinutes == null
+          ? null
+          : config.suddenDeathMinutes! * 60 * MatchDefaults.ticksPerSecond,
+      showAimGuide: AppServices.of(context).settings.showAimGuide,
     );
+    game.hud.addListener(_onHudChanged);
+    return _game = game;
+  }
+
+  /// Match over: show the result briefly in the arena, then move on.
+  void _onHudChanged() {
+    final game = _game!;
+    final hud = game.hud.value;
+    if (_finished || hud == null || !hud.isOver) return;
+    _finished = true;
+    final top = game.stats.topDamage;
+    final result = MatchResult(
+      winnerTeam: hud.winnerTeam,
+      teamNames: _teamNames,
+      teamColors: game.teamColors,
+      knockouts: List.of(game.stats.knockouts),
+      turns: game.sim.turn.turnNumber,
+      topUnitName: top == null ? null : _unitNames[top.$1],
+      topUnitTeam: top == null ? null : game.sim.units[top.$1].team,
+      topDamage: top?.$2,
+    );
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
+        builder: (_) => ResultsScreen(result: result, config: widget.config),
+      ));
+    });
+  }
+
+  Future<void> _pause() async {
+    final game = _game;
+    if (game == null || _paused || _finished) return;
+    _paused = true;
+    game
+      ..setWalk(0)
+      ..pauseEngine();
+    while (mounted) {
+      final choice = await showPauseDialog(context);
+      if (!mounted) return;
+      if (choice == PauseChoice.settings) {
+        await Navigator.of(context).push(MaterialPageRoute<void>(
+            builder: (_) => const SettingsScreen()));
+        if (!mounted) return;
+        game.showAimGuide = AppServices.of(context).settings.showAimGuide;
+        continue;
+      }
+      if (choice == PauseChoice.exit) {
+        if (!await confirmExit(context)) continue;
+        if (!mounted) return;
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        return;
+      }
+      break;
+    }
+    _paused = false;
+    game.resumeEngine();
   }
 
   bool get _slingshotWeapon {
@@ -161,46 +224,49 @@ class _ArenaScreenState extends State<ArenaScreen> {
     game.setTargetAtScreen(Vector2(d.localPosition.dx, d.localPosition.dy));
   }
 
-  void _playAgain() {
-    Navigator.of(context).pushReplacement(MaterialPageRoute<void>(
-      builder: (_) => ArenaScreen(
-        teamCount: widget.teamCount,
-        unitsPerTeam: widget.unitsPerTeam,
-      ),
-    ));
+  @override
+  void dispose() {
+    _game?.hud.removeListener(_onHudChanged);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final game = _gameFor(context);
-    return Scaffold(
-      body: Stack(
-        children: [
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTapUp: _onTapUp,
-            onScaleStart: _onScaleStart,
-            onScaleUpdate: _onScaleUpdate,
-            onScaleEnd: _onScaleEnd,
-            child: GameWidget(
-              game: game,
-              loadingBuilder: (_) =>
-                  const Center(child: CircularProgressIndicator()),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _pause();
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTapUp: _onTapUp,
+              onScaleStart: _onScaleStart,
+              onScaleUpdate: _onScaleUpdate,
+              onScaleEnd: _onScaleEnd,
+              child: GameWidget(
+                game: game,
+                loadingBuilder: (_) =>
+                    const Center(child: CircularProgressIndicator()),
+              ),
             ),
-          ),
-          FutureBuilder<void>(
-            future: game.loaded,
-            builder: (context, snapshot) =>
-                snapshot.connectionState == ConnectionState.done
-                    ? ArenaHud(
-                        game: game,
-                        seed: _seed,
-                        onBack: () => Navigator.of(context).maybePop(),
-                        onPlayAgain: _playAgain,
-                      )
-                    : const SizedBox.shrink(),
-          ),
-        ],
+            FutureBuilder<void>(
+              future: game.loaded,
+              builder: (context, snapshot) =>
+                  snapshot.connectionState == ConnectionState.done
+                      ? ArenaHud(
+                          game: game,
+                          seed: _seed,
+                          teamNames: _teamNames,
+                          onPause: _pause,
+                        )
+                      : const SizedBox.shrink(),
+            ),
+          ],
+        ),
       ),
     );
   }

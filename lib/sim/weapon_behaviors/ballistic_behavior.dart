@@ -13,7 +13,7 @@ class BallisticBehavior extends FlightBehavior {
   @override
   FlightOutcome tick(Projectile p, SimContext ctx) {
     if (tickFuse(p)) {
-      ctx.explode(p.x, p.y, p.weapon);
+      ctx.explode(p.x, p.y, p.weapon, sourceId: p.ownerId);
       return FlightOutcome.finished;
     }
     final o = ProjectilePhysics.step(p, ctx.terrain,

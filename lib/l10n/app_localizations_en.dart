@@ -453,4 +453,243 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hudDirectionHint => 'Drag to pick a direction';
+
+  @override
+  String get splashLoading => 'Loading…';
+
+  @override
+  String get menuHowToPlay => 'How to Play';
+
+  @override
+  String get menuSettings => 'Settings';
+
+  @override
+  String get menuAbout => 'About';
+
+  @override
+  String get teamPurple => 'Purple Team';
+
+  @override
+  String get teamOrange => 'Orange Team';
+
+  @override
+  String get mapBackyard => 'Backyard';
+
+  @override
+  String get mapPark => 'City Park';
+
+  @override
+  String get mapWarehouse => 'Old Warehouse';
+
+  @override
+  String get unitNamePool =>
+      'Milo,Luna,Bobo,Kiki,Coco,Momo,Pip,Nala,Toby,Ziggy,Biscuit,Pepper,Mochi,Tofu,Nugget,Peanut,Waffle,Pixel';
+
+  @override
+  String get setupTitle => 'New Match';
+
+  @override
+  String get setupTeams => 'Teams';
+
+  @override
+  String get setupUnitsPerTeam => 'Units per team';
+
+  @override
+  String get setupTurnTime => 'Turn time';
+
+  @override
+  String get setupMap => 'Map';
+
+  @override
+  String get setupMapRandom => 'Random';
+
+  @override
+  String get setupSuddenDeath => 'Sudden death';
+
+  @override
+  String get setupOff => 'Off';
+
+  @override
+  String setupMinutes(int minutes) {
+    return 'After $minutes min';
+  }
+
+  @override
+  String get setupRandomAll => 'Random';
+
+  @override
+  String get setupRandomUnit => 'Randomize this unit';
+
+  @override
+  String get setupStart => 'Start';
+
+  @override
+  String get setupTeamName => 'Team name';
+
+  @override
+  String get setupUnitName => 'Name';
+
+  @override
+  String get setupFamily => 'Family';
+
+  @override
+  String get setupBreed => 'Breed';
+
+  @override
+  String get setupColor => 'Team colour';
+
+  @override
+  String get setupOptions => 'Match options';
+
+  @override
+  String get hudPause => 'Pause';
+
+  @override
+  String get hudSuddenDeath => 'Sudden death!';
+
+  @override
+  String get pauseTitle => 'Paused';
+
+  @override
+  String get pauseResume => 'Resume';
+
+  @override
+  String get pauseExit => 'Exit to menu';
+
+  @override
+  String get pauseExitConfirmTitle => 'Leave the match?';
+
+  @override
+  String get pauseExitConfirmBody => 'This match will be lost.';
+
+  @override
+  String get dialogCancel => 'Cancel';
+
+  @override
+  String get dialogLeave => 'Leave';
+
+  @override
+  String get resultChangeTeams => 'Change teams';
+
+  @override
+  String get resultMostDamage => 'Most damage';
+
+  @override
+  String resultMostDamageValue(String name, String team, int damage) {
+    return '$name ($team): $damage HP';
+  }
+
+  @override
+  String get resultNoDamage => 'Nobody landed a hit';
+
+  @override
+  String get resultKills => 'Knockouts per team';
+
+  @override
+  String resultTurns(int count) {
+    return '$count turns';
+  }
+
+  @override
+  String get howNext => 'Next';
+
+  @override
+  String get howDone => 'Got it';
+
+  @override
+  String get howMoveTitle => 'Move';
+
+  @override
+  String get howMoveBody =>
+      'Hold the arrow buttons to walk. Two jump buttons: a forward hop and a high jump. Falling far hurts; water and the map edges are deadly.';
+
+  @override
+  String get howAimTitle => 'Aim and fire';
+
+  @override
+  String get howAimBody =>
+      'Drag anywhere with one finger, like a slingshot: pull back to aim, pull further for more power. Fine-tune with the ± buttons, then press Fire. Drag back to the start to cancel.';
+
+  @override
+  String get howWeaponsTitle => 'Weapons';
+
+  @override
+  String get howWeaponsBody =>
+      'Open the weapon menu to switch. Some weapons have limited ammo per team. Every family has one signature weapon each unit can use once per match.';
+
+  @override
+  String get howWindTitle => 'Wind and turns';
+
+  @override
+  String get howWindBody =>
+      'Wind changes every turn and pushes most thrown weapons. You get one shot per turn, then 3 seconds to run before the next team plays.';
+
+  @override
+  String get howFamiliesTitle => 'Families';
+
+  @override
+  String get howFamiliesBody =>
+      'Each family has a passive ability: cats survive one lethal hit, dogs are tougher, rabbits jump higher, birds glide, and more. Breeds only change the look.';
+
+  @override
+  String get howWinTitle => 'Winning';
+
+  @override
+  String get howWinBody =>
+      'The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, everyone drops to 1 HP and the water rises every round.';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsLanguageSystem => 'Device language';
+
+  @override
+  String get languageEnglish => 'English';
+
+  @override
+  String get languageIndonesian => 'Bahasa Indonesia';
+
+  @override
+  String get settingsMusic => 'Music volume';
+
+  @override
+  String get settingsSfx => 'Sound effects volume';
+
+  @override
+  String get settingsHaptics => 'Vibration';
+
+  @override
+  String get settingsAimGuide => 'Show aim guide';
+
+  @override
+  String get settingsTutorial => 'Show the tutorial again';
+
+  @override
+  String get settingsTutorialReset =>
+      'The tutorial will show in your next match.';
+
+  @override
+  String aboutVersion(String version) {
+    return 'Version $version';
+  }
+
+  @override
+  String get aboutDescription =>
+      'A turn-based animal artillery game for friends sharing one phone.';
+
+  @override
+  String get aboutCredits => 'Asset credits';
+
+  @override
+  String get aboutPrivacy => 'Privacy policy';
+
+  @override
+  String get aboutPrivacyNote => 'This game collects no data. Full policy:';
+
+  @override
+  String get aboutCopyLink => 'Copy link';
+
+  @override
+  String get aboutLinkCopied => 'Link copied';
 }

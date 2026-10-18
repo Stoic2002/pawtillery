@@ -287,4 +287,4 @@ void main() {
 
 int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 
-const _pinnedScriptHash = 1785308735;
+const _pinnedScriptHash = 1821668611;

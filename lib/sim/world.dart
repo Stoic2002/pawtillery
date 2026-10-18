@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math' show min, sqrt;
 import 'dart:typed_data';
 
+import '../config/match_defaults.dart';
 import '../config/physics.dart';
 import '../config/units.dart';
 import '../config/weapons.dart';
@@ -29,11 +30,13 @@ class SimWorld implements SimContext {
     required this.seed,
     required this.rng,
     required this.terrain,
-    required this.waterLevel,
+    required int waterLevel,
     required List<Unit> units,
     required int teamCount,
     required TurnTimings timings,
-  })  : _units = units,
+    this.suddenDeathAfterTicks,
+  })  : _waterLevel = waterLevel,
+        _units = units,
         turn = TurnManager(teamCount: teamCount, timings: timings),
         _ammo = [
           for (var t = 0; t < teamCount; t++)
@@ -53,6 +56,7 @@ class SimWorld implements SimContext {
     required int waterLevel,
     required List<List<UnitSpec>> rosters,
     TurnTimings timings = const TurnTimings(),
+    int? suddenDeathAfterTicks,
   }) {
     final rng = SimRng(seed);
     final count = rosters.fold(0, (n, r) => n + r.length);
@@ -84,6 +88,7 @@ class SimWorld implements SimContext {
       units: units,
       teamCount: rosters.length,
       timings: timings,
+      suddenDeathAfterTicks: suddenDeathAfterTicks,
     );
   }
 
@@ -95,6 +100,7 @@ class SimWorld implements SimContext {
     required int teamCount,
     required List<UnitPlacement> placements,
     TurnTimings timings = const TurnTimings(),
+    int? suddenDeathAfterTicks,
   }) {
     return SimWorld._(
       seed: seed,
@@ -113,6 +119,7 @@ class SimWorld implements SimContext {
       ],
       teamCount: teamCount,
       timings: timings,
+      suddenDeathAfterTicks: suddenDeathAfterTicks,
     );
   }
 
@@ -121,9 +128,20 @@ class SimWorld implements SimContext {
   final SimRng rng;
   @override
   final TerrainMask terrain;
-  @override
-  final int waterLevel;
   final TurnManager turn;
+
+  int _waterLevel;
+  @override
+  int get waterLevel => _waterLevel;
+
+  /// Sudden death starts with the first turn after this many ticks;
+  /// null = never (PRD: Pengaturan pertandingan).
+  final int? suddenDeathAfterTicks;
+  bool _suddenDeath = false;
+  bool get suddenDeath => _suddenDeath;
+
+  /// Turns played since the water last rose.
+  int _turnsSinceRise = 0;
 
   int _tick = 0;
   int get tick => _tick;
@@ -317,7 +335,9 @@ class SimWorld implements SimContext {
         final cy = unit.centerY - SimTrig.sinDeg(input.angleDeg) * reach;
         if (reach > 0) unit.facing = dir;
         _blast(cx.round(), cy.round(), weapon,
-            cause: DamageCause.impact, excludeUnitId: unit.id);
+            cause: DamageCause.impact,
+            excludeUnitId: unit.id,
+            sourceId: unit.id);
       case Dash(:final distance):
         unit
           ..facing = dir
@@ -439,14 +459,17 @@ class SimWorld implements SimContext {
   }
 
   @override
-  void explode(double x, double y, WeaponDef weapon) => _blast(
-      x.round(), y.round(), weapon,
-      cause: DamageCause.explosion, carve: weapon.terrainDamage);
+  void explode(double x, double y, WeaponDef weapon, {int? sourceId}) =>
+      _blast(x.round(), y.round(), weapon,
+          cause: DamageCause.explosion,
+          carve: weapon.terrainDamage,
+          sourceId: sourceId);
 
   @override
   void strikeUnit(
-      Unit unit, int damage, double dirX, double dirY, double knockbackScale) {
-    _damage(unit, damage, DamageCause.impact);
+      Unit unit, int damage, double dirX, double dirY, double knockbackScale,
+      {int? sourceId}) {
+    _damage(unit, damage, DamageCause.impact, sourceId: sourceId);
     _knockback(unit, damage, dirX, dirY, knockbackScale);
   }
 
@@ -466,6 +489,7 @@ class SimWorld implements SimContext {
     required DamageCause cause,
     bool carve = false,
     int? excludeUnitId,
+    int? sourceId,
   }) {
     final radius = weapon.radius;
     final carved = carve ? terrain.carveCircle(x, y, radius) : null;
@@ -483,7 +507,7 @@ class SimWorld implements SimContext {
         distance: edge < 0 ? 0 : edge,
       );
       if (damage == 0) continue;
-      _damage(u, damage, cause);
+      _damage(u, damage, cause, sourceId: sourceId);
       _knockback(u, damage, dist > 0 ? dx / dist : 0.0,
           dist > 0 ? dy / dist : -1.0, weapon.knockbackScale);
     }
@@ -499,7 +523,7 @@ class SimWorld implements SimContext {
 
   /// Applies [amount] of damage, with the unit's damage-taken modifier for
   /// explosions and its lethal save (Kucing) if it has one left.
-  void _damage(Unit u, int amount, DamageCause cause) {
+  void _damage(Unit u, int amount, DamageCause cause, {int? sourceId}) {
     var dealt = amount;
     if (cause == DamageCause.explosion) {
       dealt = (amount * u.stats.explosionDamageScale).round();
@@ -512,7 +536,7 @@ class SimWorld implements SimContext {
     }
     if (dealt <= 0) return;
     u.hp -= dealt;
-    _events.add(UnitDamaged(u.id, dealt, cause));
+    _events.add(UnitDamaged(u.id, dealt, cause, sourceUnitId: sourceId));
   }
 
   void _knockback(
@@ -551,7 +575,7 @@ class SimWorld implements SimContext {
           _mines.removeAt(i);
           _events.add(MineRemoved(m.id));
           _blast(m.x.round(), m.centerY.round(), m.weapon,
-              cause: DamageCause.explosion, carve: true);
+              cause: DamageCause.explosion, carve: true, sourceId: m.ownerId);
         } else {
           m.countdown = countdown - 1;
         }
@@ -592,13 +616,18 @@ class SimWorld implements SimContext {
           }
         }
       }
-      // Water and leaving the map kill at once (PRD: Gerak unit).
-      if (u.x < 0 || u.x >= terrain.width || u.y >= terrain.height) {
-        _kill(u, DeathCause.outOfBounds);
-      } else if (u.centerY >= waterLevel) {
-        if (u.waterSavesLeft > 0 && _rescueFromWater(u)) continue;
-        _kill(u, DeathCause.water);
-      }
+      _checkBounds(u);
+    }
+  }
+
+  /// Water and leaving the map kill at once (PRD: Gerak unit), unless the
+  /// unit can be rescued from the water (Bebek).
+  void _checkBounds(Unit u) {
+    if (u.x < 0 || u.x >= terrain.width || u.y >= terrain.height) {
+      _kill(u, DeathCause.outOfBounds);
+    } else if (u.centerY >= waterLevel) {
+      if (u.waterSavesLeft > 0 && _rescueFromWater(u)) return;
+      _kill(u, DeathCause.water);
     }
   }
 
@@ -634,7 +663,8 @@ class SimWorld implements SimContext {
         final reach = v.stats.hitRadius + u.stats.hitRadius;
         if (dx * dx + dy * dy <= reach * reach) {
           strikeUnit(v, weapon.maxDamage, u.dashDir.toDouble(), 0,
-              weapon.knockbackScale);
+              weapon.knockbackScale,
+              sourceId: u.id);
           u.dashRemaining = 0;
           break;
         }
@@ -763,6 +793,7 @@ class SimWorld implements SimContext {
   void _finishTurn() {
     // A settle timeout must not leave a burst half-fired into the next turn.
     _pendingShots.clear();
+    if (_suddenDeath) _maybeRaiseWater();
     for (final u in _units) {
       if (u.alive && u.hp <= 0) _kill(u, DeathCause.hp);
     }
@@ -793,6 +824,36 @@ class SimWorld implements SimContext {
     _events
       ..add(TurnStarted(team: turn.activeTeam, unitId: turn.activeUnitId))
       ..add(const PhaseChanged(TurnPhase.turnStart));
+    final start = suddenDeathAfterTicks;
+    if (!_suddenDeath && start != null && _tick >= start) _startSuddenDeath();
+  }
+
+  /// PRD: every unit drops to 1 HP, then the water rises each round.
+  void _startSuddenDeath() {
+    _suddenDeath = true;
+    _turnsSinceRise = 0;
+    for (final u in _units) {
+      if (u.alive && u.hp > 1) u.hp = 1;
+    }
+    _events.add(const SuddenDeathStarted());
+  }
+
+  /// A round is over once every team still in the game has had a turn;
+  /// then the water rises and drowns whoever it reaches.
+  void _maybeRaiseWater() {
+    _turnsSinceRise++;
+    final teamsAlive = {
+      for (final u in _units)
+        if (u.alive) u.team,
+    }.length;
+    if (_turnsSinceRise < teamsAlive) return;
+    _turnsSinceRise = 0;
+    _waterLevel = (_waterLevel - MatchDefaults.suddenDeathWaterRise)
+        .clamp(0, terrain.height);
+    _events.add(WaterRose(_waterLevel));
+    for (final u in _units) {
+      if (u.alive) _checkBounds(u);
+    }
   }
 
   void _setPhase(TurnPhase phase) {
@@ -818,7 +879,10 @@ class SimWorld implements SimContext {
       ..add(turn.activeUnitId)
       ..add(turn.turnNumber)
       ..add(turn.hasFired ? 1 : 0)
-      ..add(turn.winnerTeam ?? -1);
+      ..add(turn.winnerTeam ?? -1)
+      ..add(_waterLevel)
+      ..add(_suddenDeath ? 1 : 0)
+      ..add(_turnsSinceRise);
     for (final c in turn.cursors) {
       h.add(c);
     }

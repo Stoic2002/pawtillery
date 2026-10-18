@@ -1,0 +1,287 @@
+import 'dart:math';
+
+import '../config/breeds.dart';
+import '../config/families.dart';
+import '../config/maps.dart';
+import '../config/match_defaults.dart';
+import '../config/teams.dart';
+import '../sim/match_setup.dart';
+
+/// One unit on the setup screen.
+class UnitEntry {
+  const UnitEntry({
+    required this.familyId,
+    required this.breedId,
+    required this.name,
+  });
+
+  final String familyId;
+  final String breedId;
+  final String name;
+
+  UnitEntry copyWith({String? familyId, String? breedId, String? name}) {
+    final family = familyId ?? this.familyId;
+    var breed = breedId ?? this.breedId;
+    // Changing the family resets the breed to one of that family.
+    if (Breeds.byId(breed).familyId != family) {
+      breed = Breeds.ofFamily(family).first.id;
+    }
+    return UnitEntry(familyId: family, breedId: breed, name: name ?? this.name);
+  }
+
+  Map<String, Object?> toJson() =>
+      {'family': familyId, 'breed': breedId, 'name': name};
+
+  static UnitEntry? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final family = json['family'];
+    final breed = json['breed'];
+    final name = json['name'];
+    if (family is! String || breed is! String || name is! String) return null;
+    try {
+      Families.byId(family);
+      if (Breeds.byId(breed).familyId != family) return null;
+    } on ArgumentError {
+      return null;
+    }
+    return UnitEntry(familyId: family, breedId: breed, name: name);
+  }
+}
+
+/// One team on the setup screen. [customName] null = the default name of
+/// its colour ("Red Team" / "Tim Merah").
+class TeamEntry {
+  const TeamEntry({
+    required this.styleIndex,
+    required this.units,
+    this.customName,
+  });
+
+  final int styleIndex;
+  final String? customName;
+  final List<UnitEntry> units;
+
+  TeamEntry copyWith({
+    int? styleIndex,
+    String? customName,
+    bool clearName = false,
+    List<UnitEntry>? units,
+  }) =>
+      TeamEntry(
+        styleIndex: styleIndex ?? this.styleIndex,
+        customName: clearName ? null : (customName ?? this.customName),
+        units: units ?? this.units,
+      );
+
+  Map<String, Object?> toJson() => {
+        'style': styleIndex,
+        'name': customName,
+        'units': [for (final u in units) u.toJson()],
+      };
+}
+
+/// Everything chosen on the setup screen; saved and restored between
+/// launches (PRD: konfigurasi tim terakhir disimpan lokal).
+class MatchConfig {
+  const MatchConfig({
+    required this.teams,
+    required this.unitsPerTeam,
+    required this.turnSeconds,
+    required this.mapId,
+    required this.suddenDeathMinutes,
+  });
+
+  /// [mapId] value meaning "pick one at random".
+  static const randomMap = 'random';
+
+  final List<TeamEntry> teams;
+  final int unitsPerTeam;
+  final int turnSeconds;
+  final String mapId;
+  final int? suddenDeathMinutes;
+
+  /// PRD defaults: 2 teams × 3 units, 45 s, random map, sudden death 15 min.
+  factory MatchConfig.defaults(List<String> namePool) {
+    const config = MatchConfig(
+      teams: [],
+      unitsPerTeam: MatchDefaults.unitsPerTeam,
+      turnSeconds: MatchDefaults.turnSeconds,
+      mapId: randomMap,
+      suddenDeathMinutes: MatchDefaults.suddenDeathMinutes,
+    );
+    return config.withTeamCount(MatchDefaults.teamCount, namePool);
+  }
+
+  MatchConfig copyWith({
+    List<TeamEntry>? teams,
+    int? unitsPerTeam,
+    int? turnSeconds,
+    String? mapId,
+    int? suddenDeathMinutes,
+    bool suddenDeathOff = false,
+  }) =>
+      MatchConfig(
+        teams: teams ?? this.teams,
+        unitsPerTeam: unitsPerTeam ?? this.unitsPerTeam,
+        turnSeconds: turnSeconds ?? this.turnSeconds,
+        mapId: mapId ?? this.mapId,
+        suddenDeathMinutes: suddenDeathOff
+            ? null
+            : (suddenDeathMinutes ?? this.suddenDeathMinutes),
+      );
+
+  /// Adds or removes teams; new teams get the first unused colour and
+  /// default units.
+  MatchConfig withTeamCount(int count, List<String> namePool) {
+    final teams = [...this.teams.take(count)];
+    while (teams.length < count) {
+      final used = {for (final t in teams) t.styleIndex};
+      final style = List.generate(Teams.styles.length, (i) => i)
+          .firstWhere((i) => !used.contains(i));
+      teams.add(TeamEntry(
+        styleIndex: style,
+        units: [
+          for (var k = 0; k < unitsPerTeam; k++)
+            _defaultUnit(teams.length * 4 + k, namePool),
+        ],
+      ));
+    }
+    return copyWith(teams: teams);
+  }
+
+  /// Same unit count for every team (PRD).
+  MatchConfig withUnitsPerTeam(int count, List<String> namePool) {
+    return copyWith(
+      unitsPerTeam: count,
+      teams: [
+        for (var t = 0; t < teams.length; t++)
+          teams[t].copyWith(units: [
+            ...teams[t].units.take(count),
+            for (var k = teams[t].units.length; k < count; k++)
+              _defaultUnit(t * 4 + k, namePool),
+          ]),
+      ],
+    );
+  }
+
+  /// Gives team [team] colour [style]; a team already using it swaps.
+  MatchConfig withTeamStyle(int team, int style) {
+    final teams = [...this.teams];
+    final other = teams.indexWhere((t) => t.styleIndex == style);
+    if (other >= 0 && other != team) {
+      teams[other] = teams[other].copyWith(styleIndex: teams[team].styleIndex);
+    }
+    teams[team] = teams[team].copyWith(styleIndex: style);
+    return copyWith(teams: teams);
+  }
+
+  MatchConfig withTeam(int team, TeamEntry entry) =>
+      copyWith(teams: [...teams]..[team] = entry);
+
+  /// The "Acak" button: random family, breed and name for every unit.
+  MatchConfig randomized(Random rng, List<String> namePool) => copyWith(
+        teams: [
+          for (final t in teams)
+            t.copyWith(units: [
+              for (var k = 0; k < t.units.length; k++)
+                randomUnit(rng, namePool),
+            ]),
+        ],
+      );
+
+  static UnitEntry randomUnit(Random rng, List<String> namePool) {
+    final family = Families.all[rng.nextInt(Families.all.length)];
+    final breeds = Breeds.ofFamily(family.id);
+    return UnitEntry(
+      familyId: family.id,
+      breedId: breeds[rng.nextInt(breeds.length)].id,
+      name: namePool.isEmpty ? '' : namePool[rng.nextInt(namePool.length)],
+    );
+  }
+
+  /// Default unit #[i]: families in order, first breed, a name from the
+  /// pool.
+  static UnitEntry _defaultUnit(int i, List<String> namePool) {
+    final family = Families.all[i % Families.all.length];
+    return UnitEntry(
+      familyId: family.id,
+      breedId: Breeds.ofFamily(family.id).first.id,
+      name: namePool.isEmpty ? '' : namePool[i % namePool.length],
+    );
+  }
+
+  /// The map to play: the chosen one, or a random one for [randomMap].
+  MapDef resolveMap(Random rng) => mapId == randomMap
+      ? Maps.all[rng.nextInt(Maps.all.length)]
+      : Maps.byId(mapId);
+
+  List<List<UnitSpec>> rosters() => [
+        for (final t in teams)
+          [
+            for (final u in t.units)
+              UnitSpec(familyId: u.familyId, breedId: u.breedId),
+          ],
+      ];
+
+  Map<String, Object?> toJson() => {
+        'teams': [for (final t in teams) t.toJson()],
+        'unitsPerTeam': unitsPerTeam,
+        'turnSeconds': turnSeconds,
+        'map': mapId,
+        'suddenDeath': suddenDeathMinutes,
+      };
+
+  /// Restores a saved config; anything invalid (old data, removed breeds)
+  /// falls back to null so the caller can use the defaults.
+  static MatchConfig? fromJson(Object? json, List<String> namePool) {
+    if (json is! Map) return null;
+    final teamsJson = json['teams'];
+    final unitsPerTeam = json['unitsPerTeam'];
+    final turnSeconds = json['turnSeconds'];
+    final mapId = json['map'];
+    final suddenDeath = json['suddenDeath'];
+    if (teamsJson is! List ||
+        unitsPerTeam is! int ||
+        !MatchDefaults.unitsPerTeamOptions.contains(unitsPerTeam) ||
+        !MatchDefaults.teamCountOptions.contains(teamsJson.length) ||
+        turnSeconds is! int ||
+        !MatchDefaults.turnSecondsOptions.contains(turnSeconds) ||
+        mapId is! String ||
+        (mapId != randomMap && !Maps.all.any((m) => m.id == mapId)) ||
+        (suddenDeath != null && suddenDeath is! int) ||
+        !MatchDefaults.suddenDeathOptions.contains(suddenDeath)) {
+      return null;
+    }
+    final teams = <TeamEntry>[];
+    final usedStyles = <int>{};
+    for (final t in teamsJson) {
+      if (t is! Map) return null;
+      final style = t['style'];
+      final name = t['name'];
+      final units = t['units'];
+      if (style is! int ||
+          style < 0 ||
+          style >= Teams.styles.length ||
+          !usedStyles.add(style) ||
+          (name != null && name is! String) ||
+          units is! List ||
+          units.length != unitsPerTeam) {
+        return null;
+      }
+      final entries = [for (final u in units) UnitEntry.fromJson(u)];
+      if (entries.contains(null)) return null;
+      teams.add(TeamEntry(
+        styleIndex: style,
+        customName: name as String?,
+        units: entries.cast<UnitEntry>(),
+      ));
+    }
+    return MatchConfig(
+      teams: teams,
+      unitsPerTeam: unitsPerTeam,
+      turnSeconds: turnSeconds,
+      mapId: mapId,
+      suddenDeathMinutes: suddenDeath as int?,
+    );
+  }
+}

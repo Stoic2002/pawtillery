@@ -9,9 +9,9 @@ import 'sim_context.dart';
 void applyImpact(ImpactSpec spec, Projectile p, SimContext ctx) {
   switch (spec) {
     case Explode():
-      ctx.explode(p.x, p.y, p.weapon);
+      ctx.explode(p.x, p.y, p.weapon, sourceId: p.ownerId);
     case Split(:final childId, :final count, :final explodeSelf):
-      if (explodeSelf) ctx.explode(p.x, p.y, p.weapon);
+      if (explodeSelf) ctx.explode(p.x, p.y, p.weapon, sourceId: p.ownerId);
       final child = Weapons.byId(childId);
       _fan(count, spec.minSpeed, spec.maxSpeed, ctx, (vx, vy) {
         ctx.spawnProjectile(Projectile(
