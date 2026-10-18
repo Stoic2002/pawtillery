@@ -34,7 +34,14 @@ final class ProjectileRemoved extends SimEvent {
   final FlightOutcome outcome;
 }
 
-enum DamageCause { explosion, fall }
+enum DamageCause {
+  explosion,
+
+  /// Direct hits without a blast: punch, shockwave, boomerang, headbutt.
+  impact,
+  fall,
+  water,
+}
 
 final class UnitDamaged extends SimEvent {
   const UnitDamaged(this.unitId, this.amount, this.cause);
@@ -49,6 +56,56 @@ final class UnitDied extends SimEvent {
   const UnitDied(this.unitId, this.cause);
   final int unitId;
   final DeathCause cause;
+}
+
+/// A once-per-match passive kicked in (Kucing: lethal hit left 1 HP;
+/// Bebek: pulled out of the water).
+enum SaveKind { lethal, water }
+
+final class UnitSaved extends SimEvent {
+  const UnitSaved(this.unitId, this.kind);
+  final int unitId;
+  final SaveKind kind;
+}
+
+final class UnitTeleported extends SimEvent {
+  const UnitTeleported(this.unitId);
+  final int unitId;
+}
+
+final class WeaponUsed extends SimEvent {
+  const WeaponUsed(this.unitId, this.weaponId);
+  final int unitId;
+  final String weaponId;
+}
+
+/// Terrain removed without a blast (tunnels, headbutt).
+final class TerrainCarved extends SimEvent {
+  const TerrainCarved(this.x, this.y, this.radius);
+  final int x;
+  final int y;
+  final int radius;
+}
+
+/// Ground was added (Benteng); the area must be redrawn from the mask.
+final class TerrainAdded extends SimEvent {
+  const TerrainAdded(this.area);
+  final IntRect area;
+}
+
+final class MinePlaced extends SimEvent {
+  const MinePlaced(this.mineId);
+  final int mineId;
+}
+
+final class MineTriggered extends SimEvent {
+  const MineTriggered(this.mineId);
+  final int mineId;
+}
+
+final class MineRemoved extends SimEvent {
+  const MineRemoved(this.mineId);
+  final int mineId;
 }
 
 final class UnitJumped extends SimEvent {

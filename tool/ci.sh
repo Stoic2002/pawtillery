@@ -6,5 +6,6 @@ cd "$(dirname "$0")/.."
 FLUTTER="${FLUTTER:-$(command -v flutter || echo "$HOME/fvm/versions/3.41.7/bin/flutter")}"
 "$FLUTTER" pub get
 "$FLUTTER" gen-l10n
+python3 tool/gen_l10n_lookup.py
 "$FLUTTER" analyze --fatal-infos
 "$FLUTTER" test

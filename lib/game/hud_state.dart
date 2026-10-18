@@ -12,6 +12,7 @@ class HudState {
     required this.clockSeconds,
     required this.wind,
     required this.teamHp,
+    required this.teamMaxHp,
     required this.winnerTeam,
   });
 
@@ -22,6 +23,9 @@ class HudState {
   final int? clockSeconds;
   final int wind;
   final List<int> teamHp;
+
+  /// Starting HP per team (differs by family passives).
+  final List<int> teamMaxHp;
 
   /// Only meaningful when [phase] is [TurnPhase.matchOver]; null = draw.
   final int? winnerTeam;
@@ -38,40 +42,83 @@ class HudState {
       other.clockSeconds == clockSeconds &&
       other.wind == wind &&
       listEquals(other.teamHp, teamHp) &&
+      listEquals(other.teamMaxHp, teamMaxHp) &&
       other.winnerTeam == winnerTeam;
 
   @override
   int get hashCode => Object.hash(phase, activeTeam, clockSeconds, wind,
-      Object.hashAll(teamHp), winnerTeam);
+      Object.hashAll(teamHp), Object.hashAll(teamMaxHp), winnerTeam);
 }
 
-/// The player's current aim. [active] = the slingshot is drawn (or fine
-/// adjusted) and the fire button is live.
+/// The player's current weapon and aim. [active] = ready to fire: the
+/// slingshot is drawn (or fine-adjusted), a valid target is picked, or the
+/// weapon needs no aiming.
 @immutable
 class AimState {
   const AimState({
+    required this.weaponId,
     required this.active,
     required this.angle,
     required this.power,
+    required this.fuseSeconds,
+    this.targetX,
+    this.targetY,
+    this.targetValid = false,
   });
 
+  final String weaponId;
   final bool active;
   final int angle;
   final int power;
+  final int fuseSeconds;
+  final int? targetX;
+  final int? targetY;
+  final bool targetValid;
 
-  AimState copyWith({bool? active, int? angle, int? power}) => AimState(
+  bool get hasTarget => targetX != null;
+
+  AimState copyWith({
+    String? weaponId,
+    bool? active,
+    int? angle,
+    int? power,
+    int? fuseSeconds,
+  }) =>
+      AimState(
+        weaponId: weaponId ?? this.weaponId,
         active: active ?? this.active,
         angle: angle ?? this.angle,
         power: power ?? this.power,
+        fuseSeconds: fuseSeconds ?? this.fuseSeconds,
+        targetX: targetX,
+        targetY: targetY,
+        targetValid: targetValid,
+      );
+
+  AimState withTarget(int? x, int? y, {required bool valid}) => AimState(
+        weaponId: weaponId,
+        active: valid,
+        angle: angle,
+        power: power,
+        fuseSeconds: fuseSeconds,
+        targetX: x,
+        targetY: y,
+        targetValid: valid,
       );
 
   @override
   bool operator ==(Object other) =>
       other is AimState &&
+      other.weaponId == weaponId &&
       other.active == active &&
       other.angle == angle &&
-      other.power == power;
+      other.power == power &&
+      other.fuseSeconds == fuseSeconds &&
+      other.targetX == targetX &&
+      other.targetY == targetY &&
+      other.targetValid == targetValid;
 
   @override
-  int get hashCode => Object.hash(active, angle, power);
+  int get hashCode => Object.hash(weaponId, active, angle, power, fuseSeconds,
+      targetX, targetY, targetValid);
 }

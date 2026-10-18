@@ -24,6 +24,11 @@ class TerrainComponent extends PositionComponent {
   late final int _rows = (mask.height + chunkSize - 1) ~/ chunkSize;
   late final List<ui.Image?> _chunks = List.filled(_cols * _rows, null);
 
+  /// Per chunk: version of the latest full rebuild requested, and of the
+  /// image currently shown. They differ while a rebuild is decoding.
+  late final List<int> _wanted = List.filled(_cols * _rows, 0);
+  late final List<int> _shown = List.filled(_cols * _rows, 0);
+
   // No edge antialiasing: under camera zoom it shows seams between chunks.
   final ui.Paint _paint = ui.Paint()
     ..filterQuality = ui.FilterQuality.none
@@ -38,19 +43,43 @@ class TerrainComponent extends PositionComponent {
     ]);
   }
 
+  /// Redraws a chunk from the mask. The old image stays on screen until the
+  /// new one has decoded; a newer request supersedes an older one.
   Future<void> _buildChunk(int col, int row) async {
+    final index = row * _cols + col;
+    final version = ++_wanted[index];
     final x0 = col * chunkSize;
     final y0 = row * chunkSize;
     final w = (mask.width - x0).clamp(0, chunkSize);
     final h = (mask.height - y0).clamp(0, chunkSize);
     final pixels = buildChunkPixels(mask, map, x0, y0, w, h);
-    if (pixels == null) return;
-    final completer = Completer<ui.Image>();
-    ui.decodeImageFromPixels(
-        pixels, w, h, ui.PixelFormat.rgba8888, completer.complete);
-    final index = row * _cols + col;
+    ui.Image? image;
+    if (pixels != null) {
+      final completer = Completer<ui.Image>();
+      ui.decodeImageFromPixels(
+          pixels, w, h, ui.PixelFormat.rgba8888, completer.complete);
+      image = await completer.future;
+    }
+    if (version != _wanted[index] || isRemoved) {
+      image?.dispose();
+      return;
+    }
     _chunks[index]?.dispose();
-    _chunks[index] = await completer.future;
+    _chunks[index] = image;
+    _shown[index] = version;
+  }
+
+  /// Ground was added (Benteng): redraw the touched chunks from the mask.
+  void rebuild(IntRect area) {
+    for (var row = area.top ~/ chunkSize;
+        row <= (area.bottom - 1) ~/ chunkSize;
+        row++) {
+      for (var col = area.left ~/ chunkSize;
+          col <= (area.right - 1) ~/ chunkSize;
+          col++) {
+        _buildChunk(col, row);
+      }
+    }
   }
 
   /// Punches a hole in the chunk images matching a mask carve at (cx, cy).
@@ -70,6 +99,11 @@ class TerrainComponent extends PositionComponent {
     for (var row = r0; row <= r1; row++) {
       for (var col = c0; col <= c1; col++) {
         final index = row * _cols + col;
+        if (_wanted[index] != _shown[index]) {
+          // A rebuild is still decoding from an older mask; redo it.
+          _buildChunk(col, row);
+          continue;
+        }
         final old = _chunks[index];
         if (old == null) continue;
         final recorder = ui.PictureRecorder();

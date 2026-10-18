@@ -1,14 +1,8 @@
 import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
+import '../../l10n/l10n_lookup.g.dart';
 
-/// Resolves config `nameKey`s to localized strings. Config stays pure Dart,
-/// so it can only refer to ARB entries by key.
+/// Convenience lookups from config ids to localized text.
 extension L10nLookup on AppLocalizations {
-  String teamName(int team) => switch (Teams.styles[team].nameKey) {
-        'teamRed' => teamRed,
-        'teamBlue' => teamBlue,
-        'teamGreen' => teamGreen,
-        'teamYellow' => teamYellow,
-        final key => throw ArgumentError('Unknown team nameKey: $key'),
-      };
+  String teamName(int team) => byKey(Teams.styles[team].nameKey);
 }

@@ -37,6 +37,9 @@ abstract final class UnitConfig {
   /// Terminal fall speed, px/s.
   static const double maxFallSpeed = 1400;
 
+  /// Fall speed cap while gliding (Burung), px/s.
+  static const double glideFallSpeed = 90;
+
   /// Spawn rules (PRD: Peta 1.0).
   static const int spawnMinDistance = 150;
   static const int spawnFlatTolerance = 3;

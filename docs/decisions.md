@@ -83,8 +83,7 @@ Decisions not spelled out in the PRD. Simplest option chosen, logged here.
 - **Jumps:** forward 160/240 px/s, high 40/300 px/s. Peaks ≈ 58 / 90 px,
   kept under the 120 px fall threshold so a plain jump never hurts
   (a playtest in the browser caught 380 px/s doing 3 damage).
-  ⚠ Kelinci's "2× higher" high jump will exceed the threshold; M3 must
-  decide whether jump-height passives also raise their fall threshold.
+  (Resolved in M3: jump passives raise the fall threshold, see below.)
 - **Fall damage** is measured from the highest point of the airborne
   stretch to the landing, for jumps, ledges and knockback alike.
 - **Blast distance** is from the explosion centre to the *edge* of the unit's
@@ -115,7 +114,8 @@ Decisions not spelled out in the PRD. Simplest option chosen, logged here.
   aim drag into a camera gesture and restores the previous aim). Dragging
   back into the 16 dp dead zone cancels. Fire and fine ±1 controls appear
   only while aiming. Walk buttons use raw pointer events (no tap delay).
-- **Camera:** zoom 0.5–2 where 1 = one world px per dp; default 1. Follows a
+- **Camera:** zoom 0.5–2 where 1 = one world px per dp; default 1 (raised
+  to 1.4 in M3). Follows a
   projectile in flight, centres on the new active unit each turn, and nudges
   back when the active unit moves out of the middle half of the screen.
   Standing still never moves it, so players can look around.
@@ -132,3 +132,67 @@ Decisions not spelled out in the PRD. Simplest option chosen, logged here.
 - **Acceptance test:** `test/game/full_match_test.dart` plays three 2×2
   matches on the real map with a brute-force bot and checks each ends with
   exactly the winner's units alive.
+
+## M3 — Weapons and families (2026-10-18)
+
+- **Weapons are compositions of reusable parts** (`lib/config/weapons.dart`):
+  an aim mode (angle+power, direction, none, target), a delivery (launch,
+  air strike, place mine, area hit, dash, teleport, build wall, skip,
+  walker), a flight behaviour (ballistic, bouncy, boomerang, drill) and an
+  impact (explode, split, scatter mines). Behaviours live in
+  `lib/sim/weapon_behaviors/` behind a small `SimContext` interface, so the
+  same code serves several weapons (Bom Cluster and Hairball both use
+  `Split`; Ranjau and Biji Ranjau share the mine system; Bebek Peledak
+  walks with the unit walking code; Pukulan and Kokok Kejut are both
+  `AreaHit`).
+- **Passives are parameters only** (`PassiveDef` in
+  `lib/config/families.dart` → `UnitStats.forFamily`). No code branches on
+  a family id; rendering picks a `PlaceholderFeature` from data.
+- **Jump passives raise the fall threshold** by the extra height they
+  allow (Kelinci's 2× high jump, Ayam's extra mid-air jump), so a jump
+  never hurts on its own landing. Found by tests: an unadjusted Ayam
+  double jump cost 13 HP on flat ground.
+- **Kucing's save is spent on the lethal hit itself.** If the same blast's
+  knockback then causes fall damage, that can still kill — the save is
+  "once per match", not "once per event".
+- **Bebek's water save** puts the unit on the nearest dry topmost ground
+  (scanning outward column by column) and costs 25 HP as `water` damage.
+- **Kura-kura's −25 %** applies to explosions only, not to direct hits
+  (punch, shockwave, boomerang, headbutt) or falls.
+- **Numbers the PRD left open**, all in config: hairball bombs 20 / r25;
+  bone 30 per hit, range 150–500 px by power, 500 px/s; drill 300 px/s,
+  tunnel r10, final blast 25 / r25; eggs 25 / r30, 40 px apart; seed mines
+  25 / r30; Bebek Peledak 40 / r40, walks 90 px/s, hops walls; headbutt
+  600 px/s, digs r12; Benteng wall centred on the tapped point; grenade
+  restitution 0.5; cluster bomblets 15 / r20.
+- **Granat Pantul** bounces off ground (normal estimated from nearby
+  mask pixels) and units, comes to rest on floors, and only explodes on its
+  fuse (1–5 s, chosen in the HUD, clamped in the sim).
+- **Tulang Bumerang passes through terrain** and hits each unit at most once
+  per leg; the thrower is never hit.
+- **Mines:** armed from the next turn ("aktif setelah 1 giliran"), trigger
+  when a unit's centre comes within 30 px, explode 0.5 s later. Any blast
+  in range sets them off at once (chains). A mine can hurt its owner.
+- **Teleport** targets the body centre, needs empty space there, ends the
+  turn immediately (`endsTurn`), and the unit falls if placed in mid-air.
+  An invalid target is refused without using ammo.
+- **Benteng** may not overlap a living unit and must fit on the map; added
+  ground is redrawn by rebuilding the touched chunks from the mask
+  (versioned so a rebuild still decoding is redone if carved meanwhile).
+- **Ammo** is per team per match (shared weapons); signature weapons are
+  once per unit. Sub-munitions are `hidden` and can never be fired.
+- **Ketapel Ganda's second shot** is scheduled 20 ticks later from the
+  shooter's current position; a settle timeout drops pending shots.
+- **L10n keys from config:** `tool/gen_l10n_lookup.py` generates
+  `AppLocalizations.byKey()` from `app_en.arb` (run by `tool/ci.sh`); a test
+  checks every config `nameKey` resolves in EN and ID. Breed names are
+  identical in both languages (PRD).
+- **Dev match:** the main menu now starts 2 teams × 3 units with random
+  families and breeds, derived from the match seed (until setup in M4).
+- **HUD:** weapon button opens a grid with ammo (∞ / ×n), signature tile
+  outlined and marked "Signature"/"Used". Controls adapt to the aim mode;
+  thrown weapons say "Fire", others "Use". Target weapons are picked with a
+  tap (green / red crosshair), one-finger drag pans while one is selected.
+- **Placeholder units** got a thin dark edge on the family feature (pale
+  breeds vanished against the sky) and the default zoom went to 1.4 so a
+  24 px unit reads on a phone.

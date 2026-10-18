@@ -15,7 +15,7 @@ abstract final class ControlsConfig {
   /// Camera zoom limits (1 = one world px per logical px).
   static const double minZoom = 0.5;
   static const double maxZoom = 2;
-  static const double defaultZoom = 1;
+  static const double defaultZoom = 1.4;
 
   /// How far the camera may look past the map edges, world px.
   static const double cameraMarginSide = 200;
@@ -25,8 +25,9 @@ abstract final class ControlsConfig {
   static const double cameraFollowRate = 6;
 }
 
-/// Temporary match used from the main menu until the setup screen (M4).
+/// Temporary match used from the main menu until the setup screen (M4):
+/// random families and breeds.
 abstract final class DevMatch {
   static const int teamCount = 2;
-  static const int unitsPerTeam = 2;
+  static const int unitsPerTeam = 3;
 }

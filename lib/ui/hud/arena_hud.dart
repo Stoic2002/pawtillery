@@ -3,13 +3,15 @@ import 'package:flutter/material.dart';
 
 import '../../config/controls.dart';
 import '../../config/teams.dart';
-import '../../config/units.dart';
+import '../../config/weapons.dart';
 import '../../game/hud_state.dart';
 import '../../game/pawtillery_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../sim/inputs.dart';
 import '../../sim/turn_manager.dart';
+import '../../l10n/l10n_lookup.g.dart';
 import '../widgets/l10n_lookup.dart';
+import 'weapon_menu.dart';
 
 /// Arena HUD. Everything sits along the screen edges so the middle of the
 /// map stays clear; every tap target is at least 48 × 48 dp.
@@ -46,10 +48,7 @@ class ArenaHud extends StatelessWidget {
                     ),
                     Align(
                       alignment: Alignment.topCenter,
-                      child: _TopCenter(
-                        hud: hud,
-                        maxTeamHp: game.unitsPerTeam * UnitConfig.baseHp,
-                      ),
+                      child: _TopCenter(hud: hud),
                     ),
                     Align(
                       alignment: Alignment.topRight,
@@ -142,10 +141,9 @@ class _TopLeft extends StatelessWidget {
 }
 
 class _TopCenter extends StatelessWidget {
-  const _TopCenter({required this.hud, required this.maxTeamHp});
+  const _TopCenter({required this.hud});
 
   final HudState hud;
-  final int maxTeamHp;
 
   @override
   Widget build(BuildContext context) {
@@ -174,7 +172,7 @@ class _TopCenter extends StatelessWidget {
             child: _TeamHpBar(
               color: _teamColor(team),
               hp: hud.teamHp[team],
-              maxHp: maxTeamHp,
+              maxHp: hud.teamMaxHp[team],
             ),
           ),
       ],
@@ -372,8 +370,8 @@ class _HoldButtonState extends State<_HoldButton> {
   }
 }
 
-/// Bottom-right: jumps, and either the aim controls (while aiming) or an
-/// aim hint.
+/// Bottom-right: weapon button, jumps, and the controls for the current
+/// weapon's aim mode (or a hint for how to aim it).
 class _ActionCluster extends StatelessWidget {
   const _ActionCluster({required this.game, required this.hud});
 
@@ -382,43 +380,23 @@ class _ActionCluster extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     return ValueListenableBuilder<AimState>(
       valueListenable: game.aim,
       builder: (context, aim, _) {
         final canAim = hud.phase == TurnPhase.action && game.canAim;
+        final weapon = Weapons.byId(aim.weaponId);
         return Row(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            if (aim.active)
-              _AimControls(game: game, aim: aim)
-            else if (canAim)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: _Chip(child: Text(l10n.hudAimHint, style: _chipText)),
-              ),
+            if (canAim) _AimControls(game: game, aim: aim, weapon: weapon),
             const SizedBox(width: 8),
             Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                IconButton.filledTonal(
-                  tooltip: l10n.hudHighJump,
-                  constraints:
-                      const BoxConstraints.tightFor(width: 56, height: 56),
-                  onPressed:
-                      hud.canMove ? () => game.jump(JumpKind.high) : null,
-                  icon: const Icon(Icons.keyboard_double_arrow_up),
-                ),
+                _WeaponButton(game: game, weapon: weapon, enabled: canAim),
                 const SizedBox(height: 8),
-                IconButton.filledTonal(
-                  tooltip: l10n.hudJump,
-                  constraints:
-                      const BoxConstraints.tightFor(width: 56, height: 56),
-                  onPressed:
-                      hud.canMove ? () => game.jump(JumpKind.forward) : null,
-                  icon: const Icon(Icons.trending_up),
-                ),
+                _JumpButtons(game: game, enabled: hud.canMove),
               ],
             ),
           ],
@@ -428,15 +406,135 @@ class _ActionCluster extends StatelessWidget {
   }
 }
 
-class _AimControls extends StatelessWidget {
-  const _AimControls({required this.game, required this.aim});
+class _JumpButtons extends StatelessWidget {
+  const _JumpButtons({required this.game, required this.enabled});
 
   final PawtilleryGame game;
-  final AimState aim;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton.filledTonal(
+          tooltip: l10n.hudJump,
+          constraints: const BoxConstraints.tightFor(width: 52, height: 52),
+          onPressed: enabled ? () => game.jump(JumpKind.forward) : null,
+          icon: const Icon(Icons.trending_up),
+        ),
+        const SizedBox(width: 6),
+        IconButton.filledTonal(
+          tooltip: l10n.hudHighJump,
+          constraints: const BoxConstraints.tightFor(width: 52, height: 52),
+          onPressed: enabled ? () => game.jump(JumpKind.high) : null,
+          icon: const Icon(Icons.keyboard_double_arrow_up),
+        ),
+      ],
+    );
+  }
+}
+
+class _WeaponButton extends StatelessWidget {
+  const _WeaponButton({
+    required this.game,
+    required this.weapon,
+    required this.enabled,
+  });
+
+  final PawtilleryGame game;
+  final WeaponDef weapon;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final unit = game.sim.activeUnit;
+    final ammo = unit == null ? null : game.sim.ammoLeft(unit.team, weapon);
+    return Tooltip(
+      message: l10n.hudWeapons,
+      child: Material(
+        color: const Color(0x99000000),
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: enabled ? () => showWeaponMenu(context, game) : null,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(6, 6, 10, 6),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                WeaponIcon(weapon: weapon, size: 40),
+                const SizedBox(width: 6),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 110),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        l10n.byKey(weapon.nameKey),
+                        style: _chipText.copyWith(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        weapon.isSignature
+                            ? (unit != null && game.sim.canUse(unit, weapon)
+                                ? l10n.hudSignature
+                                : l10n.hudUsed)
+                            : (ammo == null
+                                ? l10n.hudAmmoUnlimited
+                                : l10n.hudAmmoLeft(ammo)),
+                        style: _debugText,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AimControls extends StatelessWidget {
+  const _AimControls({
+    required this.game,
+    required this.aim,
+    required this.weapon,
+  });
+
+  final PawtilleryGame game;
+  final AimState aim;
+  final WeaponDef weapon;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final mode = weapon.aim;
+    final thrown = weapon.delivery is Launch;
+
+    // Not ready yet: tell the player how to aim this weapon.
+    if (!aim.active) {
+      final hint = switch (mode) {
+        AimMode.angleAndPower => l10n.hudAimHint,
+        AimMode.direction => l10n.hudDirectionHint,
+        AimMode.target =>
+          aim.hasTarget ? l10n.hudInvalidTarget : l10n.hudTapTarget,
+        AimMode.none => null,
+      };
+      return hint == null
+          ? const SizedBox.shrink()
+          : Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _Chip(child: Text(hint, style: _chipText)),
+            );
+    }
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -445,33 +543,43 @@ class _AimControls extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            _Stepper(
-              label: l10n.hudAngle(aim.angle),
-              onMinus: () => game.adjustAngle(-ControlsConfig.angleStep),
-              onPlus: () => game.adjustAngle(ControlsConfig.angleStep),
-            ),
-            const SizedBox(height: 4),
-            _Stepper(
-              label: l10n.hudPower(aim.power),
-              onMinus: () => game.adjustPower(-ControlsConfig.powerStep),
-              onPlus: () => game.adjustPower(ControlsConfig.powerStep),
-            ),
+            if (weapon.playerFuse) ...[
+              _FuseSelector(game: game, seconds: aim.fuseSeconds),
+              const SizedBox(height: 4),
+            ],
+            if (mode == AimMode.angleAndPower ||
+                mode == AimMode.direction)
+              _Stepper(
+                label: l10n.hudAngle(aim.angle),
+                onMinus: () => game.adjustAngle(-ControlsConfig.angleStep),
+                onPlus: () => game.adjustAngle(ControlsConfig.angleStep),
+              ),
+            if (mode == AimMode.angleAndPower) ...[
+              const SizedBox(height: 4),
+              _Stepper(
+                label: l10n.hudPower(aim.power),
+                onMinus: () => game.adjustPower(-ControlsConfig.powerStep),
+                onPlus: () => game.adjustPower(ControlsConfig.powerStep),
+              ),
+            ],
           ],
         ),
         const SizedBox(width: 8),
         Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextButton(
-              style: TextButton.styleFrom(
-                minimumSize: const Size(88, 48),
-                backgroundColor: const Color(0x99000000),
-                foregroundColor: Colors.white,
+            if (mode != AimMode.none) ...[
+              TextButton(
+                style: TextButton.styleFrom(
+                  minimumSize: const Size(88, 48),
+                  backgroundColor: const Color(0x99000000),
+                  foregroundColor: Colors.white,
+                ),
+                onPressed: game.cancelAim,
+                child: Text(l10n.hudCancel),
               ),
-              onPressed: game.cancelAim,
-              child: Text(l10n.hudCancel),
-            ),
-            const SizedBox(height: 6),
+              const SizedBox(height: 6),
+            ],
             FilledButton(
               style: FilledButton.styleFrom(
                 minimumSize: const Size(88, 88),
@@ -479,11 +587,31 @@ class _AimControls extends StatelessWidget {
                 backgroundColor: Colors.deepOrange,
               ),
               onPressed: game.fire,
-              child: Text(l10n.hudFire, textAlign: TextAlign.center),
+              child: Text(
+                thrown ? l10n.hudFire : l10n.hudUse,
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
       ],
+    );
+  }
+}
+
+class _FuseSelector extends StatelessWidget {
+  const _FuseSelector({required this.game, required this.seconds});
+
+  final PawtilleryGame game;
+  final int seconds;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return _Stepper(
+      label: l10n.hudFuse(seconds),
+      onMinus: () => game.setFuse(seconds - 1),
+      onPlus: () => game.setFuse(seconds + 1),
     );
   }
 }

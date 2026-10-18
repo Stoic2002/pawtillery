@@ -3,6 +3,7 @@ import 'package:pawtillery/config/maps.dart';
 import 'package:pawtillery/config/weapons.dart';
 import 'package:pawtillery/game/map_loader.dart';
 import 'package:pawtillery/sim/inputs.dart';
+import 'package:pawtillery/sim/match_setup.dart';
 import 'package:pawtillery/sim/physics.dart';
 import 'package:pawtillery/sim/terrain_mask.dart';
 import 'package:pawtillery/sim/turn_manager.dart';
@@ -26,8 +27,16 @@ void main() {
         seed: seed,
         terrain: terrain,
         waterLevel: Maps.sandbox.waterLevel,
-        teamCount: 2,
-        unitsPerTeam: 2,
+        rosters: const [
+          [
+            UnitSpec(familyId: 'cat', breedId: 'catBengal'),
+            UnitSpec(familyId: 'bird', breedId: 'birdBeo'),
+          ],
+          [
+            UnitSpec(familyId: 'dog', breedId: 'dogHusky'),
+            UnitSpec(familyId: 'rabbit', breedId: 'rabbitRex'),
+          ],
+        ],
       );
       var turnsPlayed = 0;
       for (var tick = 0; tick < 200000; tick++) {
@@ -67,6 +76,7 @@ Fire _bestShot(SimWorld w) {
         y: y,
         angleDeg: angle,
         powerPercent: power,
+        speedScale: me.stats.firePowerScale,
       );
       FlightOutcome o;
       do {

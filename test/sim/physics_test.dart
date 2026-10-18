@@ -12,8 +12,9 @@ const _g = PhysicsConfig.gravity;
 const _windless = WeaponDef(
   id: 'test_windless',
   nameKey: 'weaponRock',
-  projectile: ProjectileKind.ballistic,
-  affectedByWind: false,
+  aim: AimMode.angleAndPower,
+  delivery: Launch(),
+  flight: Ballistic(),
   maxDamage: 1,
   radius: 1,
   placeholderArgb: 0,

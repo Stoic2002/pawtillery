@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pawtillery/sim/events.dart';
 import 'package:pawtillery/sim/inputs.dart';
+import 'package:pawtillery/sim/match_setup.dart';
 import 'package:pawtillery/sim/physics.dart';
 import 'package:pawtillery/sim/terrain_mask.dart';
 import 'package:pawtillery/sim/turn_manager.dart';
@@ -34,7 +35,7 @@ SimWorld _world(List<(int, int, int)> placements,
       terrain: terrain ?? _flat(),
       waterLevel: _water,
       teamCount: teams,
-      placements: placements,
+      placements: [for (final (t, x, y) in placements) UnitPlacement(t, x, y)],
       timings: _timings,
     );
 
@@ -210,8 +211,18 @@ void main() {
           seed: seed,
           terrain: hills(),
           waterLevel: 1120,
-          teamCount: 2,
-          unitsPerTeam: 3,
+          rosters: const [
+            [
+              UnitSpec(familyId: 'cat', breedId: 'catKampung'),
+              UnitSpec(familyId: 'rabbit', breedId: 'rabbitRex'),
+              UnitSpec(familyId: 'chicken', breedId: 'chickenSilkie'),
+            ],
+            [
+              UnitSpec(familyId: 'dog', breedId: 'dogCorgi'),
+              UnitSpec(familyId: 'turtle', breedId: 'turtleAmbon'),
+              UnitSpec(familyId: 'monkey', breedId: 'monkeyLutung'),
+            ],
+          ],
           timings: _timings,
         );
 
@@ -276,4 +287,4 @@ void main() {
 
 int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 
-const _pinnedScriptHash = 1697139107;
+const _pinnedScriptHash = 1785308735;

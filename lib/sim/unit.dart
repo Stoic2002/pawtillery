@@ -1,11 +1,13 @@
-import 'dart:math' show min;
+import 'dart:math' show min, sqrt;
 
+import '../config/families.dart';
 import '../config/physics.dart';
 import '../config/units.dart';
+import '../config/weapons.dart';
 import 'terrain_mask.dart';
 
-/// Per-unit numbers. Family passives (M3) produce modified copies of these
-/// instead of branching on the family in game code.
+/// Per-unit numbers. Family passives produce modified copies of the base
+/// values ([UnitStats.forFamily]); game code never branches on the family.
 class UnitStats {
   const UnitStats({
     this.maxHp = UnitConfig.baseHp,
@@ -13,13 +15,66 @@ class UnitStats {
     this.hitRadius = UnitConfig.hitRadius,
     this.walkSpeed = UnitConfig.walkSpeed,
     this.maxClimb = UnitConfig.maxClimb,
+    this.highJumpVelocityScale = 1,
+    this.fallDamage = true,
+    this.fallDamageThreshold = UnitConfig.fallDamageThreshold,
+    this.glide = false,
+    this.airJumps = 0,
+    this.explosionDamageScale = 1,
+    this.firePowerScale = 1,
+    this.lethalSaves = 0,
+    this.waterSaves = 0,
+    this.waterSaveDamage = 0,
   });
+
+  /// Base stats with [family]'s passive applied; `null` = base unit.
+  factory UnitStats.forFamily(FamilyDef? family) {
+    if (family == null) return const UnitStats();
+    final p = family.passive;
+    // Jumping must never hurt on its own landing, so the fall threshold
+    // rises by whatever extra height the passive allows: a higher high jump
+    // (Kelinci) or extra jumps in mid-air (Ayam). Peak = v² / 2g.
+    const basePeak = UnitConfig.jumpHighVy *
+        UnitConfig.jumpHighVy /
+        (2 * PhysicsConfig.gravity);
+    final highPeak = basePeak * p.highJumpHeightScale;
+    final extraPeak = (highPeak - basePeak) + p.airJumps * highPeak;
+    return UnitStats(
+      maxHp: p.maxHp ?? UnitConfig.baseHp,
+      bodyHeight: (UnitConfig.bodyHeight * p.hitboxScale).round(),
+      hitRadius: UnitConfig.hitRadius * p.hitboxScale,
+      walkSpeed: UnitConfig.walkSpeed * p.walkSpeedScale,
+      maxClimb: p.maxClimb ?? UnitConfig.maxClimb,
+      // Peak height grows with v², so velocity scales with the square root.
+      highJumpVelocityScale: sqrt(p.highJumpHeightScale),
+      fallDamage: p.fallDamage,
+      fallDamageThreshold:
+          UnitConfig.fallDamageThreshold + extraPeak.ceil(),
+      glide: p.glide,
+      airJumps: p.airJumps,
+      explosionDamageScale: p.explosionDamageTakenScale,
+      firePowerScale: p.firePowerScale,
+      lethalSaves: p.lethalSaves,
+      waterSaves: p.waterSaves,
+      waterSaveDamage: p.waterSaveDamage,
+    );
+  }
 
   final int maxHp;
   final int bodyHeight;
   final double hitRadius;
   final double walkSpeed;
   final int maxClimb;
+  final double highJumpVelocityScale;
+  final bool fallDamage;
+  final int fallDamageThreshold;
+  final bool glide;
+  final int airJumps;
+  final double explosionDamageScale;
+  final double firePowerScale;
+  final int lethalSaves;
+  final int waterSaves;
+  final int waterSaveDamage;
 }
 
 /// A unit. Its body is a 1 px column [UnitStats.bodyHeight] tall whose
@@ -31,19 +86,30 @@ class Unit {
     required this.team,
     required this.x,
     required this.y,
-    this.stats = const UnitStats(),
-  })  : hp = stats.maxHp,
-        peakY = y;
+    this.familyId,
+    this.breedId,
+    UnitStats? stats,
+  })  : stats = stats ??
+            UnitStats.forFamily(
+                familyId == null ? null : Families.byId(familyId)),
+        peakY = y {
+    hp = this.stats.maxHp;
+    lethalSavesLeft = this.stats.lethalSaves;
+    waterSavesLeft = this.stats.waterSaves;
+    airJumpsLeft = this.stats.airJumps;
+  }
 
   final int id;
   final int team;
+  final String? familyId;
+  final String? breedId;
   final UnitStats stats;
 
   double x;
   double y;
   double vx = 0;
   double vy = 0;
-  int hp;
+  late int hp;
   bool alive = true;
   bool grounded = true;
 
@@ -56,12 +122,26 @@ class Unit {
   /// Sub-pixel walking progress.
   double walkCarry = 0;
 
+  // Once-per-match and per-jump abilities.
+  late int lethalSavesLeft;
+  late int waterSavesLeft;
+  late int airJumpsLeft;
+  bool gliding = false;
+  bool signatureUsed = false;
+
+  /// Remaining dash distance (Seruduk), px; 0 = not dashing.
+  double dashRemaining = 0;
+  int dashDir = 0;
+  double dashSinceCarve = 0;
+  WeaponDef? dashWeapon;
+  bool get isDashing => dashRemaining > 0;
+
   double get centerX => x.floorToDouble() + 0.5;
   double get centerY => y - stats.bodyHeight / 2;
 }
 
-/// Movement against the terrain mask. Shared by units and, in M3, by
-/// ground-following weapons (Bebek Peledak, Seruduk).
+/// Movement against the terrain mask. Shared by units and ground-walking
+/// weapons (Bebek Peledak).
 abstract final class UnitPhysics {
   static const double _dt = PhysicsConfig.dt;
 
@@ -75,6 +155,7 @@ abstract final class UnitPhysics {
   static void launch(Unit u, double vx, double vy) {
     u
       ..grounded = false
+      ..gliding = false
       ..vx = vx
       ..vy = vy
       ..walkCarry = 0
@@ -131,9 +212,22 @@ abstract final class UnitPhysics {
     return false;
   }
 
+  /// Jump from the ground: [vx] along facing, [vy] upwards.
   static void jump(Unit u, double vx, double vy) {
     if (!u.grounded) return;
     launch(u, u.facing * vx, -vy);
+    u.gliding = u.stats.glide;
+  }
+
+  /// Extra jump in mid-air (Ayam). Returns whether one was available.
+  static bool airJump(Unit u, double vx, double vy) {
+    if (u.grounded || u.airJumpsLeft <= 0) return false;
+    u
+      ..airJumpsLeft -= 1
+      ..vx = u.facing * vx
+      ..vy = -vy
+      ..gliding = u.stats.glide;
+    return true;
   }
 
   /// Starts falling if the ground under a grounded unit is gone.
@@ -145,7 +239,9 @@ abstract final class UnitPhysics {
   /// landing, px) when it lands this tick, otherwise null.
   static double? stepAirborne(Unit u, TerrainMask t) {
     final h = u.stats.bodyHeight;
-    u.vy = min(u.vy + PhysicsConfig.gravity * _dt, UnitConfig.maxFallSpeed);
+    final maxFall =
+        u.gliding ? UnitConfig.glideFallSpeed : UnitConfig.maxFallSpeed;
+    u.vy = min(u.vy + PhysicsConfig.gravity * _dt, maxFall);
 
     var dx = u.vx * _dt;
     while (dx != 0) {
@@ -169,7 +265,9 @@ abstract final class UnitPhysics {
           ..x = u.x.floorToDouble()
           ..vx = 0
           ..vy = 0
-          ..grounded = true;
+          ..grounded = true
+          ..gliding = false
+          ..airJumpsLeft = u.stats.airJumps;
         return u.y - u.peakY;
       }
       if (s < 0 && t.isSolid(u.x.floor(), ny.floor() - h)) {

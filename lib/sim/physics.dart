@@ -7,7 +7,18 @@ import 'terrain_mask.dart';
 import 'trig.dart';
 import 'unit.dart';
 
-enum FlightOutcome { flying, hitTerrain, hitUnit, water, outOfBounds, expired }
+enum FlightOutcome {
+  flying,
+  hitTerrain,
+  hitUnit,
+  water,
+  outOfBounds,
+  expired,
+
+  /// Detonated by its own fuse or finished its job (boomerang returned,
+  /// drill done, walker exploded).
+  finished,
+}
 
 /// Hand-written projectile physics: semi-implicit Euler at the fixed tick,
 /// with per-pixel sub-stepping so fast projectiles can't skip thin ground.
@@ -15,7 +26,7 @@ abstract final class ProjectilePhysics {
   static const double _dt = PhysicsConfig.dt;
 
   /// Velocity for an aim of [angleDeg] (0 = right, 90 = up) and
-  /// [powerPercent] (0–100).
+  /// [powerPercent] (0–100), times [speedScale] (e.g. Monyet's strong arm).
   static Projectile launch({
     required int id,
     required WeaponDef weapon,
@@ -23,10 +34,14 @@ abstract final class ProjectilePhysics {
     required double y,
     required int angleDeg,
     required int powerPercent,
+    double speedScale = 1,
     int? ownerId,
+    int? fuseTicks,
   }) {
-    final speed =
-        powerPercent.clamp(0, 100) / 100 * PhysicsConfig.maxLaunchSpeed;
+    final speed = powerPercent.clamp(0, 100) /
+        100 *
+        PhysicsConfig.maxLaunchSpeed *
+        speedScale;
     return Projectile(
       id: id,
       ownerId: ownerId,
@@ -35,11 +50,14 @@ abstract final class ProjectilePhysics {
       y: y,
       vx: SimTrig.cosDeg(angleDeg) * speed,
       vy: -SimTrig.sinDeg(angleDeg) * speed,
+      fuseTicks: fuseTicks,
     );
   }
 
-  /// Advances [p] by one tick. On a hit, [p] is left at the impact point.
-  /// Reaching [waterLevel] sinks the projectile without exploding.
+  /// Advances [p] by one tick of gravity (scaled by the weapon) and wind
+  /// (if the weapon is affected). On a hit, [p] is left at the impact point
+  /// and [Projectile.freeX]/[Projectile.freeY] at the last free sample.
+  /// Reaching [waterLevel] sinks the projectile.
   static FlightOutcome step(
     Projectile p,
     TerrainMask terrain, {
@@ -50,68 +68,77 @@ abstract final class ProjectilePhysics {
     if (p.weapon.affectedByWind) {
       p.vx += wind * PhysicsConfig.windAccelPerUnit * _dt;
     }
-    p.vy += PhysicsConfig.gravity * _dt;
+    p.vy += PhysicsConfig.gravity * p.weapon.gravityScale * _dt;
+    final firstTick = p.ageTicks == 0;
+    p.ageTicks++;
+    return sweep(p, terrain, p.vx * _dt, p.vy * _dt,
+        waterLevel: waterLevel, units: units, includeStart: firstTick);
+  }
 
+  /// Moves [p] by (dx, dy) in ≤ 1 px samples, stopping at the first thing
+  /// it touches. Used by every flight behaviour.
+  static FlightOutcome sweep(
+    Projectile p,
+    TerrainMask terrain,
+    double dx,
+    double dy, {
+    required int waterLevel,
+    List<Unit> units = const [],
+    bool includeStart = false,
+    bool solidTerrain = true,
+  }) {
     final x0 = p.x;
     final y0 = p.y;
-    final dx = p.vx * _dt;
-    final dy = p.vy * _dt;
     final samples = max(1, sqrt(dx * dx + dy * dy).ceil());
 
-    // On the first tick also test the launch point itself.
-    for (var i = p.ageTicks == 0 ? 0 : 1; i <= samples; i++) {
+    for (var i = includeStart ? 0 : 1; i <= samples; i++) {
       final t = i / samples;
       final sx = x0 + dx * t;
       final sy = y0 + dy * t;
+      FlightOutcome? hit;
       if (sx < 0 || sx >= terrain.width || sy >= terrain.height) {
+        hit = FlightOutcome.outOfBounds;
+      } else if (sy >= waterLevel) {
+        hit = FlightOutcome.water;
+      } else if (unitAt(sx, sy, units) != null) {
+        hit = FlightOutcome.hitUnit;
+      } else if (solidTerrain && terrain.isSolid(sx.floor(), sy.floor())) {
+        hit = FlightOutcome.hitTerrain;
+      }
+      if (hit != null) {
         p
           ..x = sx
           ..y = sy;
-        return FlightOutcome.outOfBounds;
+        return hit;
       }
-      if (sy >= waterLevel) {
-        p
-          ..x = sx
-          ..y = sy;
-        return FlightOutcome.water;
-      }
-      if (_hitsUnit(sx, sy, units)) {
-        p
-          ..x = sx
-          ..y = sy;
-        return FlightOutcome.hitUnit;
-      }
-      if (terrain.isSolid(sx.floor(), sy.floor())) {
-        p
-          ..x = sx
-          ..y = sy;
-        return FlightOutcome.hitTerrain;
-      }
+      p
+        ..freeX = sx
+        ..freeY = sy;
     }
 
     p
       ..x = x0 + dx
-      ..y = y0 + dy
-      ..ageTicks += 1;
+      ..y = y0 + dy;
     return p.ageTicks >= PhysicsConfig.maxProjectileTicks
         ? FlightOutcome.expired
         : FlightOutcome.flying;
   }
 
-  static bool _hitsUnit(double x, double y, List<Unit> units) {
+  /// First living unit whose hit circle contains (x, y).
+  static Unit? unitAt(double x, double y, List<Unit> units) {
     for (final u in units) {
       if (!u.alive) continue;
       final dx = x - u.centerX;
       final dy = y - u.centerY;
       final r = u.stats.hitRadius;
-      if (dx * dx + dy * dy <= r * r) return true;
+      if (dx * dx + dy * dy <= r * r) return u;
     }
-    return false;
+    return null;
   }
 
-  /// Path a shot would take with no wind, as flat [x0, y0, x1, y1, ...]
-  /// (one point per tick, ending at the impact point). Ignores units. Used by
-  /// the aim guide.
+  /// Path a ballistic shot would take with no wind, as flat
+  /// [x0, y0, x1, y1, ...] (one point per tick, ending at the first
+  /// impact). Ignores units. Used by the aim guide.
   static List<double> predict({
     required WeaponDef weapon,
     required double x,
@@ -120,6 +147,7 @@ abstract final class ProjectilePhysics {
     required int powerPercent,
     required TerrainMask terrain,
     required int waterLevel,
+    double speedScale = 1,
     int maxTicks = PhysicsConfig.maxProjectileTicks,
   }) {
     final p = launch(
@@ -129,6 +157,7 @@ abstract final class ProjectilePhysics {
       y: y,
       angleDeg: angleDeg,
       powerPercent: powerPercent,
+      speedScale: speedScale,
     );
     final points = <double>[x, y];
     for (var i = 0; i < maxTicks; i++) {
