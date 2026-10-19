@@ -881,7 +881,7 @@ abstract class AppLocalizations {
   /// Weapon menu title and button label.
   ///
   /// In en, this message translates to:
-  /// **'Arms'**
+  /// **'Weapons'**
   String get hudWeapons;
 
   /// Badge on a family signature weapon.
@@ -977,20 +977,20 @@ abstract class AppLocalizations {
   /// Map name.
   ///
   /// In en, this message translates to:
-  /// **'Backyard'**
-  String get mapBackyard;
+  /// **'Sunny Farm'**
+  String get mapFarm;
 
   /// Map name.
   ///
   /// In en, this message translates to:
-  /// **'City Park'**
-  String get mapPark;
+  /// **'Lighthouse Cliffs'**
+  String get mapCoast;
 
   /// Map name.
   ///
   /// In en, this message translates to:
-  /// **'Old Warehouse'**
-  String get mapWarehouse;
+  /// **'Snowcap Peak'**
+  String get mapSnow;
 
   /// Comma-separated names the Random button picks from. Keep them short.
   ///
@@ -1193,7 +1193,7 @@ abstract class AppLocalizations {
   /// Match length.
   ///
   /// In en, this message translates to:
-  /// **'Observed over {count} turns'**
+  /// **'Over {count} turns'**
   String resultTurns(int count);
 
   /// How-to-play next page.
@@ -1481,20 +1481,8 @@ abstract class AppLocalizations {
   /// Italic line under the title.
   ///
   /// In en, this message translates to:
-  /// **'A field guide to backyard artillery'**
+  /// **'Backyard animal artillery!'**
   String get menuSubtitle;
-
-  /// Heading above the menu entries.
-  ///
-  /// In en, this message translates to:
-  /// **'Contents'**
-  String get menuContents;
-
-  /// Plate number on an engraving.
-  ///
-  /// In en, this message translates to:
-  /// **'Pl. {number}'**
-  String plateNumber(String number);
 
   /// Catalogue dialog title.
   ///
@@ -1511,20 +1499,14 @@ abstract class AppLocalizations {
   /// Heading of the match options.
   ///
   /// In en, this message translates to:
-  /// **'Conditions'**
+  /// **'Match rules'**
   String get setupConditions;
 
   /// Results page heading.
   ///
   /// In en, this message translates to:
-  /// **'Field report'**
+  /// **'Match stats'**
   String get resultReport;
-
-  /// Rubber stamp across the winning team.
-  ///
-  /// In en, this message translates to:
-  /// **'Prevails'**
-  String get resultStampWin;
 
   /// Checkbox state.
   ///

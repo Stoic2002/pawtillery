@@ -5,4 +5,4 @@ and license, and shown on the About screen.
 
 | Asset | Path | Author / source | License |
 | --- | --- | --- | --- |
-| Old Standard TT (Regular, Italic) | `assets/fonts/OldStandard-*.ttf` | The Old Standard Project Authors | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-OldStandard.txt`) |
+| Lilita One | `assets/fonts/LilitaOne-Regular.ttf` | Juan Montoreano (Google Fonts) | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-LilitaOne.txt`) |

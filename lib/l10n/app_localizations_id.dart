@@ -421,7 +421,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get breedMonkeyKapusin => 'Kapusin';
 
   @override
-  String get hudWeapons => 'Persenjataan';
+  String get hudWeapons => 'Senjata';
 
   @override
   String get hudSignature => 'Khas';
@@ -473,13 +473,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get teamOrange => 'Tim Oranye';
 
   @override
-  String get mapBackyard => 'Halaman Rumah';
+  String get mapFarm => 'Peternakan Cerah';
 
   @override
-  String get mapPark => 'Taman Kota';
+  String get mapCoast => 'Tebing Mercusuar';
 
   @override
-  String get mapWarehouse => 'Gudang Tua';
+  String get mapSnow => 'Puncak Salju';
 
   @override
   String get unitNamePool =>
@@ -587,7 +587,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String resultTurns(int count) {
-    return 'Diamati selama $count giliran';
+    return 'Selama $count giliran';
   }
 
   @override
@@ -746,15 +746,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get familyMonkeyLatin => 'Primates';
 
   @override
-  String get menuSubtitle => 'Panduan lapangan artileri halaman belakang';
-
-  @override
-  String get menuContents => 'Daftar isi';
-
-  @override
-  String plateNumber(String number) {
-    return 'Gbr. $number';
-  }
+  String get menuSubtitle => 'Artileri hewan halaman belakang!';
 
   @override
   String get setupChooseFamily => 'Pilih jenis hewan';
@@ -763,13 +755,10 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupChooseBreed => 'Pilih ras';
 
   @override
-  String get setupConditions => 'Ketentuan';
+  String get setupConditions => 'Aturan main';
 
   @override
-  String get resultReport => 'Laporan lapangan';
-
-  @override
-  String get resultStampWin => 'Unggul';
+  String get resultReport => 'Statistik';
 
   @override
   String get settingsOn => 'Nyala';

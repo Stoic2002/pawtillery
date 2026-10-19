@@ -4,14 +4,17 @@ import 'dart:typed_data';
 import '../../config/maps.dart';
 import '../../sim/terrain_mask.dart';
 
-/// Builds RGBA pixels for one terrain chunk straight from the mask, with a
-/// texture that suggests depth:
-/// - soil: an uneven grass edge, soil that darkens with depth, faint
-///   strata and pebbles;
-/// - concrete: dusty top edge, slab joints and fine grain;
-/// and for both, shading under overhangs and along side walls.
-/// Non-ground materials (wood, leaves, stone, metal, crates) get their own
-/// textures from [materials]. Returns `null` when the chunk has no ground.
+/// Builds RGBA pixels for one terrain chunk straight from the mask, in the
+/// painted-cartoon look (docs/art_style_guide.md):
+/// - a dark outline wherever ground meets air;
+/// - a cap on exposed tops (grass blades or a soft snow layer) with a
+///   shadow line under it, or a lit rim on materials without a cap;
+/// - brush-stroke texture (stretched value noise), slightly posterised so
+///   it reads as painted rather than photographic;
+/// - ground that darkens with depth and under overhangs;
+/// - a texture per material (planks, shingles, straw, faceted rock, sand
+///   ripples, ice glints, bricks…), from [materials].
+/// Returns `null` when the chunk has no ground.
 Uint8List? buildChunkPixels(
   TerrainMask mask,
   MapDef map,
@@ -22,11 +25,11 @@ Uint8List? buildChunkPixels(
   int h,
 ) {
   final out = Uint8List(w * h * 4);
-  final soil = map.terrainStyle == TerrainStyle.soil;
-  final dirt = _rgb(map.dirtArgb);
-  final grass = _rgb(map.grassArgb);
-  const deep = 90;
+  const deep = 140;
+  final capArgb = map.grassArgb;
   var any = false;
+
+  bool air(int x, int y) => !mask.isSolid(x, y);
 
   for (var lx = 0; lx < w; lx++) {
     final x = x0 + lx;
@@ -35,70 +38,78 @@ Uint8List? buildChunkPixels(
     while (run < deep && mask.isSolid(x, y0 - 1 - run)) {
       run++;
     }
-    final blade = _hash(x, 7) % 4; // uneven grass edge
     int? lastMaterial = materials == null || y0 == 0
         ? null
         : materials[(y0 - 1) * mask.width + x];
+    // Uneven bottom edge of the cap.
+    final capDepth =
+        map.grassThickness +
+        (map.cap == CapStyle.grass
+            ? _hash(x, 7) % 4 + (math.sin(x / 5.0) * 1.5).round()
+            : (math.sin(x / 11.0) * 2 + math.sin(x / 4.3)).round());
+
     for (var ly = 0; ly < h; ly++) {
       final y = y0 + ly;
-      if (!mask.isSolid(x, y)) {
+      if (air(x, y)) {
         run = 0;
         lastMaterial = null;
         continue;
       }
       any = true;
       final materialIndex = materials?[y * mask.width + x];
-      // A new material starts its own depth: ground under a crate or a
+      // A new material starts its own depth: ground under a barn or a
       // tree trunk is not "deep" just because the object stands on it.
       if (materialIndex != lastMaterial && lastMaterial != null) run = 0;
       lastMaterial = materialIndex;
       if (run < deep) run++;
-      final noise = (_hash(x, y) % 1000) / 1000.0 - 0.5; // -0.5..0.5
       final material = materialIndex == null
-          ? (soil ? TerrainMaterial.soil : TerrainMaterial.concrete)
+          ? map.baseMaterial
           : TerrainMaterial.values[materialIndex];
 
-      double r, g, b;
-      final special = _special(material, map, x, y, run, noise);
-      if (special != null) {
-        (r, g, b) = special;
-      } else if (material == TerrainMaterial.soil) {
-        if (run <= map.grassThickness + blade) {
-          // Lighter tips, darker roots.
-          final t = run / (map.grassThickness + blade + 1);
-          final k = 0.18 - t * 0.38 + noise * 0.12;
-          (r, g, b) = _shade(grass, k);
-        } else {
-          final depth = math.min(run, deep) / deep;
-          var k = -0.38 * depth + noise * 0.1;
-          // Faint strata bands that wander a little.
-          final band = math.sin((y + _hash(x ~/ 24, 3) % 9) / 21.0);
-          if (band > 0.86) k -= 0.1;
-          (r, g, b) = _shade(dirt, k);
-          // Pebbles.
-          if (_hash(x ~/ 3, y ~/ 3) % 97 == 0) {
-            (r, g, b) = _shade((0xA8, 0x9A, 0x88), noise * 0.2 - 0.05);
-          }
+      // Distance to air: outline within ~2 px, rim light just inside.
+      final edge =
+          air(x, y - 1) ||
+          air(x - 1, y) ||
+          air(x + 1, y) ||
+          air(x, y + 1) ||
+          air(x, y - 2) ||
+          air(x - 2, y) ||
+          air(x + 2, y) ||
+          air(x, y + 2) ||
+          air(x - 1, y - 1) ||
+          air(x + 1, y - 1) ||
+          air(x - 1, y + 1) ||
+          air(x + 1, y + 1);
+      final airBelow = !edge && (air(x, y + 3) || air(x, y + 5));
+      final airSide = !edge && (air(x - 4, y) || air(x + 4, y));
+
+      final capped = _takesCap(map.cap, material) && run <= capDepth;
+      var (r, g, b) = capped
+          ? _cap(map.cap, capArgb, x, y, run, capDepth)
+          : _material(material, map, x, y, run);
+
+      if (!capped) {
+        final natural = _natural(material);
+        // Depth: deep ground is darker, more so for natural ground.
+        var k = -math.min(run, deep) / deep * (natural ? 0.3 : 0.12);
+        // Brush strokes: long horizontal dabs plus a finer layer.
+        k += (_vnoise(x / 23, y / 8, 3) - 0.5) * 0.12;
+        k += (_vnoise(x / 6, y / 4, 5) - 0.5) * 0.06;
+        // Just under a cap: its shadow line.
+        if (_takesCap(map.cap, material) &&
+            run > capDepth &&
+            run <= capDepth + 3) {
+          k -= 0.22;
+        } else if (!_takesCap(map.cap, material) && run > 2 && run <= 5) {
+          k += 0.16; // lit rim on top faces
         }
-      } else {
-        if (run <= map.grassThickness) {
-          (r, g, b) = _shade(grass, 0.1 - run * 0.08 + noise * 0.1);
-        } else {
-          var k = noise * 0.08 - math.min(run, deep) / deep * 0.12;
-          // Slab joints.
-          final offset = (y ~/ 80).isEven ? 0 : 60;
-          if ((x + offset) % 120 == 0 || y % 80 == 0) {
-            k -= 0.18;
-          }
-          (r, g, b) = _shade(dirt, k);
-        }
+        if (airBelow) k -= 0.2;
+        if (airSide) k -= 0.08;
+        (r, g, b) = _shade((r, g, b), _posterise(k));
       }
 
-      // Shadow under overhangs and along side walls.
-      if (!mask.isSolid(x, y + 2) || !mask.isSolid(x, y + 4)) {
-        (r, g, b) = (r * 0.72, g * 0.72, b * 0.72);
-      } else if (!mask.isSolid(x - 2, y) || !mask.isSolid(x + 2, y)) {
-        (r, g, b) = (r * 0.86, g * 0.86, b * 0.86);
+      if (edge) {
+        (r, g, b) = _shade((r, g, b), -0.62);
       }
 
       final i = (ly * w + lx) * 4;
@@ -111,41 +122,170 @@ Uint8List? buildChunkPixels(
   return any ? out : null;
 }
 
-/// Textures for built and natural objects; null for soil and concrete.
-(double, double, double)? _special(TerrainMaterial m, MapDef map, int x,
-    int y, int run, double noise) {
-  switch (m) {
-    case TerrainMaterial.wood:
-      final grain = math.sin(x * 0.55 + math.sin(y * 0.045) * 2.2);
-      var k = grain * 0.08 + noise * 0.06 - math.min(run, 30) / 30 * 0.1;
-      if (_hash(x ~/ 4, y ~/ 4) % 211 == 0) k -= 0.25; // knot
-      return _shade((0x8A, 0x5A, 0x34), k);
-    case TerrainMaterial.crate:
-      var k = math.sin(x * 0.7 + y * 0.02) * 0.05 + noise * 0.06;
-      if (y % 14 == 0) k -= 0.28; // board seams
-      if ((x + y) % 47 == 0) k -= 0.12;
-      return _shade((0xA6, 0x7C, 0x4E), k);
-    case TerrainMaterial.leaves:
-      // Smooth overlapping leaf clusters rather than square blocks.
-      final blob = math.sin(x * 0.31 + math.sin(y * 0.27) * 2.4) *
-          math.cos(y * 0.29 + math.sin(x * 0.19) * 2.1);
-      final k = 0.1 - math.min(run, 50) / 50 * 0.35 + blob * 0.13 +
-          noise * 0.07;
-      return _shade(_rgb(PaintKitless.toneArgb(map.grassArgb, -0.2)), k);
-    case TerrainMaterial.stone:
-      final patch = math.sin(x * 0.12 + math.sin(y * 0.1) * 3) *
-          math.cos(y * 0.14 + math.sin(x * 0.08) * 2) * 0.5;
-      var k = patch * 0.16 + noise * 0.08 + 0.05 - math.min(run, 40) / 40 * 0.15;
-      if (_hash(x ~/ 2, y) % 157 == 0) k -= 0.3; // cracks
-      return _shade((0x8C, 0x88, 0x82), k);
-    case TerrainMaterial.metal:
-      var k = math.sin(x * 0.18) * 0.14 + noise * 0.04;
-      if (x % 24 == 0 && y % 10 == 0) k += 0.35; // rivets
-      return _shade((0x5E, 0x6E, 0x7A), k);
-    case TerrainMaterial.soil:
-    case TerrainMaterial.concrete:
-      return null;
+bool _natural(TerrainMaterial m) =>
+    m == TerrainMaterial.soil ||
+    m == TerrainMaterial.rock ||
+    m == TerrainMaterial.sand ||
+    m == TerrainMaterial.concrete;
+
+/// Grass grows on soil and rock; snow settles on everything but ice.
+bool _takesCap(CapStyle cap, TerrainMaterial m) => switch (cap) {
+  CapStyle.grass => m == TerrainMaterial.soil || m == TerrainMaterial.rock,
+  CapStyle.snow => m != TerrainMaterial.ice,
+};
+
+double _posterise(double k) => (k / 0.045).round() * 0.045;
+
+/// The cap band: bright tips fading to a darker base; snow gets a cool
+/// blue shade towards its bottom edge.
+(double, double, double) _cap(
+  CapStyle cap,
+  int argb,
+  int x,
+  int y,
+  int run,
+  int depth,
+) {
+  final t = run / (depth + 1);
+  switch (cap) {
+    case CapStyle.grass:
+      var k = 0.22 - t * 0.42;
+      // Blade streaks.
+      if ((x + (y >> 1)) % 5 == 0) k -= 0.1;
+      return _shade(_rgb(argb), _posterise(k));
+    case CapStyle.snow:
+      final base = _rgb(argb);
+      final k = -t * t * 0.22 + (_vnoise(x / 9, y / 3, 11) - 0.5) * 0.05;
+      final (r, g, b) = _shade(base, _posterise(k));
+      // Shade towards blue rather than grey.
+      return (r - t * 18, g - t * 8, b);
   }
+}
+
+/// Base colour and pattern of a material (before depth and brush noise).
+(double, double, double) _material(
+  TerrainMaterial m,
+  MapDef map,
+  int x,
+  int y,
+  int run,
+) {
+  switch (m) {
+    case TerrainMaterial.soil:
+      // Embedded stones: one candidate per cell, with its own rim.
+      final cx = x ~/ 26;
+      final cy = y ~/ 20;
+      final hsh = _hash(cx, cy * 31 + 5);
+      if (hsh % 4 == 0 && run > 14) {
+        final sx = cx * 26 + 6 + hsh % 14;
+        final sy = cy * 20 + 5 + (hsh >> 4) % 10;
+        final rx = 4.0 + (hsh >> 8) % 5;
+        final ry = rx * 0.7;
+        final d = math.pow((x - sx) / rx, 2) + math.pow((y - sy) / ry, 2);
+        if (d < 1) {
+          final stone = (0x9C, 0x92, 0x86);
+          if (d > 0.62) return _shade(stone, -0.5);
+          return _shade(stone, (y < sy ? 0.15 : -0.05));
+        }
+      }
+      return _rgbD(map.dirtArgb);
+    case TerrainMaterial.rock:
+      // Faceted: posterised low-frequency noise reads as flat planes.
+      final v = _vnoise(x / 38, y / 30, 21);
+      final facet = (v * 4).floor() / 4;
+      var k = facet * 0.22 - 0.1;
+      final crack = (_vnoise(x / 17, y / 13, 23) - 0.5).abs();
+      if (crack < 0.015) k -= 0.35;
+      return _shade(_rgb(map.dirtArgb), k);
+    case TerrainMaterial.sand:
+      final ripple = math.sin(y * 0.55 + _vnoise(x / 30, y / 12, 31) * 6);
+      var k = ripple > 0.82 ? -0.07 : 0.03;
+      if (_hash(x, y) % 53 == 0) k -= 0.18; // grains
+      return _shade((0xEE, 0xD3, 0x92), k);
+    case TerrainMaterial.wood:
+      // Horizontal planks with staggered joints, grain and nails.
+      final row = y ~/ 14;
+      var k = (_hash(row, 77) % 9 - 4) * 0.025;
+      if (y % 14 == 0) k -= 0.4;
+      final joint = (x + (row.isEven ? 0 : 45)) % 90;
+      if (joint == 0) k -= 0.4;
+      if ((joint == 4 || joint == 86) && y % 14 == 7) k -= 0.5; // nails
+      k += math.sin(x * 0.21 + _vnoise(x / 40, y / 3, 41) * 5) * 0.05;
+      return _shade((0xA8, 0x6E, 0x3E), k);
+    case TerrainMaterial.roof:
+      // Scalloped shingles in rows.
+      final row = y ~/ 11;
+      final sx = (x + (row.isEven ? 0 : 9)) % 18;
+      final sy = y % 11;
+      final arc = 11 - 6 * math.sqrt(math.max(0, 1 - math.pow((sx - 9) / 9, 2)));
+      var k = (_hash(x ~/ 18, row) % 7 - 3) * 0.03;
+      if (sy > arc) k -= 0.28;
+      if (sx == 0) k -= 0.2;
+      return _shade((0xD2, 0x4B, 0x34), k);
+    case TerrainMaterial.hay:
+      // Straw: short dark strokes at a slant.
+      final s = (x + y * 2 + (_hash(x ~/ 5, y ~/ 9) % 7)) % 9;
+      var k = s == 0 ? -0.22 : (s == 4 ? 0.12 : 0.0);
+      k += (_vnoise(x / 12, y / 20, 51) - 0.5) * 0.12;
+      return _shade((0xF2, 0xC2, 0x4A), k);
+    case TerrainMaterial.leaves:
+      // Clumps lit from the top left.
+      final v = _vnoise(x / 14, y / 12, 61);
+      final w = _vnoise(x / 6, y / 6, 63);
+      var k = (v > 0.55 ? 0.14 : (v < 0.35 ? -0.16 : 0)) + (w - 0.5) * 0.1;
+      k -= math.min(run, 60) / 60 * 0.2;
+      return _shade((0x3E, 0x9B, 0x3A), k);
+    case TerrainMaterial.stone:
+      // Bricks with light mortar.
+      final row = y ~/ 13;
+      final bx = (x + (row.isEven ? 0 : 12)) % 24;
+      if (y % 13 == 0 || bx == 0) return (0xD8, 0xD2, 0xC6);
+      final tint = (_hash((x + (row.isEven ? 0 : 12)) ~/ 24, row) % 9 - 4) * 0.03;
+      return _shade((0xE6, 0xE0, 0xD6), tint - (y % 13 > 10 ? 0.1 : 0));
+    case TerrainMaterial.metal:
+      var k = math.sin(x * 0.18) * 0.1;
+      if (x % 24 == 0 || y % 40 == 0) k -= 0.25; // panels
+      if (x % 24 == 4 && y % 10 == 5) k += 0.4; // rivets
+      return _shade((0x5C, 0x6E, 0x80), k);
+    case TerrainMaterial.crate:
+      var k = math.sin(x * 0.7 + y * 0.02) * 0.05;
+      if (y % 14 == 0) k -= 0.28;
+      if ((x + y) % 47 == 0) k -= 0.12;
+      return _shade((0xB6, 0x86, 0x52), k);
+    case TerrainMaterial.concrete:
+      var k = 0.0;
+      final offset = (y ~/ 80).isEven ? 0 : 60;
+      if ((x + offset) % 120 == 0 || y % 80 == 0) k -= 0.18;
+      return _shade(_rgb(map.dirtArgb), k);
+    case TerrainMaterial.ice:
+      // Pale cyan, lighter at the top, with diagonal glints.
+      var k = 0.12 - math.min(run, 40) / 40 * 0.2;
+      final glint = (x + y) % 29;
+      if (glint < 2) k += 0.3;
+      if ((x - y) % 41 == 0) k -= 0.15;
+      return _shade((0x9E, 0xDE, 0xF2), k);
+    case TerrainMaterial.snow:
+      final k = -math.min(run, 50) / 50 * 0.16 +
+          (_vnoise(x / 10, y / 6, 71) - 0.5) * 0.06;
+      final (r, g, b) = _shade((0xF2, 0xF8, 0xFF), k);
+      return (r - run * 0.2, g - run * 0.08, b);
+  }
+}
+
+/// Smooth value noise in 0..1 (bilinear with smoothstep).
+double _vnoise(double x, double y, int seed) {
+  final xi = x.floor();
+  final yi = y.floor();
+  final fx = x - xi;
+  final fy = y - yi;
+  final u = fx * fx * (3 - 2 * fx);
+  final v = fy * fy * (3 - 2 * fy);
+  double h(int a, int b) => (_hash(a + seed * 7919, b - seed * 104729) & 1023) / 1023;
+  final a = h(xi, yi);
+  final b = h(xi + 1, yi);
+  final c = h(xi, yi + 1);
+  final d = h(xi + 1, yi + 1);
+  return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
 }
 
 /// Colour toning without dart:ui (this file stays usable in pure tests).
@@ -163,8 +303,13 @@ abstract final class PaintKitless {
 (int, int, int) _rgb(int argb) =>
     ((argb >> 16) & 0xFF, (argb >> 8) & 0xFF, argb & 0xFF);
 
-/// Lighten (k > 0) or darken (k < 0).
-(double, double, double) _shade((int, int, int) c, double k) {
+(double, double, double) _rgbD(int argb) {
+  final (r, g, b) = _rgb(argb);
+  return (r.toDouble(), g.toDouble(), b.toDouble());
+}
+
+/// Lighten (k > 0) or darken (k < 0); works on ints or doubles.
+(double, double, double) _shade((num, num, num) c, double k) {
   final (r, g, b) = c;
   if (k >= 0) {
     return (r + (255 - r) * k, g + (255 - g) * k, b + (255 - b) * k);

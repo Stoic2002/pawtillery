@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../app/field_palette.dart';
+import '../../app/toon_palette.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/field/ink_icons.dart';
-import '../widgets/field/paper.dart';
+import '../widgets/toon/toon_icons.dart';
+import '../widgets/toon/toon_panel.dart';
 
 /// First-match tutorial (PRD: tooltip bertahap — jalan, buka senjata,
 /// bidik, tembak — sekali di giliran pertama, bisa dilewati).
@@ -24,8 +24,8 @@ class TutorialController extends ValueNotifier<TutorialStep> {
   void skip() => value = TutorialStep.done;
 }
 
-/// The note for the current step, taped near the control it is about,
-/// with an ink arrow pointing at it. Only Skip takes touches; everything
+/// A speech card for the current step near the control it is about, with
+/// a yellow arrow pointing at it. Only Skip takes touches; everything
 /// else passes through to the game.
 class TutorialOverlay extends StatelessWidget {
   const TutorialOverlay({
@@ -68,9 +68,8 @@ class TutorialOverlay extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 300),
-                child: PaperPanel(
-                  tilt: -1,
-                  tape: true,
+                child: ToonPanel(
+                  style: ToonPanelStyle.night,
                   padding: const EdgeInsets.fromLTRB(14, 12, 8, 4),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -83,16 +82,19 @@ class TutorialOverlay extends StatelessWidget {
                               child: Text(
                                 text,
                                 style: const TextStyle(
-                                    fontSize: 17,
-                                    fontStyle: FontStyle.italic,
-                                    color: FieldPalette.ink),
+                                  fontSize: 18,
+                                  color: ToonPalette.white,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Transform.rotate(
                               angle: angle,
-                              child: const InkIcon(InkGlyph.back,
-                                  size: 28, color: FieldPalette.stamp),
+                              child: const ToonIcon(
+                                ToonGlyph.back,
+                                size: 32,
+                                color: ToonPalette.sun,
+                              ),
                             ),
                           ],
                         ),
@@ -101,7 +103,7 @@ class TutorialOverlay extends StatelessWidget {
                         onPressed: controller.skip,
                         child: Text(l10n.tutorialSkip,
                             style: const TextStyle(
-                                fontSize: 14, color: FieldPalette.inkSoft)),
+                                fontSize: 15, color: ToonPalette.sky)),
                       ),
                     ],
                   ),

@@ -11,8 +11,9 @@ import '../../sim/world.dart';
 import '../hud_state.dart';
 
 /// Aiming visuals for the active unit, depending on the weapon:
-/// - thrown weapons: the first ~25 % of the no-wind path (PRD), plus the
-///   angle/power readout next to the unit;
+/// - thrown weapons: a crosshair in the team's colour at the aim angle with
+///   a ring that fills with power, the first ~25 % of the no-wind path
+///   (PRD), and the angle/power readout next to the unit;
 /// - boomerang: its straight line to the turning point;
 /// - direction weapons: an arrow;
 /// - target weapons: a crosshair (green if allowed, red if not).
@@ -21,9 +22,13 @@ class AimGuideComponent extends Component {
     required this.sim,
     required this.aim,
     required this.showPath,
+    required this.teamColors,
   }) : super(priority: 6);
 
   final SimWorld sim;
+
+  /// Colour (0xAARRGGBB) of each sim team, for the crosshair.
+  final List<int> teamColors;
   final AimState Function() aim;
 
   /// Settings switch for the predicted path.
@@ -42,13 +47,27 @@ class AimGuideComponent extends Component {
     ..style = ui.PaintingStyle.stroke
     ..strokeWidth = 3;
 
+  final ui.Paint _ink = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeCap = ui.StrokeCap.round
+    ..color = const ui.Color(0xFF2A1A12);
+  final ui.Paint _tint = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeCap = ui.StrokeCap.round;
+
   // Numbers and units only, so no ARB entry is needed.
   final TextPaint _readout = TextPaint(
     style: const TextStyle(
-      fontFamily: 'OldStandard',
-      fontSize: 13,
-      color: ui.Color(0xFF2B2620),
-      shadows: [Shadow(color: ui.Color(0xFFEFE6D2), blurRadius: 4)],
+      fontFamily: 'LilitaOne',
+      fontSize: 11,
+      color: ui.Color(0xFFFFFFFF),
+      shadows: [
+        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(1, 0)),
+        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(-1, 0)),
+        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(0, 1)),
+        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(0, -1)),
+        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(0, 2)),
+      ],
     ),
   );
 
@@ -121,6 +140,12 @@ class AimGuideComponent extends Component {
     final dir = ui.Offset(math.cos(rad), -math.sin(rad));
     final center = ui.Offset(unit.centerX, unit.centerY);
     final flight = weapon.flight;
+    _crosshair(
+      canvas,
+      center + dir * (unit.stats.hitRadius + 34),
+      ui.Color(teamColors[unit.team]),
+      weapon.aim == AimMode.angleAndPower ? a.power / 100 : null,
+    );
     if (weapon.aim == AimMode.direction) {
       final start = center + dir * (unit.stats.hitRadius + 6);
       canvas.drawLine(start, start + dir * 40, _line);
@@ -156,5 +181,35 @@ class AimGuideComponent extends Component {
         anchor: side > 0 ? Anchor.centerLeft : Anchor.centerRight,
       );
     }
+  }
+
+  /// A team-coloured reticle: ring, four ticks and a centre dot, each with
+  /// a dark outline; [power] (0–1) fills an arc around it.
+  void _crosshair(ui.Canvas canvas, ui.Offset c, ui.Color team, double? power) {
+    const r = 8.0;
+    void both(void Function(ui.Paint) draw, double width) {
+      draw(_ink..strokeWidth = width + 2.6);
+      draw(_tint..strokeWidth = width);
+    }
+
+    _tint.color = ui.Color.lerp(team, const ui.Color(0xFFFFFFFF), 0.15)!;
+    both((p) => canvas.drawCircle(c, r, p), 2.2);
+    for (final (dx, dy) in const [(1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)]) {
+      final d = ui.Offset(dx, dy);
+      both((p) => canvas.drawLine(c + d * (r - 3), c + d * (r + 5), p), 2.2);
+    }
+    canvas
+      ..drawCircle(c, 2.4, ui.Paint()..color = const ui.Color(0xFF2A1A12))
+      ..drawCircle(c, 1.4, ui.Paint()..color = _tint.color);
+    if (power == null || power <= 0) return;
+    final ring = ui.Rect.fromCircle(center: c, radius: r + 9);
+    final sweep = power * math.pi * 2;
+    canvas.drawArc(ring, -math.pi / 2, sweep, false, _ink..strokeWidth = 6);
+    _tint.color = ui.Color.lerp(
+      const ui.Color(0xFFFFC928),
+      const ui.Color(0xFFFF4A2A),
+      power,
+    )!;
+    canvas.drawArc(ring, -math.pi / 2, sweep, false, _tint..strokeWidth = 3.4);
   }
 }

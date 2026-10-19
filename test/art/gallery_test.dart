@@ -125,7 +125,8 @@ void main() {
         ui.decodeImageFromPixels(pixels, mask.width, mask.height,
             ui.PixelFormat.rgba8888, done.complete);
         final terrain = await done.future;
-        final decor = DecorComponent(mask: mask, map: map);
+        final decor = DecorComponent(
+            mask: mask, map: map, materials: data.materials);
         await decor.onLoad();
         const scale = 0.4;
         final recorder = ui.PictureRecorder();

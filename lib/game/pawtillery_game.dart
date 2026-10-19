@@ -146,6 +146,7 @@ class PawtilleryGame extends FlameGame {
       sim: sim,
       aim: () => aim.value,
       showPath: () => showAimGuide,
+      teamColors: teamColors,
     );
     await world.addAll([
       SkyComponent(map: map, worldSize: worldSize),
@@ -155,7 +156,7 @@ class PawtilleryGame extends FlameGame {
         cameraPosition: () => camera.viewfinder.position,
       ),
       _terrain,
-      DecorComponent(mask: mask, map: map),
+      DecorComponent(mask: mask, map: map, materials: mapData.materials),
       UnitsComponent(
         sim,
         teamColors: teamColors,
@@ -410,8 +411,12 @@ class PawtilleryGame extends FlameGame {
           exploded = true;
           if (carved != null) {
             _terrain.carve(x, y, radius);
-            particles.explosion(x.toDouble(), y.toDouble(), radius.toDouble(),
-                dirtArgb: map.dirtArgb);
+            particles.explosion(
+              x.toDouble(),
+              y.toDouble(),
+              radius.toDouble(),
+              debris: _terrain.debrisColors(x, y, radius),
+            );
           } else {
             particles.ring(x.toDouble(), y.toDouble(), radius.toDouble());
           }

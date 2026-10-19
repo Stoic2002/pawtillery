@@ -49,9 +49,9 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final (button, title) in [
-      ('How to Play', 'MOVE'),
-      ('Settings', 'Language'),
-      ('About', 'PRIVACY POLICY'),
+      ('HOW TO PLAY', 'MOVE'),
+      ('SETTINGS', 'Language'),
+      ('ABOUT', 'PRIVACY POLICY'),
       ('PLAY', 'NEW MATCH'),
     ]) {
       await tester.tap(find.text(button));
@@ -72,7 +72,7 @@ void main() {
     await tester.tap(find.text('PLAY'));
     await tester.pumpAndSettle();
 
-    // Team index tabs in spaced capitals.
+    // Team tabs in capitals.
     expect(find.text('RED TEAM'), findsOneWidget);
     expect(find.text('BLUE TEAM'), findsOneWidget);
     expect(find.text('YELLOW TEAM'), findsNothing);
@@ -81,7 +81,7 @@ void main() {
     expect(find.text('YELLOW TEAM'), findsOneWidget);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('Random').first); // the header button
+    await tester.tap(find.text('RANDOM').first); // the header button
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
@@ -100,7 +100,7 @@ void main() {
     final settings = await _settings();
     await tester.pumpWidget(PawtilleryApp(settings: settings));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Settings'));
+    await tester.tap(find.text('SETTINGS'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Bahasa Indonesia'));
     await tester.pumpAndSettle();
@@ -108,7 +108,7 @@ void main() {
     expect(find.text('Bahasa'), findsOneWidget);
     await _back(tester);
     expect(find.text('MAIN'), findsOneWidget);
-    expect(find.text('Cara Bermain'), findsOneWidget);
+    expect(find.text('CARA BERMAIN'), findsOneWidget);
   });
 
   testWidgets('pause dialog: resume, and exit asks first', (tester) async {
@@ -136,7 +136,7 @@ void main() {
     await tester.tap(find.text('pause'));
     await tester.pumpAndSettle();
     expect(find.text('PAUSED'), findsOneWidget);
-    await tester.tap(find.text('Resume'));
+    await tester.tap(find.text('RESUME'));
     await tester.pumpAndSettle();
     expect(choice, PauseChoice.resume);
 
@@ -171,7 +171,7 @@ void main() {
     expect(find.text('BLUE TEAM WINS'), findsOneWidget);
     expect(find.text('Milo (Blue Team): 142 HP'), findsOneWidget);
     expect(find.text('Kucing Garong'), findsOneWidget);
-    expect(find.text('Observed over 17 turns'), findsOneWidget);
+    expect(find.text('Over 17 turns'), findsOneWidget);
   });
 
   testWidgets('every screen fits in Indonesian without overflow',
@@ -180,7 +180,7 @@ void main() {
     final settings = await _settings()..languageCode = 'id';
     await tester.pumpWidget(PawtilleryApp(settings: settings));
     await tester.pumpAndSettle();
-    for (final button in ['MAIN', 'Cara Bermain', 'Pengaturan', 'Tentang']) {
+    for (final button in ['MAIN', 'CARA BERMAIN', 'PENGATURAN', 'TENTANG']) {
       await tester.tap(find.text(button));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: button);

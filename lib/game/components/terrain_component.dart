@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -40,17 +41,18 @@ class TerrainComponent extends PositionComponent {
     ..isAntiAlias = false;
   final ui.Paint _clearPaint = ui.Paint()..blendMode = ui.BlendMode.clear;
 
-  /// Burnt rim around blast craters, painted only onto remaining ground
+  /// Crater edge in the terrain's cartoon style: a dark outline right at
+  /// the cut and a burnt band behind it, painted only onto remaining ground
   /// (srcATop), so it never darkens the sky.
   final ui.Paint _scorch = ui.Paint()
     ..style = ui.PaintingStyle.stroke
-    ..strokeWidth = 6
-    ..color = const ui.Color(0x8A2A1A10)
+    ..strokeWidth = 2.6
+    ..color = const ui.Color(0xE62A1A12)
     ..blendMode = ui.BlendMode.srcATop;
   final ui.Paint _scorchSoft = ui.Paint()
     ..style = ui.PaintingStyle.stroke
-    ..strokeWidth = 12
-    ..color = const ui.Color(0x33201208)
+    ..strokeWidth = 10
+    ..color = const ui.Color(0x47201208)
     ..blendMode = ui.BlendMode.srcATop;
 
   @override
@@ -141,7 +143,7 @@ class TerrainComponent extends PositionComponent {
         if (scorch) {
           c
             ..drawCircle(local, r + 5, _scorchSoft)
-            ..drawCircle(local, r + 2.5, _scorch);
+            ..drawCircle(local, r + 1.2, _scorch);
         }
         final picture = recorder.endRecording();
         _chunks[index] = picture.toImageSync(old.width, old.height);
@@ -150,6 +152,39 @@ class TerrainComponent extends PositionComponent {
       }
     }
   }
+
+  /// Colours of the ground around a crater just carved at (cx, cy), for
+  /// the debris: samples the rim (still solid) and maps each material to
+  /// its paint colour; the cap colour when a sample is near the top.
+  List<int> debrisColors(int cx, int cy, int radius) {
+    final colors = <int>{};
+    for (var i = 0; i < 12; i++) {
+      final a = i / 12 * 6.2832;
+      final x = cx + ((radius + 3) * math.cos(a)).round();
+      final y = cy + ((radius + 3) * math.sin(a)).round();
+      if (!mask.isSolid(x, y)) continue;
+      if (!mask.isSolid(x, y - map.grassThickness)) colors.add(map.grassArgb);
+      final m = materials?[y * mask.width + x];
+      colors.add(materialColor(m == null ? map.baseMaterial : TerrainMaterial.values[m]));
+    }
+    return colors.isEmpty ? [map.dirtArgb] : colors.toList();
+  }
+
+  int materialColor(TerrainMaterial m) => switch (m) {
+    TerrainMaterial.soil ||
+    TerrainMaterial.rock ||
+    TerrainMaterial.concrete => map.dirtArgb,
+    TerrainMaterial.wood => 0xFFA86E3E,
+    TerrainMaterial.leaves => 0xFF3E9B3A,
+    TerrainMaterial.stone => 0xFFE6E0D6,
+    TerrainMaterial.metal => 0xFF5C6E80,
+    TerrainMaterial.crate => 0xFFB68652,
+    TerrainMaterial.hay => 0xFFF2C24A,
+    TerrainMaterial.roof => 0xFFD24B34,
+    TerrainMaterial.sand => 0xFFEED392,
+    TerrainMaterial.ice => 0xFF9EDEF2,
+    TerrainMaterial.snow => 0xFFF2F8FF,
+  };
 
   @override
   void render(ui.Canvas canvas) {

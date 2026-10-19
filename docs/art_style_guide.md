@@ -1,85 +1,127 @@
 # Art & UI Style Guide — Pawtillery
 
-Status: **v1 direction**, chosen by the developer on 2026-10-18 (concept
-"Naturalist's field guide"). Every screen follows this; when in doubt,
-choose the quieter option.
+Status: **v2 direction "Sunny Brawl"**, chosen by the developer on
+2026-10-18. It replaces the v1 field-guide look. The quality bar is a
+commercial painted-cartoon artillery game (the developer pointed at
+Worms W.M.D as the benchmark for polish). The identity, names, characters,
+layouts and assets are our own (PRD: no names, characters, assets or text
+from other games).
 
 ## Identity in one line
 
-> A naturalist's field journal that went to war: cream paper, engraved ink,
-> specimen labels and rubber stamps, in plain daylight.
+> A Saturday-morning cartoon brawl on a sunny farm: chunky, toy-like,
+> warm, loud, and easy to read from arm's length.
 
-The animals are observed, catalogued and taken seriously, which is what
-makes the chaos funny. Nothing glows, nothing is glass, nothing is neon.
+Animals are expressive cartoon characters, not specimens. The world is
+painted. The interface is made of chunky toy pieces: thick dark outlines,
+two-tone fills, gloss bands and solid drop shadows.
+
+## What we borrow and what we don't
+
+The genre's conventions are shared and fine to use: turn-based artillery,
+a weapon panel, wind indicator, timer, name and HP labels over units,
+a crosshair, destructible terrain, rising water.
+
+What stays **ours**:
+
+| Theirs (don't) | Ours (do) |
+|---|---|
+| Worms, sheep, banana bombs, holy grenades, concrete donkeys | 13 animal families with their own signature weapons |
+| Their logo, fonts, menu layouts, colour palette, HUD art | Lilita One, the Sunny Brawl palette, ribbons and slabs below |
+| Their maps and set pieces (e.g. their specific levels) | Our themes: farm, coastal cliffs, snowy mountain |
+| Their voice lines and copy | Our own copy (EN/ID) |
 
 ## Palette
 
-Defined in `lib/app/field_palette.dart`; use the names in code.
+Defined in `lib/app/toon_palette.dart`; use the names in code.
 
 | Name | Hex | Use |
 |---|---|---|
-| paper | `#EFE6D2` | Pages, panels, labels |
-| paperShade | `#E2D5BA` | Recessed areas, alternate rows |
-| paperEdge | `#C9B48E` | Aged edges, deckle, tape shadow |
-| ink | `#2B2620` | Text, rules, engraved lines |
-| inkSoft | `#5A5146` | Secondary text, captions |
-| pencil | `#8E867A` | Hints, disabled, faint guides |
-| stamp | `#A8342A` | The one primary action per screen, damage, "Fire" |
-| moss | `#4F6B3A` | Ready, valid, healthy |
-| tape | `#E8D9A8` (70 %) | Masking tape holding paper to the scene |
+| outline | `#2A1A12` | Every outline, solid drop shadows, text on cream |
+| cream / creamShade / creamDeep | `#FFF4DC` / `#F1DDB4` / `#D9B98A` | Menu panels, cards, switches off |
+| sun → sunDeep | `#FFC928` → `#F07C0C` | The primary action (Play, Start, Fire), titles' ribbons |
+| leaf → leafDeep | `#8BD645` → `#3E9420` | Confirm, healthy, switches on |
+| sky → skyDeep | `#5CC8F5` → `#1C76C4` | Secondary actions, selection, back |
+| tomato → tomatoDeep | `#FF6A47` → `#C6281A` | Danger, leave, damage, sudden death |
+| stone → stoneDeep | `#C9C2B6` → `#8A8276` | Disabled |
+| night | `#182230` at 88 % | HUD panels over the arena |
+| bark | `#6B4A33` | Secondary text on cream |
 
-Team inks (stamps, collars, HP tallies) are printer's inks, never neon:
-vermilion `#B23A2E`, prussian `#2F4F7F`, sap `#4F6B3A`, ochre `#B8862B`,
-violet `#5E4A78`, umber `#8A4E2B`.
+Team colours are bright and saturated so labels read over any map:
+red `#E8412C`, blue `#2F86E0`, green `#46B52B`, yellow `#F2B705`,
+purple `#9B5DE5`, orange `#FF7A1A`.
 
-Rules of thumb: paper and ink carry the screen; stamp red appears at most
-once per screen and always means "do it" or "it hurt". No gradients on UI,
-no glow, no drop shadows except paper's own thin contact shadow.
+Fills are always **two-tone** (light on top, deep at the bottom). One
+primary (sun) action per screen.
 
 ## Typography
 
-- **Old Standard TT** (19th-century book face, SIL OFL, bundled in
-  `assets/fonts/`) for all text. One weight: no bold anywhere.
-- **Titles:** uppercase with wide letter-spacing (3–6), the closest this
-  face gets to small caps.
-- **Latin names and asides:** italic (*Felis catus*, *Capra hircus*).
-- **Numbers** that must be read fast (timer, HP, ammo) use the same face at
-  a larger size, never a second font.
+- **Lilita One** (SIL OFL, `assets/fonts/`), one weight, for all text.
+- Titles, button labels and HUD numbers: white with a dark outline and a
+  solid drop (`ToonText`, outline built from text shadows so it stays one
+  Text widget).
+- Body text on cream: outline colour, no outline effect. Secondary text in
+  bark.
+- Button labels are upper case; everything else is sentence case.
 
-## Shapes and lines
+## Shapes
 
-- Square corners (0–2 px). Rounded pills only for specimen tags.
-- Hairline ink rules (1 px) and double rules (1 px + 0.5 px, 2 px apart)
-  for frames. Ornament between rules: a small engraved leaf.
-- Paper panels sit very slightly askew (±0.6–1°) and are held by tape or a
-  pin; never more than one tilted panel per cluster.
+- Corner radius 12–18 for panels and buttons; circles for icon buttons.
+- Outline 2.5–3.5 px, colour `outline`. Never hairlines.
+- Depth: buttons sit on a solid dark base 4–5 px deep and sink onto it
+  when pressed. Panels cast a soft dark offset shadow (0, 5).
+- A gloss band (white, ~30 %) across the top third of buttons and badges.
 
-## Components
+## Components (`lib/ui/widgets/toon/`)
 
-| Element | Treatment |
+| Widget | Use |
 |---|---|
-| Every menu screen | Paper page with fibre grain and a warm vignette (`PaperAtmosphere`) |
-| Main menu | Journal spread: title, italic subtitle, leaf rule, a table of contents for the actions; an engraved plate of animals opposite |
-| Primary button | A rubber stamp: stamp-red double border, uppercase spaced text, slightly worn ink, a hair of rotation |
-| Other buttons | Ink-outlined labels, or table-of-contents entries with dot leaders |
-| Setup | A field roster: one specimen entry per unit (engraved portrait, common name, *Latin name*, breed, name on a tag); pickers open a catalogue of plates, never a dropdown |
-| Team | An index tab and a stamp in the team's ink |
-| HUD | Field notes taped to the edges: turn slip, wind note, tally of team HP; round paper tokens with ink icons |
-| Weapon menu | Catalogue plates with an engraved figure, name in spaced capitals, ammo as tally marks |
-| Dialogs | A sheet of paper, askew, taped at the top |
-| Results | A field report with the winner stamped across it |
-| Icons | Drawn in ink in code (`lib/ui/widgets/ink_icons.dart`); no Material icons on screen |
+| `ToonBackdrop` | Painted farm meadow behind every menu (sky, sun, clouds, hills, lollipop trees, flowers) |
+| `ToonButton` | Chunky slab button; `tone` picks the colour |
+| `ToonRoundButton` | Round icon button; supports hold (walk) |
+| `ToonPanel` | Cream card or night HUD panel, optional ribbon title |
+| `ToonRibbon` | Title on a ribbon with folded tails |
+| `ToonSegmented`, `ToonSwitch` | Form controls |
+| `ToonHeader` | Back button + ribbon title + actions |
+| `ToonTile`, `showToonPicker` | Picker grids (families, breeds, weapons) |
+| `ToonIcon` | Code-drawn icons: white strokes with a dark outline |
+| `showToonDialog` | Pause, confirm, pickers: a panel that pops in |
 
 ## In the arena
 
-The world stays painted and semi-realistic (animals, maps, weapons); only
-the interface is paper and ink, like notes laid over a photograph. Keep the
-arena readable: light vignette only, no grain over gameplay.
+- **HUD:** chunky badges in the corners on night panels: timer (top left,
+  in the active team's colour, red and pulsing in the last 5 s), wind
+  (top centre, arrow meter), team HP bars, round icon buttons. The middle
+  of the screen stays clear.
+- **Unit labels:** two small translucent rounded boxes above each unit,
+  name on top and HP below, both in bold team-colour text with a dark
+  outline. The active unit gets a bouncing arrow.
+- **Aim:** a team-coloured crosshair reticle at the aim angle, plus the
+  power meter.
+- **Weapon panel:** slides in from the right; colour weapon icons on
+  cards; ammo as a number badge.
 
-Unit labels are small paper tags: name in ink, HP in the team's ink.
+## Animals
 
-## Copy voice
+Painted cartoon: big heads (about 45 % of height), large eyes with
+highlights and pupils that follow the aim, readable silhouettes, dark
+outlines (about 1.6 px at 1×), soft two-step shading, a team-colour
+bandana. Same API as before (`AnimalArt.draw`, poses).
 
-Dry, observational field-guide tone: "Plate IV — *Capra hircus*",
-"Observed: 3 turns", "Field report No. 12". Never exclamation marks in
-UI chrome. Indonesian copy keeps the same tone.
+## Maps
+
+Set pieces, not flat strips: islands with overhangs, caves and props
+built into the terrain. Painterly terrain: brush-stroke texture, a lit top
+rim with grass, snow or sand caps, and a dark outline at every air edge.
+Each theme has its own parallax backdrop.
+
+| Theme | Terrain | Props |
+|---|---|---|
+| Farm | soil, hay, barn wood, roof | barn, haystacks, fences, windmill |
+| Coastal cliffs | rock, sand, timber | lighthouse, boats, rocks, sea |
+| Snowy mountain | rock, snow, ice, logs | pines, cabin, icicles |
+
+## Effects
+
+Big readable explosions: a flash, a fireball, additive embers, a lingering
+smoke column, and debris tinted by the terrain material that was hit.

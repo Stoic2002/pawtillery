@@ -421,7 +421,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get breedMonkeyKapusin => 'Kapusin';
 
   @override
-  String get hudWeapons => 'Arms';
+  String get hudWeapons => 'Weapons';
 
   @override
   String get hudSignature => 'Signature';
@@ -473,13 +473,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamOrange => 'Orange Team';
 
   @override
-  String get mapBackyard => 'Backyard';
+  String get mapFarm => 'Sunny Farm';
 
   @override
-  String get mapPark => 'City Park';
+  String get mapCoast => 'Lighthouse Cliffs';
 
   @override
-  String get mapWarehouse => 'Old Warehouse';
+  String get mapSnow => 'Snowcap Peak';
 
   @override
   String get unitNamePool =>
@@ -587,7 +587,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String resultTurns(int count) {
-    return 'Observed over $count turns';
+    return 'Over $count turns';
   }
 
   @override
@@ -744,15 +744,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyMonkeyLatin => 'Primates';
 
   @override
-  String get menuSubtitle => 'A field guide to backyard artillery';
-
-  @override
-  String get menuContents => 'Contents';
-
-  @override
-  String plateNumber(String number) {
-    return 'Pl. $number';
-  }
+  String get menuSubtitle => 'Backyard animal artillery!';
 
   @override
   String get setupChooseFamily => 'Choose a family';
@@ -761,13 +753,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupChooseBreed => 'Choose a breed';
 
   @override
-  String get setupConditions => 'Conditions';
+  String get setupConditions => 'Match rules';
 
   @override
-  String get resultReport => 'Field report';
-
-  @override
-  String get resultStampWin => 'Prevails';
+  String get resultReport => 'Match stats';
 
   @override
   String get settingsOn => 'On';

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../app/field_palette.dart';
+import '../../app/toon_palette.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/field/paper.dart';
+import '../widgets/toon/toon_backdrop.dart';
+import '../widgets/toon/toon_logo.dart';
 
-/// Shown while settings load at start-up: the journal's title page.
+/// Shown while settings load at start-up: the meadow and the wordmark.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -12,21 +13,16 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      body: PaperAtmosphere(
+      body: ToonBackdrop(
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SpacedTitle(l10n.appTitle, size: 34, spacing: 8),
-              const SizedBox(height: 8),
-              const LeafRule(),
-              const SizedBox(height: 10),
+              FittedBox(child: ToonLogo(title: l10n.appTitle, size: 56)),
+              const SizedBox(height: 14),
               Text(
                 l10n.splashLoading,
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  color: FieldPalette.inkSoft,
-                ),
+                style: const TextStyle(fontSize: 18, color: ToonPalette.white),
               ),
             ],
           ),

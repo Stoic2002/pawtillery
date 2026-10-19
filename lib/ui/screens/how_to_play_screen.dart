@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
 
-import '../../app/field_palette.dart';
+import '../../app/toon_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
 import '../../config/weapons.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../hud/weapon_menu.dart';
-import '../widgets/field/ink_icons.dart';
-import '../widgets/field/paper.dart';
-import '../widgets/field/plate.dart';
-import '../widgets/field/stamp.dart';
-import '../widgets/field/catalogue.dart';
+import '../widgets/toon/toon_backdrop.dart';
+import '../widgets/toon/toon_button.dart';
+import '../widgets/toon/toon_controls.dart';
+import '../widgets/toon/toon_icons.dart';
+import '../widgets/toon/toon_panel.dart';
+import '../widgets/toon/toon_text.dart';
 
-/// How to Play (PRD: 4–6 illustrated pages) as journal pages: a plate on
-/// the left, the text on the right, page numbers at the foot.
+/// How to Play (PRD: 4–6 illustrated pages): a picture card on the left,
+/// the text card on the right, page dots at the foot.
 class HowToPlayScreen extends StatefulWidget {
   const HowToPlayScreen({super.key});
 
@@ -52,53 +53,67 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
     final last = _page == pages.length - 1;
 
     return Scaffold(
-      body: PaperAtmosphere(
+      body: ToonBackdrop(
+        dim: 0.15,
         child: SafeArea(
           child: Column(
             children: [
-              PageHeader(title: l10n.menuHowToPlay),
+              ToonHeader(title: l10n.menuHowToPlay.toUpperCase()),
               Expanded(
                 child: PageView(
                   controller: _controller,
                   onPageChanged: (p) => setState(() => _page = p),
                   children: [
-                    for (final (i, (title, body, art)) in pages.indexed)
+                    for (final (title, body, art) in pages)
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 28),
+                        padding: const EdgeInsets.fromLTRB(24, 6, 24, 6),
                         child: Row(
                           children: [
                             Expanded(
                               flex: 4,
                               child: Center(
-                                child: Plate(
-                                  number: l10n.plateNumber('${i + 1}'),
+                                child: ToonPanel(
+                                  style: ToonPanelStyle.night,
+                                  padding: const EdgeInsets.all(12),
                                   child: SizedBox(
-                                    width: 220,
-                                    height: 150,
+                                    width: 230,
+                                    height: 156,
                                     child: art,
                                   ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 28),
+                            const SizedBox(width: 20),
                             Expanded(
                               flex: 5,
-                              child: SingleChildScrollView(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    SpacedTitle(title, size: 20, spacing: 4),
-                                    const SizedBox(height: 6),
-                                    const LeafRule(width: 120),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      body,
-                                      style: const TextStyle(
-                                        fontSize: 17,
-                                        height: 1.5,
+                              child: ToonPanel(
+                                padding: const EdgeInsets.fromLTRB(
+                                  18,
+                                  12,
+                                  18,
+                                  14,
+                                ),
+                                child: SingleChildScrollView(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      ToonText(
+                                        title.toUpperCase(),
+                                        size: 24,
+                                        color: ToonPalette.sun,
+                                        textAlign: TextAlign.start,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        body,
+                                        style: const TextStyle(
+                                          fontSize: 17,
+                                          height: 1.4,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             ),
@@ -109,32 +124,56 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Row(
                   children: [
-                    InkButton(
+                    ToonButton(
                       label: l10n.back,
+                      tone: ToonTone.sky,
+                      fontSize: 16,
+                      height: 44,
                       onPressed: _page == 0 ? null : () => _go(-1),
                     ),
                     Expanded(
-                      child: Text(
-                        '— ${_page + 1} —',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontStyle: FontStyle.italic,
-                          color: FieldPalette.inkSoft,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          for (var i = 0; i < pages.length; i++)
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                              ),
+                              width: i == _page ? 26 : 14,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: i == _page
+                                    ? ToonPalette.sun
+                                    : ToonPalette.cream,
+                                borderRadius: BorderRadius.circular(7),
+                                border: Border.all(
+                                  color: ToonPalette.outline,
+                                  width: 2.5,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
                     last
-                        ? StampButton(
+                        ? ToonButton(
                             label: l10n.howDone,
-                            minWidth: 120,
+                            icon: ToonGlyph.check,
+                            tone: ToonTone.leaf,
                             fontSize: 16,
+                            height: 44,
                             onPressed: () => Navigator.of(context).pop(),
                           )
-                        : InkButton(
+                        : ToonButton(
                             label: l10n.howNext,
+                            tone: ToonTone.sky,
+                            fontSize: 16,
+                            height: 44,
                             onPressed: () => _go(1),
                           ),
                   ],
@@ -151,8 +190,8 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
       AnimalFigure(
         familyId: f.id,
         breedId: Breeds.ofFamily(f.id).first.id,
+        teamArgb: 0xFF2F86E0,
         size: size,
-        engraved: true,
         facing: facing,
       );
 
@@ -162,9 +201,9 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const InkIcon(InkGlyph.walkLeft, size: 34),
+            const ToonIcon(ToonGlyph.walkLeft, size: 34),
             _figure(Families.rabbit),
-            const InkIcon(InkGlyph.walkRight, size: 34),
+            const ToonIcon(ToonGlyph.walkRight, size: 34),
           ],
         );
       case 1:
@@ -176,9 +215,7 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
         );
       case 2:
         return Center(
-          child: ColorFiltered(
-            colorFilter: engravingFilter,
-            child: Wrap(
+          child: Wrap(
               spacing: 8,
               runSpacing: 8,
               alignment: WrapAlignment.center,
@@ -194,10 +231,9 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
                   WeaponIcon(weapon: w, size: 52),
               ],
             ),
-          ),
         );
       case 3:
-        return const Center(child: InkIcon(InkGlyph.wind, size: 110));
+        return const Center(child: ToonIcon(ToonGlyph.wind, size: 110));
       case 4:
         final l10n = AppLocalizations.of(context);
         return Center(
@@ -231,22 +267,22 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
   }
 }
 
-/// Pencil sketch of a slingshot pull: the drag back and the arc forward.
+/// A slingshot pull: the drag back and the dotted arc forward.
 class _AimSketch extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     const start = Offset(122, 92);
     final pencil = Paint()
-      ..color = FieldPalette.pencil
-      ..strokeWidth = 1.2
+      ..color = ToonPalette.white
+      ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
     canvas.drawLine(start, const Offset(52, 132), pencil);
-    final ink = Paint()..color = FieldPalette.ink;
+    final ink = Paint()..color = ToonPalette.sun;
     for (var i = 1; i <= 8; i++) {
       final t = i / 8;
       canvas.drawCircle(
         Offset(start.dx + t * 90, start.dy - t * 80 + t * t * 50),
-        2.2,
+        3.4,
         ink,
       );
     }

@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
-import '../../app/field_palette.dart';
+import '../../app/toon_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
+import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
-import '../../l10n/l10n_lookup.g.dart';
 import '../../services/audio_service.dart';
-import '../widgets/field/paper.dart';
-import '../widgets/field/plate.dart';
-import '../widgets/field/stamp.dart';
+import '../widgets/toon/toon_backdrop.dart';
+import '../widgets/toon/toon_button.dart';
+import '../widgets/toon/toon_controls.dart';
+import '../widgets/toon/toon_icons.dart';
+import '../widgets/toon/toon_logo.dart';
 import 'about_screen.dart';
 import 'how_to_play_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 
-/// The journal's opening spread: title page on the left (the one stamp is
-/// Play; the rest is a table of contents), an engraved plate on the right.
+/// Title screen: the painted meadow, the wordmark and a big Play button on
+/// the left, a gang of animals standing on the hill on the right.
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
+
+  static const _groundLine = 0.8;
 
   @override
   Widget build(BuildContext context) {
@@ -30,115 +34,116 @@ class MainMenuScreen extends StatelessWidget {
       ).push(MaterialPageRoute<void>(builder: (_) => screen));
     }
 
-    final titlePage = Column(
+    final menu = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        SpacedTitle(l10n.appTitle, size: 38, spacing: 9),
-        const SizedBox(height: 4),
-        Text(
-          l10n.menuSubtitle,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 16,
-            fontStyle: FontStyle.italic,
-            color: FieldPalette.inkSoft,
+        FittedBox(child: ToonLogo(title: l10n.appTitle, size: 54)),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+          decoration: BoxDecoration(
+            color: ToonPalette.night,
+            borderRadius: BorderRadius.circular(14),
+          ),
+          child: Text(
+            l10n.menuSubtitle,
+            style: const TextStyle(fontSize: 15, color: ToonPalette.white),
           ),
         ),
-        const SizedBox(height: 10),
-        const LeafRule(width: 240),
-        const SizedBox(height: 18),
-        StampButton(
+        const SizedBox(height: 16),
+        ToonButton(
           label: l10n.menuPlay,
-          fontSize: 20,
-          minWidth: 180,
+          icon: ToonGlyph.play,
+          fontSize: 28,
+          height: 62,
+          minWidth: 240,
           onPressed: () => open(const SetupScreen()),
         ),
-        const SizedBox(height: 18),
-        SizedBox(
-          width: 300,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SpacedTitle(
-                l10n.menuContents,
-                size: 11,
-                spacing: 3,
-                color: FieldPalette.inkSoft,
-              ),
-              const SizedBox(height: 2),
-              ContentsEntry(
-                numeral: 'I.',
-                label: l10n.menuHowToPlay,
-                page: '3',
-                onTap: () => open(const HowToPlayScreen()),
-              ),
-              ContentsEntry(
-                numeral: 'II.',
-                label: l10n.menuSettings,
-                page: '41',
-                onTap: () => open(const SettingsScreen()),
-              ),
-              ContentsEntry(
-                numeral: 'III.',
-                label: l10n.menuAbout,
-                page: '47',
-                onTap: () => open(const AboutScreen()),
-              ),
-            ],
-          ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          alignment: WrapAlignment.center,
+          children: [
+            ToonButton(
+              label: l10n.menuHowToPlay,
+              icon: ToonGlyph.question,
+              tone: ToonTone.sky,
+              fontSize: 16,
+              height: 46,
+              onPressed: () => open(const HowToPlayScreen()),
+            ),
+            ToonButton(
+              label: l10n.menuSettings,
+              icon: ToonGlyph.gear,
+              tone: ToonTone.sky,
+              fontSize: 16,
+              height: 46,
+              onPressed: () => open(const SettingsScreen()),
+            ),
+            ToonButton(
+              label: l10n.menuAbout,
+              icon: ToonGlyph.info,
+              tone: ToonTone.sky,
+              fontSize: 16,
+              height: 46,
+              onPressed: () => open(const AboutScreen()),
+            ),
+          ],
         ),
       ],
     );
 
-    final plate = Plate(
-      number: l10n.plateNumber('I'),
-      caption: [
-        for (final f in const [Families.cat, Families.dog, Families.rabbit])
-          l10n.byKey(f.latinKey),
-      ].join(' · '),
-      child: SizedBox(
-        width: 250,
-        height: 150,
-        child: Stack(
-          children: [
-            for (final (f, x, y, size, facing) in const [
-              (Families.dog, 0.0, 30.0, 120.0, 1),
-              (Families.rabbit, 140.0, 46.0, 100.0, -1),
-              (Families.cat, 70.0, 56.0, 96.0, 1),
-            ])
-              Positioned(
-                left: x,
-                top: y,
-                child: AnimalFigure(
-                  familyId: f.id,
-                  breedId: Breeds.ofFamily(f.id).first.id,
-                  size: size,
-                  engraved: true,
-                  facing: facing,
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-
     return Scaffold(
-      body: PaperAtmosphere(
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                spacing: 56,
-                runSpacing: 24,
-                children: [titlePage, plate],
-              ),
-            ),
-          ),
+      body: ToonBackdrop(
+        groundLine: _groundLine,
+        child: LayoutBuilder(
+          builder: (context, box) {
+            final wide = box.maxWidth > 700;
+            final ground = box.maxHeight * _groundLine;
+            final gang = box.maxHeight * 0.36;
+            return Stack(
+              children: [
+                if (wide)
+                  for (final (f, team, dx, scale, facing) in _gang)
+                    Positioned(
+                      left: box.maxWidth * dx - gang * scale / 2,
+                      top: ground - gang * scale * 0.94,
+                      child: AnimalFigure(
+                        familyId: f.id,
+                        breedId: Breeds.ofFamily(f.id).first.id,
+                        teamArgb: Teams.styles[team].colorArgb,
+                        size: gang * scale,
+                        facing: facing,
+                      ),
+                    ),
+                SafeArea(
+                  child: Align(
+                    alignment: wide
+                        ? const Alignment(-0.72, -0.35)
+                        : Alignment.center,
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(16),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 480),
+                        child: menu,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
+
+  /// Who stands on the title hill: family, team colour, x, scale, facing.
+  static final _gang = [
+    (Families.goat, 2, 0.67, 0.95, 1),
+    (Families.dog, 0, 0.77, 1.15, -1),
+    (Families.cat, 1, 0.87, 1.0, -1),
+    (Families.rabbit, 3, 0.95, 0.8, -1),
+  ];
 }

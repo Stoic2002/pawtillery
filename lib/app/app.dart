@@ -7,7 +7,7 @@ import '../services/settings_store.dart';
 import '../ui/screens/main_menu_screen.dart';
 import '../ui/screens/splash_screen.dart';
 import 'app_services.dart';
-import 'field_theme.dart';
+import 'toon_theme.dart';
 
 class PawtilleryApp extends StatefulWidget {
   const PawtilleryApp({super.key, this.locale, this.settings});
@@ -77,7 +77,7 @@ class _PawtilleryAppState extends State<PawtilleryApp> {
         ],
         supportedLocales: AppLocalizations.supportedLocales,
         localeResolutionCallback: resolveAppLocale,
-        theme: FieldTheme.build(),
+        theme: ToonTheme.build(),
         home: home,
       );
 }

@@ -349,3 +349,60 @@ world, square hairline shapes, an atmosphere layer and restraint.
   Unit tags use the book face with HP in the team's ink.
 - **Copy voice:** no exclamation marks in UI chrome ("Sudden death",
   "A draw", "Observed over 17 turns").
+
+## "Sunny Brawl" painted-cartoon redesign (2026-10-18)
+
+The developer found the field-guide look too close to Stillroom and asked
+for the quality of Worms W.M.D across menus, widgets, maps and animals.
+The PRD forbids using another game's names, characters, assets or text, so
+we matched the *quality bar and genre conventions* (painted cartoon,
+chunky UI, set-piece maps, name/HP labels over units, crosshair, juicy
+explosions) with our own identity. The developer chose: painted-cartoon
+animals, a downloaded bold font, and new map themes.
+
+- **Identity:** "A Saturday-morning cartoon brawl on a sunny farm",
+  written up in `docs/art_style_guide.md` (replaces the field guide),
+  including a "theirs / ours" table of what is not borrowed.
+- **Type:** Lilita One (SIL OFL, from Google Fonts), one weight, replacing
+  Old Standard TT. Outlined text is built from text shadows so it stays one
+  Text widget.
+- **UI kit** (`lib/ui/widgets/toon/`, palette `lib/app/toon_palette.dart`,
+  theme `lib/app/toon_theme.dart`): slab buttons that sink when pressed,
+  round icon buttons (also hold-to-walk), cream and night panels, ribbon
+  titles, segmented chips, switches, picker tiles, code-drawn outlined
+  icons, a painted meadow backdrop and a bouncing wordmark. The field kit
+  was removed. Button labels are upper case; UI tests were updated.
+- **Team colours** are bright (red, blue, green, yellow, purple, orange)
+  so labels read over any map.
+- **HUD:** pause and focus buttons, a team-coloured timer badge that turns
+  red and pops in the last 5 s, a wind meter, glossy team HP bars, a night
+  weapon card, big round Fire button; the weapon menu slides in from the
+  right; the turn banner is a team ribbon below the centre (the top holds
+  the HUD). Unit labels are name and HP on two translucent boxes in team
+  colour with an outline; the active unit gets a bouncing arrow; aiming
+  shows a team-coloured crosshair whose ring fills with power.
+- **Animals:** redrawn in `AnimalArt` with the same API: big heads and
+  eyes (pair of eyes, highlights, brows), dark outlines on every part,
+  cel shading via a path-difference shadow crescent, team bandana with
+  polka dots. Label height 36 → 37.
+- **Maps:** backyard/park/warehouse replaced by Sunny Farm, Lighthouse
+  Cliffs and Snowcap Peak (`tool/gen_maps.py`): a hollow barn with a loft,
+  haystacks, a pond, burrows, an orchard tunnel, a water tower; a cliff
+  with a sea cave and a hollow lighthouse, sea stacks, a rock arch, a pier
+  and a sandy beach; a peak with a tunnel, an ice cave, a snow cornice, a
+  frozen lake with a breakable ice sheet, a log cabin and pines. Material
+  encoding widened to R = material × 16 + 8 (16 materials); new materials
+  hay, roof, sand, rock, ice, snow. `MapDef` gained `cap` (grass/snow) and
+  `baseMaterial`; `TerrainStyle` was removed. Saved setups that name an
+  old map fall back to defaults (existing validation).
+- **Terrain painting:** dark outline at every air edge (also around new
+  craters), grass or snow cap with a shadow line, lit rims, stretched
+  value-noise brush strokes, light posterisation, per-material textures.
+- **Backdrops:** farm fields with barns and silos and outlined lollipop
+  trees; a sea horizon with islands, boats and gulls; snowy peaks and pine
+  belts with snowfall. Clouds are puffy cartoon clouds as on the menus.
+  Decorations depend on the material (shells and starfish on sand, snow
+  clumps in the mountains).
+- **Effects:** flash, additive fireball that runs yellow → red, embers,
+  sparks, outlined debris in the colours of the ground that was hit, and
+  a smoke column that lingers ~2–3 s. Pool capacity 800 → 1400.

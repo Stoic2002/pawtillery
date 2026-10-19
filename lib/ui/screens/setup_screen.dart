@@ -3,8 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
-import '../../app/field_palette.dart';
 import '../../app/match_config.dart';
+import '../../app/toon_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
 import '../../config/maps.dart';
@@ -13,16 +13,17 @@ import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../../services/audio_service.dart';
-import '../widgets/field/catalogue.dart';
-import '../widgets/field/ink_icons.dart';
-import '../widgets/field/paper.dart';
-import '../widgets/field/plate.dart';
-import '../widgets/field/stamp.dart';
+import '../widgets/toon/toon_backdrop.dart';
+import '../widgets/toon/toon_button.dart';
+import '../widgets/toon/toon_controls.dart';
+import '../widgets/toon/toon_icons.dart';
+import '../widgets/toon/toon_panel.dart';
+import '../widgets/toon/toon_text.dart';
 import 'arena_screen.dart';
 
-/// Match setup as a field roster (docs/art_style_guide.md): conditions on
-/// the left, one index tab per team, one specimen entry per unit. The last
-/// setup is restored on the next visit.
+/// Match setup: match rules on the left, one colour tab per team on the
+/// right with a card per unit. The last setup is restored on the next
+/// visit.
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
 
@@ -36,6 +37,7 @@ class _SetupScreenState extends State<SetupScreen> {
   /// Bumped when values change outside the text fields (Random), so the
   /// fields are rebuilt with the new text.
   int _revision = 0;
+  int _team = 0;
   final _rng = Random();
 
   List<String> get _pool => unitNamePool(AppLocalizations.of(context));
@@ -50,6 +52,7 @@ class _SetupScreenState extends State<SetupScreen> {
 
   void _update(MatchConfig c, {bool resetFields = false}) => setState(() {
     _config = c;
+    _team = _team.clamp(0, c.teams.length - 1);
     if (resetFields) _revision++;
   });
 
@@ -68,15 +71,20 @@ class _SetupScreenState extends State<SetupScreen> {
     final l10n = AppLocalizations.of(context);
     final config = _config!;
     return Scaffold(
-      body: PaperAtmosphere(
-        vignette: 0.35,
+      body: ToonBackdrop(
+        dim: 0.2,
         child: SafeArea(
           child: Column(
             children: [
-              PageHeader(
-                title: l10n.setupTitle,
+              ToonHeader(
+                title: l10n.setupTitle.toUpperCase(),
                 actions: [
-                  TextButton.icon(
+                  ToonButton(
+                    label: l10n.setupRandomAll,
+                    icon: ToonGlyph.dice,
+                    tone: ToonTone.sky,
+                    fontSize: 16,
+                    height: 44,
                     onPressed: () {
                       AppServices.of(context).audio.play(Sfx.ui);
                       _update(
@@ -84,42 +92,48 @@ class _SetupScreenState extends State<SetupScreen> {
                         resetFields: true,
                       );
                     },
-                    icon: const InkIcon(InkGlyph.dice, size: 20),
-                    label: Text(l10n.setupRandomAll),
                   ),
                   const SizedBox(width: 10),
-                  StampButton(
+                  ToonButton(
                     label: l10n.setupStart,
-                    minWidth: 110,
-                    fontSize: 16,
+                    icon: ToonGlyph.play,
+                    fontSize: 20,
+                    height: 48,
                     onPressed: _start,
                   ),
                 ],
               ),
               Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    SizedBox(
-                      width: 250,
-                      child: _Conditions(
-                        config: config,
-                        onChanged: _update,
-                        pool: _pool,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        width: 268,
+                        child: ToonPanel(
+                          padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
+                          child: _Rules(
+                            config: config,
+                            onChanged: _update,
+                            pool: _pool,
+                          ),
+                        ),
                       ),
-                    ),
-                    const _VerticalRule(),
-                    Expanded(
-                      child: _TeamsPanel(
-                        key: ValueKey(config.teams.length),
-                        config: config,
-                        revision: _revision,
-                        pool: _pool,
-                        rng: _rng,
-                        onChanged: _update,
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _TeamsPanel(
+                          config: config,
+                          selected: _team,
+                          onSelect: (t) => setState(() => _team = t),
+                          revision: _revision,
+                          pool: _pool,
+                          rng: _rng,
+                          onChanged: _update,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -130,24 +144,8 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 }
 
-class _VerticalRule extends StatelessWidget {
-  const _VerticalRule();
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10),
-    child: Row(
-      children: [
-        Container(width: 1, color: FieldPalette.ink),
-        const SizedBox(width: 2),
-        Container(width: 0.5, color: FieldPalette.inkSoft),
-      ],
-    ),
-  );
-}
-
-class _Conditions extends StatelessWidget {
-  const _Conditions({
+class _Rules extends StatelessWidget {
+  const _Rules({
     required this.config,
     required this.onChanged,
     required this.pool,
@@ -161,71 +159,54 @@ class _Conditions extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     Widget label(String text) => Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 5),
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 14,
-          fontStyle: FontStyle.italic,
-          color: FieldPalette.inkSoft,
-        ),
-      ),
+      padding: const EdgeInsets.only(top: 12, bottom: 6),
+      child: Text(text, style: const TextStyle(fontSize: 16)),
     );
-    Widget segments<T>(
-      List<T> values,
-      T selected,
-      String Function(T) text,
-      void Function(T) onSelect,
-    ) => SegmentedButton<T>(
-      showSelectedIcon: false,
-      segments: [
-        for (final v in values) ButtonSegment(value: v, label: Text(text(v))),
-      ],
-      selected: {selected},
-      onSelectionChanged: (s) => onSelect(s.first),
-    );
-
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 4, 14, 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       children: [
-        SpacedTitle(
-          l10n.setupConditions,
-          size: 12,
-          spacing: 3,
-          color: FieldPalette.inkSoft,
+        Center(
+          child: ToonText(
+            l10n.setupConditions.toUpperCase(),
+            size: 18,
+            color: ToonPalette.sun,
+          ),
         ),
         label(l10n.setupTeams),
-        segments<int>(
-          MatchDefaults.teamCountOptions,
-          config.teams.length,
-          (v) => '$v',
-          (v) => onChanged(config.withTeamCount(v, pool)),
+        ToonSegmented<int>(
+          values: MatchDefaults.teamCountOptions,
+          selected: config.teams.length,
+          label: (v) => '$v',
+          onSelect: (v) => onChanged(config.withTeamCount(v, pool)),
         ),
         label(l10n.setupUnitsPerTeam),
-        segments<int>(
-          MatchDefaults.unitsPerTeamOptions,
-          config.unitsPerTeam,
-          (v) => '$v',
-          (v) => onChanged(config.withUnitsPerTeam(v, pool)),
+        ToonSegmented<int>(
+          values: MatchDefaults.unitsPerTeamOptions,
+          selected: config.unitsPerTeam,
+          label: (v) => '$v',
+          onSelect: (v) => onChanged(config.withUnitsPerTeam(v, pool)),
         ),
         label(l10n.setupTurnTime),
-        segments<int>(
-          MatchDefaults.turnSecondsOptions,
-          config.turnSeconds,
-          (v) => l10n.hudSeconds(v),
-          (v) => onChanged(config.copyWith(turnSeconds: v)),
+        ToonSegmented<int>(
+          values: MatchDefaults.turnSecondsOptions,
+          selected: config.turnSeconds,
+          label: (v) => l10n.hudSeconds(v),
+          onSelect: (v) => onChanged(config.copyWith(turnSeconds: v)),
+          wrap: true,
         ),
         label(l10n.setupMap),
-        _InkChoices<String>(
+        ToonSegmented<String>(
           values: [MatchConfig.randomMap, for (final m in Maps.all) m.id],
           selected: config.mapId,
           label: (id) => id == MatchConfig.randomMap
               ? l10n.setupMapRandom
               : l10n.byKey(Maps.byId(id).nameKey),
           onSelect: (id) => onChanged(config.copyWith(mapId: id)),
+          tone: ToonTone.leaf,
+          wrap: true,
         ),
         label(l10n.setupSuddenDeath),
-        _InkChoices<int>(
+        ToonSegmented<int>(
           values: [for (final m in MatchDefaults.suddenDeathOptions) m ?? 0],
           selected: config.suddenDeathMinutes ?? 0,
           label: (m) => m == 0 ? l10n.setupOff : l10n.setupMinutes(m),
@@ -234,80 +215,19 @@ class _Conditions extends StatelessWidget {
                 ? config.copyWith(suddenDeathOff: true)
                 : config.copyWith(suddenDeathMinutes: m),
           ),
+          tone: ToonTone.tomato,
+          wrap: true,
         ),
       ],
     );
   }
 }
 
-/// A list of options with inked circles, like a printed form.
-class _InkChoices<T> extends StatelessWidget {
-  const _InkChoices({
-    required this.values,
-    required this.selected,
-    required this.label,
-    required this.onSelect,
-  });
-
-  final List<T> values;
-  final T selected;
-  final String Function(T) label;
-  final void Function(T) onSelect;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      for (final v in values)
-        InkWell(
-          onTap: () => onSelect(v),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 40),
-            child: Row(
-              children: [
-                Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: FieldPalette.ink),
-                  ),
-                  alignment: Alignment.center,
-                  child: v == selected
-                      ? Container(
-                          width: 7,
-                          height: 7,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: FieldPalette.ink,
-                          ),
-                        )
-                      : null,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    label(v),
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: v == selected
-                          ? FieldPalette.ink
-                          : FieldPalette.inkSoft,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-    ],
-  );
-}
-
 class _TeamsPanel extends StatelessWidget {
   const _TeamsPanel({
-    super.key,
     required this.config,
+    required this.selected,
+    required this.onSelect,
     required this.revision,
     required this.pool,
     required this.rng,
@@ -315,6 +235,8 @@ class _TeamsPanel extends StatelessWidget {
   });
 
   final MatchConfig config;
+  final int selected;
+  final ValueChanged<int> onSelect;
   final int revision;
   final List<String> pool;
   final Random rng;
@@ -325,60 +247,94 @@ class _TeamsPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     String teamName(TeamEntry t) =>
         t.customName ?? l10n.byKey(Teams.styles[t.styleIndex].nameKey);
-
-    return DefaultTabController(
-      length: config.teams.length,
-      child: Column(
-        children: [
-          TabBar(
-            isScrollable: true,
-            tabAlignment: TabAlignment.start,
-            tabs: [
-              for (final t in config.teams)
-                Tab(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        color: Color(Teams.styles[t.styleIndex].colorArgb),
-                      ),
-                      const SizedBox(width: 8),
-                      ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 150),
-                        child: Text(
-                          teamName(t).toUpperCase(),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+    final team = config.teams[selected];
+    final teamColor = Color(Teams.styles[team.styleIndex].colorArgb);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        // Team tabs: chunky tabs in each team's colour; the chosen one is
+        // raised and joins the card below.
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              for (final (i, t) in config.teams.indexed)
+                Padding(
+                  padding: const EdgeInsets.only(right: 6),
+                  child: _TeamTab(
+                    label: teamName(t).toUpperCase(),
+                    color: Color(Teams.styles[t.styleIndex].colorArgb),
+                    selected: i == selected,
+                    onTap: () => onSelect(i),
                   ),
                 ),
             ],
           ),
-          Expanded(
-            child: TabBarView(
-              children: [
-                for (var i = 0; i < config.teams.length; i++)
-                  _TeamEditor(
-                    key: ValueKey('team$i-$revision'),
-                    config: config,
-                    index: i,
-                    defaultName: l10n.byKey(
-                      Teams.styles[config.teams[i].styleIndex].nameKey,
-                    ),
-                    pool: pool,
-                    rng: rng,
-                    onChanged: onChanged,
-                  ),
-              ],
+        ),
+        Expanded(
+          child: ToonPanel(
+            accent: Color.lerp(teamColor, ToonPalette.outline, 0.45),
+            padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
+            child: _TeamEditor(
+              key: ValueKey('team$selected-$revision'),
+              config: config,
+              index: selected,
+              defaultName: l10n.byKey(Teams.styles[team.styleIndex].nameKey),
+              pool: pool,
+              rng: rng,
+              onChanged: onChanged,
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
+}
+
+class _TeamTab extends StatelessWidget {
+  const _TeamTab({
+    required this.label,
+    required this.color,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: selected,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 140),
+        height: selected ? 46 : 40,
+        constraints: const BoxConstraints(minWidth: 96, maxWidth: 190),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        margin: EdgeInsets.only(bottom: selected ? 0 : 2),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color.lerp(color, Colors.white, selected ? 0.15 : 0.35)!,
+              selected ? color : Color.lerp(color, Colors.white, 0.2)!,
+            ],
+          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+          border: Border.all(color: ToonPalette.outline, width: 3),
+        ),
+        alignment: Alignment.center,
+        child: ToonText(label, size: selected ? 17 : 15, maxLines: 1),
+      ),
+    ),
+  );
 }
 
 class _TeamEditor extends StatelessWidget {
@@ -411,58 +367,56 @@ class _TeamEditor extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final teamArgb = Teams.styles[team.styleIndex].colorArgb;
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
       children: [
-        TextFormField(
-          // Keyed by colour too: an empty name shows the colour's default
-          // as a hint.
-          key: ValueKey('name$index-${team.styleIndex}'),
-          initialValue: team.customName ?? '',
-          maxLength: 18,
-          style: const TextStyle(fontSize: 18),
-          decoration: InputDecoration(
-            labelText: l10n.setupTeamName,
-            hintText: defaultName,
-            counterText: '',
-          ),
-          onChanged: (v) => onChanged(
-            config.withTeam(
-              index,
-              v.trim().isEmpty
-                  ? team.copyWith(clearName: true)
-                  : team.copyWith(customName: v.trim()),
-            ),
-          ),
-        ),
-        const SizedBox(height: 6),
-        // Team inks on their own wrapping row so narrow phones never
-        // overflow.
         Wrap(
+          spacing: 12,
+          runSpacing: 6,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Text(
-                l10n.setupColor,
-                style: const TextStyle(
-                  fontStyle: FontStyle.italic,
-                  color: FieldPalette.inkSoft,
+            SizedBox(
+              width: 220,
+              child: TextFormField(
+                // Keyed by colour too: an empty name shows the colour's
+                // default as a hint.
+                key: ValueKey('name$index-${team.styleIndex}'),
+                initialValue: team.customName ?? '',
+                maxLength: 18,
+                style: const TextStyle(fontSize: 18),
+                decoration: InputDecoration(
+                  labelText: l10n.setupTeamName,
+                  hintText: defaultName,
+                  counterText: '',
+                ),
+                onChanged: (v) => onChanged(
+                  config.withTeam(
+                    index,
+                    v.trim().isEmpty
+                        ? team.copyWith(clearName: true)
+                        : team.copyWith(customName: v.trim()),
+                  ),
                 ),
               ),
             ),
-            for (var s = 0; s < Teams.styles.length; s++)
-              _InkSwatch(
-                argb: Teams.styles[s].colorArgb,
-                selected: s == team.styleIndex,
-                onTap: () => onChanged(config.withTeamStyle(index, s)),
-              ),
+            // Swatches wrap on their own so narrow phones never overflow.
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                for (var s = 0; s < Teams.styles.length; s++)
+                  _Swatch(
+                    argb: Teams.styles[s].colorArgb,
+                    selected: s == team.styleIndex,
+                    label: l10n.setupColor,
+                    onTap: () => onChanged(config.withTeamStyle(index, s)),
+                  ),
+              ],
+            ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         for (var k = 0; k < team.units.length; k++)
-          _SpecimenEntry(
+          _UnitCard(
             key: ValueKey('unit$index-$k'),
-            number: k + 1,
             unit: team.units[k],
             teamArgb: teamArgb,
             onChanged: (u) => _setUnit(k, u),
@@ -477,32 +431,45 @@ class _TeamEditor extends StatelessWidget {
   }
 }
 
-class _InkSwatch extends StatelessWidget {
-  const _InkSwatch({
+class _Swatch extends StatelessWidget {
+  const _Swatch({
     required this.argb,
     required this.selected,
+    required this.label,
     required this.onTap,
   });
 
   final int argb;
   final bool selected;
+  final String label;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    child: SizedBox.square(
-      dimension: 44,
-      child: Center(
-        child: Container(
-          width: selected ? 28 : 22,
-          height: selected ? 28 : 22,
-          decoration: BoxDecoration(
-            color: Color(argb),
-            border: Border.all(
-              color: selected ? FieldPalette.ink : FieldPalette.paper,
-              width: selected ? 2.5 : 1,
+  Widget build(BuildContext context) => Semantics(
+    button: true,
+    selected: selected,
+    label: label,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: SizedBox.square(
+        dimension: 44,
+        child: Center(
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            width: selected ? 34 : 26,
+            height: selected ? 34 : 26,
+            decoration: BoxDecoration(
+              color: Color(argb),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: ToonPalette.outline,
+                width: selected ? 3.5 : 2.5,
+              ),
             ),
+            child: selected
+                ? const Center(child: ToonIcon(ToonGlyph.check, size: 18))
+                : null,
           ),
         ),
       ),
@@ -510,20 +477,17 @@ class _InkSwatch extends StatelessWidget {
   );
 }
 
-/// One unit as a specimen entry: number, portrait in a small frame, common
-/// and Latin name, breed, and the unit's name written on a line. Tapping
-/// the portrait or names opens the catalogue.
-class _SpecimenEntry extends StatelessWidget {
-  const _SpecimenEntry({
+/// One unit: portrait in a team-coloured badge, family and breed as
+/// buttons that open pickers, the unit's name, and a dice.
+class _UnitCard extends StatelessWidget {
+  const _UnitCard({
     super.key,
-    required this.number,
     required this.unit,
     required this.teamArgb,
     required this.onChanged,
     required this.onRandom,
   });
 
-  final int number;
   final UnitEntry unit;
   final int teamArgb;
   final ValueChanged<UnitEntry> onChanged;
@@ -535,84 +499,66 @@ class _SpecimenEntry extends StatelessWidget {
     final family = Families.byId(unit.familyId);
     final breed = Breeds.byId(unit.breedId);
     Future<void> chooseFamily() async {
-      final picked = await _pickFamily(context, unit.familyId);
+      final picked = await _pickFamily(context, unit.familyId, teamArgb);
       if (picked != null) onChanged(unit.copyWith(familyId: picked));
     }
 
+    Future<void> chooseBreed() async {
+      final picked = await _pickBreed(context, unit, teamArgb);
+      if (picked != null) onChanged(unit.copyWith(breedId: picked));
+    }
+
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: FieldPalette.paperEdge)),
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(6, 4, 2, 4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBF0),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: ToonPalette.creamDeep, width: 2),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          SizedBox(
-            width: 26,
-            child: Text(
-              '$number.',
-              style: const TextStyle(color: FieldPalette.inkSoft),
-            ),
-          ),
-          InkWell(
+          GestureDetector(
             onTap: chooseFamily,
-            child: DecoratedBox(
+            child: Container(
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
-                border: Border.all(color: FieldPalette.ink, width: 0.8),
+                shape: BoxShape.circle,
+                gradient: RadialGradient(
+                  colors: [
+                    Color.lerp(Color(teamArgb), Colors.white, 0.55)!,
+                    Color(teamArgb),
+                  ],
+                ),
+                border: Border.all(color: ToonPalette.outline, width: 3),
               ),
-              child: AnimalFigure(
-                familyId: unit.familyId,
-                breedId: unit.breedId,
-                teamArgb: teamArgb,
-                size: 52,
+              child: ClipOval(
+                child: AnimalFigure(
+                  familyId: unit.familyId,
+                  breedId: unit.breedId,
+                  teamArgb: teamArgb,
+                  size: 58,
+                ),
               ),
             ),
           ),
           const SizedBox(width: 10),
           Expanded(
             flex: 5,
-            child: InkWell(
+            child: _PickField(
+              caption: l10n.byKey(family.latinKey),
+              value: l10n.byKey(family.nameKey),
               onTap: chooseFamily,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    l10n.byKey(family.nameKey).toUpperCase(),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontSize: 15, letterSpacing: 2),
-                  ),
-                  Text(
-                    l10n.byKey(family.latinKey),
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontStyle: FontStyle.italic,
-                      color: FieldPalette.inkSoft,
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
+          const SizedBox(width: 6),
           Expanded(
             flex: 5,
-            child: InkWell(
-              onTap: () async {
-                final picked = await _pickBreed(context, unit, teamArgb);
-                if (picked != null) onChanged(unit.copyWith(breedId: picked));
-              },
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  l10n.byKey(breed.nameKey),
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    decoration: TextDecoration.underline,
-                    decorationColor: FieldPalette.pencil,
-                    decorationStyle: TextDecorationStyle.dotted,
-                  ),
-                ),
-              ),
+            child: _PickField(
+              caption: l10n.setupChooseBreed,
+              value: l10n.byKey(breed.nameKey),
+              onTap: chooseBreed,
             ),
           ),
           const SizedBox(width: 8),
@@ -628,10 +574,13 @@ class _SpecimenEntry extends StatelessWidget {
               onChanged: (v) => onChanged(unit.copyWith(name: v.trim())),
             ),
           ),
-          IconButton(
+          const SizedBox(width: 4),
+          ToonRoundButton(
+            glyph: ToonGlyph.dice,
             tooltip: l10n.setupRandomUnit,
+            tone: ToonTone.sky,
+            size: 42,
             onPressed: onRandom,
-            icon: const InkIcon(InkGlyph.dice, size: 20),
           ),
         ],
       ),
@@ -639,71 +588,118 @@ class _SpecimenEntry extends StatelessWidget {
   }
 }
 
-/// The catalogue of families: engraved plates with common and Latin names.
-Future<String?> _pickFamily(BuildContext context, String current) {
-  final l10n = AppLocalizations.of(context);
-  return showDialog<String>(
-    context: context,
-    builder: (context) => Catalogue(
-      title: l10n.setupChooseFamily,
-      children: [
-        for (final (i, f) in Families.all.indexed)
-          CatalogueTile(
-            selected: f.id == current,
-            onTap: () => Navigator.of(context).pop(f.id),
-            child: Plate(
-              number: l10n.plateNumber('${i + 1}'),
-              caption: l10n.byKey(f.latinKey),
-              child: Column(
-                children: [
-                  AnimalFigure(
-                    familyId: f.id,
-                    breedId: Breeds.ofFamily(f.id).first.id,
-                    size: 70,
-                    engraved: true,
-                  ),
-                  Text(
-                    l10n.byKey(f.nameKey).toUpperCase(),
-                    style: const TextStyle(fontSize: 12, letterSpacing: 2),
-                  ),
-                ],
-              ),
-            ),
-          ),
-      ],
-    ),
-  );
-}
+/// A value with a small caption that opens a picker, with a ▾ hint.
+class _PickField extends StatelessWidget {
+  const _PickField({
+    required this.caption,
+    required this.value,
+    required this.onTap,
+  });
 
-/// The breeds of one family, in colour (colour is what a breed is about).
-Future<String?> _pickBreed(BuildContext context, UnitEntry unit, int teamArgb) {
-  final l10n = AppLocalizations.of(context);
-  return showDialog<String>(
-    context: context,
-    builder: (context) => Catalogue(
-      title: l10n.setupChooseBreed,
-      children: [
-        for (final b in Breeds.ofFamily(unit.familyId))
-          CatalogueTile(
-            selected: b.id == unit.breedId,
-            onTap: () => Navigator.of(context).pop(b.id),
+  final String caption;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    behavior: HitTestBehavior.opaque,
+    onTap: onTap,
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(minHeight: 48),
+      child: Row(
+        children: [
+          Expanded(
             child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AnimalFigure(
-                  familyId: unit.familyId,
-                  breedId: b.id,
-                  teamArgb: teamArgb,
-                  size: 70,
+                Text(
+                  caption,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: ToonPalette.bark,
+                  ),
                 ),
                 Text(
-                  l10n.byKey(b.nameKey),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 13),
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 17),
                 ),
               ],
             ),
           ),
-      ],
+          const Text(
+            '▾',
+            style: TextStyle(fontSize: 16, color: ToonPalette.skyDeep),
+          ),
+        ],
+      ),
     ),
+  );
+}
+
+/// The families, each on a card with its portrait.
+Future<String?> _pickFamily(
+  BuildContext context,
+  String current,
+  int teamArgb,
+) {
+  final l10n = AppLocalizations.of(context);
+  return showToonPicker<String>(
+    context: context,
+    title: l10n.setupChooseFamily.toUpperCase(),
+    tiles: (context) => [
+      for (final f in Families.all)
+        ToonTile(
+          selected: f.id == current,
+          onTap: () => Navigator.of(context).pop(f.id),
+          child: Column(
+            children: [
+              AnimalFigure(
+                familyId: f.id,
+                breedId: Breeds.ofFamily(f.id).first.id,
+                teamArgb: teamArgb,
+                size: 76,
+              ),
+              ToonText(l10n.byKey(f.nameKey), size: 16, maxLines: 1),
+            ],
+          ),
+        ),
+    ],
+  );
+}
+
+/// The breeds of one family.
+Future<String?> _pickBreed(BuildContext context, UnitEntry unit, int teamArgb) {
+  final l10n = AppLocalizations.of(context);
+  return showToonPicker<String>(
+    context: context,
+    title: l10n.setupChooseBreed.toUpperCase(),
+    tiles: (context) => [
+      for (final b in Breeds.ofFamily(unit.familyId))
+        ToonTile(
+          selected: b.id == unit.breedId,
+          onTap: () => Navigator.of(context).pop(b.id),
+          child: Column(
+            children: [
+              AnimalFigure(
+                familyId: unit.familyId,
+                breedId: b.id,
+                teamArgb: teamArgb,
+                size: 76,
+              ),
+              Text(
+                l10n.byKey(b.nameKey),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+    ],
   );
 }

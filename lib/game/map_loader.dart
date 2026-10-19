@@ -16,7 +16,7 @@ class MapData {
 }
 
 /// Decodes a map PNG: alpha > 128 = ground; the red channel carries the
-/// material when green is 200 (see tool/gen_maps.py).
+/// material when green is 200 (R = material * 16 + 8, see tool/gen_maps.py).
 Future<MapData> loadMapData(String asset) async {
   final data = await rootBundle.load(asset);
   final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
@@ -33,7 +33,7 @@ Future<MapData> loadMapData(String asset) async {
     for (var i = 0; i < materials.length; i++) {
       final p = i * 4;
       if (bytes[p + 3] > 128 && bytes[p + 1] == 200) {
-        final m = bytes[p] ~/ 32;
+        final m = bytes[p] ~/ 16;
         materials[i] = m > maxMaterial ? 0 : m;
       }
     }

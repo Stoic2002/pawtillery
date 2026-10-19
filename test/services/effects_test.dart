@@ -59,10 +59,11 @@ void main() {
     test('pool never grows past capacity and empties as particles die', () {
       final p = ParticleSystem(capacity: 50);
       for (var i = 0; i < 20; i++) {
-        p.explosion(100, 100, 60, dirtArgb: 0xFF7B5232);
+        p.explosion(100, 100, 60, debris: const [0xFF7B5232]);
       }
       expect(p.liveCount, 50);
-      for (var i = 0; i < 200; i++) {
+      // Smoke lingers longest (under 4 s).
+      for (var i = 0; i < 300; i++) {
         p.update(1 / 60);
       }
       expect(p.liveCount, 0);

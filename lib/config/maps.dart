@@ -1,18 +1,33 @@
-/// Which background scenery and decorations a map gets.
-enum MapTheme { backyard, park, warehouse }
+/// Which backdrop, decorations and weather a map gets.
+enum MapTheme { farm, coast, snow }
 
-/// How the ground is textured.
-enum TerrainStyle {
-  /// Grass on top, layered soil with pebbles below.
-  soil,
+/// What grows or settles on exposed top edges.
+enum CapStyle {
+  /// Grass on natural ground.
+  grass,
 
-  /// Concrete and wood with a dusty edge.
-  concrete,
+  /// Snow on everything.
+  snow,
 }
 
 /// What a piece of ground is made of; only changes how it is drawn.
-/// Encoded in the map PNG's red channel (see `tool/gen_maps.py`).
-enum TerrainMaterial { soil, wood, leaves, stone, metal, crate, concrete }
+/// Encoded in the map PNG's red channel (see `tool/gen_maps.py`; at most
+/// 16 materials).
+enum TerrainMaterial {
+  soil,
+  wood,
+  leaves,
+  stone,
+  metal,
+  crate,
+  concrete,
+  hay,
+  roof,
+  sand,
+  rock,
+  ice,
+  snow,
+}
 
 /// Map data. Colours are plain ints (0xAARRGGBB) so this stays pure Dart.
 class MapDef {
@@ -26,9 +41,10 @@ class MapDef {
     required this.dirtArgb,
     required this.grassArgb,
     required this.waterArgb,
-    this.grassThickness = 6,
-    this.theme = MapTheme.backyard,
-    this.terrainStyle = TerrainStyle.soil,
+    this.grassThickness = 7,
+    this.theme = MapTheme.farm,
+    this.cap = CapStyle.grass,
+    this.baseMaterial = TerrainMaterial.soil,
   });
 
   final String id;
@@ -42,55 +58,64 @@ class MapDef {
 
   final int skyTopArgb;
   final int skyBottomArgb;
+
+  /// Colour of the base ground ([baseMaterial]).
   final int dirtArgb;
+
+  /// Colour of the cap on top edges (grass or snow).
   final int grassArgb;
   final int waterArgb;
 
-  /// Grass band drawn on exposed top edges, px.
+  /// Cap drawn on exposed top edges, px.
   final int grassThickness;
   final MapTheme theme;
-  final TerrainStyle terrainStyle;
+  final CapStyle cap;
+
+  /// What unencoded ground is made of.
+  final TerrainMaterial baseMaterial;
 }
 
 abstract final class Maps {
-  static const backyard = MapDef(
-    id: 'backyard',
-    nameKey: 'mapBackyard',
-    maskAsset: 'assets/maps/backyard/mask.png',
+  static const farm = MapDef(
+    id: 'farm',
+    nameKey: 'mapFarm',
+    maskAsset: 'assets/maps/farm/mask.png',
     waterLevel: 1120,
-    skyTopArgb: 0xFF7EC8F5,
-    skyBottomArgb: 0xFFE3F4FF,
-    dirtArgb: 0xFF7B5232,
-    grassArgb: 0xFF4CAF50,
-    waterArgb: 0xB0337FD0,
+    skyTopArgb: 0xFF2E9BE0,
+    skyBottomArgb: 0xFFC9EEFF,
+    dirtArgb: 0xFF9A6236,
+    grassArgb: 0xFF6CC53A,
+    waterArgb: 0xC02E8FD0,
   );
 
-  static const park = MapDef(
-    id: 'park',
-    nameKey: 'mapPark',
-    maskAsset: 'assets/maps/park/mask.png',
+  static const coast = MapDef(
+    id: 'coast',
+    nameKey: 'mapCoast',
+    maskAsset: 'assets/maps/coast/mask.png',
     waterLevel: 1120,
-    skyTopArgb: 0xFFFFA77A,
-    skyBottomArgb: 0xFFFFE8C8,
-    dirtArgb: 0xFF6D4C35,
-    grassArgb: 0xFF8BC34A,
-    waterArgb: 0xB0296F9E,
-    theme: MapTheme.park,
+    skyTopArgb: 0xFF3AA8E8,
+    skyBottomArgb: 0xFFFFE9C2,
+    dirtArgb: 0xFF7E8494,
+    grassArgb: 0xFF8BCB45,
+    waterArgb: 0xC01FA3B8,
+    theme: MapTheme.coast,
+    baseMaterial: TerrainMaterial.rock,
   );
 
-  static const warehouse = MapDef(
-    id: 'warehouse',
-    nameKey: 'mapWarehouse',
-    maskAsset: 'assets/maps/warehouse/mask.png',
+  static const snow = MapDef(
+    id: 'snow',
+    nameKey: 'mapSnow',
+    maskAsset: 'assets/maps/snow/mask.png',
     waterLevel: 1120,
-    skyTopArgb: 0xFF37474F,
-    skyBottomArgb: 0xFF78909C,
-    dirtArgb: 0xFF8E8C88,
-    grassArgb: 0xFFB8B2A6,
-    waterArgb: 0xB0285E7A,
-    grassThickness: 3,
-    theme: MapTheme.warehouse,
-    terrainStyle: TerrainStyle.concrete,
+    skyTopArgb: 0xFF6E9FE0,
+    skyBottomArgb: 0xFFF6E3F0,
+    dirtArgb: 0xFF6F7690,
+    grassArgb: 0xFFF4FAFF,
+    waterArgb: 0xC0245E9E,
+    grassThickness: 10,
+    theme: MapTheme.snow,
+    cap: CapStyle.snow,
+    baseMaterial: TerrainMaterial.rock,
   );
 
   /// Test bench from M1; used by tests, not offered to players.
@@ -107,9 +132,10 @@ abstract final class Maps {
   );
 
   /// Maps players can pick (PRD: Peta 1.0).
-  static const all = [backyard, park, warehouse];
+  static const all = [farm, coast, snow];
 
   static MapDef byId(String id) => [...all, sandbox].firstWhere(
-      (m) => m.id == id,
-      orElse: () => throw ArgumentError('Unknown map: $id'));
+    (m) => m.id == id,
+    orElse: () => throw ArgumentError('Unknown map: $id'),
+  );
 }

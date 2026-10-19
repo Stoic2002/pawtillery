@@ -568,7 +568,7 @@
   "@breedMonkeyKapusin": {
     "description": "Breed name (common breed name, usually untranslated)."
   },
-  "hudWeapons": "Arms",
+  "hudWeapons": "Weapons",
   "@hudWeapons": {
     "description": "Weapon menu title and button label."
   },
@@ -642,16 +642,16 @@
   "@teamOrange": {
     "description": "Default name of an orange team."
   },
-  "mapBackyard": "Backyard",
-  "@mapBackyard": {
+  "mapFarm": "Sunny Farm",
+  "@mapFarm": {
     "description": "Map name."
   },
-  "mapPark": "City Park",
-  "@mapPark": {
+  "mapCoast": "Lighthouse Cliffs",
+  "@mapCoast": {
     "description": "Map name."
   },
-  "mapWarehouse": "Old Warehouse",
-  "@mapWarehouse": {
+  "mapSnow": "Snowcap Peak",
+  "@mapSnow": {
     "description": "Map name."
   },
   "unitNamePool": "Milo,Luna,Bobo,Kiki,Coco,Momo,Pip,Nala,Toby,Ziggy,Biscuit,Pepper,Mochi,Tofu,Nugget,Peanut,Waffle,Pixel",
@@ -802,7 +802,7 @@
   "@resultKills": {
     "description": "Results stat title."
   },
-  "resultTurns": "Observed over {count} turns",
+  "resultTurns": "Over {count} turns",
   "@resultTurns": {
     "description": "Match length.",
     "placeholders": {
@@ -1012,22 +1012,9 @@
   "@familyMonkeyLatin": {
     "description": "Scientific name, shown in italic. Not translated."
   },
-  "menuSubtitle": "A field guide to backyard artillery",
+  "menuSubtitle": "Backyard animal artillery!",
   "@menuSubtitle": {
     "description": "Italic line under the title."
-  },
-  "menuContents": "Contents",
-  "@menuContents": {
-    "description": "Heading above the menu entries."
-  },
-  "plateNumber": "Pl. {number}",
-  "@plateNumber": {
-    "description": "Plate number on an engraving.",
-    "placeholders": {
-      "number": {
-        "type": "String"
-      }
-    }
   },
   "setupChooseFamily": "Choose a family",
   "@setupChooseFamily": {
@@ -1037,17 +1024,13 @@
   "@setupChooseBreed": {
     "description": "Catalogue dialog title."
   },
-  "setupConditions": "Conditions",
+  "setupConditions": "Match rules",
   "@setupConditions": {
     "description": "Heading of the match options."
   },
-  "resultReport": "Field report",
+  "resultReport": "Match stats",
   "@resultReport": {
     "description": "Results page heading."
-  },
-  "resultStampWin": "Prevails",
-  "@resultStampWin": {
-    "description": "Rubber stamp across the winning team."
   },
   "settingsOn": "On",
   "@settingsOn": {

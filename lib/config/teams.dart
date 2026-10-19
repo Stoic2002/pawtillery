@@ -8,15 +8,15 @@ class TeamStyle {
 }
 
 abstract final class Teams {
-  /// Team inks to choose from (printer's inks, docs/art_style_guide.md);
+  /// Team colours to choose from (bright, docs/art_style_guide.md);
   /// the first ones are the defaults for teams 1–4. Each team needs a
   /// different one.
   static const styles = [
-    TeamStyle(nameKey: 'teamRed', colorArgb: 0xFFB23A2E),
-    TeamStyle(nameKey: 'teamBlue', colorArgb: 0xFF2F4F7F),
-    TeamStyle(nameKey: 'teamGreen', colorArgb: 0xFF4F6B3A),
-    TeamStyle(nameKey: 'teamYellow', colorArgb: 0xFFB8862B),
-    TeamStyle(nameKey: 'teamPurple', colorArgb: 0xFF5E4A78),
-    TeamStyle(nameKey: 'teamOrange', colorArgb: 0xFF8A4E2B),
+    TeamStyle(nameKey: 'teamRed', colorArgb: 0xFFE8412C),
+    TeamStyle(nameKey: 'teamBlue', colorArgb: 0xFF2F86E0),
+    TeamStyle(nameKey: 'teamGreen', colorArgb: 0xFF46B52B),
+    TeamStyle(nameKey: 'teamYellow', colorArgb: 0xFFF2B705),
+    TeamStyle(nameKey: 'teamPurple', colorArgb: 0xFF9B5DE5),
+    TeamStyle(nameKey: 'teamOrange', colorArgb: 0xFFFF7A1A),
   ];
 }
