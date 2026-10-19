@@ -1145,5 +1145,214 @@
   "setupWeaponsHint": "Ammo per team, per match. Skip Turn is always on.",
   "setupAmmoOff": "Off",
   "setupAmmoLess": "Less ammo",
-  "setupAmmoMore": "More ammo"
+  "setupAmmoMore": "More ammo",
+  "menuPlayWifi": "Play on Wi-Fi",
+  "@menuPlayWifi": {
+    "description": "Main menu button for local-network multiplayer."
+  },
+  "lanTitle": "Play on Wi-Fi",
+  "@lanTitle": {
+    "description": "Title of the screen to host or join a local-network room."
+  },
+  "lanYourName": "Your name",
+  "@lanYourName": {
+    "description": "Label of the player name field."
+  },
+  "lanHost": "Host a room",
+  "@lanHost": {
+    "description": "Button that opens a room other phones can join."
+  },
+  "lanHostHint": "Phones on the same Wi-Fi or on your hotspot can join.",
+  "@lanHostHint": {
+    "description": "Hint under the host button."
+  },
+  "lanRooms": "Rooms nearby",
+  "@lanRooms": {
+    "description": "Heading of the list of rooms found on the network."
+  },
+  "lanSearching": "Looking for rooms… All phones must be on the same Wi-Fi.",
+  "@lanSearching": {
+    "description": "Shown while no room has been found."
+  },
+  "lanRoomPlayers": "{count} of {max} players",
+  "@lanRoomPlayers": {
+    "description": "Players in a room found on the network.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "lanRoomBusy": "Playing",
+  "@lanRoomBusy": {
+    "description": "A room found on the network is in a match."
+  },
+  "lanJoin": "Join",
+  "@lanJoin": {
+    "description": "Button to join a room."
+  },
+  "lanJoinByAddress": "Or join by address",
+  "@lanJoinByAddress": {
+    "description": "Heading of the field to join a room by IP address."
+  },
+  "lanAddressHint": "e.g. 192.168.1.5",
+  "@lanAddressHint": {
+    "description": "Placeholder of the IP address field."
+  },
+  "lanConnecting": "Connecting…",
+  "@lanConnecting": {
+    "description": "Shown while joining a room."
+  },
+  "lanErrorConnect": "Couldn't reach that room.",
+  "@lanErrorConnect": {
+    "description": "Joining a room failed."
+  },
+  "lanErrorVersion": "That phone has a different version of the game.",
+  "@lanErrorVersion": {
+    "description": "Joining failed: game versions differ."
+  },
+  "lanErrorFull": "That room is full.",
+  "@lanErrorFull": {
+    "description": "Joining failed: the room is full."
+  },
+  "lanErrorStarted": "That room is already playing.",
+  "@lanErrorStarted": {
+    "description": "Joining failed: a match is running."
+  },
+  "lanErrorHost": "Couldn't open a room on this network.",
+  "@lanErrorHost": {
+    "description": "Hosting failed."
+  },
+  "lobbyTitle": "{name}'s room",
+  "@lobbyTitle": {
+    "description": "Lobby title with the host's name.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "lobbyPlayers": "Players",
+  "@lobbyPlayers": {
+    "description": "Lobby heading of the player list."
+  },
+  "lobbyYou": "you",
+  "@lobbyYou": {
+    "description": "Marks this phone's player in the lobby."
+  },
+  "lobbyHost": "host",
+  "@lobbyHost": {
+    "description": "Marks the host player in the lobby."
+  },
+  "lobbyWatching": "watching",
+  "@lobbyWatching": {
+    "description": "A player who controls no team."
+  },
+  "lobbyAddress": "Address: {address}",
+  "@lobbyAddress": {
+    "description": "This phone's IP address, for joining by hand.",
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "lobbyTeams": "Teams",
+  "@lobbyTeams": {
+    "description": "Lobby heading of the team list."
+  },
+  "lobbyOwnerHint": "Tap a player's name to give the team to someone else.",
+  "@lobbyOwnerHint": {
+    "description": "Host hint under the team list."
+  },
+  "lobbyEditSetup": "Match setup",
+  "@lobbyEditSetup": {
+    "description": "Host button that opens the match setup."
+  },
+  "lobbyNeedPlayers": "Waiting for another phone to join…",
+  "@lobbyNeedPlayers": {
+    "description": "Host lobby with no guest yet."
+  },
+  "lobbyWaitingHost": "Waiting for the host to start…",
+  "@lobbyWaitingHost": {
+    "description": "Guest lobby status."
+  },
+  "lobbyLeaveTitle": "Leave the room?",
+  "@lobbyLeaveTitle": {
+    "description": "Confirm leaving the lobby."
+  },
+  "lobbyLeaveHostBody": "Everyone in the room will be disconnected.",
+  "@lobbyLeaveHostBody": {
+    "description": "Confirm text when the host leaves the lobby."
+  },
+  "lobbyLeaveGuestBody": "You can join again later.",
+  "@lobbyLeaveGuestBody": {
+    "description": "Confirm text when a guest leaves the lobby."
+  },
+  "lobbyLeave": "Leave",
+  "@lobbyLeave": {
+    "description": "Leave the room."
+  },
+  "setupDone": "Done",
+  "@setupDone": {
+    "description": "Setup screen button in a Wi-Fi room: keep the setup and go back to the lobby."
+  },
+  "netTurnOf": "{name}'s turn",
+  "@netTurnOf": {
+    "description": "Shown on the other phones while a player takes their turn.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "netWaiting": "Waiting for {name}…",
+  "@netWaiting": {
+    "description": "The match is waiting for a player's phone.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "netPlayerLeft": "{name} disconnected.",
+  "@netPlayerLeft": {
+    "description": "A player's phone left the match.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "netPausedHost": "The match is paused. You can end it.",
+  "@netPausedHost": {
+    "description": "Host text after a player left."
+  },
+  "netPausedGuest": "The match is paused until the host ends it.",
+  "@netPausedGuest": {
+    "description": "Guest text after a player left."
+  },
+  "netEndMatch": "End match",
+  "@netEndMatch": {
+    "description": "Host button that calls the match off."
+  },
+  "netHostLost": "Lost the connection to the host.",
+  "@netHostLost": {
+    "description": "A guest lost the host."
+  },
+  "netDesyncTitle": "Out of sync",
+  "@netDesyncTitle": {
+    "description": "The phones' matches no longer agree."
+  },
+  "netDesyncBody": "The phones no longer agree on this match, so it has to stop. Check that every phone runs the same version.",
+  "@netDesyncBody": {
+    "description": "Explains a desync."
+  },
+  "netBackToLobby": "Back to lobby",
+  "@netBackToLobby": {
+    "description": "Return to the Wi-Fi room's lobby."
+  }
 }

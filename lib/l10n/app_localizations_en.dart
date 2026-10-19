@@ -1022,4 +1022,150 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupAmmoMore => 'More ammo';
+
+  @override
+  String get menuPlayWifi => 'Play on Wi-Fi';
+
+  @override
+  String get lanTitle => 'Play on Wi-Fi';
+
+  @override
+  String get lanYourName => 'Your name';
+
+  @override
+  String get lanHost => 'Host a room';
+
+  @override
+  String get lanHostHint =>
+      'Phones on the same Wi-Fi or on your hotspot can join.';
+
+  @override
+  String get lanRooms => 'Rooms nearby';
+
+  @override
+  String get lanSearching =>
+      'Looking for rooms… All phones must be on the same Wi-Fi.';
+
+  @override
+  String lanRoomPlayers(int count, int max) {
+    return '$count of $max players';
+  }
+
+  @override
+  String get lanRoomBusy => 'Playing';
+
+  @override
+  String get lanJoin => 'Join';
+
+  @override
+  String get lanJoinByAddress => 'Or join by address';
+
+  @override
+  String get lanAddressHint => 'e.g. 192.168.1.5';
+
+  @override
+  String get lanConnecting => 'Connecting…';
+
+  @override
+  String get lanErrorConnect => 'Couldn\'t reach that room.';
+
+  @override
+  String get lanErrorVersion =>
+      'That phone has a different version of the game.';
+
+  @override
+  String get lanErrorFull => 'That room is full.';
+
+  @override
+  String get lanErrorStarted => 'That room is already playing.';
+
+  @override
+  String get lanErrorHost => 'Couldn\'t open a room on this network.';
+
+  @override
+  String lobbyTitle(String name) {
+    return '$name\'s room';
+  }
+
+  @override
+  String get lobbyPlayers => 'Players';
+
+  @override
+  String get lobbyYou => 'you';
+
+  @override
+  String get lobbyHost => 'host';
+
+  @override
+  String get lobbyWatching => 'watching';
+
+  @override
+  String lobbyAddress(String address) {
+    return 'Address: $address';
+  }
+
+  @override
+  String get lobbyTeams => 'Teams';
+
+  @override
+  String get lobbyOwnerHint =>
+      'Tap a player\'s name to give the team to someone else.';
+
+  @override
+  String get lobbyEditSetup => 'Match setup';
+
+  @override
+  String get lobbyNeedPlayers => 'Waiting for another phone to join…';
+
+  @override
+  String get lobbyWaitingHost => 'Waiting for the host to start…';
+
+  @override
+  String get lobbyLeaveTitle => 'Leave the room?';
+
+  @override
+  String get lobbyLeaveHostBody => 'Everyone in the room will be disconnected.';
+
+  @override
+  String get lobbyLeaveGuestBody => 'You can join again later.';
+
+  @override
+  String get lobbyLeave => 'Leave';
+
+  @override
+  String netTurnOf(String name) {
+    return '$name\'s turn';
+  }
+
+  @override
+  String netWaiting(String name) {
+    return 'Waiting for $name…';
+  }
+
+  @override
+  String netPlayerLeft(String name) {
+    return '$name disconnected.';
+  }
+
+  @override
+  String get netPausedHost => 'The match is paused. You can end it.';
+
+  @override
+  String get netPausedGuest => 'The match is paused until the host ends it.';
+
+  @override
+  String get netEndMatch => 'End match';
+
+  @override
+  String get netHostLost => 'Lost the connection to the host.';
+
+  @override
+  String get netDesyncTitle => 'Out of sync';
+
+  @override
+  String get netDesyncBody =>
+      'The phones no longer agree on this match, so it has to stop. Check that every phone runs the same version.';
+
+  @override
+  String get netBackToLobby => 'Back to lobby';
 }

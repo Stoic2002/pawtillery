@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flame/game.dart';
@@ -5,7 +6,9 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
 import '../../app/match_config.dart';
+import '../../app/paw_palette.dart';
 import '../../config/controls.dart';
+import '../../config/maps.dart';
 import '../../config/match_defaults.dart';
 import '../../config/teams.dart';
 import '../../config/weapons.dart';
@@ -14,11 +17,16 @@ import '../../services/audio_service.dart';
 import '../../game/pawtillery_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
+import '../../net/lockstep.dart';
+import '../../net/protocol.dart';
+import '../../net/session.dart';
 import '../../sim/events.dart';
 import '../../sim/turn_manager.dart';
 import '../hud/arena_hud.dart';
 import '../hud/pause_dialog.dart';
 import '../hud/tutorial.dart';
+import '../widgets/paw/paw_widgets.dart';
+import 'lobby_screen.dart';
 import 'results_screen.dart';
 import 'settings_screen.dart';
 
@@ -30,10 +38,17 @@ import 'settings_screen.dart';
 /// picks the target for target weapons; two fingers always pan and pinch.
 /// The back gesture opens the pause menu instead of leaving (PRD: API 36
 /// predictive back).
+///
+/// With [net] (Play on Wi-Fi) the seed, map and team owners come from the
+/// host's start message, steps follow the [Lockstep], and the pause menu
+/// leaves the game running.
 class ArenaScreen extends StatefulWidget {
-  const ArenaScreen({super.key, required this.config});
+  const ArenaScreen({super.key, required this.config, this.net});
 
   final MatchConfig config;
+
+  /// The Wi-Fi room this match belongs to; its [NetSession.match] is set.
+  final NetSession? net;
 
   @override
   State<ArenaScreen> createState() => _ArenaScreenState();
@@ -41,10 +56,14 @@ class ArenaScreen extends StatefulWidget {
 
 enum _GestureMode { none, aim, camera }
 
+/// What stopped a Wi-Fi match.
+enum _NetStop { desync, playerLeft, hostLost }
+
 class _ArenaScreenState extends State<ArenaScreen> {
   // The seed is the only randomness outside the sim; it is logged so any
   // match can be replayed while debugging.
-  late final int _seed = math.Random().nextInt(1 << 31);
+  late final int _seed =
+      widget.net?.match!.seed ?? math.Random().nextInt(1 << 31);
   PawtilleryGame? _game;
   late List<String> _teamNames;
   late List<TeamSymbol> _teamSymbols;
@@ -53,6 +72,16 @@ class _ArenaScreenState extends State<ArenaScreen> {
   AudioService? _audio;
   TutorialController? _tutorial;
   bool _finished = false;
+
+  // Play on Wi-Fi.
+  Lockstep? _lockstep;
+  _NetStop? _netStop;
+  String _leftName = '';
+  Timer? _waitTimer;
+
+  /// The player whose phone the match is waiting for, if it has waited
+  /// more than a moment.
+  final _waitingFor = ValueNotifier<String?>(null);
 
   _GestureMode _mode = _GestureMode.none;
   Offset _aimStart = Offset.zero;
@@ -64,6 +93,86 @@ class _ArenaScreenState extends State<ArenaScreen> {
   void initState() {
     super.initState();
     debugPrint('Pawtillery match seed: $_seed');
+    final net = widget.net;
+    if (net != null) {
+      final start = net.match!;
+      _lockstep = Lockstep(
+        owners: start.owners,
+        me: net.myId,
+        send: net.sendTicks,
+        onHash: (tick, hash) {
+          net.sendHash(tick, hash);
+          // Logged like the seed, to compare phones after a match.
+          if (_lockstep!.isOver) {
+            debugPrint('Pawtillery final state hash: tick $tick, $hash');
+          }
+        },
+      );
+      net.attachMatch(_onNetMessage);
+      _waitTimer = Timer.periodic(
+        const Duration(milliseconds: 250),
+        (_) => _checkWaiting(),
+      );
+    }
+  }
+
+  String _playerName(int id) {
+    for (final p in widget.net!.match!.players) {
+      if (p.id == id) return p.name;
+    }
+    return '?';
+  }
+
+  void _onNetMessage(NetMessage m) {
+    final lock = _lockstep!;
+    switch (m) {
+      case TicksMsg():
+        lock.receive(m);
+      case DesyncMsg():
+        _stopNet(_NetStop.desync);
+      case PlayerLeftMsg(:final playerId):
+        _leftName = _playerName(playerId);
+        _stopNet(
+          playerId == 0 && !widget.net!.isHost
+              ? _NetStop.hostLost
+              : _NetStop.playerLeft,
+        );
+      case EndMatchMsg():
+        if (mounted) _backToLobby();
+      default:
+        break;
+    }
+  }
+
+  void _stopNet(_NetStop reason) {
+    _lockstep!.paused = true;
+    // The final hashes are compared just as the match ends: a desync then
+    // still replaces the results.
+    if (!mounted || (_finished && reason != _NetStop.desync)) return;
+    // A lost host outranks everything; otherwise keep the first reason.
+    if (_netStop != null && reason != _NetStop.hostLost) return;
+    _game?.setWalk(0);
+    setState(() => _netStop = reason);
+  }
+
+  void _checkWaiting() {
+    final lock = _lockstep!;
+    final game = _game;
+    String? name;
+    if (game != null &&
+        game.isLoaded &&
+        !lock.paused &&
+        !lock.isOver &&
+        !lock.isMyTurn &&
+        lock.sinceStep.elapsedMilliseconds > 1000) {
+      name = _playerName(lock.activeOwner);
+    }
+    _waitingFor.value = name;
+  }
+
+  void _backToLobby() {
+    widget.net?.matchFinished();
+    Navigator.of(context).popUntil(ModalRoute.withName(LobbyScreen.routeName));
   }
 
   PawtilleryGame _gameFor(BuildContext context) {
@@ -82,10 +191,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
       for (final t in config.teams)
         for (final u in t.units) u.name,
     ];
+    final net = widget.net;
     final game = PawtilleryGame(
       seed: _seed,
       rosters: config.rosters(),
-      map: config.resolveMap(math.Random(_seed)),
+      map: net != null
+          ? Maps.byId(net.match!.mapId)
+          : config.resolveMap(math.Random(_seed)),
       teamColors: [
         for (final t in config.teams) Teams.styles[t.styleIndex].colorArgb,
       ],
@@ -99,12 +211,13 @@ class _ArenaScreenState extends State<ArenaScreen> {
           : config.suddenDeathMinutes! * 60 * MatchDefaults.ticksPerSecond,
       loadout: config.weapons,
       showAimGuide: AppServices.of(context).settings.showAimGuide,
+      lockstep: _lockstep,
     );
     game.hud.addListener(_onHudChanged);
     final services = AppServices.of(context);
     final haptics = Haptics(services.settings);
     _audio = services.audio..playMusic(Music.match).ignore();
-    if (!services.settings.tutorialDone) {
+    if (!services.settings.tutorialDone && net == null) {
       final tutorial = _tutorial = TutorialController();
       tutorial.addListener(() {
         if (tutorial.isDone) services.settings.tutorialDone = true;
@@ -130,6 +243,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
     final hud = game.hud.value;
     if (_finished || hud == null || !hud.isOver) return;
     _finished = true;
+    widget.net?.matchFinished();
     final top = game.stats.topDamage;
     final teamDamage = List.filled(_teamNames.length, 0);
     for (final MapEntry(:key, :value) in game.stats.damageDealt.entries) {
@@ -153,10 +267,14 @@ class _ArenaScreenState extends State<ArenaScreen> {
       topDamage: top?.$2,
     );
     Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted) return;
+      if (!mounted || _netStop != null) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute<void>(
-          builder: (_) => ResultsScreen(result: result, config: widget.config),
+          builder: (_) => ResultsScreen(
+            result: result,
+            config: widget.config,
+            net: widget.net != null,
+          ),
         ),
       );
     });
@@ -166,9 +284,10 @@ class _ArenaScreenState extends State<ArenaScreen> {
     final game = _game;
     if (game == null || _paused || _finished) return;
     _paused = true;
-    game
-      ..setWalk(0)
-      ..pauseEngine();
+    // A Wi-Fi match can't stop for one phone: only the menu opens.
+    final net = widget.net != null;
+    game.setWalk(0);
+    if (!net) game.pauseEngine();
     while (mounted) {
       final choice = await showPauseDialog(context);
       if (!mounted) return;
@@ -189,7 +308,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       break;
     }
     _paused = false;
-    game.resumeEngine();
+    if (!net) game.resumeEngine();
   }
 
   bool get _slingshotWeapon {
@@ -267,6 +386,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   @override
   void dispose() {
+    widget.net?.detachMatch();
+    _waitTimer?.cancel();
+    _waitingFor.dispose();
     _tutorial?.dispose();
     _game?.hud.removeListener(_onHudChanged);
     _audio?.playMusic(Music.menu).ignore();
@@ -307,12 +429,113 @@ class _ArenaScreenState extends State<ArenaScreen> {
                       teamSymbols: _teamSymbols,
                       onPause: _pause,
                       tutorial: _tutorial,
+                      remoteTurnName: _lockstep == null
+                          ? null
+                          : () => game.hasControl
+                                ? null
+                                : _playerName(_lockstep!.activeOwner),
                     )
                   : const SizedBox.shrink(),
             ),
+            if (_lockstep != null)
+              ValueListenableBuilder<String?>(
+                valueListenable: _waitingFor,
+                builder: (context, name, _) => name == null || _netStop != null
+                    ? const SizedBox.shrink()
+                    : Align(
+                        alignment: const Alignment(0, -0.45),
+                        child: _NetPill(
+                          AppLocalizations.of(context).netWaiting(name),
+                        ),
+                      ),
+              ),
+            if (_netStop case final stop?) _netStopCard(context, stop),
           ],
         ),
       ),
     );
   }
+
+  /// A Wi-Fi match stopped: why, and what this phone can do about it.
+  Widget _netStopCard(BuildContext context, _NetStop stop) {
+    final l10n = AppLocalizations.of(context);
+    final isHost = widget.net!.isHost;
+    void toMenu() => Navigator.of(context).popUntil((route) => route.isFirst);
+    final (title, body, button, action) = switch (stop) {
+      _NetStop.desync => (
+        l10n.netDesyncTitle,
+        l10n.netDesyncBody,
+        l10n.netBackToLobby,
+        () {
+          if (isHost) {
+            (widget.net! as HostSession).endMatch();
+          } else {
+            _backToLobby();
+          }
+        },
+      ),
+      _NetStop.playerLeft => (
+        l10n.netPlayerLeft(_leftName),
+        isHost ? l10n.netPausedHost : l10n.netPausedGuest,
+        isHost ? l10n.netEndMatch : l10n.lobbyLeave,
+        isHost ? (widget.net! as HostSession).endMatch : toMenu,
+      ),
+      _NetStop.hostLost => (
+        l10n.netHostLost,
+        null,
+        l10n.resultMainMenu,
+        toMenu,
+      ),
+    };
+    return Positioned.fill(
+      child: ColoredBox(
+        color: Paw.scrim,
+        child: Center(
+          child: SizedBox(
+            width: 380,
+            child: PawCard(
+              padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(title, style: Paw.title(22)),
+                  if (body != null) ...[
+                    const SizedBox(height: 6),
+                    Text(body, style: Paw.text(15, weight: 600, height: 1.4)),
+                  ],
+                  const SizedBox(height: 16),
+                  PawButton(
+                    label: button,
+                    fill: Paw.orange,
+                    height: 48,
+                    fontSize: 15,
+                    onPressed: action,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A small cream label over the arena (Wi-Fi match status).
+class _NetPill extends StatelessWidget {
+  const _NetPill(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+    decoration: BoxDecoration(
+      color: Paw.cream,
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: Paw.ink, width: 2),
+      boxShadow: Paw.drop(3),
+    ),
+    child: Text(text, style: Paw.text(14)),
+  );
 }

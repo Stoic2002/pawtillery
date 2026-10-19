@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/pet_figure.dart';
 import 'arena_screen.dart';
+import 'lobby_screen.dart';
 
 /// What the results screen shows; computed when the match ends.
 class MatchResult {
@@ -52,10 +53,19 @@ class MatchResult {
 /// the arena was, so "Change teams" is simply going back to the setup
 /// screen underneath.
 class ResultsScreen extends StatelessWidget {
-  const ResultsScreen({super.key, required this.result, required this.config});
+  const ResultsScreen({
+    super.key,
+    required this.result,
+    required this.config,
+    this.net = false,
+  });
 
   final MatchResult result;
   final MatchConfig config;
+
+  /// A Wi-Fi match: the main button goes back to the room's lobby (the
+  /// host starts the next one) and there is no team editing here.
+  final bool net;
 
   @override
   Widget build(BuildContext context) {
@@ -270,32 +280,38 @@ class ResultsScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         PawButton(
-          label: l10n.resultPlayAgain,
-          icon: Icons.replay_rounded,
+          label: net ? l10n.netBackToLobby : l10n.resultPlayAgain,
+          icon: net ? Icons.groups_rounded : Icons.replay_rounded,
           fill: Paw.orange,
           display: true,
           fontSize: 22,
           height: 56,
           borderWidth: 3,
-          onPressed: () => Navigator.of(context).pushReplacement(
-            MaterialPageRoute<void>(
-              builder: (_) => ArenaScreen(config: config),
-            ),
-          ),
+          onPressed: net
+              ? () => Navigator.of(
+                  context,
+                ).popUntil(ModalRoute.withName(LobbyScreen.routeName))
+              : () => Navigator.of(context).pushReplacement(
+                  MaterialPageRoute<void>(
+                    builder: (_) => ArenaScreen(config: config),
+                  ),
+                ),
         ),
         const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(
-              child: PawButton(
-                label: l10n.resultChangeTeams,
-                height: 48,
-                fontSize: 14,
-                expand: true,
-                onPressed: () => Navigator.of(context).pop(),
+            if (!net) ...[
+              Expanded(
+                child: PawButton(
+                  label: l10n.resultChangeTeams,
+                  height: 48,
+                  fontSize: 14,
+                  expand: true,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
+              const SizedBox(width: 10),
+            ],
             Expanded(
               child: PawButton(
                 label: l10n.resultMainMenu,

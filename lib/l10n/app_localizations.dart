@@ -1580,7 +1580,7 @@ abstract class AppLocalizations {
   /// **'Signature'**
   String get setupSignatureWeapon;
 
-  /// No description provided for @setupDone.
+  /// Setup screen button in a Wi-Fi room: keep the setup and go back to the lobby.
   ///
   /// In en, this message translates to:
   /// **'Done'**
@@ -2011,6 +2011,264 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'More ammo'**
   String get setupAmmoMore;
+
+  /// Main menu button for local-network multiplayer.
+  ///
+  /// In en, this message translates to:
+  /// **'Play on Wi-Fi'**
+  String get menuPlayWifi;
+
+  /// Title of the screen to host or join a local-network room.
+  ///
+  /// In en, this message translates to:
+  /// **'Play on Wi-Fi'**
+  String get lanTitle;
+
+  /// Label of the player name field.
+  ///
+  /// In en, this message translates to:
+  /// **'Your name'**
+  String get lanYourName;
+
+  /// Button that opens a room other phones can join.
+  ///
+  /// In en, this message translates to:
+  /// **'Host a room'**
+  String get lanHost;
+
+  /// Hint under the host button.
+  ///
+  /// In en, this message translates to:
+  /// **'Phones on the same Wi-Fi or on your hotspot can join.'**
+  String get lanHostHint;
+
+  /// Heading of the list of rooms found on the network.
+  ///
+  /// In en, this message translates to:
+  /// **'Rooms nearby'**
+  String get lanRooms;
+
+  /// Shown while no room has been found.
+  ///
+  /// In en, this message translates to:
+  /// **'Looking for rooms… All phones must be on the same Wi-Fi.'**
+  String get lanSearching;
+
+  /// Players in a room found on the network.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} of {max} players'**
+  String lanRoomPlayers(int count, int max);
+
+  /// A room found on the network is in a match.
+  ///
+  /// In en, this message translates to:
+  /// **'Playing'**
+  String get lanRoomBusy;
+
+  /// Button to join a room.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get lanJoin;
+
+  /// Heading of the field to join a room by IP address.
+  ///
+  /// In en, this message translates to:
+  /// **'Or join by address'**
+  String get lanJoinByAddress;
+
+  /// Placeholder of the IP address field.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. 192.168.1.5'**
+  String get lanAddressHint;
+
+  /// Shown while joining a room.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting…'**
+  String get lanConnecting;
+
+  /// Joining a room failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t reach that room.'**
+  String get lanErrorConnect;
+
+  /// Joining failed: game versions differ.
+  ///
+  /// In en, this message translates to:
+  /// **'That phone has a different version of the game.'**
+  String get lanErrorVersion;
+
+  /// Joining failed: the room is full.
+  ///
+  /// In en, this message translates to:
+  /// **'That room is full.'**
+  String get lanErrorFull;
+
+  /// Joining failed: a match is running.
+  ///
+  /// In en, this message translates to:
+  /// **'That room is already playing.'**
+  String get lanErrorStarted;
+
+  /// Hosting failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open a room on this network.'**
+  String get lanErrorHost;
+
+  /// Lobby title with the host's name.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s room'**
+  String lobbyTitle(String name);
+
+  /// Lobby heading of the player list.
+  ///
+  /// In en, this message translates to:
+  /// **'Players'**
+  String get lobbyPlayers;
+
+  /// Marks this phone's player in the lobby.
+  ///
+  /// In en, this message translates to:
+  /// **'you'**
+  String get lobbyYou;
+
+  /// Marks the host player in the lobby.
+  ///
+  /// In en, this message translates to:
+  /// **'host'**
+  String get lobbyHost;
+
+  /// A player who controls no team.
+  ///
+  /// In en, this message translates to:
+  /// **'watching'**
+  String get lobbyWatching;
+
+  /// This phone's IP address, for joining by hand.
+  ///
+  /// In en, this message translates to:
+  /// **'Address: {address}'**
+  String lobbyAddress(String address);
+
+  /// Lobby heading of the team list.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get lobbyTeams;
+
+  /// Host hint under the team list.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a player\'s name to give the team to someone else.'**
+  String get lobbyOwnerHint;
+
+  /// Host button that opens the match setup.
+  ///
+  /// In en, this message translates to:
+  /// **'Match setup'**
+  String get lobbyEditSetup;
+
+  /// Host lobby with no guest yet.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for another phone to join…'**
+  String get lobbyNeedPlayers;
+
+  /// Guest lobby status.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for the host to start…'**
+  String get lobbyWaitingHost;
+
+  /// Confirm leaving the lobby.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave the room?'**
+  String get lobbyLeaveTitle;
+
+  /// Confirm text when the host leaves the lobby.
+  ///
+  /// In en, this message translates to:
+  /// **'Everyone in the room will be disconnected.'**
+  String get lobbyLeaveHostBody;
+
+  /// Confirm text when a guest leaves the lobby.
+  ///
+  /// In en, this message translates to:
+  /// **'You can join again later.'**
+  String get lobbyLeaveGuestBody;
+
+  /// Leave the room.
+  ///
+  /// In en, this message translates to:
+  /// **'Leave'**
+  String get lobbyLeave;
+
+  /// Shown on the other phones while a player takes their turn.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}\'s turn'**
+  String netTurnOf(String name);
+
+  /// The match is waiting for a player's phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for {name}…'**
+  String netWaiting(String name);
+
+  /// A player's phone left the match.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} disconnected.'**
+  String netPlayerLeft(String name);
+
+  /// Host text after a player left.
+  ///
+  /// In en, this message translates to:
+  /// **'The match is paused. You can end it.'**
+  String get netPausedHost;
+
+  /// Guest text after a player left.
+  ///
+  /// In en, this message translates to:
+  /// **'The match is paused until the host ends it.'**
+  String get netPausedGuest;
+
+  /// Host button that calls the match off.
+  ///
+  /// In en, this message translates to:
+  /// **'End match'**
+  String get netEndMatch;
+
+  /// A guest lost the host.
+  ///
+  /// In en, this message translates to:
+  /// **'Lost the connection to the host.'**
+  String get netHostLost;
+
+  /// The phones' matches no longer agree.
+  ///
+  /// In en, this message translates to:
+  /// **'Out of sync'**
+  String get netDesyncTitle;
+
+  /// Explains a desync.
+  ///
+  /// In en, this message translates to:
+  /// **'The phones no longer agree on this match, so it has to stop. Check that every phone runs the same version.'**
+  String get netDesyncBody;
+
+  /// Return to the Wi-Fi room's lobby.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to lobby'**
+  String get netBackToLobby;
 }
 
 class _AppLocalizationsDelegate

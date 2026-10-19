@@ -1025,4 +1025,148 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get setupAmmoMore => 'Tambah amunisi';
+
+  @override
+  String get menuPlayWifi => 'Main di Wi-Fi';
+
+  @override
+  String get lanTitle => 'Main di Wi-Fi';
+
+  @override
+  String get lanYourName => 'Nama kamu';
+
+  @override
+  String get lanHost => 'Buat room';
+
+  @override
+  String get lanHostHint =>
+      'HP di Wi-Fi yang sama atau di hotspot-mu bisa gabung.';
+
+  @override
+  String get lanRooms => 'Room di sekitar';
+
+  @override
+  String get lanSearching => 'Mencari room… Semua HP harus di Wi-Fi yang sama.';
+
+  @override
+  String lanRoomPlayers(int count, int max) {
+    return '$count dari $max pemain';
+  }
+
+  @override
+  String get lanRoomBusy => 'Sedang main';
+
+  @override
+  String get lanJoin => 'Gabung';
+
+  @override
+  String get lanJoinByAddress => 'Atau gabung lewat alamat';
+
+  @override
+  String get lanAddressHint => 'mis. 192.168.1.5';
+
+  @override
+  String get lanConnecting => 'Menyambung…';
+
+  @override
+  String get lanErrorConnect => 'Room itu tidak bisa dihubungi.';
+
+  @override
+  String get lanErrorVersion => 'HP itu memakai versi game yang berbeda.';
+
+  @override
+  String get lanErrorFull => 'Room itu sudah penuh.';
+
+  @override
+  String get lanErrorStarted => 'Room itu sedang bermain.';
+
+  @override
+  String get lanErrorHost => 'Tidak bisa membuat room di jaringan ini.';
+
+  @override
+  String lobbyTitle(String name) {
+    return 'Room $name';
+  }
+
+  @override
+  String get lobbyPlayers => 'Pemain';
+
+  @override
+  String get lobbyYou => 'kamu';
+
+  @override
+  String get lobbyHost => 'host';
+
+  @override
+  String get lobbyWatching => 'menonton';
+
+  @override
+  String lobbyAddress(String address) {
+    return 'Alamat: $address';
+  }
+
+  @override
+  String get lobbyTeams => 'Tim';
+
+  @override
+  String get lobbyOwnerHint =>
+      'Ketuk nama pemain untuk memberi tim ke pemain lain.';
+
+  @override
+  String get lobbyEditSetup => 'Atur pertandingan';
+
+  @override
+  String get lobbyNeedPlayers => 'Menunggu HP lain bergabung…';
+
+  @override
+  String get lobbyWaitingHost => 'Menunggu host memulai…';
+
+  @override
+  String get lobbyLeaveTitle => 'Keluar dari room?';
+
+  @override
+  String get lobbyLeaveHostBody => 'Semua pemain di room akan terputus.';
+
+  @override
+  String get lobbyLeaveGuestBody => 'Kamu bisa gabung lagi nanti.';
+
+  @override
+  String get lobbyLeave => 'Keluar';
+
+  @override
+  String netTurnOf(String name) {
+    return 'Giliran $name';
+  }
+
+  @override
+  String netWaiting(String name) {
+    return 'Menunggu $name…';
+  }
+
+  @override
+  String netPlayerLeft(String name) {
+    return '$name terputus.';
+  }
+
+  @override
+  String get netPausedHost => 'Match dijeda. Kamu bisa mengakhirinya.';
+
+  @override
+  String get netPausedGuest => 'Match dijeda sampai host mengakhirinya.';
+
+  @override
+  String get netEndMatch => 'Akhiri match';
+
+  @override
+  String get netHostLost => 'Koneksi ke host terputus.';
+
+  @override
+  String get netDesyncTitle => 'Tidak sinkron';
+
+  @override
+  String get netDesyncBody =>
+      'HP-HP tidak lagi sepakat soal match ini, jadi match harus berhenti. Pastikan semua HP memakai versi yang sama.';
+
+  @override
+  String get netBackToLobby => 'Kembali ke lobby';
 }

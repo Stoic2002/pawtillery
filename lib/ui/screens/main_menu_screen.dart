@@ -7,12 +7,14 @@ import '../../config/app_info.dart';
 import '../../config/breeds.dart';
 import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
+import '../../net/lan.dart';
 import '../../services/audio_service.dart';
 import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_logo.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/pet_figure.dart';
 import 'how_to_play_screen.dart';
+import 'lan_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 
@@ -93,6 +95,17 @@ class MainMenuScreen extends StatelessWidget {
                             radius: 16,
                             onPressed: () => open(const SetupScreen()),
                           ),
+                          // No sockets on the web.
+                          if (lanSupported) ...[
+                            const SizedBox(height: 14),
+                            PawButton(
+                              label: l10n.menuPlayWifi,
+                              icon: Icons.wifi_rounded,
+                              fill: Paw.green,
+                              borderWidth: 3,
+                              onPressed: () => open(const LanScreen()),
+                            ),
+                          ],
                           const SizedBox(height: 14),
                           PawButton(
                             label: l10n.menuHowToPlay,

@@ -28,6 +28,7 @@ class ArenaHud extends StatelessWidget {
     required this.teamSymbols,
     required this.onPause,
     this.tutorial,
+    this.remoteTurnName,
   });
 
   final PawtilleryGame game;
@@ -38,6 +39,10 @@ class ArenaHud extends StatelessWidget {
 
   /// First-match tutorial, if it should show.
   final TutorialController? tutorial;
+
+  /// Play on Wi-Fi: the name of the player taking the turn on another
+  /// phone, or null when this phone has the controls.
+  final String? Function()? remoteTurnName;
 
   @override
   Widget build(BuildContext context) {
@@ -57,6 +62,7 @@ class ArenaHud extends StatelessWidget {
                 (weapon.aim == AimMode.angleAndPower ||
                     weapon.aim == AimMode.direction);
             final teamColor = Color(game.teamColors[hud.activeTeam]);
+            final remote = remoteTurnName?.call();
             return Stack(
               children: [
                 SafeArea(
@@ -87,7 +93,12 @@ class ArenaHud extends StatelessWidget {
                           alignment: Alignment.topRight,
                           child: _TopRight(game: game, hud: hud, seed: seed),
                         ),
-                        if (!hud.isOver) ...[
+                        if (!hud.isOver && remote != null)
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: _RemoteTurn(name: remote, color: teamColor),
+                          ),
+                        if (!hud.isOver && remote == null) ...[
                           Align(
                             alignment: Alignment.bottomLeft,
                             child: _Walk(
@@ -152,6 +163,29 @@ class ArenaHud extends StatelessWidget {
       },
     );
   }
+}
+
+/// Bottom of the screen on the other phones during a Wi-Fi turn.
+class _RemoteTurn extends StatelessWidget {
+  const _RemoteTurn({required this.name, required this.color});
+
+  final String name;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+    decoration: BoxDecoration(
+      color: Paw.cream,
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: color, width: 3),
+      boxShadow: Paw.drop(3),
+    ),
+    child: Text(
+      AppLocalizations.of(context).netTurnOf(name),
+      style: Paw.text(16),
+    ),
+  );
 }
 
 String _activeName(PawtilleryGame game) {

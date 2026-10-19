@@ -9,7 +9,9 @@ import '../config/families.dart';
 import '../config/maps.dart';
 import '../config/teams.dart';
 import '../config/match_defaults.dart';
+import '../config/net.dart';
 import '../config/weapons.dart';
+import '../net/lockstep.dart';
 import '../sim/events.dart';
 import '../sim/inputs.dart';
 import '../sim/physics.dart';
@@ -74,6 +76,7 @@ class PawtilleryGame extends FlameGame {
     this.suddenDeathAfterTicks,
     this.loadout = WeaponLoadout.standard,
     this.showAimGuide = true,
+    this.lockstep,
   });
 
   final int seed;
@@ -96,6 +99,10 @@ class PawtilleryGame extends FlameGame {
 
   /// Settings: draw the aim guide path (the readout always shows).
   bool showAimGuide;
+
+  /// Play on Wi-Fi: steps come from the network instead of the clock
+  /// alone, and only the active team's phone has controls.
+  final Lockstep? lockstep;
 
   late final MatchStats stats;
   final ParticleSystem particles = ParticleSystem();
@@ -148,6 +155,7 @@ class PawtilleryGame extends FlameGame {
       loadout: loadout,
     );
     stats = MatchStats(sim);
+    lockstep?.attach(sim);
 
     final worldSize = Vector2(mask.width.toDouble(), mask.height.toDouble());
     _terrain =
@@ -197,7 +205,10 @@ class PawtilleryGame extends FlameGame {
 
   // ------------------------------------------------------------ weapons
 
-  bool get canAim => sim.turn.allowsFire;
+  bool get canAim => sim.turn.allowsFire && hasControl;
+
+  /// This phone controls the active team (always, in a hotseat match).
+  bool get hasControl => lockstep?.isMyTurn ?? true;
 
   WeaponDef get weapon => Weapons.byId(aim.value.weaponId);
 
@@ -365,11 +376,18 @@ class PawtilleryGame extends FlameGame {
     if (kDebugMode || kProfileMode) _measureFrame(dt);
     _accumulator += dt;
     var steps = 0;
+    var slots = 0;
+    final lock = lockstep;
     while (_accumulator >= MatchDefaults.tickSeconds &&
-        steps < MatchDefaults.maxStepsPerFrame) {
-      _stepSim();
+        slots < MatchDefaults.maxStepsPerFrame) {
+      if (lock == null) {
+        _stepSim();
+        steps++;
+      } else {
+        steps += _stepNet(lock);
+      }
       _accumulator -= MatchDefaults.tickSeconds;
-      steps++;
+      slots++;
     }
     // Still behind after the cap: drop the backlog instead of queueing it.
     if (_accumulator >= MatchDefaults.tickSeconds) _accumulator = 0;
@@ -412,13 +430,36 @@ class PawtilleryGame extends FlameGame {
       ..._pendingInputs,
     ];
     _pendingInputs.clear();
+    _runStep(() => sim.step(inputs));
+  }
+
+  /// One tick of real time in a network match: record this phone's inputs
+  /// if it controls the active team, then step every tick whose inputs
+  /// are here (several when behind). Returns the number of steps.
+  int _stepNet(Lockstep lock) {
+    if (lock.produce(_walkDir, _pendingInputs) || !lock.isMyTurn) {
+      _pendingInputs.clear();
+    }
+    var steps = 0;
+    while (steps < MatchDefaults.maxStepsPerFrame) {
+      if (_runStep(lock.step) == null) break;
+      steps++;
+      if (lock.buffered <= NetConfig.catchUpTicks) break;
+    }
+    return steps;
+  }
+
+  /// Runs [step] and handles its events; returns them (null = no step).
+  List<SimEvent>? _runStep(List<SimEvent>? Function() step) {
     _stopwatch
       ..reset()
       ..start();
-    final events = sim.step(inputs);
+    final events = step();
+    if (events == null) return null;
     final exploded = _handleEvents(events);
     _stopwatch.stop();
     if (exploded) _recordExplosionTime(_stopwatch.elapsedMicroseconds);
+    return events;
   }
 
   /// Returns whether any explosion happened.

@@ -22,6 +22,7 @@ class SettingsStore extends ChangeNotifier {
   static const _kAimGuide = 'showAimGuide';
   static const _kTutorialDone = 'tutorialDone';
   static const _kMatch = 'lastMatchConfig';
+  static const _kPlayerName = 'playerName';
 
   /// 'en', 'id', or null to follow the device.
   String? get languageCode => _prefs.getString(_kLanguage);
@@ -45,6 +46,12 @@ class SettingsStore extends ChangeNotifier {
   /// First-match tutorial already seen (M5); Settings can reset it.
   bool get tutorialDone => _prefs.getBool(_kTutorialDone) ?? false;
   set tutorialDone(bool v) => _set(() => _prefs.setBool(_kTutorialDone, v));
+
+  /// Name shown to the other phones in a Wi-Fi room; null = not set yet.
+  String? get playerName => _prefs.getString(_kPlayerName);
+  set playerName(String? name) => _set(() => name == null
+      ? _prefs.remove(_kPlayerName)
+      : _prefs.setString(_kPlayerName, name));
 
   /// Last setup, or null if none was saved or it no longer fits the data.
   MatchConfig? lastMatch(List<String> namePool) {

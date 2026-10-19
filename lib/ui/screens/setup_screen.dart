@@ -25,8 +25,13 @@ import 'arena_screen.dart';
 /// picker, a Weapons tab (which weapons are on and their ammo), and a
 /// bottom bar with a summary and Start. The last setup is
 /// restored on the next visit.
+///
+/// In a Wi-Fi room the host edits [lobbyConfig] here; Done returns the new
+/// setup (Navigator result) instead of starting a match.
 class SetupScreen extends StatefulWidget {
-  const SetupScreen({super.key});
+  const SetupScreen({super.key, this.lobbyConfig});
+
+  final MatchConfig? lobbyConfig;
 
   @override
   State<SetupScreen> createState() => _SetupScreenState();
@@ -49,6 +54,7 @@ class _SetupScreenState extends State<SetupScreen> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _config ??=
+        widget.lobbyConfig ??
         AppServices.of(context).settings.lastMatch(_pool) ??
         MatchConfig.defaults(_pool);
   }
@@ -63,6 +69,10 @@ class _SetupScreenState extends State<SetupScreen> {
     AppServices.of(context).audio.play(Sfx.ui);
     await AppServices.of(context).settings.saveMatch(config);
     if (!mounted) return;
+    if (widget.lobbyConfig != null) {
+      Navigator.of(context).pop(config);
+      return;
+    }
     Navigator.of(context).push(
       MaterialPageRoute<void>(builder: (_) => ArenaScreen(config: config)),
     );
@@ -159,8 +169,12 @@ class _SetupScreenState extends State<SetupScreen> {
                     ),
                     const SizedBox(width: 16),
                     PawButton(
-                      label: l10n.setupStartMatch,
-                      trailingIcon: Icons.arrow_forward_rounded,
+                      label: widget.lobbyConfig == null
+                          ? l10n.setupStartMatch
+                          : l10n.setupDone,
+                      trailingIcon: widget.lobbyConfig == null
+                          ? Icons.arrow_forward_rounded
+                          : Icons.check_rounded,
                       fill: Paw.orange,
                       display: true,
                       fontSize: 20,

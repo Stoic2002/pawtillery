@@ -599,3 +599,72 @@ only genre mechanics are shared with other games.
 - **Sound:** `sfx_laser` and `sfx_thunder` were added to the generator,
   which now reseeds its noise per sound (adding a sound no longer changes
   the others) and encodes Ogg bit-exact (same code, same files).
+
+## Play on Wi-Fi: local-network multiplayer (2026-10-20)
+
+The developer asked whether multiplayer over Bluetooth was possible. We
+recommended the same Wi-Fi network (a router, or one phone's hotspot)
+instead, and the developer approved the plan. This extends the PRD, which
+covered hotseat only; hotseat is unchanged.
+
+- **Why Wi-Fi, not Bluetooth:** `dart:io` sockets need no new package
+  (Bluetooth would need a plugin outside the PRD list), Wi-Fi has more
+  range and bandwidth, and 3–4 phones work as easily as 2. Nothing goes
+  to the internet; the privacy note ("collects no data") still holds.
+- **Lobby:** the host opens a room (TCP, port 47821 or any free one) and
+  broadcasts a UDP beacon to port 47820 every second: to
+  255.255.255.255, to each interface's /24 broadcast address (a phone
+  hotspot often doesn't route the limited broadcast onto its own network,
+  and Dart doesn't expose netmasks), and to loopback. Guests list the rooms
+  they hear, or join by typing the host's IP (shown in the lobby), for
+  networks that block broadcasts. Up to 4 phones. The host edits the
+  setup with the normal Setup screen and hands each team to a player;
+  a phone may control several teams or none (watching).
+- **Protocol** (`lib/net/protocol.dart`): JSON lines, versioned. Guests
+  with another protocol version or app version are turned away, since a
+  different build may have different balance. The host picks the seed and
+  the map (a random map is never picked on each phone) and sends the full
+  setup, weapons included.
+- **Lockstep** (`lib/net/lockstep.dart`): every phone runs the same
+  `SimWorld`. Only the phone that controls the active team produces input
+  frames, one per tick and 4 ticks ahead of its own sim, so it plays
+  without lag. The host relays them, and the other phones step only once a
+  tick's frame is there, catching up when they fall behind. When the turn
+  passes to a team on another phone, the producer marks its last frame
+  (`end`) and the next phone continues from the following tick. Every
+  phone knows when that is, because the sim decides it, and inputs do
+  nothing during the turn banner, so the hand-over costs no play time.
+  We chose this over a host clock because the active player never waits
+  on the network.
+- **Desync check:** guests send `stateHash()` every 60 ticks and at the
+  end; the host compares them with its own and stops the match for
+  everyone on a mismatch.
+- **Disconnects:** each link pings once a second and counts as lost after
+  6 s of silence (a phone that walked out of range sends no FIN). A lost
+  guest pauses the match for everyone and the host can end it. If the host
+  is lost, the guests see a message and return to the menu. Reconnecting
+  in the middle of a match is not supported yet.
+- **In the arena:** the pause menu doesn't stop a Wi-Fi match. Other
+  phones see "{name}'s turn" instead of the controls, and "Waiting for
+  {name}…" after a second without a step. There is no tutorial. The
+  results screen goes back to the lobby instead of offering a rematch.
+- **Platform:** Android gets `INTERNET`, `ACCESS_WIFI_STATE` and
+  `CHANGE_WIFI_MULTICAST_STATE`, plus a small `MainActivity` method
+  channel that holds a `WifiManager.MulticastLock` while the Wi-Fi screens
+  are open, because many phones drop broadcast packets without one. This
+  is a few lines of platform code, not a package. macOS gets the network
+  client/server entitlements (two copies on one Mac are handy for
+  testing). The web has no sockets: `lib/net/lan.dart` exports a stub
+  there, and the menu hides the option.
+- **Tests:** protocol round trips, and lockstep matches with two and
+  three phones through in-memory links (with dropped frames to exercise
+  catch-up), all ending with equal hashes. Also a forced desync, rejected
+  joins and lost players, plus one real-socket test on localhost (finds
+  the room by beacon, joins over TCP, plays to the end).
+- **Checked end to end** on two iOS simulators on one Mac (Android is
+  the target, but the simulators can be driven by taps; both share the
+  Mac's network). The guest found the room by its beacon, joined, saw the
+  host's setup changes, and both played to the results. Both logged the
+  same final state hash (`Pawtillery final state hash: …`, printed like
+  the seed). Leaving as host showed "lost the connection" on the guest,
+  and "Back to lobby" brought both back for another match.
