@@ -49,17 +49,24 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final (button, title) in [
-      ('HOW TO PLAY', 'MOVE'),
-      ('SETTINGS', 'Language'),
-      ('ABOUT', 'PRIVACY POLICY'),
-      ('PLAY', 'NEW MATCH'),
+      ('How to Play', 'Move'),
+      ('Settings', 'Language'),
+      ('Play', 'New Match'),
     ]) {
       await tester.tap(find.text(button));
       await tester.pumpAndSettle();
       expect(find.text(title), findsWidgets, reason: button);
       await _back(tester);
-      expect(find.text('PLAY'), findsOneWidget);
+      expect(find.text('Play'), findsOneWidget);
     }
+
+    // About is a card over the menu.
+    await tester.tap(find.byTooltip('About'));
+    await tester.pumpAndSettle();
+    expect(find.text('Privacy policy'), findsOneWidget);
+    await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+    expect(find.text('Privacy policy'), findsNothing);
   });
 
   testWidgets('setup: team count, Random, and the setup is saved on start',
@@ -69,29 +76,57 @@ void main() {
     await tester.pumpWidget(
         PawtilleryApp(locale: const Locale('en'), settings: settings));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('PLAY'));
+    await tester.tap(find.text('Play'));
     await tester.pumpAndSettle();
 
-    // Team tabs in capitals.
-    expect(find.text('RED TEAM'), findsOneWidget);
-    expect(find.text('BLUE TEAM'), findsOneWidget);
-    expect(find.text('YELLOW TEAM'), findsNothing);
-    await tester.tap(find.text('4').first);
+    // One card per team; the name field shows the default name.
+    expect(find.text('Red Team'), findsWidgets);
+    expect(find.text('Blue Team'), findsWidgets);
+    expect(find.text('Purple Team'), findsNothing);
+
+    // Two more teams from the Rules tab.
+    await tester.tap(find.text('Rules'));
     await tester.pumpAndSettle();
-    expect(find.text('YELLOW TEAM'), findsOneWidget);
+    await tester.tap(find.byTooltip('Increase').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Increase').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Teams'));
+    await tester.pumpAndSettle();
+    expect(find.text('Purple Team'), findsWidgets);
     expect(tester.takeException(), isNull);
 
-    await tester.tap(find.text('RANDOM').first); // the header button
+    await tester.tap(find.text('Random').first); // the header button
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
     expect(settings.lastMatch(const []), isNull);
-    await tester.tap(find.text('START'));
+    await tester.tap(find.text('Start match'));
     await tester.pump();
     final saved = settings.lastMatch(const [])!;
     expect(saved.teams, hasLength(4), reason: 'the setup on screen is saved');
     // Leave before the arena finishes loading its map.
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('setup: a unit opens the unit editor', (tester) async {
+    await _landscape(tester);
+    final settings = await _settings();
+    await tester.pumpWidget(
+        PawtilleryApp(locale: const Locale('en'), settings: settings));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Play'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Cat').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Edit unit'), findsOneWidget);
+    expect(find.text('Passive · '), findsNothing);
+    await tester.tap(find.text('Dog'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dog'), findsWidgets);
   });
 
   testWidgets('settings: switching language updates the whole app',
@@ -100,15 +135,15 @@ void main() {
     final settings = await _settings();
     await tester.pumpWidget(PawtilleryApp(settings: settings));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('SETTINGS'));
+    await tester.tap(find.text('Settings'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Bahasa Indonesia'));
     await tester.pumpAndSettle();
     expect(settings.languageCode, 'id');
     expect(find.text('Bahasa'), findsOneWidget);
     await _back(tester);
-    expect(find.text('MAIN'), findsOneWidget);
-    expect(find.text('CARA BERMAIN'), findsOneWidget);
+    expect(find.text('Main'), findsOneWidget);
+    expect(find.text('Cara Bermain'), findsOneWidget);
   });
 
   testWidgets('pause dialog: resume, and exit asks first', (tester) async {
@@ -135,15 +170,15 @@ void main() {
     ));
     await tester.tap(find.text('pause'));
     await tester.pumpAndSettle();
-    expect(find.text('PAUSED'), findsOneWidget);
-    await tester.tap(find.text('RESUME'));
+    expect(find.text('Paused'), findsOneWidget);
+    await tester.tap(find.text('Resume'));
     await tester.pumpAndSettle();
     expect(choice, PauseChoice.resume);
 
     await tester.tap(find.text('exit'));
     await tester.pumpAndSettle();
-    expect(find.text('LEAVE THE MATCH?'), findsOneWidget);
-    await tester.tap(find.text('CANCEL'));
+    expect(find.text('Leave the match?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
     await tester.pumpAndSettle();
     expect(leave, isFalse);
   });
@@ -168,8 +203,8 @@ void main() {
       ),
     ));
     await tester.pumpAndSettle();
-    expect(find.text('BLUE TEAM WINS'), findsOneWidget);
-    expect(find.text('Milo (Blue Team): 142 HP'), findsOneWidget);
+    expect(find.text('Blue Team wins'), findsWidgets);
+    expect(find.text('Milo · 142 damage'), findsOneWidget);
     expect(find.text('Kucing Garong'), findsOneWidget);
     expect(find.text('Over 17 turns'), findsOneWidget);
   });
@@ -180,11 +215,19 @@ void main() {
     final settings = await _settings()..languageCode = 'id';
     await tester.pumpWidget(PawtilleryApp(settings: settings));
     await tester.pumpAndSettle();
-    for (final button in ['MAIN', 'CARA BERMAIN', 'PENGATURAN', 'TENTANG']) {
+    for (final button in ['Main', 'Cara Bermain', 'Pengaturan']) {
       await tester.tap(find.text(button));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: button);
+      if (button == 'Main') {
+        await tester.tap(find.text('Aturan'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: 'Aturan');
+      }
       await _back(tester);
     }
+    await tester.tap(find.byTooltip('Tentang'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull, reason: 'Tentang');
   });
 }

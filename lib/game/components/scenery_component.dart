@@ -43,6 +43,14 @@ class SceneryComponent extends Component {
   @override
   void render(ui.Canvas canvas) {
     switch (map.theme) {
+      case MapTheme.backyard:
+        _duskSky(canvas);
+        _stars(canvas);
+        _clouds(
+          canvas,
+          const ui.Color(0x55B07090),
+          const ui.Color(0x66C98AA0),
+        );
       case MapTheme.castle:
         _stars(canvas);
         _moon(canvas);
@@ -70,6 +78,8 @@ class SceneryComponent extends Component {
         ..restore();
     }
     switch (map.theme) {
+      case MapTheme.backyard:
+        break;
       case MapTheme.castle:
         _bats(canvas);
       case MapTheme.wreck:
@@ -77,6 +87,39 @@ class SceneryComponent extends Component {
       case MapTheme.ruins:
         _embers(canvas);
     }
+  }
+
+  // -------------------------------------------------------------- backyard
+
+  /// The redesign's dusk: violet to rose to peach, and the low sun's glow.
+  void _duskSky(ui.Canvas canvas) {
+    final shift = _shift(0.02);
+    final rect = ui.Rect.fromLTWH(-worldSize.x, -600, worldSize.x * 3, worldSize.y + 600);
+    canvas.drawRect(
+      rect,
+      ui.Paint()
+        ..shader = ui.Gradient.linear(
+          ui.Offset(0, -200 + shift.dy),
+          ui.Offset(0, worldSize.y * 0.85 + shift.dy),
+          const [
+            ui.Color(0xFF2A2652),
+            ui.Color(0xFF6A3E74),
+            ui.Color(0xFFD2736A),
+            ui.Color(0xFFF4AE78),
+          ],
+          const [0, 0.45, 0.78, 1],
+        ),
+    );
+    final orb = ui.Offset(worldSize.x * 0.3, worldSize.y * 0.62) + shift;
+    canvas.drawCircle(
+      orb,
+      900,
+      ui.Paint()
+        ..shader = ui.Gradient.radial(orb, 900, const [
+          ui.Color(0x8CFFC080),
+          ui.Color(0x00FFC080),
+        ]),
+    );
   }
 
   // ---------------------------------------------------------------- castle

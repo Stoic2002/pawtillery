@@ -178,6 +178,21 @@ class MatchConfig {
   MatchConfig withTeam(int team, TeamEntry entry) =>
       copyWith(teams: [...teams]..[team] = entry);
 
+  /// Removes team [team] (setup's "Delete team"); at least two remain.
+  MatchConfig withoutTeam(int team) => teams.length <= 2
+      ? this
+      : copyWith(teams: [...teams]..removeAt(team));
+
+  /// Random family, breed and name for every unit of one team.
+  MatchConfig withRandomTeam(int team, Random rng, List<String> namePool) =>
+      withTeam(
+        team,
+        teams[team].copyWith(units: [
+          for (var k = 0; k < teams[team].units.length; k++)
+            randomUnit(rng, namePool),
+        ]),
+      );
+
   /// The "Acak" button: random family, breed and name for every unit.
   MatchConfig randomized(Random rng, List<String> namePool) => copyWith(
         teams: [

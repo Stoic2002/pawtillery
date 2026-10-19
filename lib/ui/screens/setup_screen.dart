@@ -4,26 +4,25 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
 import '../../app/match_config.dart';
-import '../../app/iron_palette.dart';
+import '../../app/paw_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
 import '../../config/maps.dart';
 import '../../config/match_defaults.dart';
 import '../../config/teams.dart';
+import '../../config/weapons.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../../services/audio_service.dart';
-import '../widgets/iron/iron_backdrop.dart';
-import '../widgets/iron/iron_button.dart';
-import '../widgets/iron/iron_controls.dart';
-import '../widgets/iron/iron_icons.dart';
-import '../widgets/iron/iron_panel.dart';
-import '../widgets/iron/iron_text.dart';
+import '../widgets/paw/paw_backdrop.dart';
+import '../widgets/paw/paw_widgets.dart';
+import '../widgets/paw/pet_figure.dart';
 import 'arena_screen.dart';
 
-/// Match setup: match rules on the left, one colour tab per team on the
-/// right with a card per unit. The last setup is restored on the next
-/// visit.
+/// Match setup (redesign prototype): a Teams tab with one card per team
+/// (and an "Add team" card), a Rules tab with the match options and the map
+/// picker, and a bottom bar with a summary and Start. The last setup is
+/// restored on the next visit.
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
 
@@ -31,13 +30,15 @@ class SetupScreen extends StatefulWidget {
   State<SetupScreen> createState() => _SetupScreenState();
 }
 
+enum _Tab { teams, rules }
+
 class _SetupScreenState extends State<SetupScreen> {
   MatchConfig? _config;
+  _Tab _tab = _Tab.teams;
 
   /// Bumped when values change outside the text fields (Random), so the
   /// fields are rebuilt with the new text.
   int _revision = 0;
-  int _team = 0;
   final _rng = Random();
 
   List<String> get _pool => unitNamePool(AppLocalizations.of(context));
@@ -52,7 +53,6 @@ class _SetupScreenState extends State<SetupScreen> {
 
   void _update(MatchConfig c, {bool resetFields = false}) => setState(() {
     _config = c;
-    _team = _team.clamp(0, c.teams.length - 1);
     if (resetFields) _revision++;
   });
 
@@ -66,70 +66,1018 @@ class _SetupScreenState extends State<SetupScreen> {
     );
   }
 
+  String _mapName(AppLocalizations l10n, String id) =>
+      id == MatchConfig.randomMap
+      ? l10n.setupMapRandom
+      : l10n.byKey(Maps.byId(id).nameKey);
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final config = _config!;
     return Scaffold(
-      body: IronBackdrop(
-        dim: 0.2,
+      body: PawBackdrop(
+        clouds: false,
         child: SafeArea(
           child: Column(
             children: [
-              IronHeader(
-                title: l10n.setupTitle.toUpperCase(),
-                actions: [
-                  IronButton(
-                    label: l10n.setupRandomAll,
-                    icon: IronGlyph.dice,
-                    tone: IronTone.steel,
-                    fontSize: 16,
-                    height: 44,
-                    onPressed: () {
-                      AppServices.of(context).audio.play(Sfx.ui);
-                      _update(
-                        config.randomized(_rng, _pool),
-                        resetFields: true,
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 10),
-                  IronButton(
-                    label: l10n.setupStart,
-                    icon: IronGlyph.play,
-                    fontSize: 20,
-                    height: 48,
-                    onPressed: _start,
-                  ),
-                ],
+              PawHeader(
+                title: l10n.setupTitle,
+                backLabel: l10n.back,
+                center: PawPillToggle<_Tab>(
+                  values: _Tab.values,
+                  selected: _tab,
+                  background: Paw.cream,
+                  shadow: true,
+                  label: (t) =>
+                      t == _Tab.teams ? l10n.setupTabTeams : l10n.setupTabRules,
+                  onSelect: (t) => setState(() => _tab = t),
+                ),
+                trailing: PawButton(
+                  label: l10n.setupRandomAll,
+                  icon: Icons.shuffle_rounded,
+                  fill: Paw.green,
+                  height: 44,
+                  fontSize: 14,
+                  shadow: 3,
+                  padding: 14,
+                  onPressed: () {
+                    AppServices.of(context).audio.play(Sfx.ui);
+                    _update(config.randomized(_rng, _pool), resetFields: true);
+                  },
+                ),
               ),
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 4, 12, 10),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(
-                        width: 268,
-                        child: IronPanel(
-                          padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
-                          child: _Rules(
-                            config: config,
-                            onChanged: _update,
-                            pool: _pool,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _TeamsPanel(
+                  padding: const EdgeInsets.fromLTRB(24, 6, 24, 14),
+                  child: _tab == _Tab.teams
+                      ? _TeamsTab(
                           config: config,
-                          selected: _team,
-                          onSelect: (t) => setState(() => _team = t),
                           revision: _revision,
                           pool: _pool,
                           rng: _rng,
                           onChanged: _update,
+                        )
+                      : _RulesTab(
+                          config: config,
+                          pool: _pool,
+                          onChanged: _update,
+                        ),
+                ),
+              ),
+              Container(
+                height: 72,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                decoration: const BoxDecoration(
+                  color: Paw.cream,
+                  border: Border(top: BorderSide(color: Paw.ink, width: 3)),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.setupSummary(
+                          config.teams.length,
+                          config.unitsPerTeam,
+                          config.turnSeconds,
+                          _mapName(l10n, config.mapId),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Paw.text(14, weight: 700, color: Paw.muted),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    PawButton(
+                      label: l10n.setupStartMatch,
+                      trailingIcon: Icons.arrow_forward_rounded,
+                      fill: Paw.orange,
+                      display: true,
+                      fontSize: 20,
+                      borderWidth: 3,
+                      onPressed: _start,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ----------------------------------------------------------------- teams
+
+class _TeamsTab extends StatelessWidget {
+  const _TeamsTab({
+    required this.config,
+    required this.revision,
+    required this.pool,
+    required this.rng,
+    required this.onChanged,
+  });
+
+  final MatchConfig config;
+  final int revision;
+  final List<String> pool;
+  final Random rng;
+  final void Function(MatchConfig, {bool resetFields}) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final canAdd = config.teams.length < MatchDefaults.teamCountOptions.last;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (var i = 0; i < config.teams.length; i++) ...[
+          if (i > 0) const SizedBox(width: 12),
+          Expanded(
+            child: _TeamCard(
+              key: ValueKey('team$i-$revision'),
+              config: config,
+              index: i,
+              pool: pool,
+              rng: rng,
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+        if (canAdd) ...[
+          const SizedBox(width: 12),
+          Expanded(
+            child: Semantics(
+              button: true,
+              label: l10n.setupAddTeam,
+              excludeSemantics: true,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onChanged(
+                  config.withTeamCount(config.teams.length + 1, pool),
+                ),
+                child: CustomPaint(
+                  painter: _DashedBorder(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Paw.cream,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Paw.ink, width: 2),
+                          boxShadow: Paw.drop(3),
+                        ),
+                        child: const Icon(
+                          Icons.add_rounded,
+                          size: 28,
+                          color: Paw.ink,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(l10n.setupAddTeam, style: Paw.text(14)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _DashedBorder extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final r = RRect.fromRectAndRadius(
+      (Offset.zero & size).deflate(1.5),
+      const Radius.circular(20),
+    );
+    canvas.drawRRect(r, Paint()..color = Paw.cream.withValues(alpha: 0.55));
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..color = Paw.muted;
+    for (final metric in (Path()..addRRect(r)).computeMetrics()) {
+      for (var d = 0.0; d < metric.length; d += 14) {
+        canvas.drawPath(metric.extractPath(d, d + 8), paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedBorder old) => false;
+}
+
+class _TeamCard extends StatelessWidget {
+  const _TeamCard({
+    super.key,
+    required this.config,
+    required this.index,
+    required this.pool,
+    required this.rng,
+    required this.onChanged,
+  });
+
+  final MatchConfig config;
+  final int index;
+  final List<String> pool;
+  final Random rng;
+  final void Function(MatchConfig, {bool resetFields}) onChanged;
+
+  TeamEntry get team => config.teams[index];
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final style = Teams.styles[team.styleIndex];
+    final color = Color(style.colorArgb);
+    final defaultName = l10n.byKey(style.nameKey);
+    return Container(
+      decoration: BoxDecoration(
+        color: Paw.cream,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Paw.ink, width: 3),
+        boxShadow: Paw.drop(),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            height: 10,
+            decoration: BoxDecoration(
+              color: color,
+              border: const Border(
+                bottom: BorderSide(color: Paw.ink, width: 2),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 4, 2, 4),
+            child: Row(
+              children: [
+                TeamBadge(color: color, symbol: style.symbol),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: TextFormField(
+                    key: ValueKey('name$index-${team.styleIndex}'),
+                    initialValue: team.customName ?? '',
+                    maxLength: 18,
+                    style: Paw.title(18),
+                    decoration: InputDecoration(
+                      hintText: defaultName,
+                      hintStyle: Paw.title(18, color: Paw.ink),
+                      counterText: '',
+                      filled: false,
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 6,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                        borderSide: const BorderSide(color: Paw.line, width: 2),
+                      ),
+                    ),
+                    onChanged: (v) => onChanged(
+                      config.withTeam(
+                        index,
+                        v.trim().isEmpty
+                            ? team.copyWith(clearName: true)
+                            : team.copyWith(customName: v.trim()),
+                      ),
+                    ),
+                  ),
+                ),
+                PopupMenuButton<int>(
+                  tooltip: l10n.setupTeamName,
+                  icon: const Icon(Icons.more_vert_rounded, color: Paw.ink),
+                  color: Paw.cream,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: Paw.ink, width: 3),
+                  ),
+                  onSelected: (choice) async {
+                    if (choice == 0) {
+                      onChanged(
+                        config.withRandomTeam(index, rng, pool),
+                        resetFields: true,
+                      );
+                    } else if (await showPawConfirm(
+                      context: context,
+                      title: l10n.setupDeleteTeamTitle,
+                      body: l10n.setupDeleteTeamBody,
+                      ok: l10n.setupDeleteTeam,
+                      cancel: l10n.dialogCancel,
+                    )) {
+                      onChanged(config.withoutTeam(index), resetFields: true);
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 0,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.shuffle_rounded,
+                            size: 20,
+                            color: Paw.ink,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(l10n.setupRandomTeam, style: Paw.text(14)),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 1,
+                      enabled: config.teams.length > 2,
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.delete_rounded,
+                            size: 20,
+                            color: Paw.redText,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            l10n.setupDeleteTeam,
+                            style: Paw.text(14, color: Paw.redText),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
+              children: [
+                for (var k = 0; k < team.units.length; k++)
+                  _UnitRow(
+                    unit: team.units[k],
+                    teamArgb: style.colorArgb,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => UnitEditorScreen(
+                          unit: team.units[k],
+                          teamName: team.customName ?? defaultName,
+                          teamStyle: style,
+                          pool: pool,
+                          onChanged: (u) => onChanged(
+                            config.withTeam(
+                              index,
+                              team.copyWith(units: [...team.units]..[k] = u),
+                            ),
+                            resetFields: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UnitRow extends StatelessWidget {
+  const _UnitRow({
+    required this.unit,
+    required this.teamArgb,
+    required this.onTap,
+  });
+
+  final UnitEntry unit;
+  final int teamArgb;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      button: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        hoverColor: Paw.peach,
+        onTap: onTap,
+        child: SizedBox(
+          height: 44,
+          child: Row(
+            children: [
+              const SizedBox(width: 4),
+              PetFigure(
+                familyId: unit.familyId,
+                breedId: unit.breedId,
+                teamArgb: teamArgb,
+                size: 32,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  unit.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Paw.text(14),
+                ),
+              ),
+              _Chip(l10n.byKey(Families.byId(unit.familyId).nameKey)),
+              const SizedBox(width: 4),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Chip extends StatelessWidget {
+  const _Chip(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
+    decoration: BoxDecoration(
+      color: Paw.peach,
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: Paw.ink, width: 2),
+    ),
+    child: Text(text, style: Paw.text(12, weight: 700)),
+  );
+}
+
+// ----------------------------------------------------------------- rules
+
+class _RulesTab extends StatelessWidget {
+  const _RulesTab({
+    required this.config,
+    required this.pool,
+    required this.onChanged,
+  });
+
+  final MatchConfig config;
+  final List<String> pool;
+  final void Function(MatchConfig) onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final teamOptions = MatchDefaults.teamCountOptions;
+    final unitOptions = MatchDefaults.unitsPerTeamOptions;
+    Widget row(String label, Widget control, {bool last = false}) => Container(
+      constraints: const BoxConstraints(minHeight: 54),
+      decoration: BoxDecoration(
+        border: last
+            ? null
+            : const Border(bottom: BorderSide(color: Paw.peach, width: 2)),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: Text(label, style: Paw.text(16))),
+          Flexible(
+            flex: 2,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FittedBox(fit: BoxFit.scaleDown, child: control),
+            ),
+          ),
+        ],
+      ),
+    );
+    final teams = config.teams.length;
+    final units = config.unitsPerTeam;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          flex: 115,
+          child: PawCard(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: ListView(
+              children: [
+                row(
+                  l10n.setupTeamCount,
+                  PawStepper(
+                    value: teams,
+                    decreaseLabel: l10n.hudDecrease,
+                    increaseLabel: l10n.hudIncrease,
+                    onDecrease: teams > teamOptions.first
+                        ? () => onChanged(config.withTeamCount(teams - 1, pool))
+                        : null,
+                    onIncrease: teams < teamOptions.last
+                        ? () => onChanged(config.withTeamCount(teams + 1, pool))
+                        : null,
+                  ),
+                ),
+                row(
+                  l10n.setupUnitsPerTeam,
+                  PawStepper(
+                    value: units,
+                    decreaseLabel: l10n.hudDecrease,
+                    increaseLabel: l10n.hudIncrease,
+                    onDecrease: units > unitOptions.first
+                        ? () => onChanged(
+                            config.withUnitsPerTeam(units - 1, pool),
+                          )
+                        : null,
+                    onIncrease: units < unitOptions.last
+                        ? () => onChanged(
+                            config.withUnitsPerTeam(units + 1, pool),
+                          )
+                        : null,
+                  ),
+                ),
+                row(
+                  l10n.setupTurnTime,
+                  PawPillToggle<int>(
+                    values: MatchDefaults.turnSecondsOptions,
+                    selected: config.turnSeconds,
+                    label: (v) => l10n.hudSeconds(v),
+                    onSelect: (v) => onChanged(config.copyWith(turnSeconds: v)),
+                  ),
+                ),
+                row(
+                  l10n.setupSuddenDeath,
+                  PawPillToggle<int>(
+                    values: [
+                      for (final m in MatchDefaults.suddenDeathOptions) m ?? 0,
+                    ],
+                    selected: config.suddenDeathMinutes ?? 0,
+                    label: (m) => m == 0 ? l10n.setupOff : l10n.setupMinutes(m),
+                    onSelect: (m) => onChanged(
+                      m == 0
+                          ? config.copyWith(suddenDeathOff: true)
+                          : config.copyWith(suddenDeathMinutes: m),
+                    ),
+                  ),
+                  last: true,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          flex: 100,
+          child: PawCard(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(l10n.setupMap, style: Paw.title(20)),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      final ids = [
+                        for (final m in Maps.all) m.id,
+                        MatchConfig.randomMap,
+                      ];
+                      final cols = ids.length > 4 ? 3 : 2;
+                      final rows = (ids.length / cols).ceil();
+                      final cardH = ((box.maxHeight - (rows - 1) * 10) / rows)
+                          .clamp(64.0, 140.0);
+                      return SingleChildScrollView(
+                        child: Wrap(
+                          spacing: 10,
+                          runSpacing: 10,
+                          children: [
+                            for (final id in ids)
+                              SizedBox(
+                                width: (box.maxWidth - 10) / cols,
+                                height: cardH,
+                                child: _MapCard(
+                                  id: id,
+                                  selected: config.mapId == id,
+                                  onTap: () =>
+                                      onChanged(config.copyWith(mapId: id)),
+                                ),
+                              ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MapCard extends StatelessWidget {
+  const _MapCard({
+    required this.id,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String id;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final random = id == MatchConfig.randomMap;
+    final name = random
+        ? l10n.setupMapRandom
+        : l10n.byKey(Maps.byId(id).nameKey);
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: name,
+      excludeSemantics: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          decoration: BoxDecoration(
+            color: selected ? Paw.peach : Paw.cream,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Paw.ink, width: selected ? 3 : 2),
+            boxShadow: Paw.drop(3),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Expanded(
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (random)
+                      const CustomPaint(
+                        painter: StripesPainter(band: 8),
+                        child: Icon(
+                          Icons.shuffle_rounded,
+                          size: 30,
+                          color: Paw.ink,
+                        ),
+                      )
+                    else
+                      CustomPaint(painter: _MapThumbPainter(Maps.byId(id))),
+                    if (selected)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: Container(
+                          width: 24,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Paw.green,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Paw.ink, width: 2),
+                          ),
+                          child: const Icon(
+                            Icons.check_rounded,
+                            size: 16,
+                            color: Paw.ink,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Container(
+                height: 28,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                alignment: Alignment.centerLeft,
+                decoration: const BoxDecoration(
+                  border: Border(top: BorderSide(color: Paw.ink, width: 2)),
+                ),
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Paw.text(13),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A tiny landscape in the map's own sky and ground colours.
+class _MapThumbPainter extends CustomPainter {
+  _MapThumbPainter(this.map);
+  final MapDef map;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final rect = Offset.zero & size;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(map.skyTopArgb), Color(map.skyBottomArgb)],
+        ).createShader(rect),
+    );
+    final seed = map.id.codeUnits.fold(0, (a, b) => a + b);
+    final ground = Path()..moveTo(0, h);
+    for (var x = 0.0; x <= w; x += 4) {
+      final t = x / w;
+      final y =
+          h *
+          (0.55 +
+              0.12 * sin(t * 6.3 + seed) +
+              0.06 * sin(t * 17 + seed * 0.7) +
+              (t > 0.42 && t < 0.58 ? 0.25 : 0));
+      ground.lineTo(x, y.clamp(h * 0.25, h * 0.95));
+    }
+    ground
+      ..lineTo(w, h)
+      ..close();
+    canvas
+      ..drawRect(
+        Rect.fromLTWH(0, h * 0.86, w, h * 0.14),
+        Paint()..color = Color(map.waterArgb).withValues(alpha: 1),
+      )
+      ..drawPath(ground, Paint()..color = Color(map.dirtArgb))
+      ..drawPath(
+        ground,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..strokeJoin = StrokeJoin.round
+          ..color = Color(map.grassArgb),
+      );
+  }
+
+  @override
+  bool shouldRepaint(_MapThumbPainter old) => old.map != map;
+}
+
+// ------------------------------------------------------------ unit editor
+
+/// Edit one unit (redesign prototype): portrait, name and Randomize on the
+/// left; family tiles, breed chips, the family's passive and signature
+/// weapon, and Done on the right. Changes apply as you make them.
+class UnitEditorScreen extends StatefulWidget {
+  const UnitEditorScreen({
+    super.key,
+    required this.unit,
+    required this.teamName,
+    required this.teamStyle,
+    required this.pool,
+    required this.onChanged,
+  });
+
+  final UnitEntry unit;
+  final String teamName;
+  final TeamStyle teamStyle;
+  final List<String> pool;
+  final ValueChanged<UnitEntry> onChanged;
+
+  @override
+  State<UnitEditorScreen> createState() => _UnitEditorScreenState();
+}
+
+class _UnitEditorScreenState extends State<UnitEditorScreen> {
+  late UnitEntry _unit = widget.unit;
+  int _revision = 0;
+  final _rng = Random();
+
+  void _set(UnitEntry u, {bool resetName = false}) {
+    setState(() {
+      _unit = u;
+      if (resetName) _revision++;
+    });
+    widget.onChanged(u);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final teamArgb = widget.teamStyle.colorArgb;
+    final family = Families.byId(_unit.familyId);
+    final signature = Weapons.byId(family.signatureWeaponId);
+    return Scaffold(
+      body: PawBackdrop(
+        clouds: false,
+        child: SafeArea(
+          child: Column(
+            children: [
+              PawHeader(
+                title: l10n.setupEditUnit,
+                backLabel: l10n.back,
+                trailing: Container(
+                  height: 32,
+                  padding: const EdgeInsets.fromLTRB(4, 0, 10, 0),
+                  decoration: BoxDecoration(
+                    color: Paw.cream,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Paw.ink, width: 2),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TeamBadge(
+                        color: Color(teamArgb),
+                        symbol: widget.teamStyle.symbol,
+                        size: 22,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(widget.teamName, style: Paw.text(13)),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        width: 220,
+                        child: PawCard(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                width: 118,
+                                height: 118,
+                                decoration: BoxDecoration(
+                                  color: Paw.peach,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Paw.ink, width: 3),
+                                ),
+                                alignment: Alignment.center,
+                                child: PetFigure(
+                                  familyId: _unit.familyId,
+                                  breedId: _unit.breedId,
+                                  teamArgb: teamArgb,
+                                  size: 92,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              TextFormField(
+                                key: ValueKey('unitName$_revision'),
+                                initialValue: _unit.name,
+                                maxLength: 12,
+                                textAlign: TextAlign.center,
+                                style: Paw.text(16),
+                                decoration: InputDecoration(
+                                  counterText: '',
+                                  hintText: l10n.setupUnitName,
+                                ),
+                                onChanged: (v) =>
+                                    _set(_unit.copyWith(name: v.trim())),
+                              ),
+                              const SizedBox(height: 10),
+                              PawButton(
+                                label: l10n.setupRandomize,
+                                icon: Icons.casino_rounded,
+                                fill: Paw.green,
+                                height: 44,
+                                fontSize: 14,
+                                shadow: 3,
+                                expand: true,
+                                onPressed: () => _set(
+                                  MatchConfig.randomUnit(_rng, widget.pool),
+                                  resetName: true,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            LayoutBuilder(
+                              builder: (context, box) {
+                                final tileW = (box.maxWidth - 4 * 8) / 5;
+                                return Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    for (final f in Families.all)
+                                      SizedBox(
+                                        width: tileW,
+                                        child: _FamilyTile(
+                                          family: f,
+                                          selected: f.id == _unit.familyId,
+                                          onTap: () => _set(
+                                            _unit.copyWith(familyId: f.id),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 10),
+                            SizedBox(
+                              height: 48,
+                              child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                children: [
+                                  for (final b in Breeds.ofFamily(
+                                    _unit.familyId,
+                                  ))
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: 8,
+                                        bottom: 4,
+                                      ),
+                                      child: _BreedChip(
+                                        breed: b,
+                                        selected: b.id == _unit.breedId,
+                                        onTap: () =>
+                                            _set(_unit.copyWith(breedId: b.id)),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Expanded(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Expanded(
+                                    child: SizedBox.expand(
+                                      child: PawCard(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 14,
+                                          vertical: 8,
+                                        ),
+                                        child: SingleChildScrollView(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              _Note(
+                                                icon: Icons.shield_rounded,
+                                                fill: Paw.peach,
+                                                label: l10n.setupPassive,
+                                                name: l10n.byKey(
+                                                  family.passive.nameKey,
+                                                ),
+                                                body: l10n.byKey(
+                                                  family.passive.descriptionKey,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 6),
+                                              _Note(
+                                                icon: Icons.star_rounded,
+                                                fill: Paw.yellow,
+                                                label:
+                                                    l10n.setupSignatureWeapon,
+                                                name: l10n.byKey(
+                                                  signature.nameKey,
+                                                ),
+                                                body: l10n.byKey(
+                                                  '${signature.nameKey}Desc',
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  PawButton(
+                                    label: l10n.setupDone,
+                                    icon: Icons.check_rounded,
+                                    fill: Paw.orange,
+                                    display: true,
+                                    fontSize: 20,
+                                    height: 56,
+                                    borderWidth: 3,
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -144,564 +1092,140 @@ class _SetupScreenState extends State<SetupScreen> {
   }
 }
 
-class _Rules extends StatelessWidget {
-  const _Rules({
-    required this.config,
-    required this.onChanged,
-    required this.pool,
-  });
-
-  final MatchConfig config;
-  final void Function(MatchConfig) onChanged;
-  final List<String> pool;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    Widget label(String text) => Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 6),
-      child: Text(text, style: const TextStyle(fontSize: 16)),
-    );
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      children: [
-        Center(
-          child: IronText(
-            l10n.setupConditions.toUpperCase(),
-            size: 18,
-            color: IronPalette.brass,
-          ),
-        ),
-        label(l10n.setupTeams),
-        IronSegmented<int>(
-          values: MatchDefaults.teamCountOptions,
-          selected: config.teams.length,
-          label: (v) => '$v',
-          onSelect: (v) => onChanged(config.withTeamCount(v, pool)),
-        ),
-        label(l10n.setupUnitsPerTeam),
-        IronSegmented<int>(
-          values: MatchDefaults.unitsPerTeamOptions,
-          selected: config.unitsPerTeam,
-          label: (v) => '$v',
-          onSelect: (v) => onChanged(config.withUnitsPerTeam(v, pool)),
-        ),
-        label(l10n.setupTurnTime),
-        IronSegmented<int>(
-          values: MatchDefaults.turnSecondsOptions,
-          selected: config.turnSeconds,
-          label: (v) => l10n.hudSeconds(v),
-          onSelect: (v) => onChanged(config.copyWith(turnSeconds: v)),
-          wrap: true,
-        ),
-        label(l10n.setupMap),
-        IronSegmented<String>(
-          values: [MatchConfig.randomMap, for (final m in Maps.all) m.id],
-          selected: config.mapId,
-          label: (id) => id == MatchConfig.randomMap
-              ? l10n.setupMapRandom
-              : l10n.byKey(Maps.byId(id).nameKey),
-          onSelect: (id) => onChanged(config.copyWith(mapId: id)),
-          tone: IronTone.moss,
-          wrap: true,
-        ),
-        label(l10n.setupSuddenDeath),
-        IronSegmented<int>(
-          values: [for (final m in MatchDefaults.suddenDeathOptions) m ?? 0],
-          selected: config.suddenDeathMinutes ?? 0,
-          label: (m) => m == 0 ? l10n.setupOff : l10n.setupMinutes(m),
-          onSelect: (m) => onChanged(
-            m == 0
-                ? config.copyWith(suddenDeathOff: true)
-                : config.copyWith(suddenDeathMinutes: m),
-          ),
-          tone: IronTone.blood,
-          wrap: true,
-        ),
-      ],
-    );
-  }
-}
-
-class _TeamsPanel extends StatelessWidget {
-  const _TeamsPanel({
-    required this.config,
-    required this.selected,
-    required this.onSelect,
-    required this.revision,
-    required this.pool,
-    required this.rng,
-    required this.onChanged,
-  });
-
-  final MatchConfig config;
-  final int selected;
-  final ValueChanged<int> onSelect;
-  final int revision;
-  final List<String> pool;
-  final Random rng;
-  final void Function(MatchConfig, {bool resetFields}) onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    String teamName(TeamEntry t) =>
-        t.customName ?? l10n.byKey(Teams.styles[t.styleIndex].nameKey);
-    final team = config.teams[selected];
-    final teamColor = Color(Teams.styles[team.styleIndex].colorArgb);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        // Team tabs: chunky tabs in each team's colour; the chosen one is
-        // raised and joins the card below.
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (final (i, t) in config.teams.indexed)
-                Padding(
-                  padding: const EdgeInsets.only(right: 6),
-                  child: _TeamTab(
-                    label: teamName(t).toUpperCase(),
-                    color: Color(Teams.styles[t.styleIndex].colorArgb),
-                    selected: i == selected,
-                    onTap: () => onSelect(i),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        Expanded(
-          child: IronPanel(
-            accent: Color.lerp(teamColor, IronPalette.ink, 0.45),
-            padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
-            child: _TeamEditor(
-              key: ValueKey('team$selected-$revision'),
-              config: config,
-              index: selected,
-              defaultName: l10n.byKey(Teams.styles[team.styleIndex].nameKey),
-              pool: pool,
-              rng: rng,
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _TeamTab extends StatelessWidget {
-  const _TeamTab({
-    required this.label,
-    required this.color,
+class _FamilyTile extends StatelessWidget {
+  const _FamilyTile({
+    required this.family,
     required this.selected,
     required this.onTap,
   });
 
-  final String label;
-  final Color color;
+  final FamilyDef family;
   final bool selected;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    selected: selected,
-    child: GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 140),
-        height: selected ? 46 : 40,
-        constraints: const BoxConstraints(minWidth: 96, maxWidth: 190),
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        margin: EdgeInsets.only(bottom: selected ? 0 : 2),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color.lerp(color, Colors.black, selected ? 0.2 : 0.5)!,
-              Color.lerp(color, Colors.black, selected ? 0.55 : 0.75)!,
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          height: 62,
+          decoration: BoxDecoration(
+            color: selected ? Paw.orange : Paw.cream,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Paw.ink, width: selected ? 3 : 2),
+            boxShadow: Paw.drop(3),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              PetFigure(
+                familyId: family.id,
+                breedId: Breeds.ofFamily(family.id).first.id,
+                teamArgb: 0xFF2B2118,
+                size: 30,
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: Text(
+                  l10n.byKey(family.nameKey),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Paw.text(12),
+                ),
+              ),
             ],
           ),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
-          border: Border.all(
-            color: selected ? IronPalette.brass : IronPalette.ironEdge,
-          ),
         ),
-        alignment: Alignment.center,
-        child: IronText(label, size: selected ? 17 : 15, maxLines: 1),
       ),
-    ),
-  );
+    );
+  }
 }
 
-class _TeamEditor extends StatelessWidget {
-  const _TeamEditor({
-    super.key,
-    required this.config,
-    required this.index,
-    required this.defaultName,
-    required this.pool,
-    required this.rng,
-    required this.onChanged,
+class _BreedChip extends StatelessWidget {
+  const _BreedChip({
+    required this.breed,
+    required this.selected,
+    required this.onTap,
   });
 
-  final MatchConfig config;
-  final int index;
-  final String defaultName;
-  final List<String> pool;
-  final Random rng;
-  final void Function(MatchConfig, {bool resetFields}) onChanged;
-
-  TeamEntry get team => config.teams[index];
-
-  void _setUnit(int k, UnitEntry u, {bool resetFields = false}) => onChanged(
-    config.withTeam(index, team.copyWith(units: [...team.units]..[k] = u)),
-    resetFields: resetFields,
-  );
+  final BreedDef breed;
+  final bool selected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final teamArgb = Teams.styles[team.styleIndex].colorArgb;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(10, 2, 10, 8),
-      children: [
-        Wrap(
-          spacing: 12,
-          runSpacing: 6,
-          crossAxisAlignment: WrapCrossAlignment.center,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 42,
+        padding: const EdgeInsets.fromLTRB(6, 0, 12, 0),
+        decoration: BoxDecoration(
+          color: selected ? Paw.peach : Paw.cream,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Paw.ink, width: selected ? 3 : 2),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
-              width: 220,
-              child: TextFormField(
-                // Keyed by colour too: an empty name shows the colour's
-                // default as a hint.
-                key: ValueKey('name$index-${team.styleIndex}'),
-                initialValue: team.customName ?? '',
-                maxLength: 18,
-                style: const TextStyle(fontSize: 18),
-                decoration: InputDecoration(
-                  labelText: l10n.setupTeamName,
-                  hintText: defaultName,
-                  counterText: '',
-                ),
-                onChanged: (v) => onChanged(
-                  config.withTeam(
-                    index,
-                    v.trim().isEmpty
-                        ? team.copyWith(clearName: true)
-                        : team.copyWith(customName: v.trim()),
-                  ),
-                ),
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                color: Color(breed.primaryArgb),
+                shape: BoxShape.circle,
+                border: Border.all(color: Paw.ink, width: 2),
               ),
             ),
-            // Swatches wrap on their own so narrow phones never overflow.
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                for (var s = 0; s < Teams.styles.length; s++)
-                  _Swatch(
-                    argb: Teams.styles[s].colorArgb,
-                    selected: s == team.styleIndex,
-                    label: l10n.setupColor,
-                    onTap: () => onChanged(config.withTeamStyle(index, s)),
-                  ),
-              ],
-            ),
+            const SizedBox(width: 6),
+            Text(l10n.byKey(breed.nameKey), style: Paw.text(13)),
           ],
         ),
-        const SizedBox(height: 8),
-        for (var k = 0; k < team.units.length; k++)
-          _UnitCard(
-            key: ValueKey('unit$index-$k'),
-            unit: team.units[k],
-            teamArgb: teamArgb,
-            onChanged: (u) => _setUnit(k, u),
-            onRandom: () => _setUnit(
-              k,
-              MatchConfig.randomUnit(rng, pool),
-              resetFields: true,
-            ),
-          ),
-      ],
+      ),
     );
   }
 }
 
-class _Swatch extends StatelessWidget {
-  const _Swatch({
-    required this.argb,
-    required this.selected,
+class _Note extends StatelessWidget {
+  const _Note({
+    required this.icon,
+    required this.fill,
     required this.label,
-    required this.onTap,
+    required this.name,
+    required this.body,
   });
 
-  final int argb;
-  final bool selected;
+  final IconData icon;
+  final Color fill;
   final String label;
-  final VoidCallback onTap;
+  final String name;
+  final String body;
 
   @override
-  Widget build(BuildContext context) => Semantics(
-    button: true,
-    selected: selected,
-    label: label,
-    child: GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: SizedBox.square(
-        dimension: 44,
-        child: Center(
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 120),
-            width: selected ? 34 : 26,
-            height: selected ? 34 : 26,
-            decoration: BoxDecoration(
-              color: Color(argb),
-              shape: BoxShape.circle,
-              border: Border.all(
-                color: IronPalette.ink,
-                width: selected ? 3.5 : 2.5,
-              ),
-            ),
-            child: selected
-                ? const Center(child: IronIcon(IronGlyph.check, size: 18))
-                : null,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-/// One unit: portrait in a team-coloured badge, family and breed as
-/// buttons that open pickers, the unit's name, and a dice.
-class _UnitCard extends StatelessWidget {
-  const _UnitCard({
-    super.key,
-    required this.unit,
-    required this.teamArgb,
-    required this.onChanged,
-    required this.onRandom,
-  });
-
-  final UnitEntry unit;
-  final int teamArgb;
-  final ValueChanged<UnitEntry> onChanged;
-  final VoidCallback onRandom;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final family = Families.byId(unit.familyId);
-    final breed = Breeds.byId(unit.breedId);
-    Future<void> chooseFamily() async {
-      final picked = await _pickFamily(context, unit.familyId, teamArgb);
-      if (picked != null) onChanged(unit.copyWith(familyId: picked));
-    }
-
-    Future<void> chooseBreed() async {
-      final picked = await _pickBreed(context, unit, teamArgb);
-      if (picked != null) onChanged(unit.copyWith(breedId: picked));
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.fromLTRB(6, 4, 2, 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1B1C20),
-        borderRadius: BorderRadius.circular(3),
-        border: Border.all(color: IronPalette.ironEdge),
-      ),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: chooseFamily,
-            child: Container(
-              width: 58,
-              height: 58,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    Color.lerp(Color(teamArgb), Colors.black, 0.35)!,
-                    Color.lerp(Color(teamArgb), Colors.black, 0.75)!,
-                  ],
-                ),
-                border: Border.all(color: IronPalette.brass, width: 1.5),
-              ),
-              child: ClipOval(
-                child: AnimalFigure(
-                  familyId: unit.familyId,
-                  breedId: unit.breedId,
-                  teamArgb: teamArgb,
-                  size: 58,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 5,
-            child: _PickField(
-              caption: l10n.byKey(family.latinKey),
-              value: l10n.byKey(family.nameKey),
-              onTap: chooseFamily,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Expanded(
-            flex: 5,
-            child: _PickField(
-              caption: l10n.setupChooseBreed,
-              value: l10n.byKey(breed.nameKey),
-              onTap: chooseBreed,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 4,
-            child: TextFormField(
-              initialValue: unit.name,
-              maxLength: 12,
-              decoration: InputDecoration(
-                labelText: l10n.setupUnitName,
-                counterText: '',
-              ),
-              onChanged: (v) => onChanged(unit.copyWith(name: v.trim())),
-            ),
-          ),
-          const SizedBox(width: 4),
-          IronRoundButton(
-            glyph: IronGlyph.dice,
-            tooltip: l10n.setupRandomUnit,
-            tone: IronTone.steel,
-            size: 42,
-            onPressed: onRandom,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// A value with a small caption that opens a picker, with a ▾ hint.
-class _PickField extends StatelessWidget {
-  const _PickField({
-    required this.caption,
-    required this.value,
-    required this.onTap,
-  });
-
-  final String caption;
-  final String value;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    behavior: HitTestBehavior.opaque,
-    onTap: onTap,
-    child: ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 48),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  caption,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: IronPalette.mute,
-                  ),
-                ),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontSize: 17),
-                ),
-              ],
-            ),
-          ),
-          const Text(
-            '▾',
-            style: TextStyle(fontSize: 16, color: IronPalette.steel),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-/// The families, each on a card with its portrait.
-Future<String?> _pickFamily(
-  BuildContext context,
-  String current,
-  int teamArgb,
-) {
-  final l10n = AppLocalizations.of(context);
-  return showIronPicker<String>(
-    context: context,
-    title: l10n.setupChooseFamily.toUpperCase(),
-    tiles: (context) => [
-      for (final f in Families.all)
-        IronTile(
-          selected: f.id == current,
-          onTap: () => Navigator.of(context).pop(f.id),
-          child: Column(
+  Widget build(BuildContext context) => Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      PawIconChip(icon, fill: fill),
+      const SizedBox(width: 8),
+      Expanded(
+        child: Text.rich(
+          TextSpan(
             children: [
-              AnimalFigure(
-                familyId: f.id,
-                breedId: Breeds.ofFamily(f.id).first.id,
-                teamArgb: teamArgb,
-                size: 76,
+              TextSpan(
+                text: '$label · ',
+                style: Paw.text(13, color: Paw.muted),
               ),
-              IronText(l10n.byKey(f.nameKey), size: 16, maxLines: 1),
+              TextSpan(text: name, style: Paw.text(13)),
+              TextSpan(text: ': $body', style: Paw.text(13, weight: 600)),
             ],
           ),
+          style: const TextStyle(height: 1.35),
         ),
-    ],
-  );
-}
-
-/// The breeds of one family.
-Future<String?> _pickBreed(BuildContext context, UnitEntry unit, int teamArgb) {
-  final l10n = AppLocalizations.of(context);
-  return showIronPicker<String>(
-    context: context,
-    title: l10n.setupChooseBreed.toUpperCase(),
-    tiles: (context) => [
-      for (final b in Breeds.ofFamily(unit.familyId))
-        IronTile(
-          selected: b.id == unit.breedId,
-          onTap: () => Navigator.of(context).pop(b.id),
-          child: Column(
-            children: [
-              AnimalFigure(
-                familyId: unit.familyId,
-                breedId: b.id,
-                teamArgb: teamArgb,
-                size: 76,
-              ),
-              Text(
-                l10n.byKey(b.nameKey),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: const TextStyle(fontSize: 14),
-              ),
-            ],
-          ),
-        ),
+      ),
     ],
   );
 }

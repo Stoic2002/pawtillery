@@ -1049,7 +1049,7 @@ abstract class AppLocalizations {
   /// Sudden death start time.
   ///
   /// In en, this message translates to:
-  /// **'After {minutes} min'**
+  /// **'{minutes} min'**
   String setupMinutes(int minutes);
 
   /// Fills every unit with a random family, breed and name.
@@ -1513,6 +1513,336 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'On'**
   String get settingsOn;
+
+  /// No description provided for @setupTabTeams.
+  ///
+  /// In en, this message translates to:
+  /// **'Teams'**
+  String get setupTabTeams;
+
+  /// No description provided for @setupTabRules.
+  ///
+  /// In en, this message translates to:
+  /// **'Rules'**
+  String get setupTabRules;
+
+  /// No description provided for @setupAddTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Add team'**
+  String get setupAddTeam;
+
+  /// No description provided for @setupRandomTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Randomize team'**
+  String get setupRandomTeam;
+
+  /// No description provided for @setupDeleteTeam.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete team'**
+  String get setupDeleteTeam;
+
+  /// No description provided for @setupDeleteTeamTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this team?'**
+  String get setupDeleteTeamTitle;
+
+  /// No description provided for @setupDeleteTeamBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Its units will be removed too.'**
+  String get setupDeleteTeamBody;
+
+  /// No description provided for @setupEditUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit unit'**
+  String get setupEditUnit;
+
+  /// No description provided for @setupRandomize.
+  ///
+  /// In en, this message translates to:
+  /// **'Randomize'**
+  String get setupRandomize;
+
+  /// No description provided for @setupPassive.
+  ///
+  /// In en, this message translates to:
+  /// **'Passive'**
+  String get setupPassive;
+
+  /// No description provided for @setupSignatureWeapon.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature'**
+  String get setupSignatureWeapon;
+
+  /// No description provided for @setupDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get setupDone;
+
+  /// No description provided for @setupStartMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Start match'**
+  String get setupStartMatch;
+
+  /// No description provided for @setupTeamCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of teams'**
+  String get setupTeamCount;
+
+  /// No description provided for @setupSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{teams} teams · {units} units · {seconds} s · {map}'**
+  String setupSummary(int teams, int units, int seconds, String map);
+
+  /// No description provided for @hudConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get hudConfirm;
+
+  /// No description provided for @hudRetreatNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Retreat!'**
+  String get hudRetreatNow;
+
+  /// No description provided for @hudWindLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind'**
+  String get hudWindLabel;
+
+  /// No description provided for @hudAngleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Angle'**
+  String get hudAngleLabel;
+
+  /// No description provided for @hudPowerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Power'**
+  String get hudPowerLabel;
+
+  /// No description provided for @hudFuseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuse (seconds)'**
+  String get hudFuseLabel;
+
+  /// No description provided for @hudStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'{step} / {total}'**
+  String hudStepOf(int step, int total);
+
+  /// No description provided for @resultBestShot.
+  ///
+  /// In en, this message translates to:
+  /// **'Best shot'**
+  String get resultBestShot;
+
+  /// No description provided for @resultBestShotValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} · {damage} damage'**
+  String resultBestShotValue(String name, int damage);
+
+  /// No description provided for @resultColumnDamage.
+  ///
+  /// In en, this message translates to:
+  /// **'Damage'**
+  String get resultColumnDamage;
+
+  /// No description provided for @resultColumnKnockouts.
+  ///
+  /// In en, this message translates to:
+  /// **'Defeated'**
+  String get resultColumnKnockouts;
+
+  /// No description provided for @resultColumnLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'Left'**
+  String get resultColumnLeft;
+
+  /// No description provided for @resultDrawTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'It\'s a draw!'**
+  String get resultDrawTitle;
+
+  /// No description provided for @aboutDeveloper.
+  ///
+  /// In en, this message translates to:
+  /// **'Developer'**
+  String get aboutDeveloper;
+
+  /// No description provided for @aboutArt.
+  ///
+  /// In en, this message translates to:
+  /// **'Art'**
+  String get aboutArt;
+
+  /// No description provided for @aboutArtValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Drawn in code'**
+  String get aboutArtValue;
+
+  /// No description provided for @aboutFonts.
+  ///
+  /// In en, this message translates to:
+  /// **'Fonts'**
+  String get aboutFonts;
+
+  /// No description provided for @dialogClose.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get dialogClose;
+
+  /// No description provided for @settingsReplay.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay'**
+  String get settingsReplay;
+
+  /// No description provided for @pauseQuitBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress will be lost.'**
+  String get pauseQuitBody;
+
+  /// No description provided for @pauseQuit.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit'**
+  String get pauseQuit;
+
+  /// No description provided for @weaponRockDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A plain stone. Pushed by the wind.'**
+  String get weaponRockDesc;
+
+  /// No description provided for @weaponGrenadeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bounces, then explodes when the fuse runs out.'**
+  String get weaponGrenadeDesc;
+
+  /// No description provided for @weaponClusterDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Bursts into small bomblets.'**
+  String get weaponClusterDesc;
+
+  /// No description provided for @weaponTwinSlingDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Two quick stones in a row.'**
+  String get weaponTwinSlingDesc;
+
+  /// No description provided for @weaponPunchDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Knock a neighbour away.'**
+  String get weaponPunchDesc;
+
+  /// No description provided for @weaponMineDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Drop a mine that waits for someone to come close.'**
+  String get weaponMineDesc;
+
+  /// No description provided for @weaponTeleportDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Jump to any spot you pick.'**
+  String get weaponTeleportDesc;
+
+  /// No description provided for @weaponSkipDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Pass this turn.'**
+  String get weaponSkipDesc;
+
+  /// No description provided for @weaponHairballDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A hairball that splits into sticky clumps.'**
+  String get weaponHairballDesc;
+
+  /// No description provided for @weaponBoneBoomerangDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Flies out and comes back.'**
+  String get weaponBoneBoomerangDesc;
+
+  /// No description provided for @weaponDrillCarrotDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Digs a tunnel through the ground.'**
+  String get weaponDrillCarrotDesc;
+
+  /// No description provided for @weaponEggStrikeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Eggs rain down on a spot you pick.'**
+  String get weaponEggStrikeDesc;
+
+  /// No description provided for @weaponSeedMinesDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Scatters small seed mines.'**
+  String get weaponSeedMinesDesc;
+
+  /// No description provided for @weaponBoomDuckDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A duck waddles off and explodes.'**
+  String get weaponBoomDuckDesc;
+
+  /// No description provided for @weaponStartleCrowDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A crow that scares and pushes.'**
+  String get weaponStartleCrowDesc;
+
+  /// No description provided for @weaponFortressDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Builds a wall in front of you.'**
+  String get weaponFortressDesc;
+
+  /// No description provided for @weaponHeadbuttDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A strong charge that sends foes flying.'**
+  String get weaponHeadbuttDesc;
+
+  /// No description provided for @weaponCoconutDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A coconut falls on a spot you pick.'**
+  String get weaponCoconutDesc;
+
+  /// No description provided for @mapBackyard.
+  ///
+  /// In en, this message translates to:
+  /// **'Backyard'**
+  String get mapBackyard;
 }
 
 class _AppLocalizationsDelegate

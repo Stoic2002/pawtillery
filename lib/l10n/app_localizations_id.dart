@@ -511,7 +511,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String setupMinutes(int minutes) {
-    return 'Setelah $minutes mnt';
+    return '$minutes menit';
   }
 
   @override
@@ -762,4 +762,176 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get settingsOn => 'Nyala';
+
+  @override
+  String get setupTabTeams => 'Tim';
+
+  @override
+  String get setupTabRules => 'Aturan';
+
+  @override
+  String get setupAddTeam => 'Tambah tim';
+
+  @override
+  String get setupRandomTeam => 'Acak tim';
+
+  @override
+  String get setupDeleteTeam => 'Hapus tim';
+
+  @override
+  String get setupDeleteTeamTitle => 'Hapus tim ini?';
+
+  @override
+  String get setupDeleteTeamBody => 'Unitnya juga akan dihapus.';
+
+  @override
+  String get setupEditUnit => 'Ubah unit';
+
+  @override
+  String get setupRandomize => 'Acak';
+
+  @override
+  String get setupPassive => 'Pasif';
+
+  @override
+  String get setupSignatureWeapon => 'Senjata khas';
+
+  @override
+  String get setupDone => 'Selesai';
+
+  @override
+  String get setupStartMatch => 'Mulai pertandingan';
+
+  @override
+  String get setupTeamCount => 'Jumlah tim';
+
+  @override
+  String setupSummary(int teams, int units, int seconds, String map) {
+    return '$teams tim · $units unit · $seconds detik · $map';
+  }
+
+  @override
+  String get hudConfirm => 'Konfirmasi';
+
+  @override
+  String get hudRetreatNow => 'Mundur!';
+
+  @override
+  String get hudWindLabel => 'Angin';
+
+  @override
+  String get hudAngleLabel => 'Sudut';
+
+  @override
+  String get hudPowerLabel => 'Kekuatan';
+
+  @override
+  String get hudFuseLabel => 'Sumbu (detik)';
+
+  @override
+  String hudStepOf(int step, int total) {
+    return '$step / $total';
+  }
+
+  @override
+  String get resultBestShot => 'Tembakan terbaik';
+
+  @override
+  String resultBestShotValue(String name, int damage) {
+    return '$name · $damage damage';
+  }
+
+  @override
+  String get resultColumnDamage => 'Damage';
+
+  @override
+  String get resultColumnKnockouts => 'Dikalahkan';
+
+  @override
+  String get resultColumnLeft => 'Sisa';
+
+  @override
+  String get resultDrawTitle => 'Seri!';
+
+  @override
+  String get aboutDeveloper => 'Pengembang';
+
+  @override
+  String get aboutArt => 'Gambar';
+
+  @override
+  String get aboutArtValue => 'Digambar dengan kode';
+
+  @override
+  String get aboutFonts => 'Font';
+
+  @override
+  String get dialogClose => 'Tutup';
+
+  @override
+  String get settingsReplay => 'Ulangi';
+
+  @override
+  String get pauseQuitBody => 'Progres akan hilang.';
+
+  @override
+  String get pauseQuit => 'Keluar';
+
+  @override
+  String get weaponRockDesc => 'Batu biasa. Terdorong angin.';
+
+  @override
+  String get weaponGrenadeDesc => 'Memantul, lalu meledak saat sumbu habis.';
+
+  @override
+  String get weaponClusterDesc => 'Pecah jadi bom-bom kecil.';
+
+  @override
+  String get weaponTwinSlingDesc => 'Dua batu cepat berturut-turut.';
+
+  @override
+  String get weaponPunchDesc => 'Pukul tetangga sampai terpental.';
+
+  @override
+  String get weaponMineDesc => 'Pasang ranjau yang menunggu musuh mendekat.';
+
+  @override
+  String get weaponTeleportDesc => 'Pindah ke titik mana pun yang kamu pilih.';
+
+  @override
+  String get weaponSkipDesc => 'Lewati giliran ini.';
+
+  @override
+  String get weaponHairballDesc =>
+      'Bola bulu yang pecah jadi gumpalan lengket.';
+
+  @override
+  String get weaponBoneBoomerangDesc => 'Terbang keluar lalu kembali.';
+
+  @override
+  String get weaponDrillCarrotDesc => 'Menggali terowongan di tanah.';
+
+  @override
+  String get weaponEggStrikeDesc => 'Hujan telur di titik yang kamu pilih.';
+
+  @override
+  String get weaponSeedMinesDesc => 'Menebar ranjau biji kecil.';
+
+  @override
+  String get weaponBoomDuckDesc => 'Bebek berjalan pergi lalu meledak.';
+
+  @override
+  String get weaponStartleCrowDesc => 'Gagak yang mengagetkan dan mendorong.';
+
+  @override
+  String get weaponFortressDesc => 'Membangun tembok di depanmu.';
+
+  @override
+  String get weaponHeadbuttDesc => 'Seruduk kuat yang melempar musuh.';
+
+  @override
+  String get weaponCoconutDesc => 'Kelapa jatuh di titik yang kamu pilih.';
+
+  @override
+  String get mapBackyard => 'Halaman Belakang';
 }

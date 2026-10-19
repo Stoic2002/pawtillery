@@ -7,4 +7,8 @@ abstract final class AppInfo {
   /// Public privacy policy page, required by Google Play.
   /// TODO(M6): replace with the real URL before release.
   static const privacyPolicyUrl = 'https://example.com/pawtillery/privacy';
+
+  /// Shown on the About card.
+  static const developer = 'Arul Karim';
+  static const fonts = 'Baloo 2, Nunito (SIL OFL)';
 }

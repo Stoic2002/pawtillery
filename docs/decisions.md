@@ -502,3 +502,34 @@ and brass, Cinzel) and semi-realistic painted animals.
   necks, tapering jointed legs, almond eyes with a lid line, fine fur
   strokes and a soft long-fur rim; the heavy-lidded cartoon eyes and thick
   black outlines are gone. Label height back to 36.
+
+## The developer's redesign prototype (2026-10-19)
+
+The developer designed the game in `redesign/` (Claude Design exports)
+and asked to use `Pawtillery.dc.html` for the menus, setup and HUD and
+`ArenaScene.dc.html` for the arena, all still drawn in code.
+`Arena Painterly.dc.html` depends on uploaded sprites and a missing
+`ArenaKit.dc.html`, so it was not used.
+
+- **Fonts:** Baloo 2 and Nunito (SIL OFL) replace Cinzel and Alegreya.
+- **Kit:** `lib/ui/widgets/paw/` (tokens in `lib/app/paw_palette.dart`,
+  theme `PawTheme`) replaces the iron kit. Material rounded icons are
+  used, as in the prototype.
+- **Teams:** prototype colours plus a mark per team (circle, triangle,
+  square, star, diamond, heart) shown on badges, HP pills, banners and
+  unit tags.
+- **Screens:** rebuilt to the prototype: menu with About as a card,
+  setup with Teams/Rules tabs, team cards (rename, randomize, delete,
+  add) and a unit editor page; settings rows; how-to card; pause card;
+  results on the winner's colour with a stats table and best shot.
+  `MatchResult` gained team damage, units left and marks;
+  `MatchConfig` gained `withoutTeam` and `withRandomTeam`.
+- **Strings:** new EN/ID keys for the new screens, weapon descriptions
+  (`weapon…Desc`), map Backyard; "After {minutes} min" became
+  "{minutes} min".
+- **Arena:** HUD, unit tags, aim guide and graves as in the prototype and
+  ArenaScene; pets are PetSoft chibis; a new **Backyard** map (lettered
+  toy blocks on a 72 px grid, a tin can material shaded as a cylinder
+  with a red label, a puddle) with a dusk sky, house, fence and fairy
+  lights; soil gained roots, a dark band under the grass, four grass
+  tints and a rim light per map.

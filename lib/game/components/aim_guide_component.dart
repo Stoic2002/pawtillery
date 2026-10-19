@@ -11,12 +11,12 @@ import '../../sim/world.dart';
 import '../hud_state.dart';
 
 /// Aiming visuals for the active unit, depending on the weapon:
-/// - thrown weapons: a crosshair in the team's colour at the aim angle with
-///   a ring that fills with power, the first ~25 % of the no-wind path
-///   (PRD), and the angle/power readout next to the unit;
+/// - thrown weapons: the redesign's dashed aim circle around the unit, the
+///   first ~25 % of the no-wind path as cream dots (PRD), and an
+///   "angle · power" pill above the unit;
 /// - boomerang: its straight line to the turning point;
 /// - direction weapons: an arrow;
-/// - target weapons: a crosshair (green if allowed, red if not).
+/// - target weapons: a round marker (orange if allowed, grey if not).
 class AimGuideComponent extends Component {
   AimGuideComponent({
     required this.sim,
@@ -34,11 +34,11 @@ class AimGuideComponent extends Component {
   /// Settings switch for the predicted path.
   final bool Function() showPath;
 
-  final ui.Paint _dot = ui.Paint()..color = const ui.Color(0xE6FFFFFF);
+  final ui.Paint _dot = ui.Paint()..color = const ui.Color(0xFFFFF6E6);
   final ui.Paint _dotEdge = ui.Paint()
     ..style = ui.PaintingStyle.stroke
-    ..strokeWidth = 1.5
-    ..color = const ui.Color(0x99000000);
+    ..strokeWidth = 1.2
+    ..color = const ui.Color(0xFF2B2118);
   final ui.Paint _line = ui.Paint()
     ..strokeWidth = 4
     ..strokeCap = ui.StrokeCap.round
@@ -47,30 +47,22 @@ class AimGuideComponent extends Component {
     ..style = ui.PaintingStyle.stroke
     ..strokeWidth = 3;
 
-  final ui.Paint _ink = ui.Paint()
-    ..style = ui.PaintingStyle.stroke
-    ..strokeCap = ui.StrokeCap.round
-    ..color = const ui.Color(0xFF2A1A12);
-  final ui.Paint _tint = ui.Paint()
-    ..style = ui.PaintingStyle.stroke
-    ..strokeCap = ui.StrokeCap.round;
-
   // Numbers and units only, so no ARB entry is needed.
   final TextPaint _readout = TextPaint(
     style: const TextStyle(
-      fontFamily: 'Cinzel',
-      fontVariations: [ui.FontVariation('wght', 700)],
-      fontSize: 10,
-      color: ui.Color(0xFFFFFFFF),
-      shadows: [
-        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(1, 0)),
-        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(-1, 0)),
-        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(0, 1)),
-        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(0, -1)),
-        Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(0, 2)),
-      ],
+      fontFamily: 'Baloo2',
+      fontVariations: [ui.FontVariation('wght', 800)],
+      fontWeight: FontWeight.w700,
+      fontSize: 10.5,
+      height: 1,
+      color: ui.Color(0xFFFFF6E6),
     ),
   );
+  final ui.Paint _pill = ui.Paint()..color = const ui.Color(0xFF2B2118);
+  final ui.Paint _dash = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeWidth = 1.4
+    ..color = const ui.Color(0x662B2118);
 
   List<double> _path = const [];
   Object? _cacheKey;
@@ -84,8 +76,8 @@ class AimGuideComponent extends Component {
     final a = aim();
     final unit = sim.activeUnit;
     final weapon = Weapons.byId(a.weaponId);
-    final thrown = weapon.aim == AimMode.angleAndPower &&
-        weapon.flight is! Boomerang;
+    final thrown =
+        weapon.aim == AimMode.angleAndPower && weapon.flight is! Boomerang;
     if (!a.active || unit == null || !unit.alive || !thrown || !showPath()) {
       _path = const [];
       return;
@@ -122,16 +114,27 @@ class AimGuideComponent extends Component {
       final tx = a.targetX;
       final ty = a.targetY;
       if (tx == null || ty == null) return;
-      _cross.color = a.targetValid
-          ? const ui.Color(0xFF00E676)
-          : const ui.Color(0xFFFF1744);
+      // The prototype's target: an ink ring with an orange wash (grey
+      // when the spot is not allowed) and a centre dot.
       final c = ui.Offset(tx.toDouble(), ty.toDouble());
+      _cross.color = const ui.Color(0xFF2B2118);
       canvas
-        ..drawCircle(c, 14, _cross)
-        ..drawLine(c - const ui.Offset(22, 0), c + const ui.Offset(22, 0), _cross)
-        ..drawLine(c - const ui.Offset(0, 22), c + const ui.Offset(0, 22), _cross);
+        ..drawCircle(
+          c,
+          16,
+          ui.Paint()
+            ..color = a.targetValid
+                ? const ui.Color(0x59FF8A3D)
+                : const ui.Color(0x59CFC4B3),
+        )
+        ..drawCircle(c, 16, _cross)
+        ..drawCircle(c, 3, ui.Paint()..color = const ui.Color(0xFF2B2118));
       if (weapon.delivery is AirStrike) {
-        canvas.drawLine(ui.Offset(c.dx, 0), ui.Offset(c.dx, c.dy - 22), _cross);
+        canvas.drawLine(
+          ui.Offset(c.dx, 0),
+          ui.Offset(c.dx, c.dy - 16),
+          _dash..strokeWidth = 2,
+        );
       }
       return;
     }
@@ -141,21 +144,27 @@ class AimGuideComponent extends Component {
     final dir = ui.Offset(math.cos(rad), -math.sin(rad));
     final center = ui.Offset(unit.centerX, unit.centerY);
     final flight = weapon.flight;
-    _crosshair(
-      canvas,
-      center + dir * (unit.stats.hitRadius + 34),
-      ui.Color(teamColors[unit.team]),
-      weapon.aim == AimMode.angleAndPower ? a.power / 100 : null,
-    );
+    // The aim circle: a dashed ring around the unit, as in the prototype.
+    const ring = 52.0;
+    final circle = ui.Path()
+      ..addOval(ui.Rect.fromCircle(center: center, radius: ring));
+    for (final m in circle.computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += 9) {
+        canvas.drawPath(m.extractPath(d, d + 5), _dash..strokeWidth = 1.4);
+      }
+    }
     if (weapon.aim == AimMode.direction) {
       final start = center + dir * (unit.stats.hitRadius + 6);
       canvas.drawLine(start, start + dir * 40, _line);
     } else if (flight is Boomerang && showPath()) {
-      final range = flight.minRange +
-          (flight.maxRange - flight.minRange) * a.power / 100;
+      final range =
+          flight.minRange + (flight.maxRange - flight.minRange) * a.power / 100;
       final start = center + dir * (unit.stats.hitRadius + 6);
-      for (var d = 0.0; d < range * ControlsConfig.aimGuideFraction * 2;
-          d += 18) {
+      for (
+        var d = 0.0;
+        d < range * ControlsConfig.aimGuideFraction * 2;
+        d += 18
+      ) {
         canvas.drawCircle(start + dir * d, 4, _dot);
       }
     }
@@ -168,49 +177,30 @@ class AimGuideComponent extends Component {
         ..drawCircle(o, 4, _dotEdge);
     }
 
-    if (weapon.aim == AimMode.angleAndPower || weapon.aim == AimMode.direction) {
-      // Readout beside the unit, on the side away from the shot.
-      final side = dir.dx < 0 ? 1 : -1;
+    if (weapon.aim == AimMode.angleAndPower ||
+        weapon.aim == AimMode.direction) {
+      // "45° · 60%" on a dark pill above the unit.
       final text = weapon.aim == AimMode.direction
           ? '${a.angle}°'
-          : '${a.angle}°  ${a.power}%';
+          : '${a.angle}° · ${a.power}%';
+      final w = _readout.getLineMetrics(text).width + 12;
+      final top = unit.y - 66;
+      canvas.drawRRect(
+        ui.RRect.fromLTRBR(
+          unit.centerX - w / 2,
+          top,
+          unit.centerX + w / 2,
+          top + 15,
+          const ui.Radius.circular(8),
+        ),
+        _pill,
+      );
       _readout.render(
         canvas,
         text,
-        Vector2(unit.centerX + side * (unit.stats.hitRadius + 8),
-            unit.centerY + 4),
-        anchor: side > 0 ? Anchor.centerLeft : Anchor.centerRight,
+        Vector2(unit.centerX, top + 7.8),
+        anchor: Anchor.center,
       );
     }
-  }
-
-  /// A team-coloured reticle: ring, four ticks and a centre dot, each with
-  /// a dark outline; [power] (0–1) fills an arc around it.
-  void _crosshair(ui.Canvas canvas, ui.Offset c, ui.Color team, double? power) {
-    const r = 8.0;
-    void both(void Function(ui.Paint) draw, double width) {
-      draw(_ink..strokeWidth = width + 2.6);
-      draw(_tint..strokeWidth = width);
-    }
-
-    _tint.color = ui.Color.lerp(team, const ui.Color(0xFFFFFFFF), 0.15)!;
-    both((p) => canvas.drawCircle(c, r, p), 2.2);
-    for (final (dx, dy) in const [(1.0, 0.0), (-1.0, 0.0), (0.0, 1.0), (0.0, -1.0)]) {
-      final d = ui.Offset(dx, dy);
-      both((p) => canvas.drawLine(c + d * (r - 3), c + d * (r + 5), p), 2.2);
-    }
-    canvas
-      ..drawCircle(c, 2.4, ui.Paint()..color = const ui.Color(0xFF2A1A12))
-      ..drawCircle(c, 1.4, ui.Paint()..color = _tint.color);
-    if (power == null || power <= 0) return;
-    final ring = ui.Rect.fromCircle(center: c, radius: r + 9);
-    final sweep = power * math.pi * 2;
-    canvas.drawArc(ring, -math.pi / 2, sweep, false, _ink..strokeWidth = 6);
-    _tint.color = ui.Color.lerp(
-      const ui.Color(0xFFFFC928),
-      const ui.Color(0xFFFF4A2A),
-      power,
-    )!;
-    canvas.drawArc(ring, -math.pi / 2, sweep, false, _tint..strokeWidth = 3.4);
   }
 }

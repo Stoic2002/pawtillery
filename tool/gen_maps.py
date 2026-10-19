@@ -23,7 +23,7 @@ ROOT = Path(__file__).resolve().parent.parent
 
 # Material ids, matching TerrainMaterial in lib/config/maps.dart.
 (SOIL, WOOD, LEAVES, STONE, METAL, CRATE, CONCRETE, HAY, ROOF, SAND, ROCK,
- ICE, SNOW) = range(13)
+ ICE, SNOW, TOY, CAN) = range(15)
 
 
 class Mask:
@@ -449,7 +449,50 @@ def ruins():
     return m
 
 
-MAPS = {'castle': castle, 'wreck': wreck, 'ruins': ruins}
+# --------------------------------------------------------------- backyard
+
+def backyard():
+    """The redesign's arena (redesign/ArenaScene.dc.html): a backyard at
+    dusk, two soil mounds around a puddle, a stack of toy blocks on the
+    left, a big tin can on the right."""
+    m = Mask(SOIL)
+
+    def ground(x):
+        y = 800 + wave(x, (34, 190, 0.6), (12, 61, 1.3), (5, 23, 0.2))
+        y -= 90 * math.exp(-((x - 520) / 260) ** 2)
+        y -= 120 * math.exp(-((x - 1820) / 300) ** 2)
+        if 1040 <= x <= 1420:  # the puddle, under the water line
+            t = math.cos(math.pi * (x - 1230) / 190) * 0.5 + 0.5
+            y += (1150 - y) * min(1, t * 1.35)
+        return shores(x, y)
+
+    m.below(ground)
+
+    # Toy blocks, stacked and grounded. They sit on the painter's 72 px
+    # block grid so each block gets one colour and one letter.
+    size = 72
+    bx = 4 * size
+    g = round(ground(bx + size) / size) * size
+    for (dx, k) in ((0, 0), (size, 0), (0, 1)):
+        x0 = bx + dx
+        m.rect(x0, g - size * (k + 1), x0 + size, g - size * k, m=TOY)
+    settle(m, bx, bx + 2 * size, g - 2 * size, g + 4, [TOY], SOIL, max_gap=80)
+
+    # A big tin can, a little sunk into the mound.
+    cx = 1640
+    cg = int(ground(cx + 50))
+    m.rect(cx, cg - 170, cx + 110, cg + 8, m=CAN)
+    m.ellipse(cx + 55, cg - 170, 55, 12, m=CAN)
+    settle(m, cx, cx + 110, cg - 180, cg + 10, [CAN], SOIL)
+
+    # A burrow under the left mound and a pebble cave on the right.
+    m.blob(640, 980, 70, carve=True, wobble=0.22, seed=41)
+    m.rect(640, 960, 900, 1000, carve=True)
+    m.blob(2050, 990, 80, carve=True, wobble=0.2, seed=42)
+    return m
+
+
+MAPS = {'backyard': backyard, 'castle': castle, 'wreck': wreck, 'ruins': ruins}
 
 if __name__ == '__main__':
     for name in sys.argv[1:] or MAPS:

@@ -5,5 +5,5 @@ and license, and shown on the About screen.
 
 | Asset | Path | Author / source | License |
 | --- | --- | --- | --- |
-| Cinzel (variable) | `assets/fonts/Cinzel.ttf` | The Cinzel Project Authors (Google Fonts) | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-Cinzel.txt`) |
-| Alegreya (variable, roman and italic) | `assets/fonts/Alegreya*.ttf` | The Alegreya Project Authors (Google Fonts) | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-Alegreya.txt`) |
+| Baloo 2 (variable) | `assets/fonts/Baloo2.ttf` | The Baloo 2 Project Authors (Google Fonts) | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-Baloo2.txt`) |
+| Nunito (variable) | `assets/fonts/Nunito.ttf` | The Nunito Project Authors (Google Fonts) | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-Nunito.txt`) |

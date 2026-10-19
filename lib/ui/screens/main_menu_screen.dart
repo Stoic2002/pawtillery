@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../app/app_services.dart';
-import '../../app/iron_palette.dart';
+import '../../app/paw_palette.dart';
+import '../../config/app_info.dart';
 import '../../config/breeds.dart';
-import '../../config/families.dart';
 import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/audio_service.dart';
-import '../widgets/iron/iron_backdrop.dart';
-import '../widgets/iron/iron_button.dart';
-import '../widgets/iron/iron_controls.dart';
-import '../widgets/iron/iron_icons.dart';
-import '../widgets/iron/iron_logo.dart';
-import 'about_screen.dart';
+import '../widgets/paw/paw_backdrop.dart';
+import '../widgets/paw/paw_logo.dart';
+import '../widgets/paw/paw_widgets.dart';
+import '../widgets/paw/pet_figure.dart';
 import 'how_to_play_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 
-/// Title screen: the painted meadow, the wordmark and a big Play button on
-/// the left, a gang of animals standing on the hill on the right.
+/// Title screen (redesign prototype): sky and two hills, the wordmark top
+/// left, a row of pets on the green hill, the Play button with How to Play
+/// and Settings on the right, version and About bottom right.
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
 
-  static const _groundLine = 0.8;
+  /// Pets on the hill: family, breed colour from the family's first
+  /// breed, team, x (fraction), lift (fraction of height), size, flip.
+  static const _gang = [
+    ('dog', 0, 0.06, 0.30, 60.0, false),
+    ('cat', 1, 0.14, 0.35, 64.0, false),
+    ('turtle', 2, 0.24, 0.37, 72.0, false),
+    ('rabbit', 3, 0.34, 0.35, 64.0, true),
+    ('duck', 0, 0.42, 0.30, 56.0, true),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -34,116 +42,193 @@ class MainMenuScreen extends StatelessWidget {
       ).push(MaterialPageRoute<void>(builder: (_) => screen));
     }
 
-    final menu = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        FittedBox(child: IronLogo(title: l10n.appTitle, size: 54)),
-        const SizedBox(height: 6),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-          decoration: BoxDecoration(
-            color: IronPalette.night,
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Text(
-            l10n.menuSubtitle,
-            style: const TextStyle(fontSize: 15, color: IronPalette.parchment),
-          ),
-        ),
-        const SizedBox(height: 16),
-        IronButton(
-          label: l10n.menuPlay,
-          icon: IronGlyph.play,
-          fontSize: 28,
-          height: 62,
-          minWidth: 240,
-          onPressed: () => open(const SetupScreen()),
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          alignment: WrapAlignment.center,
-          children: [
-            IronButton(
-              label: l10n.menuHowToPlay,
-              icon: IronGlyph.question,
-              tone: IronTone.steel,
-              fontSize: 16,
-              height: 46,
-              onPressed: () => open(const HowToPlayScreen()),
-            ),
-            IronButton(
-              label: l10n.menuSettings,
-              icon: IronGlyph.gear,
-              tone: IronTone.steel,
-              fontSize: 16,
-              height: 46,
-              onPressed: () => open(const SettingsScreen()),
-            ),
-            IronButton(
-              label: l10n.menuAbout,
-              icon: IronGlyph.info,
-              tone: IronTone.steel,
-              fontSize: 16,
-              height: 46,
-              onPressed: () => open(const AboutScreen()),
-            ),
-          ],
-        ),
-      ],
-    );
-
     return Scaffold(
-      body: IronBackdrop(
-        groundLine: _groundLine,
+      body: PawBackdrop(
+        hills: PawHills.menu,
         child: LayoutBuilder(
-          builder: (context, box) {
-            final wide = box.maxWidth > 700;
-            final ground = box.maxHeight * _groundLine;
-            final gang = box.maxHeight * 0.36;
-            return Stack(
-              children: [
-                if (wide)
-                  for (final (f, team, dx, scale, facing) in _gang)
-                    Positioned(
-                      left: box.maxWidth * dx - gang * scale / 2,
-                      top: ground - gang * scale * 0.94,
-                      child: AnimalFigure(
-                        familyId: f.id,
-                        breedId: Breeds.ofFamily(f.id).first.id,
-                        teamArgb: Teams.styles[team].colorArgb,
-                        size: gang * scale,
-                        facing: facing,
-                      ),
-                    ),
-                SafeArea(
-                  child: Align(
-                    alignment: wide
-                        ? const Alignment(-0.72, -0.35)
-                        : Alignment.center,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 480),
-                        child: menu,
-                      ),
-                    ),
+          builder: (context, box) => Stack(
+            children: [
+              for (final (family, team, x, lift, size, flip) in _gang)
+                Positioned(
+                  left: box.maxWidth * x - size / 2,
+                  bottom: box.maxHeight * lift - 8,
+                  child: PetFigure(
+                    familyId: family,
+                    breedId: Breeds.ofFamily(family).first.id,
+                    teamArgb: Teams.styles[team].colorArgb,
+                    size: size,
+                    flip: flip,
                   ),
                 ),
-              ],
-            );
-          },
+              SafeArea(
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 24,
+                      top: 24,
+                      width: box.maxWidth * 0.55,
+                      child: Center(
+                        child: FittedBox(
+                          child: PawLogo(title: l10n.appTitle, size: 68),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 24,
+                      top: 0,
+                      bottom: 24,
+                      width: (box.maxWidth * 0.36).clamp(220, 340),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          PawButton(
+                            label: l10n.menuPlay,
+                            icon: Icons.play_arrow_rounded,
+                            fill: Paw.orange,
+                            height: 68,
+                            fontSize: 30,
+                            display: true,
+                            borderWidth: 3,
+                            radius: 16,
+                            onPressed: () => open(const SetupScreen()),
+                          ),
+                          const SizedBox(height: 14),
+                          PawButton(
+                            label: l10n.menuHowToPlay,
+                            icon: Icons.menu_book_rounded,
+                            borderWidth: 3,
+                            onPressed: () => open(const HowToPlayScreen()),
+                          ),
+                          const SizedBox(height: 14),
+                          PawButton(
+                            label: l10n.menuSettings,
+                            icon: Icons.settings_rounded,
+                            borderWidth: 3,
+                            onPressed: () => open(const SettingsScreen()),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Positioned(
+                      right: 24,
+                      bottom: 12,
+                      child: Row(
+                        children: [
+                          Text(
+                            'v${AppInfo.version}',
+                            style: Paw.text(12, weight: 700, color: Paw.muted),
+                          ),
+                          const SizedBox(width: 10),
+                          PawCircleButton(
+                            icon: Icons.info_rounded,
+                            tooltip: l10n.menuAbout,
+                            onPressed: () => showAbout(context),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
 
-  /// Who stands on the title hill: family, team colour, x, scale, facing.
-  static final _gang = [
-    (Families.goat, 2, 0.67, 0.95, 1),
-    (Families.dog, 0, 0.77, 1.15, -1),
-    (Families.cat, 1, 0.87, 1.0, -1),
-    (Families.rabbit, 3, 0.95, 0.8, -1),
-  ];
+/// About (PRD: versi, kredit aset, tautan kebijakan privasi) as a card over
+/// the menu.
+Future<void> showAbout(BuildContext context) {
+  final l10n = AppLocalizations.of(context);
+  return showPawDialog<void>(
+    context: context,
+    width: 420,
+    builder: (context) {
+      Widget row(String k, String v) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 110,
+              child: Text(k, style: Paw.text(14, color: Paw.muted)),
+            ),
+            Expanded(child: Text(v, style: Paw.text(14, weight: 700))),
+          ],
+        ),
+      );
+      return PawCard(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Expanded(child: Text(l10n.menuAbout, style: Paw.title(22))),
+                Text(
+                  l10n.aboutVersion(AppInfo.version),
+                  style: Paw.text(12, weight: 700, color: Paw.muted),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.aboutDescription, style: Paw.text(14, weight: 600)),
+            const SizedBox(height: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Paw.peach,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: Paw.ink, width: 2),
+              ),
+              child: Column(
+                children: [
+                  row(l10n.aboutDeveloper, AppInfo.developer),
+                  row(l10n.aboutArt, l10n.aboutArtValue),
+                  row(l10n.aboutFonts, AppInfo.fonts),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(l10n.aboutPrivacyNote, style: Paw.text(13, weight: 600)),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () async {
+                      await Clipboard.setData(
+                        const ClipboardData(text: AppInfo.privacyPolicyUrl),
+                      );
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.aboutLinkCopied)),
+                      );
+                    },
+                    child: Text(
+                      l10n.aboutPrivacy,
+                      style: Paw.text(14, color: Paw.orangeDeep).copyWith(
+                        decoration: TextDecoration.underline,
+                        decorationColor: Paw.orangeDeep,
+                      ),
+                    ),
+                  ),
+                ),
+                PawButton(
+                  label: l10n.dialogClose,
+                  height: 44,
+                  fontSize: 14,
+                  onPressed: () => Navigator.of(context).pop(),
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+    },
+  );
 }

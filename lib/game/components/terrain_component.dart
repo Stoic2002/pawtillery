@@ -218,6 +218,8 @@ class TerrainComponent extends PositionComponent {
     TerrainMaterial.sand => 0xFFEED392,
     TerrainMaterial.ice => 0xFF9EDEF2,
     TerrainMaterial.snow => 0xFFF2F8FF,
+    TerrainMaterial.toy => 0xFFD94A45,
+    TerrainMaterial.can => 0xFFA9B0B9,
   };
 
   @override

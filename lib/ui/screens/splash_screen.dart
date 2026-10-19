@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
-import '../../app/iron_palette.dart';
+import '../../app/paw_palette.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/iron/iron_backdrop.dart';
-import '../widgets/iron/iron_logo.dart';
+import '../widgets/paw/paw_backdrop.dart';
+import '../widgets/paw/paw_logo.dart';
 
-/// Shown while settings load at start-up: the meadow and the wordmark.
+/// Shown while settings load at start-up: the wordmark over the hills and
+/// a loading bar.
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
@@ -13,16 +14,33 @@ class SplashScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      body: IronBackdrop(
+      body: PawBackdrop(
+        hills: PawHills.splash,
+        clouds: false,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              FittedBox(child: IronLogo(title: l10n.appTitle, size: 56)),
-              const SizedBox(height: 14),
-              Text(
-                l10n.splashLoading,
-                style: const TextStyle(fontSize: 18, color: IronPalette.parchment),
+              FittedBox(child: PawLogo(title: l10n.appTitle, size: 76)),
+              const SizedBox(height: 28),
+              Semantics(
+                label: l10n.splashLoading,
+                child: Container(
+                  width: 240,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: Paw.cream,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: Paw.ink, width: 3),
+                    boxShadow: Paw.drop(),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  alignment: Alignment.centerLeft,
+                  child: FractionallySizedBox(
+                    widthFactor: 0.6,
+                    child: Container(color: Paw.orange),
+                  ),
+                ),
               ),
             ],
           ),

@@ -113,12 +113,12 @@ Uint8List? buildChunkPixels(
       final capped = openTop && _takesCap(map.cap, material) && run <= capDepth;
       var (r, g, b) = capped
           ? _cap(map.cap, capArgb, x, y, run, capDepth)
-          : _material(material, map, x, y, run);
+          : _material(material, map, x, y, run, mask, materials);
 
       if (!capped) {
         final natural = _natural(material);
         // Depth: deep ground is darker, more so for natural ground.
-        var k = -math.min(run, deep) / deep * (natural ? 0.32 : 0.12);
+        var k = -math.min(run, deep) / deep * (natural ? 0.5 : 0.12);
         // Brush strokes: long horizontal dabs plus a finer layer.
         k += (_vnoise(x / 23, y / 8, 3) - 0.5) * 0.12;
         k += (_vnoise(x / 6, y / 4, 5) - 0.5) * 0.06;
@@ -128,6 +128,17 @@ Uint8List? buildChunkPixels(
           final band = math.sin((y + warp) / 17);
           if (band > 0.78) k -= 0.07;
           if (band < -0.9) k += 0.05;
+          // A soft dark band a little below an open top (the shade under
+          // the grass mat, as in the redesign's arena).
+          if (openTop && run > capDepth + 1 && run < capDepth + 26) {
+            final t = (run - capDepth - 13).abs() / 13;
+            k -= 0.22 * (1 - t);
+          }
+          // Fine roots hanging down from the surface.
+          if (openTop && run < 60 && material == TerrainMaterial.soil) {
+            final root = (_vnoise(x / 9, y / 46, 91) - 0.5).abs();
+            if (root < 0.014) k -= 0.3 * (1 - run / 60);
+          }
         }
         // Just under a cap: its shadow line.
         if (_takesCap(map.cap, material) &&
@@ -166,6 +177,14 @@ Uint8List? buildChunkPixels(
         // Warm/cool drift across big patches, as in a painting.
         final warmth = (_vnoise(x / 70, y / 50, 9) - 0.5) * 2;
         (r, g, b) = (r + warmth * 10, g + warmth * 2, b - warmth * 10);
+      }
+
+      // Warm rim light catching the top edge (redesign's arena).
+      final rim = map.rimArgb;
+      if (rim != null && run <= 2 && openTop && air(x, y - run)) {
+        final (rr, rg, rb) = _rgb(rim);
+        final a = run == 1 ? 0.55 : 0.25;
+        (r, g, b) = (r + (rr - r) * a, g + (rg - g) * a, b + (rb - b) * a);
       }
 
       // Soft crust at air edges: a dark rim that fades inwards; lighter
@@ -240,9 +259,18 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
         final h = ((_hash(x ~/ 2, 13) % 5) + clump * 4 - 1).round();
         if (k > h) return null;
         final tip = 1 - (k - 1) / math.max(1, h);
+        // Four blade tints, from deep green to dry olive.
+        final tint = _hash(x ~/ 2, 19) % 4;
+        final base = _rgb(map.grassArgb);
+        final blade = switch (tint) {
+          0 => _shade(base, -0.35),
+          1 => (base.$1.toDouble(), base.$2.toDouble(), base.$3.toDouble()),
+          2 => (base.$1 + 40.0, base.$2 + 26.0, base.$3 + 8.0),
+          _ => (base.$1 + 90.0, base.$2 + 44.0, base.$3 + 30.0),
+        };
         return _shade(
-          _rgb(map.grassArgb),
-          0.08 + tip * 0.22 - (x.isOdd ? 0.06 : 0),
+          blade,
+          0.04 + tip * 0.18 - (x.isOdd ? 0.06 : 0),
         );
       case CapStyle.snow:
         // Soft rounded lumps.
@@ -315,6 +343,8 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
   int x,
   int y,
   int run,
+  TerrainMask mask,
+  Uint8List? materials,
 ) {
   switch (m) {
     case TerrainMaterial.soil:
@@ -329,7 +359,7 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
         final ry = rx * 0.7;
         final d = math.pow((x - sx) / rx, 2) + math.pow((y - sy) / ry, 2);
         if (d < 1) {
-          final stone = (0x9C, 0x92, 0x86);
+          final stone = (0x7A, 0x6A, 0x66);
           if (d > 0.62) return _shade(stone, -0.5);
           return _shade(stone, (y < sy ? 0.15 : -0.05));
         }
@@ -411,6 +441,10 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
       final offset = (y ~/ 80).isEven ? 0 : 60;
       if ((x + offset) % 120 == 0 || y % 80 == 0) k -= 0.18;
       return _shade(_rgb(map.dirtArgb), k);
+    case TerrainMaterial.toy:
+      return _toy(x, y);
+    case TerrainMaterial.can:
+      return _can(mask, materials, x, y, run);
     case TerrainMaterial.ice:
       // Pale cyan, lighter at the top, with diagonal glints.
       var k = 0.12 - math.min(run, 40) / 40 * 0.2;
@@ -425,6 +459,109 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
       final (r, g, b) = _shade((0xF2, 0xF8, 0xFF), k);
       return (r - run * 0.2, g - run * 0.08, b);
   }
+}
+
+/// A tin can (redesign's arena): metal shaded across its width like a
+/// cylinder (bright highlight left of centre), ridges near the top and
+/// bottom, and a red label band. The width is found by scanning along the
+/// row for the can's own pixels.
+(double, double, double) _can(
+  TerrainMask mask,
+  Uint8List? materials,
+  int x,
+  int y,
+  int run,
+) {
+  bool isCan(int xx) =>
+      materials != null &&
+      mask.isSolid(xx, y) &&
+      materials[y * mask.width + xx] == TerrainMaterial.can.index;
+  var l = x;
+  while (x - l < 200 && isCan(l - 1)) {
+    l--;
+  }
+  var r = x;
+  while (r - x < 200 && isCan(r + 1)) {
+    r++;
+  }
+  final t = r == l ? 0.5 : (x - l) / (r - l);
+  const stops = [0.0, 0.22, 0.32, 0.4, 0.75, 1.0];
+  const cols = [
+    (0x3E, 0x43, 0x4B),
+    (0x9A, 0xA1, 0xAB),
+    (0xE2, 0xE6, 0xEA),
+    (0xA9, 0xB0, 0xB9),
+    (0x6A, 0x71, 0x7B),
+    (0x2E, 0x32, 0x38),
+  ];
+  final labelTop = run > 46 && run < 118;
+  final labelCols = const [
+    (0x5E, 0x1F, 0x22),
+    (0xB8, 0x47, 0x4A),
+    (0xD9, 0x74, 0x77),
+    (0xB8, 0x47, 0x4A),
+    (0x93, 0x39, 0x3C),
+    (0x4A, 0x17, 0x19),
+  ];
+  final palette = labelTop ? labelCols : cols;
+  var i = 0;
+  while (i < stops.length - 2 && t > stops[i + 1]) {
+    i++;
+  }
+  final f = ((t - stops[i]) / (stops[i + 1] - stops[i])).clamp(0.0, 1.0);
+  final a = palette[i];
+  final b = palette[i + 1];
+  var col = (
+    a.$1 + (b.$1 - a.$1) * f,
+    a.$2 + (b.$2 - a.$2) * f,
+    a.$3 + (b.$3 - a.$3) * f,
+  );
+  // Ridges around the top and bottom of the can.
+  for (final ridge in const [20, 28, 140, 148]) {
+    if (run == ridge) col = _shade(col, -0.25);
+    if (run == ridge + 1) col = _shade(col, 0.2);
+  }
+  return col;
+}
+
+/// Painted wooden toy blocks on a 72 px grid: a colour per block, a big
+/// letter (5 × 7 pixel font, scaled) in a darker shade, a lighter top-left
+/// bevel and a darker bottom-right one, wood grain.
+(double, double, double) _toy(int x, int y) {
+  const size = 72;
+  final bx = x ~/ size;
+  final by = y ~/ size;
+  final lx = x - bx * size;
+  final ly = y - by * size;
+  final h = _hash(bx, by * 7 + 3);
+  const colors = [
+    (0xD9, 0x4A, 0x45),
+    (0x3B, 0x7F, 0xD9),
+    (0xF2, 0xB1, 0x3A),
+    (0x4C, 0xA8, 0x5A),
+  ];
+  final base = colors[h % colors.length];
+  var k = math.sin(x * 0.35 + _vnoise(x / 30, y / 4, 5) * 4) * 0.04;
+  if (lx < 4 || ly < 4) k += 0.2;
+  if (lx > size - 5 || ly > size - 5) k -= 0.25;
+  // The letter.
+  const glyphs = [
+    // A
+    [0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11],
+    // B
+    [0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E],
+    // C
+    [0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E],
+    // P
+    [0x1E, 0x11, 0x11, 0x1E, 0x10, 0x10, 0x10],
+  ];
+  final g = glyphs[(h >> 4) % glyphs.length];
+  final gx = (lx - 16) ~/ 8;
+  final gy = (ly - 8) ~/ 8;
+  if (gx >= 0 && gx < 5 && gy >= 0 && gy < 7 && (g[gy] >> (4 - gx)) & 1 == 1) {
+    k -= 0.35;
+  }
+  return _shade(base, k);
 }
 
 /// Worley cells of [cw]×[ch] px: the gap to the next cell's border, the

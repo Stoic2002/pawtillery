@@ -511,7 +511,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String setupMinutes(int minutes) {
-    return 'After $minutes min';
+    return '$minutes min';
   }
 
   @override
@@ -760,4 +760,177 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsOn => 'On';
+
+  @override
+  String get setupTabTeams => 'Teams';
+
+  @override
+  String get setupTabRules => 'Rules';
+
+  @override
+  String get setupAddTeam => 'Add team';
+
+  @override
+  String get setupRandomTeam => 'Randomize team';
+
+  @override
+  String get setupDeleteTeam => 'Delete team';
+
+  @override
+  String get setupDeleteTeamTitle => 'Delete this team?';
+
+  @override
+  String get setupDeleteTeamBody => 'Its units will be removed too.';
+
+  @override
+  String get setupEditUnit => 'Edit unit';
+
+  @override
+  String get setupRandomize => 'Randomize';
+
+  @override
+  String get setupPassive => 'Passive';
+
+  @override
+  String get setupSignatureWeapon => 'Signature';
+
+  @override
+  String get setupDone => 'Done';
+
+  @override
+  String get setupStartMatch => 'Start match';
+
+  @override
+  String get setupTeamCount => 'Number of teams';
+
+  @override
+  String setupSummary(int teams, int units, int seconds, String map) {
+    return '$teams teams · $units units · $seconds s · $map';
+  }
+
+  @override
+  String get hudConfirm => 'Confirm';
+
+  @override
+  String get hudRetreatNow => 'Retreat!';
+
+  @override
+  String get hudWindLabel => 'Wind';
+
+  @override
+  String get hudAngleLabel => 'Angle';
+
+  @override
+  String get hudPowerLabel => 'Power';
+
+  @override
+  String get hudFuseLabel => 'Fuse (seconds)';
+
+  @override
+  String hudStepOf(int step, int total) {
+    return '$step / $total';
+  }
+
+  @override
+  String get resultBestShot => 'Best shot';
+
+  @override
+  String resultBestShotValue(String name, int damage) {
+    return '$name · $damage damage';
+  }
+
+  @override
+  String get resultColumnDamage => 'Damage';
+
+  @override
+  String get resultColumnKnockouts => 'Defeated';
+
+  @override
+  String get resultColumnLeft => 'Left';
+
+  @override
+  String get resultDrawTitle => 'It\'s a draw!';
+
+  @override
+  String get aboutDeveloper => 'Developer';
+
+  @override
+  String get aboutArt => 'Art';
+
+  @override
+  String get aboutArtValue => 'Drawn in code';
+
+  @override
+  String get aboutFonts => 'Fonts';
+
+  @override
+  String get dialogClose => 'Close';
+
+  @override
+  String get settingsReplay => 'Replay';
+
+  @override
+  String get pauseQuitBody => 'Progress will be lost.';
+
+  @override
+  String get pauseQuit => 'Quit';
+
+  @override
+  String get weaponRockDesc => 'A plain stone. Pushed by the wind.';
+
+  @override
+  String get weaponGrenadeDesc =>
+      'Bounces, then explodes when the fuse runs out.';
+
+  @override
+  String get weaponClusterDesc => 'Bursts into small bomblets.';
+
+  @override
+  String get weaponTwinSlingDesc => 'Two quick stones in a row.';
+
+  @override
+  String get weaponPunchDesc => 'Knock a neighbour away.';
+
+  @override
+  String get weaponMineDesc =>
+      'Drop a mine that waits for someone to come close.';
+
+  @override
+  String get weaponTeleportDesc => 'Jump to any spot you pick.';
+
+  @override
+  String get weaponSkipDesc => 'Pass this turn.';
+
+  @override
+  String get weaponHairballDesc => 'A hairball that splits into sticky clumps.';
+
+  @override
+  String get weaponBoneBoomerangDesc => 'Flies out and comes back.';
+
+  @override
+  String get weaponDrillCarrotDesc => 'Digs a tunnel through the ground.';
+
+  @override
+  String get weaponEggStrikeDesc => 'Eggs rain down on a spot you pick.';
+
+  @override
+  String get weaponSeedMinesDesc => 'Scatters small seed mines.';
+
+  @override
+  String get weaponBoomDuckDesc => 'A duck waddles off and explodes.';
+
+  @override
+  String get weaponStartleCrowDesc => 'A crow that scares and pushes.';
+
+  @override
+  String get weaponFortressDesc => 'Builds a wall in front of you.';
+
+  @override
+  String get weaponHeadbuttDesc => 'A strong charge that sends foes flying.';
+
+  @override
+  String get weaponCoconutDesc => 'A coconut falls on a spot you pick.';
+
+  @override
+  String get mapBackyard => 'Backyard';
 }

@@ -4,27 +4,34 @@ import 'dart:ui' as ui;
 import 'package:flame/components.dart';
 import 'package:flutter/painting.dart';
 
+import '../../config/teams.dart';
 import '../../config/units.dart';
 import '../../sim/turn_manager.dart';
 import '../../sim/unit.dart';
 import '../../sim/world.dart';
 import '../art/animal_art.dart';
 
-/// Draws every living unit with its animal art, its name and HP above it
-/// in team colour, and a bouncing arrow over the active unit. Poses follow the
-/// sim: walking alternates legs, airborne units tuck them in; idle units
-/// breathe a little.
+/// Draws every unit with its pet art and, as in the redesign's arena
+/// (redesign/ArenaScene.dc.html), a dark translucent tag above it: the
+/// team mark, the name, the HP and a thin HP bar; a small cream arrow over
+/// the active unit; a little gravestone with a band in the team colour
+/// where a unit fell. Poses follow the sim: walking waddles, airborne
+/// units stretch; idle units breathe a little.
 class UnitsComponent extends Component {
   UnitsComponent(
     this.sim, {
     required this.teamColors,
     required this.unitNames,
+    this.teamSymbols = const [],
   }) : super(priority: 4);
 
   final SimWorld sim;
 
   /// Colour (0xAARRGGBB) of each sim team.
   final List<int> teamColors;
+
+  /// Each team's mark (circle, triangle, ...).
+  final List<TeamSymbol> teamSymbols;
 
   /// Display name of each unit, by unit id.
   final List<String> unitNames;
@@ -33,61 +40,50 @@ class UnitsComponent extends Component {
   final Map<int, double> _walkTime = {};
   double _time = 0;
 
-  final ui.Paint _box = ui.Paint()..color = const ui.Color(0xC40E0F12);
-  final ui.Paint _marker = ui.Paint();
-  final ui.Paint _markerEdge = ui.Paint()
+  static const _cream = ui.Color(0xFFFFEBD2);
+  static const _crit = ui.Color(0xFFFF8A8D);
+
+  final ui.Paint _tag = ui.Paint()..color = const ui.Color(0xD616101C);
+  final ui.Paint _ring = ui.Paint()
     ..style = ui.PaintingStyle.stroke
-    ..strokeWidth = 2
-    ..strokeJoin = ui.StrokeJoin.round
-    ..color = const ui.Color(0xFF2A1A12);
+    ..strokeWidth = 0.8
+    ..color = const ui.Color(0x40FFD6AA);
+  final ui.Paint _barBack = ui.Paint()..color = const ui.Color(0x2EFFEBD2);
+  final ui.Paint _fill = ui.Paint();
+  final ui.Paint _shadow = ui.Paint()
+    ..color = const ui.Color(0x66000000)
+    ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 1);
 
-  // Name and HP in bold team-colour text with a dark outline, each on its
-  // own translucent rounded box (docs/art_style_guide.md).
-  static List<Shadow> _outline(double w) => [
-    for (final (dx, dy) in const [
-      (1.0, 0.0),
-      (-1.0, 0.0),
-      (0.0, 1.0),
-      (0.0, -1.0),
-      (0.7, 0.7),
-      (-0.7, 0.7),
-      (0.7, -0.7),
-      (-0.7, -0.7),
-    ])
-      Shadow(
-        color: const ui.Color(0xCC000000),
-        offset: ui.Offset(dx * w * 0.6, dy * w * 0.6),
-      ),
-  ];
-
-  late final List<ui.Color> _labelColors = [
-    for (final argb in teamColors)
-      ui.Color.lerp(ui.Color(argb), const ui.Color(0xFFFFFFFF), 0.22)!,
-  ];
-  late final List<TextPaint> _nameText = [
-    for (final c in _labelColors)
-      TextPaint(
-        style: TextStyle(
-          fontFamily: 'Cinzel',
-          fontVariations: const [ui.FontVariation('wght', 700)],
-          fontSize: 8.5,
-          color: c,
-          shadows: _outline(1),
-        ),
-      ),
-  ];
-  late final List<TextPaint> _hpText = [
-    for (final c in _labelColors)
-      TextPaint(
-        style: TextStyle(
-          fontFamily: 'Cinzel',
-          fontVariations: const [ui.FontVariation('wght', 800)],
-          fontSize: 9,
-          color: c,
-          shadows: _outline(1),
-        ),
-      ),
-  ];
+  final TextPaint _name = TextPaint(
+    style: const TextStyle(
+      fontFamily: 'Nunito',
+      fontVariations: [ui.FontVariation('wght', 800)],
+      fontWeight: FontWeight.w700,
+      fontSize: 9.5,
+      color: _cream,
+      height: 1,
+    ),
+  );
+  final TextPaint _hp = TextPaint(
+    style: const TextStyle(
+      fontFamily: 'Baloo2',
+      fontVariations: [ui.FontVariation('wght', 800)],
+      fontWeight: FontWeight.w700,
+      fontSize: 10.5,
+      color: _cream,
+      height: 1,
+    ),
+  );
+  final TextPaint _hpCrit = TextPaint(
+    style: const TextStyle(
+      fontFamily: 'Baloo2',
+      fontVariations: [ui.FontVariation('wght', 800)],
+      fontWeight: FontWeight.w700,
+      fontSize: 10.5,
+      color: _crit,
+      height: 1,
+    ),
+  );
 
   @override
   void update(double dt) {
@@ -110,11 +106,15 @@ class UnitsComponent extends Component {
   @override
   void render(ui.Canvas canvas) {
     final active = sim.activeUnit;
-    final showMarker = sim.turn.phase == TurnPhase.turnStart ||
+    final showMarker =
+        sim.turn.phase == TurnPhase.turnStart ||
         sim.turn.phase == TurnPhase.action;
 
     for (final u in sim.units) {
-      if (!u.alive) continue;
+      if (!u.alive) {
+        if (u.y < sim.waterLevel) _grave(canvas, u);
+        continue;
+      }
       final scale = u.stats.hitRadius / UnitConfig.hitRadius;
       final pose = _pose(u);
       final breathe = pose == AnimalPose.idle
@@ -133,66 +133,168 @@ class UnitsComponent extends Component {
       );
       canvas.restore();
 
-      final top = u.y - AnimalArt.height * scale;
-      _drawLabels(canvas, u, top);
-
+      final top = u.y - AnimalArt.height * scale - 3;
+      final tagTop = _drawTag(canvas, u, top);
       if (showMarker && u == active) {
-        // A bouncing arrow in the team's colour over the labels.
-        final bob = math.sin(_time * 6) * 3;
-        final tipY = top - 34 + bob;
+        final bob = math.sin(_time * 6) * 2.5;
+        final tip = tagTop - 3 + bob;
         final cx = u.centerX;
-        final path = ui.Path()
-          ..moveTo(cx, tipY)
-          ..lineTo(cx - 8, tipY - 9)
-          ..lineTo(cx - 3.5, tipY - 9)
-          ..lineTo(cx - 3.5, tipY - 17)
-          ..lineTo(cx + 3.5, tipY - 17)
-          ..lineTo(cx + 3.5, tipY - 9)
-          ..lineTo(cx + 8, tipY - 9)
+        final arrow = ui.Path()
+          ..moveTo(cx, tip)
+          ..lineTo(cx - 5.5, tip - 7)
+          ..lineTo(cx + 5.5, tip - 7)
           ..close();
-        _marker.color = _labelColors[u.team];
         canvas
-          ..drawPath(path, _marker)
-          ..drawPath(path, _markerEdge);
+          ..drawPath(arrow.shift(const ui.Offset(0, 1)), _shadow)
+          ..drawPath(arrow, _fill..color = _cream);
       }
     }
   }
 
-  void _drawLabels(ui.Canvas canvas, Unit u, double top) {
-    final hp = '${math.max(0, u.hp)}';
-    final hpWidth = _hpText[u.team].getLineMetrics(hp).width + 8;
-    final hpBox = ui.RRect.fromRectAndRadius(
-      ui.Rect.fromCenter(
-        center: ui.Offset(u.centerX, top - 7),
-        width: hpWidth,
-        height: 12,
-      ),
-      const ui.Radius.circular(4),
-    );
-    canvas.drawRRect(hpBox, _box);
-    _hpText[u.team].render(
-      canvas,
-      hp,
-      Vector2(u.centerX, top - 7),
-      anchor: Anchor.center,
-    );
+  /// The name tag; returns its top edge (for the active arrow).
+  double _drawTag(ui.Canvas canvas, Unit u, double bottom) {
     final name = u.id < unitNames.length ? unitNames[u.id] : '';
-    if (name.isEmpty) return;
-    final nameWidth = _nameText[u.team].getLineMetrics(name).width + 8;
-    final nameBox = ui.RRect.fromRectAndRadius(
-      ui.Rect.fromCenter(
-        center: ui.Offset(u.centerX, top - 21),
-        width: nameWidth,
-        height: 12,
+    final hpValue = math.max(0, u.hp);
+    final crit = hpValue <= 25;
+    final hp = '$hpValue';
+    final hpText = crit ? _hpCrit : _hp;
+    final nameW = name.isEmpty ? 0.0 : _name.getLineMetrics(name).width;
+    final hpW = hpText.getLineMetrics(hp).width;
+    const sym = 7.5;
+    final width = 5 + sym + 4 + nameW + (name.isEmpty ? 0 : 4) + hpW + 6;
+    const height = 19.0;
+    final left = u.centerX - width / 2;
+    final top = bottom - height;
+    final box = ui.RRect.fromLTRBR(
+      left,
+      top,
+      left + width,
+      bottom,
+      const ui.Radius.circular(7),
+    );
+    canvas
+      ..drawRRect(box, _tag)
+      ..drawRRect(box, _ring);
+    // Team mark.
+    final symbol = u.team < teamSymbols.length
+        ? teamSymbols[u.team]
+        : TeamSymbol.circle;
+    canvas
+      ..save()
+      ..translate(left + 5, top + 3.2)
+      ..scale(sym / 20)
+      ..drawPath(
+        _symbolPath(symbol),
+        _fill
+          ..color = ui.Color.lerp(ui.Color(teamColors[u.team]), _cream, 0.15)!,
+      )
+      ..restore();
+    var x = left + 5 + sym + 4;
+    if (name.isNotEmpty) {
+      _name.render(canvas, name, Vector2(x, top + 3), anchor: Anchor.topLeft);
+      x += nameW + 4;
+    }
+    hpText.render(canvas, hp, Vector2(x, top + 2.4), anchor: Anchor.topLeft);
+    // HP bar.
+    final barLeft = left + 5;
+    final barW = width - 10;
+    final bar = ui.RRect.fromLTRBR(
+      barLeft,
+      bottom - 5,
+      barLeft + barW,
+      bottom - 2.6,
+      const ui.Radius.circular(1.5),
+    );
+    canvas.drawRRect(bar, _barBack);
+    final frac = (hpValue / math.max(1, u.stats.maxHp)).clamp(0.0, 1.0);
+    canvas.drawRRect(
+      ui.RRect.fromLTRBR(
+        barLeft,
+        bottom - 5,
+        barLeft + barW * frac,
+        bottom - 2.6,
+        const ui.Radius.circular(1.5),
       ),
-      const ui.Radius.circular(4),
+      _fill
+        ..color = crit
+            ? const ui.Color(0xFFE5484D)
+            : ui.Color(teamColors[u.team]),
     );
-    canvas.drawRRect(nameBox, _box);
-    _nameText[u.team].render(
-      canvas,
-      name,
-      Vector2(u.centerX, top - 21),
-      anchor: Anchor.center,
-    );
+    return top;
   }
+
+  void _grave(ui.Canvas canvas, Unit u) {
+    final x = u.centerX;
+    final y = u.y;
+    final stone = ui.RRect.fromLTRBAndCorners(
+      x - 5,
+      y - 12,
+      x + 5,
+      y,
+      topLeft: const ui.Radius.circular(5),
+      topRight: const ui.Radius.circular(5),
+      bottomLeft: const ui.Radius.circular(1.3),
+      bottomRight: const ui.Radius.circular(1.3),
+    );
+    canvas
+      ..drawRRect(stone.shift(const ui.Offset(0.6, 1.3)), _shadow)
+      ..drawRRect(
+        stone,
+        ui.Paint()
+          ..shader = ui.Gradient.linear(
+            ui.Offset(x - 5, y - 12),
+            ui.Offset(x + 5, y),
+            const [ui.Color(0xFF9C9590), ui.Color(0xFF5A5552)],
+          ),
+      )
+      ..drawRect(
+        ui.Rect.fromLTWH(x - 5, y - 6.8, 10, 2.2),
+        _fill..color = ui.Color(teamColors[u.team]),
+      );
+  }
+
+  static final Map<TeamSymbol, ui.Path> _paths = {};
+
+  /// The team mark in a 20 × 20 box (same shapes as the HUD badges).
+  static ui.Path _symbolPath(TeamSymbol s) => _paths.putIfAbsent(s, () {
+    switch (s) {
+      case TeamSymbol.circle:
+        return ui.Path()..addOval(
+          ui.Rect.fromCircle(center: const ui.Offset(10, 10), radius: 8),
+        );
+      case TeamSymbol.triangle:
+        return ui.Path()
+          ..moveTo(10, 2.5)
+          ..lineTo(18.5, 17)
+          ..lineTo(1.5, 17)
+          ..close();
+      case TeamSymbol.square:
+        return ui.Path()..addRect(const ui.Rect.fromLTRB(3, 3, 17, 17));
+      case TeamSymbol.star:
+        final p = ui.Path();
+        for (var i = 0; i < 10; i++) {
+          final a = -math.pi / 2 + i * math.pi / 5;
+          final r = i.isEven ? 8.6 : 3.9;
+          final x = 10 + math.cos(a) * r;
+          final y = 10.6 + math.sin(a) * r;
+          i == 0 ? p.moveTo(x, y) : p.lineTo(x, y);
+        }
+        return p..close();
+      case TeamSymbol.diamond:
+        return ui.Path()
+          ..moveTo(10, 1.5)
+          ..lineTo(18, 10)
+          ..lineTo(10, 18.5)
+          ..lineTo(2, 10)
+          ..close();
+      case TeamSymbol.heart:
+        return ui.Path()
+          ..moveTo(10, 17.5)
+          ..cubicTo(2, 12, 1, 7, 4, 4.2)
+          ..cubicTo(6.5, 2, 9, 3.2, 10, 5.4)
+          ..cubicTo(11, 3.2, 13.5, 2, 16, 4.2)
+          ..cubicTo(19, 7, 18, 12, 10, 17.5)
+          ..close();
+    }
+  });
 }

@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import '../config/controls.dart';
 import '../config/families.dart';
 import '../config/maps.dart';
+import '../config/teams.dart';
 import '../config/match_defaults.dart';
 import '../config/weapons.dart';
 import '../sim/events.dart';
@@ -66,6 +67,7 @@ class PawtilleryGame extends FlameGame {
     required this.seed,
     required this.rosters,
     required this.teamColors,
+    this.teamSymbols = const [],
     required this.unitNames,
     required this.map,
     this.timings = const TurnTimings(),
@@ -78,6 +80,9 @@ class PawtilleryGame extends FlameGame {
 
   /// Colour (0xAARRGGBB) of each team, in roster order.
   final List<int> teamColors;
+
+  /// Each team's mark, shown on unit labels.
+  final List<TeamSymbol> teamSymbols;
 
   /// Display name of each unit, in roster order (= unit id).
   final List<String> unitNames;
@@ -160,6 +165,7 @@ class PawtilleryGame extends FlameGame {
       UnitsComponent(
         sim,
         teamColors: teamColors,
+        teamSymbols: teamSymbols,
         unitNames: unitNames,
       ),
       ProjectilesComponent(sim),

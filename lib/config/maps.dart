@@ -1,5 +1,5 @@
 /// Which backdrop, decorations and weather a map gets.
-enum MapTheme { castle, wreck, ruins }
+enum MapTheme { backyard, castle, wreck, ruins }
 
 /// What grows or settles on exposed top edges.
 enum CapStyle {
@@ -27,6 +27,12 @@ enum TerrainMaterial {
   rock,
   ice,
   snow,
+
+  /// Painted wooden toy blocks with a big letter (the backyard).
+  toy,
+
+  /// A tin can: a shiny cylinder with a red label.
+  can,
 }
 
 /// Map data. Colours are plain ints (0xAARRGGBB) so this stays pure Dart.
@@ -43,6 +49,7 @@ class MapDef {
     required this.waterArgb,
     this.grassThickness = 7,
     this.ambientArgb = 0xFFFFFFFF,
+    this.rimArgb,
     this.theme = MapTheme.castle,
     this.cap = CapStyle.grass,
     this.baseMaterial = TerrainMaterial.soil,
@@ -73,6 +80,10 @@ class MapDef {
   /// Light falling on the terrain (multiplied in): moonlight, storm grey,
   /// fire glow. Units are never tinted, so they stay readable.
   final int ambientArgb;
+
+  /// Warm (or cold) light catching the top edge of the ground, as in the
+  /// redesign's arena; null for none.
+  final int? rimArgb;
   final MapTheme theme;
   final CapStyle cap;
 
@@ -81,6 +92,22 @@ class MapDef {
 }
 
 abstract final class Maps {
+  /// The redesign's arena (redesign/ArenaScene.dc.html): a backyard at dusk.
+  static const backyard = MapDef(
+    id: 'backyard',
+    nameKey: 'mapBackyard',
+    maskAsset: 'assets/maps/backyard/mask.png',
+    waterLevel: 1120,
+    skyTopArgb: 0xFF2A2652,
+    skyBottomArgb: 0xFFF4AE78,
+    dirtArgb: 0xFF7A563C,
+    grassArgb: 0xFF4C6233,
+    waterArgb: 0xFF4A3150,
+    ambientArgb: 0xFFF2DCD0,
+    rimArgb: 0xFFFFB27A,
+    theme: MapTheme.backyard,
+  );
+
   static const castle = MapDef(
     id: 'castle',
     nameKey: 'mapCastle',
@@ -92,6 +119,7 @@ abstract final class Maps {
     grassArgb: 0xFF5C7A44,
     waterArgb: 0xFF16314A,
     ambientArgb: 0xFF9AA6D6,
+    rimArgb: 0xFFAFC2FF,
     baseMaterial: TerrainMaterial.soil,
   );
 
@@ -121,6 +149,7 @@ abstract final class Maps {
     grassArgb: 0xFF6E7A3E,
     waterArgb: 0xFF2C3E3A,
     ambientArgb: 0xFFE2B496,
+    rimArgb: 0xFFFF9A55,
     theme: MapTheme.ruins,
   );
 
@@ -138,7 +167,7 @@ abstract final class Maps {
   );
 
   /// Maps players can pick (PRD: Peta 1.0).
-  static const all = [castle, wreck, ruins];
+  static const all = [backyard, castle, wreck, ruins];
 
   static MapDef byId(String id) => [...all, sandbox].firstWhere(
     (m) => m.id == id,

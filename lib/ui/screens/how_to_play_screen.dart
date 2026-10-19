@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 
-import '../../app/iron_palette.dart';
+import '../../app/paw_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
+import '../../config/teams.dart';
 import '../../config/weapons.dart';
 import '../../l10n/app_localizations.dart';
-import '../../l10n/l10n_lookup.g.dart';
 import '../hud/weapon_menu.dart';
-import '../widgets/iron/iron_backdrop.dart';
-import '../widgets/iron/iron_button.dart';
-import '../widgets/iron/iron_controls.dart';
-import '../widgets/iron/iron_icons.dart';
-import '../widgets/iron/iron_panel.dart';
-import '../widgets/iron/iron_text.dart';
+import '../widgets/paw/paw_backdrop.dart';
+import '../widgets/paw/paw_widgets.dart';
+import '../widgets/paw/pet_figure.dart';
 
-/// How to Play (PRD: 4–6 illustrated pages): a picture card on the left,
-/// the text card on the right, page dots at the foot.
+/// How to Play (PRD: 4–6 illustrated pages; redesign prototype): one card
+/// with the page count and a close button, a striped picture panel on the
+/// left, title and text on the right, Back · dots · Next at the bottom.
 class HowToPlayScreen extends StatefulWidget {
   const HowToPlayScreen({super.key});
 
@@ -24,271 +22,225 @@ class HowToPlayScreen extends StatefulWidget {
 }
 
 class _HowToPlayScreenState extends State<HowToPlayScreen> {
-  final _controller = PageController();
   int _page = 0;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _go(int delta) => _controller.animateToPage(
-    _page + delta,
-    duration: const Duration(milliseconds: 280),
-    curve: Curves.easeOut,
-  );
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final pages = [
-      (l10n.howMoveTitle, l10n.howMoveBody, _art(context, 0)),
-      (l10n.howAimTitle, l10n.howAimBody, _art(context, 1)),
-      (l10n.howWeaponsTitle, l10n.howWeaponsBody, _art(context, 2)),
-      (l10n.howWindTitle, l10n.howWindBody, _art(context, 3)),
-      (l10n.howFamiliesTitle, l10n.howFamiliesBody, _art(context, 4)),
-      (l10n.howWinTitle, l10n.howWinBody, _art(context, 5)),
+      (l10n.howMoveTitle, l10n.howMoveBody),
+      (l10n.howAimTitle, l10n.howAimBody),
+      (l10n.howWeaponsTitle, l10n.howWeaponsBody),
+      (l10n.howWindTitle, l10n.howWindBody),
+      (l10n.howFamiliesTitle, l10n.howFamiliesBody),
+      (l10n.howWinTitle, l10n.howWinBody),
     ];
+    final (title, body) = pages[_page];
     final last = _page == pages.length - 1;
-
     return Scaffold(
-      body: IronBackdrop(
-        dim: 0.15,
+      body: PawBackdrop(
+        clouds: false,
         child: SafeArea(
-          child: Column(
-            children: [
-              IronHeader(title: l10n.menuHowToPlay.toUpperCase()),
-              Expanded(
-                child: PageView(
-                  controller: _controller,
-                  onPageChanged: (p) => setState(() => _page = p),
-                  children: [
-                    for (final (title, body, art) in pages)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(24, 6, 24, 6),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
+            child: PawCard(
+              padding: const EdgeInsets.fromLTRB(20, 12, 16, 14),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(l10n.menuHowToPlay, style: Paw.title(22)),
+                      ),
+                      Text(
+                        l10n.hudStepOf(_page + 1, pages.length),
+                        style: Paw.text(12, weight: 700, color: Paw.muted),
+                      ),
+                      const SizedBox(width: 10),
+                      PawCircleButton(
+                        icon: Icons.close_rounded,
+                        tooltip: l10n.back,
+                        onPressed: () => Navigator.of(context).maybePop(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          flex: 42,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Paw.ink, width: 2),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: CustomPaint(
+                              painter: const StripesPainter(),
+                              child: Center(child: _art(_page)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 24),
+                        Expanded(
+                          flex: 58,
+                          child: SingleChildScrollView(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 8),
+                                Text(title, style: Paw.title(28, height: 1.1)),
+                                const SizedBox(height: 10),
+                                ConstrainedBox(
+                                  constraints: const BoxConstraints(
+                                    maxWidth: 420,
+                                  ),
+                                  child: Text(
+                                    body,
+                                    style: Paw.text(
+                                      16,
+                                      weight: 600,
+                                      height: 1.5,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Opacity(
+                        opacity: _page == 0 ? 0.4 : 1,
+                        child: PawButton(
+                          label: l10n.back,
+                          icon: Icons.chevron_left_rounded,
+                          height: 48,
+                          fontSize: 14,
+                          onPressed: _page == 0
+                              ? null
+                              : () => setState(() => _page--),
+                        ),
+                      ),
+                      Expanded(
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Expanded(
-                              flex: 4,
-                              child: Center(
-                                child: IronPanel(
-                                  style: IronPanelStyle.night,
-                                  padding: const EdgeInsets.all(12),
-                                  child: SizedBox(
-                                    width: 230,
-                                    height: 156,
-                                    child: art,
-                                  ),
+                            for (var i = 0; i < pages.length; i++)
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                margin: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                width: i == _page ? 28 : 12,
+                                height: 12,
+                                decoration: BoxDecoration(
+                                  color: i == _page ? Paw.orange : Paw.cream,
+                                  borderRadius: BorderRadius.circular(999),
+                                  border: Border.all(color: Paw.ink, width: 2),
                                 ),
                               ),
-                            ),
-                            const SizedBox(width: 20),
-                            Expanded(
-                              flex: 5,
-                              child: IronPanel(
-                                padding: const EdgeInsets.fromLTRB(
-                                  18,
-                                  12,
-                                  18,
-                                  14,
-                                ),
-                                child: SingleChildScrollView(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      IronText(
-                                        title.toUpperCase(),
-                                        size: 24,
-                                        color: IronPalette.brass,
-                                        textAlign: TextAlign.start,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        body,
-                                        style: const TextStyle(
-                                          fontSize: 17,
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
                           ],
                         ),
                       ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: Row(
-                  children: [
-                    IronButton(
-                      label: l10n.back,
-                      tone: IronTone.steel,
-                      fontSize: 16,
-                      height: 44,
-                      onPressed: _page == 0 ? null : () => _go(-1),
-                    ),
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for (var i = 0; i < pages.length; i++)
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                              ),
-                              width: i == _page ? 26 : 14,
-                              height: 14,
-                              decoration: BoxDecoration(
-                                color: i == _page
-                                    ? IronPalette.brass
-                                    : IronPalette.iron,
-                                borderRadius: BorderRadius.circular(7),
-                                border: Border.all(
-                                  color: IronPalette.ink,
-                                  width: 2.5,
-                                ),
-                              ),
-                            ),
-                        ],
+                      PawButton(
+                        label: last ? l10n.howDone : l10n.howNext,
+                        trailingIcon: Icons.chevron_right_rounded,
+                        fill: Paw.green,
+                        height: 48,
+                        fontSize: 14,
+                        onPressed: last
+                            ? () => Navigator.of(context).pop()
+                            : () => setState(() => _page++),
                       ),
-                    ),
-                    last
-                        ? IronButton(
-                            label: l10n.howDone,
-                            icon: IronGlyph.check,
-                            tone: IronTone.moss,
-                            fontSize: 16,
-                            height: 44,
-                            onPressed: () => Navigator.of(context).pop(),
-                          )
-                        : IronButton(
-                            label: l10n.howNext,
-                            tone: IronTone.steel,
-                            fontSize: 16,
-                            height: 44,
-                            onPressed: () => _go(1),
-                          ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _figure(FamilyDef f, {double size = 120, int facing = 1}) =>
-      AnimalFigure(
-        familyId: f.id,
-        breedId: Breeds.ofFamily(f.id).first.id,
-        teamArgb: 0xFF2F86E0,
+  Widget _pet(String family, int team, {double size = 90, bool flip = false}) =>
+      PetFigure(
+        familyId: family,
+        breedId: Breeds.ofFamily(family).first.id,
+        teamArgb: Teams.styles[team].colorArgb,
         size: size,
-        facing: facing,
+        flip: flip,
       );
 
-  Widget _art(BuildContext context, int page) {
+  Widget _art(int page) {
     switch (page) {
       case 0:
         return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            const IronIcon(IronGlyph.walkLeft, size: 34),
-            _figure(Families.rabbit),
-            const IronIcon(IronGlyph.walkRight, size: 34),
+            const Icon(Icons.arrow_back_rounded, size: 34, color: Paw.ink),
+            _pet('rabbit', 0),
+            const Icon(Icons.arrow_forward_rounded, size: 34, color: Paw.ink),
           ],
         );
       case 1:
-        return Stack(
+        return Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Positioned(left: 60, top: 20, child: _figure(Families.cat)),
-            Positioned.fill(child: CustomPaint(painter: _AimSketch())),
+            _pet('cat', 1),
+            const Icon(Icons.gps_fixed_rounded, size: 40, color: Paw.ink),
           ],
         );
       case 2:
-        return Center(
-          child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.center,
-              children: [
-                for (final w in [
-                  Weapons.rock,
-                  Weapons.grenade,
-                  Weapons.cluster,
-                  Weapons.mine,
-                  Weapons.boneBoomerang,
-                  Weapons.coconut,
-                ])
-                  WeaponIcon(weapon: w, size: 52),
-              ],
-            ),
+        return Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          children: [
+            for (final w in [
+              Weapons.rock,
+              Weapons.grenade,
+              Weapons.cluster,
+              Weapons.mine,
+              Weapons.boneBoomerang,
+              Weapons.coconut,
+            ])
+              WeaponIcon(weapon: w, size: 50),
+          ],
         );
       case 3:
-        return const Center(child: IronIcon(IronGlyph.wind, size: 110));
+        return const Icon(Icons.air_rounded, size: 110, color: Paw.ink);
       case 4:
-        final l10n = AppLocalizations.of(context);
-        return Center(
-          child: Wrap(
-            alignment: WrapAlignment.center,
-            children: [
-              for (final f in [
-                Families.cat,
-                Families.dog,
-                Families.bird,
-                Families.turtle,
-                Families.goat,
-                Families.monkey,
-              ])
-                Tooltip(
-                  message: l10n.byKey(f.latinKey),
-                  child: _figure(f, size: 66),
-                ),
-            ],
-          ),
+        return Wrap(
+          alignment: WrapAlignment.center,
+          children: [
+            for (final (i, f) in [
+              Families.cat,
+              Families.dog,
+              Families.bird,
+              Families.turtle,
+              Families.goat,
+              Families.monkey,
+            ].indexed)
+              _pet(f.id, i % 4, size: 60),
+          ],
         );
       default:
         return Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _figure(Families.dog, size: 110),
-            _figure(Families.duck, size: 90, facing: -1),
+            _pet('dog', 0),
+            const Icon(Icons.emoji_events_rounded, size: 46, color: Paw.yellow),
+            _pet('duck', 1, flip: true, size: 76),
           ],
         );
     }
   }
-}
-
-/// A slingshot pull: the drag back and the dotted arc forward.
-class _AimSketch extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    const start = Offset(122, 92);
-    final pencil = Paint()
-      ..color = IronPalette.parchment
-      ..strokeWidth = 3
-      ..style = PaintingStyle.stroke;
-    canvas.drawLine(start, const Offset(52, 132), pencil);
-    final ink = Paint()..color = IronPalette.brass;
-    for (var i = 1; i <= 8; i++) {
-      final t = i / 8;
-      canvas.drawCircle(
-        Offset(start.dx + t * 90, start.dy - t * 80 + t * t * 50),
-        3.4,
-        ink,
-      );
-    }
-    canvas.drawCircle(const Offset(52, 132), 5, pencil);
-  }
-
-  @override
-  bool shouldRepaint(_AimSketch old) => false;
 }

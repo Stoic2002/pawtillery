@@ -1,88 +1,74 @@
 import 'package:flutter/material.dart';
 
-import '../../app/iron_palette.dart';
+import '../../app/paw_palette.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/iron/iron_button.dart';
-import '../widgets/iron/iron_icons.dart';
-import '../widgets/iron/iron_panel.dart';
+import '../widgets/paw/paw_widgets.dart';
 
 enum PauseChoice { resume, settings, exit }
 
-/// Pause menu (PRD: Jeda — Lanjut, Settings, Keluar ke menu): a card that
-/// pops in with three big buttons. Closing it any other way (back gesture,
-/// tap outside) resumes.
+/// Pause menu (PRD: Jeda — Lanjut, Settings, Keluar ke menu; redesign
+/// prototype): a card with Resume, Settings and a red Quit. Closing it any
+/// other way (back gesture, tap outside) resumes.
 Future<PauseChoice> showPauseDialog(BuildContext context) async {
   final l10n = AppLocalizations.of(context);
-  final choice = await showIronDialog<PauseChoice>(
+  final choice = await showPawDialog<PauseChoice>(
     context: context,
-    title: l10n.pauseTitle.toUpperCase(),
-    maxWidth: 340,
-    builder: (context) => Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final (c, label, glyph, tone) in [
-          (PauseChoice.resume, l10n.pauseResume, IronGlyph.play, IronTone.moss),
-          (PauseChoice.settings, l10n.menuSettings, IronGlyph.gear, IronTone.steel),
-          (PauseChoice.exit, l10n.pauseExit, IronGlyph.home, IronTone.blood),
-        ])
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: IronButton(
-              label: label,
-              icon: glyph,
-              tone: tone,
-              fontSize: 18,
-              onPressed: () => Navigator.of(context).pop(c),
-            ),
+    width: 300,
+    builder: (context) => PawCard(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.pauseTitle,
+            textAlign: TextAlign.center,
+            style: Paw.title(28),
           ),
-      ],
+          const SizedBox(height: 12),
+          PawButton(
+            label: l10n.pauseResume,
+            icon: Icons.play_arrow_rounded,
+            fill: Paw.orange,
+            display: true,
+            fontSize: 20,
+            height: 56,
+            borderWidth: 3,
+            onPressed: () => Navigator.of(context).pop(PauseChoice.resume),
+          ),
+          const SizedBox(height: 12),
+          PawButton(
+            label: l10n.menuSettings,
+            icon: Icons.settings_rounded,
+            height: 48,
+            fontSize: 15,
+            onPressed: () => Navigator.of(context).pop(PauseChoice.settings),
+          ),
+          const SizedBox(height: 12),
+          PawButton(
+            label: l10n.pauseExit,
+            icon: Icons.logout_rounded,
+            height: 48,
+            fontSize: 15,
+            border: Paw.red,
+            foreground: Paw.redText,
+            onPressed: () => Navigator.of(context).pop(PauseChoice.exit),
+          ),
+        ],
+      ),
     ),
   );
   return choice ?? PauseChoice.resume;
 }
 
 /// "Leave the match?" confirmation.
-Future<bool> confirmExit(BuildContext context) async {
+Future<bool> confirmExit(BuildContext context) {
   final l10n = AppLocalizations.of(context);
-  final ok = await showIronDialog<bool>(
+  return showPawConfirm(
     context: context,
-    title: l10n.pauseExitConfirmTitle.toUpperCase(),
-    titleTone: IronTone.blood,
-    maxWidth: 420,
-    builder: (context) => Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          l10n.pauseExitConfirmBody,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 17, color: IronPalette.mute),
-        ),
-        const SizedBox(height: 14),
-        Wrap(
-          spacing: 12,
-          runSpacing: 8,
-          alignment: WrapAlignment.center,
-          children: [
-            IronButton(
-              label: l10n.dialogCancel,
-              tone: IronTone.steel,
-              fontSize: 17,
-              minWidth: 120,
-              onPressed: () => Navigator.of(context).pop(false),
-            ),
-            IronButton(
-              label: l10n.dialogLeave,
-              tone: IronTone.blood,
-              icon: IronGlyph.home,
-              fontSize: 17,
-              minWidth: 120,
-              onPressed: () => Navigator.of(context).pop(true),
-            ),
-          ],
-        ),
-      ],
-    ),
+    title: l10n.pauseExitConfirmTitle,
+    body: l10n.pauseQuitBody,
+    ok: l10n.pauseQuit,
+    cancel: l10n.dialogCancel,
   );
-  return ok ?? false;
 }

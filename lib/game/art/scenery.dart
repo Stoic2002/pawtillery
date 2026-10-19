@@ -19,6 +19,10 @@ abstract final class Scenery {
   static List<SceneryLayer> build(MapDef map, double width, double height) {
     final rng = math.Random(_seed(map.id));
     return switch (map.theme) {
+      MapTheme.backyard => [
+        SceneryLayer(_house(map, rng, width, height), 0.15),
+        SceneryLayer(_fenceAndLights(map, rng, width, height), 0.45),
+      ],
       MapTheme.castle => [
         SceneryLayer(_mountains(map, rng, width, height), 0.12),
         SceneryLayer(_farCastles(map, rng, width, height), 0.3),
@@ -89,6 +93,165 @@ abstract final class Scenery {
         ),
     );
   }
+
+  // -------------------------------------------------------------- backyard
+
+  /// A house and trees in silhouette with warm windows, behind a haze.
+  static ui.Picture _house(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    final ground = h * 0.66;
+    final soft = ui.Paint()..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 3);
+    // Trees.
+    for (var x = -w * 0.5; x < w * 1.6; x += 260 + rng.nextDouble() * 260) {
+      final r = 90 + rng.nextDouble() * 70;
+      for (final (dx, dy, k) in [(-0.6, 0.2, 0.7), (0.5, 0.15, 0.75), (0.0, -0.3, 1.0)]) {
+        c.drawCircle(
+          ui.Offset(x + dx * r, ground - r * 0.9 + dy * r),
+          r * k,
+          ui.Paint()
+            ..color = const ui.Color(0xFF33243D)
+            ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 4),
+        );
+      }
+      c.drawCircle(
+        ui.Offset(x - r * 0.3, ground - r * 1.3),
+        r * 0.35,
+        ui.Paint()
+          ..color = const ui.Color(0x8C6E4A60)
+          ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 8),
+      );
+    }
+    // The house: walls, a pitched roof, siding, lit windows.
+    for (final hx in [w * 0.12, w * 0.68]) {
+      const hw = 420.0;
+      const hh = 230.0;
+      final body = ui.Rect.fromLTWH(hx, ground - hh, hw, hh + 60);
+      c
+        ..drawRect(body, soft..color = const ui.Color(0xFF3F2A48))
+        ..drawPath(
+          ui.Path()
+            ..moveTo(hx - 30, ground - hh)
+            ..lineTo(hx + hw / 2, ground - hh - 130)
+            ..lineTo(hx + hw + 30, ground - hh)
+            ..close(),
+          soft..color = const ui.Color(0xFF34223C),
+        );
+      final siding = ui.Paint()
+        ..color = const ui.Color(0x802A1C33)
+        ..strokeWidth = 1.2;
+      for (var y = ground - hh + 12; y < ground + 40; y += 14) {
+        c.drawLine(ui.Offset(hx, y), ui.Offset(hx + hw, y), siding);
+      }
+      for (final (wx, wy) in [(40.0, 50.0), (170.0, 50.0), (300.0, 50.0), (40.0, 140.0), (300.0, 140.0)]) {
+        final win = ui.Rect.fromLTWH(hx + wx, ground - hh + wy, 70, 56);
+        c
+          ..drawRect(
+            win.inflate(10),
+            ui.Paint()
+              ..color = const ui.Color(0x55FFC982)
+              ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 10),
+          )
+          ..drawRect(win, ui.Paint()..color = const ui.Color(0x99FFC982))
+          ..drawLine(win.topCenter, win.bottomCenter, ui.Paint()..color = const ui.Color(0xFF3F2A48)..strokeWidth = 4)
+          ..drawLine(win.centerLeft, win.centerRight, ui.Paint()..color = const ui.Color(0xFF3F2A48)..strokeWidth = 4);
+      }
+    }
+    _fog(c, w, h * 0.66, 170, const ui.Color(0x55F2A877));
+  });
+
+  /// A wooden fence along the yard with a wire of warm fairy lights and
+  /// soft bokeh, as in the redesign's arena.
+  static ui.Picture _fenceAndLights(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    final top = h * 0.5;
+    final bottom = h * 0.78;
+    final rail = ui.Paint()..color = const ui.Color(0xFF3A2638);
+    c
+      ..drawRect(ui.Rect.fromLTRB(-w, top + 40, w * 2, top + 58), rail)
+      ..drawRect(ui.Rect.fromLTRB(-w, bottom - 60, w * 2, bottom - 42), rail);
+    for (var x = -w; x < w * 2; x += 46) {
+      final plankTop = top + (rng.nextDouble() * 10);
+      final plank = ui.Path()
+        ..moveTo(x + 2, bottom)
+        ..lineTo(x + 2, plankTop + 10)
+        ..lineTo(x + 21, plankTop)
+        ..lineTo(x + 40, plankTop + 10)
+        ..lineTo(x + 40, bottom)
+        ..close();
+      c
+        ..drawPath(
+          plank,
+          ui.Paint()
+            ..shader = ui.Gradient.linear(
+              ui.Offset(x, plankTop),
+              ui.Offset(x + 40, plankTop),
+              [const ui.Color(0xFF7A5470), const ui.Color(0xFF5E3E56)],
+            ),
+        )
+        ..drawRect(
+          ui.Rect.fromLTRB(x + 32, plankTop + 8, x + 40, bottom),
+          ui.Paint()..color = const ui.Color(0x40000000),
+        );
+      for (var g = plankTop + 20; g < bottom; g += 9 + rng.nextDouble() * 8) {
+        c.drawLine(
+          ui.Offset(x + 6 + rng.nextDouble() * 28, g),
+          ui.Offset(x + 6 + rng.nextDouble() * 28, g + 6),
+          ui.Paint()
+            ..color = const ui.Color(0x26000000)
+            ..strokeWidth = 1,
+        );
+      }
+    }
+    // The light wire: sagging arcs with bulbs.
+    final wire = ui.Path();
+    final bulbs = <ui.Offset>[];
+    const span = 300.0;
+    for (var x = -w; x < w * 2; x += span) {
+      final y0 = top - 40;
+      wire.moveTo(x, y0);
+      wire.quadraticBezierTo(x + span / 2, y0 + 70, x + span, y0);
+      for (var t = 0.1; t < 1; t += 0.2) {
+        final bx = x + span * t;
+        final by = y0 + 70 * 2 * t * (1 - t) + 6;
+        bulbs.add(ui.Offset(bx, by));
+      }
+    }
+    c.drawPath(
+      wire,
+      ui.Paint()
+        ..style = ui.PaintingStyle.stroke
+        ..strokeWidth = 1.6
+        ..color = const ui.Color(0xCC24162A),
+    );
+    for (final b in bulbs) {
+      c
+        ..drawCircle(
+          b,
+          14,
+          ui.Paint()
+            ..color = const ui.Color(0xAAFFC064)
+            ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 8),
+        )
+        ..drawCircle(b, 4, ui.Paint()..color = const ui.Color(0xFFFFF2C9));
+    }
+    for (var i = 0; i < 14; i++) {
+      c.drawCircle(
+        ui.Offset(-w * 0.2 + rng.nextDouble() * w * 1.4, top - 140 + rng.nextDouble() * 180),
+        16 + rng.nextDouble() * 22,
+        ui.Paint()
+          ..color = const ui.Color(0x40FFB86B)
+          ..maskFilter = const ui.MaskFilter.blur(ui.BlurStyle.normal, 16),
+      );
+    }
+  });
 
   // ---------------------------------------------------------------- castle
 

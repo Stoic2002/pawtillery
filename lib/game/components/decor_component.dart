@@ -48,6 +48,12 @@ class DecorComponent extends Component {
       }
       final natural = m == TerrainMaterial.soil || m == TerrainMaterial.rock;
       return switch (map.theme) {
+        MapTheme.backyard when natural => const [
+          _Kind.tuft,
+          _Kind.tuft,
+          _Kind.pebble,
+          _Kind.mushroom,
+        ],
         MapTheme.castle when natural => const [
           _Kind.tuft,
           _Kind.tuft,

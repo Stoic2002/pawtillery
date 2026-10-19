@@ -47,6 +47,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
   late final int _seed = math.Random().nextInt(1 << 31);
   PawtilleryGame? _game;
   late List<String> _teamNames;
+  late List<TeamSymbol> _teamSymbols;
   late List<String> _unitNames;
   bool _paused = false;
   AudioService? _audio;
@@ -74,6 +75,9 @@ class _ArenaScreenState extends State<ArenaScreen> {
       for (final t in config.teams)
         t.customName ?? l10n.byKey(Teams.styles[t.styleIndex].nameKey),
     ];
+    _teamSymbols = [
+      for (final t in config.teams) Teams.styles[t.styleIndex].symbol,
+    ];
     _unitNames = [
       for (final t in config.teams)
         for (final u in t.units) u.name,
@@ -85,6 +89,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       teamColors: [
         for (final t in config.teams) Teams.styles[t.styleIndex].colorArgb,
       ],
+      teamSymbols: _teamSymbols,
       unitNames: _unitNames,
       timings: TurnTimings(
         turnTicks: config.turnSeconds * MatchDefaults.ticksPerSecond,
@@ -125,10 +130,21 @@ class _ArenaScreenState extends State<ArenaScreen> {
     if (_finished || hud == null || !hud.isOver) return;
     _finished = true;
     final top = game.stats.topDamage;
+    final teamDamage = List.filled(_teamNames.length, 0);
+    for (final MapEntry(:key, :value) in game.stats.damageDealt.entries) {
+      teamDamage[game.sim.units[key].team] += value;
+    }
+    final unitsLeft = List.filled(_teamNames.length, 0);
+    for (final u in game.sim.units) {
+      if (u.alive) unitsLeft[u.team]++;
+    }
     final result = MatchResult(
       winnerTeam: hud.winnerTeam,
       teamNames: _teamNames,
       teamColors: game.teamColors,
+      teamSymbols: _teamSymbols,
+      teamDamage: teamDamage,
+      unitsLeft: unitsLeft,
       knockouts: List.of(game.stats.knockouts),
       turns: game.sim.turn.turnNumber,
       topUnitName: top == null ? null : _unitNames[top.$1],
@@ -287,6 +303,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
                       game: game,
                       seed: _seed,
                       teamNames: _teamNames,
+                      teamSymbols: _teamSymbols,
                       onPause: _pause,
                       tutorial: _tutorial,
                     )
