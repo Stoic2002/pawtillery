@@ -101,25 +101,41 @@ primary (sun) action per screen.
 - **Weapon panel:** slides in from the right; colour weapon icons on
   cards; ammo as a number badge.
 
+## The W.M.D lesson: painted world, clean characters
+
+Team17 described W.M.D's look as hand-painted landscapes against simpler,
+clean-lined characters, deliberately different so players can tell
+scenery from what they can interact with. We apply that principle (not
+their art):
+
+- **Terrain is painted and soft-edged:** no hard black outline; a soft
+  dark crust where ground meets air, brush-stroke texture with warm/cool
+  colour drift and wandering strata, a grass or snow fringe painted into
+  the air above tops, roots, leaves or icicles hanging under overhangs.
+- **Characters are clean and outlined:** flat fills with one shadow
+  shape, a thick dark outline, big eyes with heavy upper lids for
+  attitude.
+- **Backdrops are simple and hazy:** no outlines, so the play layer pops.
+- Everything stays drawn in code; no image files.
+
 ## Animals
 
 Painted cartoon: big heads (about 45 % of height), large eyes with
-highlights and pupils that follow the aim, readable silhouettes, dark
-outlines (about 1.6 px at 1×), soft two-step shading, a team-colour
-bandana. Same API as before (`AnimalArt.draw`, poses).
+highlights and heavy upper lids in the head colour, readable silhouettes,
+dark outlines (1.35 px at 1×), one cel shadow shape plus a faint
+highlight, a team-colour bandana with polka dots. Long fur is one merged
+tufted silhouette. Same API as before (`AnimalArt.draw`, poses).
 
 ## Maps
 
 Set pieces, not flat strips: islands with overhangs, caves and props
-built into the terrain. Painterly terrain: brush-stroke texture, a lit top
-rim with grass, snow or sand caps, and a dark outline at every air edge.
-Each theme has its own parallax backdrop.
+built into the terrain. Each theme has its own parallax backdrop.
 
 | Theme | Terrain | Props |
 |---|---|---|
-| Farm | soil, hay, barn wood, roof | barn, haystacks, fences, windmill |
-| Coastal cliffs | rock, sand, timber | lighthouse, boats, rocks, sea |
-| Snowy mountain | rock, snow, ice, logs | pines, cabin, icicles |
+| Farm | soil (embedded stones), hay, plank wood, roof shingles, leaf clumps | barn, haystacks, fences, water tower |
+| Coastal cliffs | stacked boulders, sand, timber | lighthouse, pier, beached boat, rocks, sea |
+| Snowy mountain | stacked boulders, snow, ice, logs | pines, cabin, icicles, frozen lake |
 
 ## Effects
 

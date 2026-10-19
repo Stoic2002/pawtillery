@@ -50,7 +50,13 @@ class DecorComponent extends Component {
         TerrainMaterial.sand => const [_Kind.shell, _Kind.starfish, _Kind.tuft],
         TerrainMaterial.soil || TerrainMaterial.rock =>
           map.theme == MapTheme.farm
-              ? const [_Kind.tuft, _Kind.tuft, _Kind.flower, _Kind.mushroom, _Kind.pebble]
+              ? const [
+                  _Kind.tuft,
+                  _Kind.tuft,
+                  _Kind.flower,
+                  _Kind.mushroom,
+                  _Kind.pebble,
+                ]
               : const [_Kind.tuft, _Kind.tuft, _Kind.flower, _Kind.pebble],
         _ => const [],
       };
@@ -59,8 +65,10 @@ class DecorComponent extends Component {
     for (var x = 4; x < mask.width - 4; x += 9 + rng.nextInt(26)) {
       // Every exposed top surface in this column (ground with air above).
       for (var y = 1; y < mask.height; y++) {
-        if (mask.isSolid(x, y) && !mask.isSolid(x, y - 1) &&
-            !mask.isSolid(x, y - 4) && y < map.waterLevel - 4 &&
+        if (mask.isSolid(x, y) &&
+            !mask.isSolid(x, y - 1) &&
+            !mask.isSolid(x, y - 4) &&
+            y < map.waterLevel - 4 &&
             rng.nextDouble() < 0.75) {
           final kinds = kindsAt(x, y);
           final pick = rng.nextInt(1 << 20);
@@ -112,7 +120,11 @@ class DecorComponent extends Component {
       final dx = (i - 2) * 1.6;
       final h = 5.0 + (seed >> i) % 5;
       _blade.color = PaintKit.tone(map.grassArgb, (i.isEven ? -0.2 : 0.1));
-      c.drawLine(o + ui.Offset(dx, 0), o + ui.Offset(dx * 1.6 + sway, -h), _blade);
+      c.drawLine(
+        o + ui.Offset(dx, 0),
+        o + ui.Offset(dx * 1.6 + sway, -h),
+        _blade,
+      );
     }
   }
 
@@ -126,7 +138,11 @@ class DecorComponent extends Component {
     final petal = ui.Paint()..color = ui.Color(_petals[seed % _petals.length]);
     for (var i = 0; i < 5; i++) {
       final a = i / 5 * math.pi * 2;
-      c.drawCircle(top + ui.Offset(math.cos(a) * 2, math.sin(a) * 2), 1.6, petal);
+      c.drawCircle(
+        top + ui.Offset(math.cos(a) * 2, math.sin(a) * 2),
+        1.6,
+        petal,
+      );
     }
     c.drawCircle(top, 1.2, ui.Paint()..color = const ui.Color(0xFFD9822B));
   }
@@ -134,7 +150,10 @@ class DecorComponent extends Component {
   void _pebble(ui.Canvas c, ui.Offset o, int seed) {
     final w = 4.0 + seed % 4;
     final rect = ui.Rect.fromCenter(
-        center: o + const ui.Offset(0, -1.4), width: w, height: w * 0.6);
+      center: o + const ui.Offset(0, -1.4),
+      width: w,
+      height: w * 0.6,
+    );
     c.drawOval(rect, PaintKit.lit(rect, 0xFF9A938A, light: 0.35));
   }
 
@@ -142,9 +161,17 @@ class DecorComponent extends Component {
     final stem = ui.Rect.fromLTWH(o.dx - 1, o.dy - 5, 2, 5);
     c.drawRect(stem, ui.Paint()..color = const ui.Color(0xFFF2EAD8));
     final cap = ui.Rect.fromCenter(
-        center: o + const ui.Offset(0, -5), width: 7, height: 4.5);
-    c.drawArc(cap, math.pi, math.pi, true,
-        PaintKit.lit(cap, seed.isEven ? 0xFFC0392B : 0xFFB5895A));
+      center: o + const ui.Offset(0, -5),
+      width: 7,
+      height: 4.5,
+    );
+    c.drawArc(
+      cap,
+      math.pi,
+      math.pi,
+      true,
+      PaintKit.lit(cap, seed.isEven ? 0xFFC0392B : 0xFFB5895A),
+    );
   }
 
   final ui.Paint _ink = ui.Paint()
@@ -160,7 +187,10 @@ class DecorComponent extends Component {
       ..quadraticBezierTo(o.dx, o.dy - w * 1.2, o.dx + w / 2, o.dy - 0.5)
       ..close();
     c
-      ..drawPath(fan, ui.Paint()..color = ui.Color(seed.isEven ? 0xFFFFD8C8 : 0xFFFFF0D8))
+      ..drawPath(
+        fan,
+        ui.Paint()..color = ui.Color(seed.isEven ? 0xFFFFD8C8 : 0xFFFFF0D8),
+      )
       ..drawPath(fan, _ink);
   }
 
@@ -175,18 +205,26 @@ class DecorComponent extends Component {
     }
     star.close();
     c
-      ..drawPath(star, ui.Paint()..color = ui.Color(seed.isEven ? 0xFFFF7A4A : 0xFFFFA13A))
+      ..drawPath(
+        star,
+        ui.Paint()..color = ui.Color(seed.isEven ? 0xFFFF7A4A : 0xFFFFA13A),
+      )
       ..drawPath(star, _ink);
   }
 
   void _snowClump(ui.Canvas c, ui.Offset o, int seed) {
-    final w = 5.0 + seed % 5;
+    final w = 6.0 + seed % 6;
     final clump = ui.Path()
-      ..addOval(ui.Rect.fromCenter(center: o + ui.Offset(-w * 0.3, -1.6), width: w, height: w * 0.6))
-      ..addOval(ui.Rect.fromCenter(center: o + ui.Offset(w * 0.3, -1.2), width: w * 0.8, height: w * 0.5));
+      ..moveTo(o.dx - w / 2, o.dy)
+      ..quadraticBezierTo(o.dx - w * 0.4, o.dy - w * 0.5, o.dx, o.dy - w * 0.45)
+      ..quadraticBezierTo(o.dx + w * 0.45, o.dy - w * 0.4, o.dx + w / 2, o.dy)
+      ..close();
     c
-      ..drawPath(clump, ui.Paint()..color = const ui.Color(0xFFF6FBFF))
-      ..drawPath(clump, _ink..color = const ui.Color(0xFF5A6A88));
-    _ink.color = const ui.Color(0xFF2A1A12);
+      ..drawPath(clump, ui.Paint()..color = const ui.Color(0xFFF4FAFF))
+      ..drawCircle(
+        o + ui.Offset(-w * 0.12, -w * 0.3),
+        w * 0.12,
+        ui.Paint()..color = const ui.Color(0xFFFFFFFF),
+      );
   }
 }

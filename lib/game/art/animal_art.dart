@@ -16,8 +16,7 @@ enum AnimalPose { idle, walkA, walkB, air }
 /// unit (24 px hit circle). Callers flip and scale. Every (breed, team,
 /// pose) is recorded once into a [ui.Picture] and replayed.
 abstract final class AnimalArt {
-  static final Map<(String?, String?, int, AnimalPose), ui.Picture> _cache =
-      {};
+  static final Map<(String?, String?, int, AnimalPose), ui.Picture> _cache = {};
 
   /// Visual height of a standard unit, for placing labels above it.
   static const double height = 37;
@@ -29,10 +28,12 @@ abstract final class AnimalArt {
     required int teamArgb,
     required AnimalPose pose,
   }) {
-    final picture = _cache.putIfAbsent(
-      (familyId, breedId, teamArgb, pose),
-      () => _record(familyId, breedId, teamArgb, pose),
-    );
+    final picture = _cache.putIfAbsent((
+      familyId,
+      breedId,
+      teamArgb,
+      pose,
+    ), () => _record(familyId, breedId, teamArgb, pose));
     canvas.drawPicture(picture);
   }
 
@@ -95,7 +96,7 @@ class _Animal {
   static const _pink = 0xFFF29AA6;
   static const _hoof = 0xFF4A3A2E;
   static const _beak = 0xFFF5B43A;
-  static const _line = 1.15;
+  static const _line = 1.35;
 
   bool get _dark => PaintKit.c(fur).computeLuminance() < 0.08;
   int get headColor => pattern == CoatPattern.headColor ? mark : fur;
@@ -140,27 +141,24 @@ class _Animal {
       )
       ..drawOval(
         ui.Rect.fromCenter(
-          center: ui.Offset(
-            b.left + b.width * 0.34,
-            b.top + b.height * 0.27,
-          ),
+          center: ui.Offset(b.left + b.width * 0.34, b.top + b.height * 0.27),
           width: b.width * 0.38,
           height: b.height * 0.24,
         ),
-        ui.Paint()..color = const ui.Color(0x40FFFFFF),
+        ui.Paint()..color = const ui.Color(0x33FFFFFF),
       )
       ..restore();
     if (line) canvas.drawPath(p, _outline);
   }
 
-  ui.Path ovalPath(double cx, double cy, double rx, double ry) =>
-      ui.Path()..addOval(
-        ui.Rect.fromCenter(
-          center: ui.Offset(cx, cy),
-          width: rx * 2,
-          height: ry * 2,
-        ),
-      );
+  ui.Path ovalPath(double cx, double cy, double rx, double ry) => ui.Path()
+    ..addOval(
+      ui.Rect.fromCenter(
+        center: ui.Offset(cx, cy),
+        width: rx * 2,
+        height: ry * 2,
+      ),
+    );
 
   void oval(
     double cx,
@@ -226,14 +224,25 @@ class _Animal {
   }
 
   /// A pair of cartoon eyes seen from the side: the far eye just in front
-  /// and a little smaller, the near eye big; white, coloured iris, pupil
-  /// and two highlights, looking forward.
-  void eyes(double x, double y, double r, {int iris = 0xFF5A3A1E, bool pair = true}) {
-    if (pair) _eye(x + r * 1.25, y - r * 0.05, r * 0.85, iris);
-    _eye(x, y, r, iris);
+  /// and a little smaller, the near eye big; white, a big iris and pupil,
+  /// two highlights, looking forward, and heavy upper lids in the head's
+  /// colour that give the cheeky, up-for-a-fight look (clean shapes and
+  /// strong expressions, against the soft painted terrain).
+  void eyes(
+    double x,
+    double y,
+    double r, {
+    int iris = 0xFF5A3A1E,
+    bool pair = true,
+    int? lid,
+  }) {
+    r *= 1.12;
+    final lidColor = lid ?? headColor;
+    if (pair) _eye(x + r * 1.22, y - r * 0.05, r * 0.86, iris, lidColor);
+    _eye(x, y, r, iris, lidColor);
   }
 
-  void _eye(double x, double y, double r, int iris) {
+  void _eye(double x, double y, double r, int iris, int lidColor) {
     final white = ovalPath(x, y, r * 0.84, r);
     canvas
       ..drawPath(white, PaintKit.solid(0xFFFFFFFF))
@@ -258,17 +267,22 @@ class _Animal {
         ui.Offset(x + r * 0.5, y + r * 0.42),
         r * 0.1,
         PaintKit.solid(0xCCFFFFFF),
-      )
+      );
+    // Upper lid: covers the top of the eye, its edge sloping down towards
+    // the front.
+    final lidEdge = ui.Path()
+      ..moveTo(x - r, y - r * 0.5)
+      ..quadraticBezierTo(x, y - r * 0.18, x + r, y - r * 0.12);
+    final lidShape = ui.Path.from(lidEdge)
+      ..lineTo(x + r, y - r * 1.2)
+      ..lineTo(x - r, y - r * 1.2)
+      ..close();
+    canvas
+      ..drawPath(lidShape, PaintKit.solid(lidColor))
       ..restore()
-      ..drawPath(white, ink(0.9));
+      ..drawPath(lidEdge, ink(0.95))
+      ..drawPath(white, ink(1.0));
   }
-
-  /// A determined brow over the near eye, low at the front.
-  void brow(double x, double y, double r) => canvas.drawLine(
-    ui.Offset(x - r * 0.7, y - r * 1.35),
-    ui.Offset(x + r * 1.5, y - r * 1.0),
-    ink(1.1),
-  );
 
   /// A small smile under the muzzle.
   void smile(double x, double y, double w) => canvas.drawPath(
@@ -311,16 +325,21 @@ class _Animal {
   /// Fluffy rim for long-furred breeds: outlined bumps around a shape.
   void fluff(double cx, double cy, double rx, double ry, int argb) {
     if (!longFur) return;
+    // One merged silhouette: all outlines first, then all fills, so the
+    // tufts share a single outer outline instead of a ring each.
+    final tufts = ui.Path();
     for (var i = 0; i < 12; i++) {
       final a = i / 12 * math.pi * 2;
-      oval(
-        cx + math.cos(a) * rx,
-        cy + math.sin(a) * ry,
-        2.4,
-        2.4,
-        PaintKit.toneArgb(argb, -0.04),
+      tufts.addOval(
+        ui.Rect.fromCircle(
+          center: ui.Offset(cx + math.cos(a) * rx, cy + math.sin(a) * ry),
+          radius: 2.4,
+        ),
       );
     }
+    canvas
+      ..drawPath(tufts, ink(_line * 2))
+      ..drawPath(tufts, PaintKit.solid(PaintKit.toneArgb(argb, -0.06)));
   }
 
   /// Coat markings, drawn inside a part (already clipped to it).
@@ -358,10 +377,7 @@ class _Animal {
           (0.5, 0.46, 1.2),
         ]) {
           canvas.drawCircle(
-            ui.Offset(
-              body.left + body.width * fx,
-              body.top + body.height * fy,
-            ),
+            ui.Offset(body.left + body.width * fx, body.top + body.height * fy),
             r,
             m,
           );
@@ -438,7 +454,14 @@ class _Animal {
       PaintKit.groundShadow(canvas, const ui.Offset(0, 0.5), rx, 2.8);
 
   /// A pointy ear with a pink inside.
-  void pointyEar(double bx, double by, double tipX, double tipY, double w, int argb) {
+  void pointyEar(
+    double bx,
+    double by,
+    double tipX,
+    double tipY,
+    double w,
+    int argb,
+  ) {
     final ear = ui.Path()
       ..moveTo(bx - w / 2, by)
       ..quadraticBezierTo(tipX - w * 0.3, tipY + 2, tipX, tipY)
@@ -505,7 +528,6 @@ class _Animal {
     );
     smile(hx + 6.4, hy + 3.4, 2.4);
     eyes(hx + 1.6, hy - 1.6, 2.3, iris: 0xFF8BC34A);
-    brow(hx + 1.6, hy - 1.6, 2.3);
     final whisker = ink(0.35);
     for (final dy in [-0.8, 0.8]) {
       canvas.drawLine(
@@ -554,7 +576,6 @@ class _Animal {
     );
     smile(hx + 7.6, hy + 4.4, 3.4);
     eyes(hx + 1.4, hy - 2.2, 2.2, iris: 0xFF7A4A22);
-    brow(hx + 1.4, hy - 2.2, 2.2);
     // Floppy ear behind the eye.
     final ear = ui.Path()
       ..moveTo(hx - 3.5, hy - 5.5)
@@ -583,15 +604,14 @@ class _Animal {
         8,
         headColor,
         rotate: tilt,
-        inside: () =>
-            canvas.drawOval(
-              ui.Rect.fromCenter(
-                center: const ui.Offset(0.3, 0),
-                width: 2.2,
-                height: 11,
-              ),
-              PaintKit.solid(_pink),
-            ),
+        inside: () => canvas.drawOval(
+          ui.Rect.fromCenter(
+            center: const ui.Offset(0.3, 0),
+            width: 2.2,
+            height: 11,
+          ),
+          PaintKit.solid(_pink),
+        ),
       );
     }
     bandana(hx - 3, hy + 6.4, 8, 0.45);
@@ -846,7 +866,14 @@ class _Animal {
       ..close();
     part(horn, 0xFFB8A27E);
     oval(hx, hy, 6.4, 5.2, headColor, rotate: 0.3);
-    oval(hx + 5, hy + 2.6, 3, 2.3, PaintKit.toneArgb(headColor, 0.12), rotate: 0.3);
+    oval(
+      hx + 5,
+      hy + 2.6,
+      3,
+      2.3,
+      PaintKit.toneArgb(headColor, 0.12),
+      rotate: 0.3,
+    );
     oval(hx - 3.6, hy + 0.2, 3.2, 1.4, headColor, rotate: 0.4); // ear
     part(
       ui.Path()
@@ -858,7 +885,6 @@ class _Animal {
     );
     oval(hx + 7.4, hy + 1.6, 0.7, 0.6, _ink, line: false);
     eyes(hx + 1, hy - 1.4, 2, iris: 0xFFD9A93A);
-    brow(hx + 1, hy - 1.4, 2);
   }
 
   void monkey() {
@@ -896,10 +922,16 @@ class _Animal {
         PaintKit.solid(face),
       ),
     );
-    oval(hx + 6, hy + 2.6, 0.8, 0.6, PaintKit.toneArgb(face, -0.5), line: false);
+    oval(
+      hx + 6,
+      hy + 2.6,
+      0.8,
+      0.6,
+      PaintKit.toneArgb(face, -0.5),
+      line: false,
+    );
     smile(hx + 5, hy + 4.4, 3);
     eyes(hx + 1.4, hy - 1.4, 2.2, iris: 0xFF5A3A1E);
-    brow(hx + 1.4, hy - 1.4, 2.2);
   }
 
   void blob() {

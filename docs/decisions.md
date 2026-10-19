@@ -406,3 +406,29 @@ animals, a downloaded bold font, and new map themes.
 - **Effects:** flash, additive fireball that runs yellow → red, embers,
   sparks, outlined debris in the colours of the ground that was hit, and
   a smoke column that lingers ~2–3 s. Pool capacity 800 → 1400.
+
+## Closer to the W.M.D look, still code-drawn (2026-10-19)
+
+The developer asked for terrain and characters that look really like
+Worms W.M.D, without image assets. Research (Team17 interviews: hand-
+painted landscapes vs. simpler clean-lined characters, kept different so
+scenery and interactive things read apart; simple clear backdrops) gave
+the principle we adopted; we do not copy their characters or art.
+
+- **No image assets:** an untracked bitmap pipeline that had appeared in
+  the repo (`art/`, `assets/art/`, `lib/config/art.dart`,
+  `lib/game/art/art_library.dart`, unreferenced and not compiling) was
+  moved out of the repo to `../pawtillery_unused_art/`, not deleted.
+- **Terrain:** the hard dark outline became a soft crust; grass blades
+  and snow lumps are painted into the air above caps, roots/leaves/icicles
+  hang under overhangs (visual only, the mask is unchanged); warm/cool
+  colour drift and wandering strata; lighter posterisation. Rock is now
+  stacked boulders and leaves are lit clumps (Worley cells) instead of
+  noise cracks.
+- **Backdrops:** outlines removed from background trees, fields and
+  peaks; trees hazier.
+- **Animals:** heavy upper eyelids in the head colour (brows removed),
+  eyes 12 % bigger, outline 1.15 → 1.35, fainter highlight, long fur as
+  one merged silhouette.
+- **Gallery:** each map also renders a close-up at the arena's default
+  zoom (`build/gallery/map_<id>_close.png`).

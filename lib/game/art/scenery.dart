@@ -20,7 +20,10 @@ abstract final class Scenery {
     final rng = math.Random(_seed(map.id));
     return switch (map.theme) {
       MapTheme.farm => [
-        SceneryLayer(_ridge(map, rng, width, height, 0.5, 90, 0xFF6E9BC9, 0.55), 0.15),
+        SceneryLayer(
+          _ridge(map, rng, width, height, 0.5, 90, 0xFF6E9BC9, 0.55),
+          0.15,
+        ),
         SceneryLayer(_fields(map, rng, width, height), 0.35),
         SceneryLayer(_trees(map, rng, width, height), 0.6),
       ],
@@ -117,11 +120,11 @@ abstract final class Scenery {
             ..close();
           c.drawPath(
             strip,
-            ui.Paint()..color = _haze(map, crops[rng.nextInt(crops.length)], dist),
+            ui.Paint()
+              ..color = _haze(map, crops[rng.nextInt(crops.length)], dist),
           );
         }
         c.restore();
-        c.drawPath(path, _line(_haze(map, 0xFF2E5A1E, dist), 3));
         // Silos and barns on the crest.
         for (var i = 0; i < 4; i++) {
           final x = -w * 0.2 + i * w * 0.42 + rng.nextDouble() * 200;
@@ -150,15 +153,12 @@ abstract final class Scenery {
 
   static ui.Picture _trees(MapDef map, math.Random rng, double w, double h) =>
       _record((c) {
-        const dist = 0.2;
-        final ink = _line(_haze(map, 0xFF2A1A12, dist), 3);
+        const dist = 0.38;
         for (var x = -w * 0.4; x < w * 1.6; x += 160 + rng.nextDouble() * 240) {
           final ground = h * 0.72 + rng.nextDouble() * 40;
           final th = 70 + rng.nextDouble() * 60;
           final trunk = ui.Rect.fromLTWH(x - 8, ground - th, 16, th + 40);
-          c
-            ..drawRect(trunk, ui.Paint()..color = _haze(map, 0xFF7A4E2C, dist))
-            ..drawRect(trunk, ink);
+          c.drawRect(trunk, ui.Paint()..color = _haze(map, 0xFF7A4E2C, dist));
           final r = 50 + rng.nextDouble() * 30;
           final crown = ui.Offset(x, ground - th - r * 0.6);
           final leaf = _haze(map, 0xFF4FAE3C, dist);
@@ -168,8 +168,7 @@ abstract final class Scenery {
               crown.translate(-r * 0.25, -r * 0.3),
               r * 0.55,
               ui.Paint()..color = _haze(map, 0xFF7FD25A, dist),
-            )
-            ..drawCircle(crown, r, ink);
+            );
         }
       });
 
@@ -190,8 +189,12 @@ abstract final class Scenery {
         final sparkle = ui.Paint()..color = const ui.Color(0x88FFFFFF);
         for (var i = 0; i < 160; i++) {
           final x = -w + rng.nextDouble() * w * 3;
-          final y = horizon + 6 + math.pow(rng.nextDouble(), 1.5) * (h - horizon);
-          c.drawRect(ui.Rect.fromLTWH(x, y, 10 + rng.nextDouble() * 18, 2), sparkle);
+          final y =
+              horizon + 6 + math.pow(rng.nextDouble(), 1.5) * (h - horizon);
+          c.drawRect(
+            ui.Rect.fromLTWH(x, y, 10 + rng.nextDouble() * 18, 2),
+            sparkle,
+          );
         }
       });
 
@@ -203,8 +206,18 @@ abstract final class Scenery {
           final ih = 40 + rng.nextDouble() * 90;
           final path = ui.Path()
             ..moveTo(x, horizon + 4)
-            ..quadraticBezierTo(x + iw * 0.2, horizon - ih, x + iw * 0.5, horizon - ih * 0.9)
-            ..quadraticBezierTo(x + iw * 0.85, horizon - ih * 0.8, x + iw, horizon + 4)
+            ..quadraticBezierTo(
+              x + iw * 0.2,
+              horizon - ih,
+              x + iw * 0.5,
+              horizon - ih * 0.9,
+            )
+            ..quadraticBezierTo(
+              x + iw * 0.85,
+              horizon - ih * 0.8,
+              x + iw,
+              horizon + 4,
+            )
             ..close();
           c.drawPath(path, ui.Paint()..color = _haze(map, 0xFF5E8F6E, 0.5));
           // A palm or two.
@@ -216,7 +229,10 @@ abstract final class Scenery {
             for (final a in [-2.6, -1.9, -1.2, -0.5]) {
               c.drawLine(
                 ui.Offset(px + 8, py - 50),
-                ui.Offset(px + 8 + math.cos(a) * 34, py - 50 + math.sin(a) * 18 + 14),
+                ui.Offset(
+                  px + 8 + math.cos(a) * 34,
+                  py - 50 + math.sin(a) * 18 + 14,
+                ),
                 palm,
               );
             }
@@ -249,7 +265,10 @@ abstract final class Scenery {
         // Gulls: little "m" strokes.
         final gull = _line(_haze(map, 0xFF2A1A12, 0.45), 3);
         for (var i = 0; i < 9; i++) {
-          final g = ui.Offset(-w * 0.2 + rng.nextDouble() * w * 1.4, h * (0.15 + rng.nextDouble() * 0.25));
+          final g = ui.Offset(
+            -w * 0.2 + rng.nextDouble() * w * 1.4,
+            h * (0.15 + rng.nextDouble() * 0.25),
+          );
           c.drawPath(
             ui.Path()
               ..moveTo(g.dx - 12, g.dy)
@@ -273,10 +292,17 @@ abstract final class Scenery {
     final rock = _haze(map, far ? 0xFF7C8FB8 : 0xFF6A7AA0, dist);
     final snow = _haze(map, 0xFFFFFFFF, dist * 0.4);
     final base = h * (far ? 0.6 : 0.68);
-    for (var x = -w * 0.8; x < w * 1.8; x += (far ? 300 : 380) + rng.nextDouble() * 260) {
+    for (
+      var x = -w * 0.8;
+      x < w * 1.8;
+      x += (far ? 300 : 380) + rng.nextDouble() * 260
+    ) {
       final pw = (far ? 380 : 460) + rng.nextDouble() * 260;
       final ph = (far ? 300 : 260) + rng.nextDouble() * 160;
-      final apex = ui.Offset(x + pw * (0.4 + rng.nextDouble() * 0.2), base - ph);
+      final apex = ui.Offset(
+        x + pw * (0.4 + rng.nextDouble() * 0.2),
+        base - ph,
+      );
       final peak = ui.Path()
         ..moveTo(x, base + 200)
         ..lineTo(apex.dx, apex.dy)
@@ -306,7 +332,6 @@ abstract final class Scenery {
         ..lineTo(l, capY)
         ..close();
       c.drawPath(cap, ui.Paint()..color = snow);
-      if (!far) c.drawPath(peak, _line(_haze(map, 0xFF243050, dist), 2.5));
     }
   });
 

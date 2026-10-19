@@ -43,8 +43,10 @@ void main() {
     final rows = Families.all.length;
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder)
-      ..drawRect(ui.Rect.fromLTWH(0, 0, cols * cell, rows * cell),
-          ui.Paint()..color = const ui.Color(0xFFBFE1F2));
+      ..drawRect(
+        ui.Rect.fromLTWH(0, 0, cols * cell, rows * cell),
+        ui.Paint()..color = const ui.Color(0xFFBFE1F2),
+      );
     for (var r = 0; r < rows; r++) {
       final family = Families.all[r];
       final breeds = breedsByFamily[family.id]!;
@@ -57,18 +59,28 @@ void main() {
           ..save()
           ..translate(c * cell + cell / 2, r * cell + cell * 0.82)
           ..scale(zoom)
-          ..drawRect(const ui.Rect.fromLTWH(-20, 0, 40, 3),
-              ui.Paint()..color = const ui.Color(0xFF6E8B4A));
-        AnimalArt.draw(canvas,
-            familyId: family.id,
-            breedId: breed.id,
-            teamArgb: r.isEven ? 0xFFE53935 : 0xFF1E88E5,
-            pose: pose);
+          ..drawRect(
+            const ui.Rect.fromLTWH(-20, 0, 40, 3),
+            ui.Paint()..color = const ui.Color(0xFF6E8B4A),
+          );
+        AnimalArt.draw(
+          canvas,
+          familyId: family.id,
+          breedId: breed.id,
+          teamArgb: r.isEven ? 0xFFE53935 : 0xFF1E88E5,
+          pose: pose,
+        );
         canvas.restore();
       }
     }
-    await tester.runAsync(() => save(recorder.endRecording(),
-        (cols * cell).round(), (rows * cell).round(), 'animals'));
+    await tester.runAsync(
+      () => save(
+        recorder.endRecording(),
+        (cols * cell).round(),
+        (rows * cell).round(),
+        'animals',
+      ),
+    );
   });
 
   testWidgets('weapons: icons and projectiles', (tester) async {
@@ -78,8 +90,10 @@ void main() {
     final rows = 4;
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder)
-      ..drawRect(ui.Rect.fromLTWH(0, 0, cols * cell, rows * cell),
-          ui.Paint()..color = const ui.Color(0xFF2B3440));
+      ..drawRect(
+        ui.Rect.fromLTWH(0, 0, cols * cell, rows * cell),
+        ui.Paint()..color = const ui.Color(0xFF2B3440),
+      );
     for (var i = 0; i < menu.length; i++) {
       final x = (i % cols) * cell + cell / 2;
       final y = (i ~/ cols) * cell + cell / 2;
@@ -109,8 +123,14 @@ void main() {
       ..scale(3);
     WeaponArt.mine(canvas, small: false);
     canvas.restore();
-    await tester.runAsync(() => save(recorder.endRecording(),
-        (cols * cell).round(), (rows * cell).round(), 'weapons'));
+    await tester.runAsync(
+      () => save(
+        recorder.endRecording(),
+        (cols * cell).round(),
+        (rows * cell).round(),
+        'weapons',
+      ),
+    );
   });
 
   testWidgets('maps: scenery, terrain, decorations, water', (tester) async {
@@ -120,31 +140,68 @@ void main() {
         final mask = data.mask;
         final size = Vector2(mask.width.toDouble(), mask.height.toDouble());
         final pixels = buildChunkPixels(
-            mask, map, data.materials, 0, 0, mask.width, mask.height)!;
+          mask,
+          map,
+          data.materials,
+          0,
+          0,
+          mask.width,
+          mask.height,
+        )!;
         final done = Completer<ui.Image>();
-        ui.decodeImageFromPixels(pixels, mask.width, mask.height,
-            ui.PixelFormat.rgba8888, done.complete);
+        ui.decodeImageFromPixels(
+          pixels,
+          mask.width,
+          mask.height,
+          ui.PixelFormat.rgba8888,
+          done.complete,
+        );
         final terrain = await done.future;
         final decor = DecorComponent(
-            mask: mask, map: map, materials: data.materials);
-        await decor.onLoad();
-        const scale = 0.4;
-        final recorder = ui.PictureRecorder();
-        final canvas = ui.Canvas(recorder)..scale(scale);
-        SkyComponent(map: map, worldSize: size).render(canvas);
-        SceneryComponent(
+          mask: mask,
           map: map,
-          worldSize: size,
-          cameraPosition: () => size / 2,
-        ).render(canvas);
-        canvas.drawImage(terrain, ui.Offset.zero, ui.Paint());
-        decor.render(canvas);
-        WaterComponent(map: map, worldSize: size, level: () => map.waterLevel)
-            .render(canvas);
-        await save(recorder.endRecording(), (size.x * scale).round(),
-            (size.y * scale).round(), 'map_${map.id}');
+          materials: data.materials,
+        );
+        await decor.onLoad();
+        // The whole map, then a close-up at the arena's default zoom.
+        for (final (scale, focus, w, h, name) in [
+          (0.4, ui.Offset.zero, size.x * 0.4, size.y * 0.4, 'map_${map.id}'),
+          (
+            1.4,
+            _closeUps[map.id] ?? ui.Offset.zero,
+            873.0,
+            393.0,
+            'map_${map.id}_close',
+          ),
+        ]) {
+          final recorder = ui.PictureRecorder();
+          final canvas = ui.Canvas(recorder)
+            ..scale(scale)
+            ..translate(-focus.dx, -focus.dy);
+          SkyComponent(map: map, worldSize: size).render(canvas);
+          SceneryComponent(
+            map: map,
+            worldSize: size,
+            cameraPosition: () => size / 2,
+          ).render(canvas);
+          canvas.drawImage(terrain, ui.Offset.zero, ui.Paint());
+          decor.render(canvas);
+          WaterComponent(
+            map: map,
+            worldSize: size,
+            level: () => map.waterLevel,
+          ).render(canvas);
+          await save(recorder.endRecording(), w.round(), h.round(), name);
+        }
         terrain.dispose();
       });
     }
   });
 }
+
+/// Top-left corner (world px) of each map's close-up render.
+const _closeUps = {
+  'farm': ui.Offset(1420, 560),
+  'coast': ui.Offset(150, 470),
+  'snow': ui.Offset(1000, 420),
+};
