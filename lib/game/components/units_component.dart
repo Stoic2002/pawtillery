@@ -33,7 +33,7 @@ class UnitsComponent extends Component {
   final Map<int, double> _walkTime = {};
   double _time = 0;
 
-  final ui.Paint _box = ui.Paint()..color = const ui.Color(0xB3101820);
+  final ui.Paint _box = ui.Paint()..color = const ui.Color(0xC40E0F12);
   final ui.Paint _marker = ui.Paint();
   final ui.Paint _markerEdge = ui.Paint()
     ..style = ui.PaintingStyle.stroke
@@ -54,7 +54,10 @@ class UnitsComponent extends Component {
       (0.7, -0.7),
       (-0.7, -0.7),
     ])
-      Shadow(color: const ui.Color(0xFF2A1A12), offset: ui.Offset(dx * w, dy * w)),
+      Shadow(
+        color: const ui.Color(0xCC000000),
+        offset: ui.Offset(dx * w * 0.6, dy * w * 0.6),
+      ),
   ];
 
   late final List<ui.Color> _labelColors = [
@@ -65,8 +68,9 @@ class UnitsComponent extends Component {
     for (final c in _labelColors)
       TextPaint(
         style: TextStyle(
-          fontFamily: 'LilitaOne',
-          fontSize: 9.5,
+          fontFamily: 'Cinzel',
+          fontVariations: const [ui.FontVariation('wght', 700)],
+          fontSize: 8.5,
           color: c,
           shadows: _outline(1),
         ),
@@ -76,8 +80,9 @@ class UnitsComponent extends Component {
     for (final c in _labelColors)
       TextPaint(
         style: TextStyle(
-          fontFamily: 'LilitaOne',
-          fontSize: 10,
+          fontFamily: 'Cinzel',
+          fontVariations: const [ui.FontVariation('wght', 800)],
+          fontSize: 9,
           color: c,
           shadows: _outline(1),
         ),

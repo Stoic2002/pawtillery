@@ -479,3 +479,26 @@ the air.
 - The painter shades contact: ground right under an object is in its
   shadow, an object's foot is darker where it meets the dirt, and grass
   or snow only grows on open tops, never under a wall.
+
+## "Iron & Dusk": dark-fantasy UI, semi-realistic animals (2026-10-19)
+
+The developer found the HUD and menus too cartoony and the cartoon
+animal faces ugly. Asked to choose, they picked a dark-fantasy UI (iron
+and brass, Cinzel) and semi-realistic painted animals.
+
+- **Fonts:** Lilita One removed; Cinzel (titles, labels, HUD numbers)
+  and Alegreya (body), both variable SIL OFL fonts from Google Fonts,
+  credited in `assets/CREDITS.md`. Fonts are not image assets, so the
+  "no image assets" rule still holds.
+- **Kit:** `lib/ui/widgets/toon/` became `lib/ui/widgets/iron/` (same
+  widgets, renamed `Iron*`), re-skinned: forged plates with brass trims
+  and rivets, panels with inlay and corner brackets, engraved titles
+  between ornamental rules instead of ribbons, line icons, a brass-cast
+  wordmark. Palette `IronPalette` (ink, iron, brass, moss, steel, blood,
+  ash, parchment, mute) replaces `ToonPalette`; theme `IronTheme`.
+- **HUD:** thinner HP bars, iron plaques, Cinzel unit labels.
+- **Animals:** rebuilt from the earlier semi-realistic art (commit
+  31cdd41) with an anatomical quadruped body for cats, dogs and goats,
+  necks, tapering jointed legs, almond eyes with a lid line, fine fur
+  strokes and a soft long-fur rim; the heavy-lidded cartoon eyes and thick
+  black outlines are gone. Label height back to 36.

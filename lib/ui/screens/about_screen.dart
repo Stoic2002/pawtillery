@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../config/app_info.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/toon/toon_backdrop.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_controls.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_logo.dart';
-import '../widgets/toon/toon_panel.dart';
+import '../widgets/iron/iron_backdrop.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_controls.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_logo.dart';
+import '../widgets/iron/iron_panel.dart';
 
 /// About (PRD: versi, kredit aset, tautan kebijakan privasi). Credits come
 /// straight from assets/CREDITS.md.
@@ -19,32 +19,32 @@ class AboutScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    const soft = TextStyle(fontSize: 15, color: ToonPalette.bark);
+    const soft = TextStyle(fontSize: 15, color: IronPalette.mute);
     Widget heading(String text) => Padding(
       padding: const EdgeInsets.only(top: 14, bottom: 4),
       child: Text(text, style: const TextStyle(fontSize: 19)),
     );
     return Scaffold(
-      body: ToonBackdrop(
+      body: IronBackdrop(
         dim: 0.15,
         child: SafeArea(
           child: Column(
             children: [
-              ToonHeader(title: l10n.menuAbout),
+              IronHeader(title: l10n.menuAbout),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
                   child: Center(
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 640),
-                      child: ToonPanel(
+                      child: IronPanel(
                         padding: const EdgeInsets.fromLTRB(22, 16, 22, 18),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Center(
                               child: FittedBox(
-                                child: ToonLogo(title: l10n.appTitle, size: 36),
+                                child: IronLogo(title: l10n.appTitle, size: 36),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -74,13 +74,13 @@ class AboutScreen extends StatelessWidget {
                                   AppInfo.privacyPolicyUrl,
                                   style: TextStyle(
                                     fontSize: 15,
-                                    color: ToonPalette.skyDeep,
+                                    color: IronPalette.steel,
                                   ),
                                 ),
-                                ToonButton(
+                                IronButton(
                                   label: l10n.aboutCopyLink,
-                                  tone: ToonTone.sky,
-                                  icon: ToonGlyph.check,
+                                  tone: IronTone.steel,
+                                  icon: IronGlyph.check,
                                   fontSize: 14,
                                   height: 40,
                                   onPressed: () async {
@@ -108,10 +108,10 @@ class AboutScreen extends StatelessWidget {
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: ToonPalette.creamShade,
+                                  color: IronPalette.ironShade,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: ToonPalette.creamDeep,
+                                    color: IronPalette.ironEdge,
                                     width: 2,
                                   ),
                                 ),
@@ -120,7 +120,7 @@ class AboutScreen extends StatelessWidget {
                                   style: const TextStyle(
                                     fontFamily: 'monospace',
                                     fontSize: 12,
-                                    color: ToonPalette.bark,
+                                    color: IronPalette.mute,
                                   ),
                                 ),
                               ),

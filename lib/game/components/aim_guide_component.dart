@@ -58,8 +58,9 @@ class AimGuideComponent extends Component {
   // Numbers and units only, so no ARB entry is needed.
   final TextPaint _readout = TextPaint(
     style: const TextStyle(
-      fontFamily: 'LilitaOne',
-      fontSize: 11,
+      fontFamily: 'Cinzel',
+      fontVariations: [ui.FontVariation('wght', 700)],
+      fontSize: 10,
       color: ui.Color(0xFFFFFFFF),
       shadows: [
         Shadow(color: ui.Color(0xFF2A1A12), offset: ui.Offset(1, 0)),

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/toon/toon_backdrop.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_controls.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_panel.dart';
+import '../widgets/iron/iron_backdrop.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_controls.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_panel.dart';
 
 /// Settings on one card: language, volumes, switches. Changes are saved
 /// immediately.
@@ -19,12 +19,12 @@ class SettingsScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final settings = AppServices.of(context).settings;
     return Scaffold(
-      body: ToonBackdrop(
+      body: IronBackdrop(
         dim: 0.15,
         child: SafeArea(
           child: Column(
             children: [
-              ToonHeader(title: l10n.menuSettings.toUpperCase()),
+              IronHeader(title: l10n.menuSettings.toUpperCase()),
               Expanded(
                 child: ListenableBuilder(
                   listenable: settings,
@@ -33,13 +33,13 @@ class SettingsScreen extends StatelessWidget {
                     child: Center(
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 680),
-                        child: ToonPanel(
+                        child: IronPanel(
                           padding: const EdgeInsets.fromLTRB(20, 8, 20, 14),
                           child: Column(
                             children: [
                               _Row(
                                 label: l10n.settingsLanguage,
-                                child: ToonSegmented<String>(
+                                child: IronSegmented<String>(
                                   values: const ['', 'en', 'id'],
                                   selected: settings.languageCode ?? '',
                                   label: (v) => switch (v) {
@@ -74,7 +74,7 @@ class SettingsScreen extends StatelessWidget {
                               ),
                               _Row(
                                 label: l10n.settingsHaptics,
-                                child: ToonSwitch(
+                                child: IronSwitch(
                                   value: settings.haptics,
                                   onChanged: (v) => settings.haptics = v,
                                 ),
@@ -82,7 +82,7 @@ class SettingsScreen extends StatelessWidget {
                               _Row(
                                 label: l10n.settingsAimGuide,
                                 last: true,
-                                child: ToonSwitch(
+                                child: IronSwitch(
                                   value: settings.showAimGuide,
                                   onChanged: (v) => settings.showAimGuide = v,
                                 ),
@@ -90,10 +90,10 @@ class SettingsScreen extends StatelessWidget {
                               const SizedBox(height: 12),
                               Align(
                                 alignment: Alignment.centerLeft,
-                                child: ToonButton(
+                                child: IronButton(
                                   label: l10n.settingsTutorial,
-                                  icon: ToonGlyph.replay,
-                                  tone: ToonTone.sky,
+                                  icon: IronGlyph.replay,
+                                  tone: IronTone.steel,
                                   fontSize: 15,
                                   height: 42,
                                   onPressed: () {
@@ -137,7 +137,7 @@ class _Row extends StatelessWidget {
       border: last
           ? null
           : const Border(
-              bottom: BorderSide(color: ToonPalette.creamDeep, width: 2),
+              bottom: BorderSide(color: IronPalette.ironEdge, width: 2),
             ),
     ),
     padding: const EdgeInsets.symmetric(vertical: 8),

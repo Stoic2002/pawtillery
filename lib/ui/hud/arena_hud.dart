@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../config/controls.dart';
 import '../../config/weapons.dart';
 import '../../game/hud_state.dart';
@@ -10,10 +10,10 @@ import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../../sim/inputs.dart';
 import '../../sim/turn_manager.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_panel.dart';
-import '../widgets/toon/toon_text.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_panel.dart';
+import '../widgets/iron/iron_text.dart';
 import 'tutorial.dart';
 import 'weapon_menu.dart';
 
@@ -137,13 +137,13 @@ class _TurnBadge extends StatelessWidget {
     final clock = hud.clockSeconds;
     final retreat = hud.phase == TurnPhase.retreat;
     final urgent = clock != null && clock <= 5;
-    final tone = urgent ? ToonTone.tomato : ToonTone.of(teamColor);
+    final tone = urgent ? IronTone.blood : IronTone.of(teamColor);
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ToonRoundButton(
-          glyph: ToonGlyph.pause,
+        IronRoundButton(
+          glyph: IronGlyph.pause,
           tooltip: l10n.hudPause,
           onPressed: onPause,
           size: 50,
@@ -154,13 +154,13 @@ class _TurnBadge extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ToonPanel(
-                style: ToonPanelStyle.night,
+              IronPanel(
+                style: IronPanelStyle.night,
                 radius: 10,
                 padding: const EdgeInsets.fromLTRB(10, 3, 10, 4),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 150),
-                  child: ToonText(
+                  child: IronText(
                     teamName,
                     size: 15,
                     color: Color.lerp(teamColor, Colors.white, 0.25)!,
@@ -179,15 +179,15 @@ class _TurnBadge extends StatelessWidget {
                   builder: (context, scale, child) =>
                       Transform.scale(scale: scale, child: child),
                   child: CustomPaint(
-                    painter: ToonSlabPainter(tone: tone, radius: 14, depth: 4),
+                    painter: IronSlabPainter(tone: tone, radius: 14, depth: 4),
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(12, 2, 14, 7),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const ToonIcon(ToonGlyph.timer, size: 22),
+                          const IronIcon(IronGlyph.timer, size: 22),
                           const SizedBox(width: 6),
-                          ToonText(
+                          IronText(
                             retreat
                                 ? l10n.hudRetreat(clock)
                                 : l10n.hudSeconds(clock),
@@ -222,24 +222,24 @@ class _TopCentre extends StatelessWidget {
       children: [
         Tooltip(
           message: l10n.hudWind(hud.wind),
-          child: ToonPanel(
-            style: ToonPanelStyle.night,
+          child: IronPanel(
+            style: IronPanelStyle.night,
             radius: 14,
             padding: const EdgeInsets.fromLTRB(10, 5, 12, 6),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const ToonIcon(
-                  ToonGlyph.wind,
+                const IronIcon(
+                  IronGlyph.wind,
                   size: 24,
-                  color: ToonPalette.sky,
+                  color: IronPalette.steel,
                 ),
                 const SizedBox(width: 8),
                 _WindMeter(wind: hud.wind),
                 const SizedBox(width: 8),
                 SizedBox(
                   width: 26,
-                  child: ToonText('${hud.wind.abs()}', size: 18, drop: 1),
+                  child: IronText('${hud.wind.abs()}', size: 18, drop: 1),
                 ),
               ],
             ),
@@ -249,14 +249,14 @@ class _TopCentre extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 6),
             child: CustomPaint(
-              painter: ToonSlabPainter(
-                tone: ToonTone.tomato,
+              painter: IronSlabPainter(
+                tone: IronTone.blood,
                 radius: 10,
                 depth: 3,
               ),
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(12, 2, 12, 6),
-                child: ToonText(
+                child: IronText(
                   l10n.hudSuddenDeath.toUpperCase(),
                   size: 14,
                   drop: 1,
@@ -265,8 +265,8 @@ class _TopCentre extends StatelessWidget {
             ),
           ),
         const SizedBox(height: 6),
-        ToonPanel(
-          style: ToonPanelStyle.night,
+        IronPanel(
+          style: IronPanelStyle.night,
           radius: 12,
           padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
           child: Column(
@@ -335,8 +335,8 @@ class _WindMeterPainter extends CustomPainter {
               begin: wind < 0 ? Alignment.centerRight : Alignment.centerLeft,
               end: wind < 0 ? Alignment.centerLeft : Alignment.centerRight,
               colors: strong
-                  ? const [ToonPalette.sun, ToonPalette.tomato]
-                  : const [ToonPalette.sky, Color(0xFFB8F0FF)],
+                  ? const [IronPalette.brass, IronPalette.blood]
+                  : const [IronPalette.steel, Color(0xFFB8F0FF)],
             ).createShader(fill),
         )
         ..restore();
@@ -348,11 +348,11 @@ class _WindMeterPainter extends CustomPainter {
         ..lineTo(end - d * 2, size.height - 1)
         ..close();
       canvas
-        ..drawPath(head, Paint()..color = ToonPalette.white)
+        ..drawPath(head, Paint()..color = IronPalette.parchment)
         ..drawPath(
           head,
           Paint()
-            ..color = ToonPalette.outline
+            ..color = IronPalette.ink
             ..style = PaintingStyle.stroke
             ..strokeWidth = 2,
         );
@@ -400,7 +400,7 @@ class _HpBar extends StatelessWidget {
       children: [
         SizedBox(
           width: 140,
-          height: 14,
+          height: 8,
           child: TweenAnimationBuilder<double>(
             tween: Tween(end: fraction),
             duration: const Duration(milliseconds: 500),
@@ -412,7 +412,7 @@ class _HpBar extends StatelessWidget {
         const SizedBox(width: 6),
         SizedBox(
           width: 34,
-          child: ToonText(
+          child: IronText(
             '$hp',
             size: 14,
             textAlign: TextAlign.right,
@@ -467,7 +467,7 @@ class _HpBarPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = active ? 2.2 : 1.4
-          ..color = active ? ToonPalette.white : const Color(0x66FFFFFF),
+          ..color = active ? IronPalette.parchment : const Color(0x66FFFFFF),
       );
   }
 
@@ -491,20 +491,20 @@ class _TopRight extends StatelessWidget {
       margin: const EdgeInsets.only(top: 4),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       decoration: BoxDecoration(
-        color: ToonPalette.night,
+        color: IronPalette.night,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         text,
-        style: const TextStyle(fontSize: 11, color: ToonPalette.white),
+        style: const TextStyle(fontSize: 11, color: IronPalette.parchment),
       ),
     );
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        ToonRoundButton(
-          glyph: ToonGlyph.focus,
+        IronRoundButton(
+          glyph: IronGlyph.focus,
           tooltip: l10n.hudCenterCamera,
           onPressed: game.centerOnActiveUnit,
           size: 50,
@@ -551,7 +551,7 @@ class _WalkButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    Widget walk(String label, ToonGlyph glyph, int dir) => ToonRoundButton(
+    Widget walk(String label, IronGlyph glyph, int dir) => IronRoundButton(
       glyph: glyph,
       tooltip: label,
       enabled: enabled,
@@ -564,9 +564,9 @@ class _WalkButtons extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        walk(l10n.hudWalkLeft, ToonGlyph.walkLeft, -1),
+        walk(l10n.hudWalkLeft, IronGlyph.walkLeft, -1),
         const SizedBox(width: 12),
-        walk(l10n.hudWalkRight, ToonGlyph.walkRight, 1),
+        walk(l10n.hudWalkRight, IronGlyph.walkRight, 1),
       ],
     );
   }
@@ -615,15 +615,15 @@ class _ActionCluster extends StatelessWidget {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    ToonRoundButton(
-                      glyph: ToonGlyph.jump,
+                    IronRoundButton(
+                      glyph: IronGlyph.jump,
                       tooltip: l10n.hudJump,
                       enabled: hud.canMove,
                       onPressed: () => game.jump(JumpKind.forward),
                     ),
                     const SizedBox(width: 8),
-                    ToonRoundButton(
-                      glyph: ToonGlyph.highJump,
+                    IronRoundButton(
+                      glyph: IronGlyph.highJump,
                       tooltip: l10n.hudHighJump,
                       enabled: hud.canMove,
                       onPressed: () => game.jump(JumpKind.high),
@@ -668,8 +668,8 @@ class _WeaponCard extends StatelessWidget {
             : null,
         child: Opacity(
           opacity: enabled ? 1 : 0.7,
-          child: ToonPanel(
-            style: ToonPanelStyle.night,
+          child: IronPanel(
+            style: IronPanelStyle.night,
             radius: 14,
             padding: const EdgeInsets.fromLTRB(4, 3, 10, 5),
             child: Row(
@@ -683,7 +683,7 @@ class _WeaponCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      ToonText(
+                      IronText(
                         l10n.byKey(weapon.nameKey),
                         size: 15,
                         maxLines: 1,
@@ -692,12 +692,12 @@ class _WeaponCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 2),
                       if (weapon.isSignature)
-                        ToonText(
+                        IronText(
                           unit != null && game.sim.canUse(unit, weapon)
                               ? l10n.hudSignature
                               : l10n.hudUsed,
                           size: 13,
-                          color: ToonPalette.tomato,
+                          color: IronPalette.blood,
                           drop: 1,
                         )
                       else
@@ -706,7 +706,7 @@ class _WeaponCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 6),
-                const ToonIcon(ToonGlyph.bag, size: 22, color: ToonPalette.sun),
+                const IronIcon(IronGlyph.bag, size: 22, color: IronPalette.brass),
               ],
             ),
           ),
@@ -746,8 +746,8 @@ class _AimControls extends StatelessWidget {
           ? const SizedBox.shrink()
           : Padding(
               padding: const EdgeInsets.only(bottom: 12),
-              child: ToonPanel(
-                style: ToonPanelStyle.night,
+              child: IronPanel(
+                style: IronPanelStyle.night,
                 radius: 14,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -757,7 +757,7 @@ class _AimControls extends StatelessWidget {
                   hint,
                   style: const TextStyle(
                     fontSize: 16,
-                    color: ToonPalette.white,
+                    color: IronPalette.parchment,
                   ),
                 ),
               ),
@@ -768,8 +768,8 @@ class _AimControls extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
-        ToonPanel(
-          style: ToonPanelStyle.night,
+        IronPanel(
+          style: IronPanelStyle.night,
           radius: 14,
           padding: const EdgeInsets.all(4),
           child: Column(
@@ -802,10 +802,10 @@ class _AimControls extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (mode != AimMode.none) ...[
-              ToonRoundButton(
-                glyph: ToonGlyph.close,
+              IronRoundButton(
+                glyph: IronGlyph.close,
                 tooltip: l10n.hudCancel,
-                tone: ToonTone.sky,
+                tone: IronTone.steel,
                 size: 48,
                 onPressed: game.cancelAim,
               ),
@@ -853,8 +853,8 @@ class _FireButtonState extends State<_FireButton> {
           widget.onPressed();
         },
         child: CustomPaint(
-          painter: ToonSlabPainter(
-            tone: ToonTone.tomato,
+          painter: IronSlabPainter(
+            tone: IronTone.blood,
             circle: true,
             depth: depth,
             pressed: _down,
@@ -869,7 +869,7 @@ class _FireButtonState extends State<_FireButton> {
                 bottom: _down ? 1 : depth,
               ),
               child: Center(
-                child: ToonText(
+                child: IronText(
                   widget.label.toUpperCase(),
                   size: 20,
                   maxLines: 1,
@@ -903,21 +903,21 @@ class _Stepper extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          ToonRoundButton(
-            glyph: ToonGlyph.minus,
+          IronRoundButton(
+            glyph: IronGlyph.minus,
             tooltip: l10n.hudDecrease,
-            tone: ToonTone.sky,
+            tone: IronTone.steel,
             size: 42,
             onPressed: onMinus,
           ),
           SizedBox(
             width: 120,
-            child: ToonText(label, size: 16, drop: 1),
+            child: IronText(label, size: 16, drop: 1),
           ),
-          ToonRoundButton(
-            glyph: ToonGlyph.plus,
+          IronRoundButton(
+            glyph: IronGlyph.plus,
             tooltip: l10n.hudIncrease,
-            tone: ToonTone.sky,
+            tone: IronTone.steel,
             size: 42,
             onPressed: onPlus,
           ),
@@ -943,9 +943,9 @@ class _TurnBanner extends StatelessWidget {
         curve: Curves.easeOutBack,
         builder: (context, s, child) =>
             Transform.scale(scale: s, child: child),
-        child: ToonRibbon(
+        child: IronRibbon(
           l10n.turnBanner(name).toUpperCase(),
-          tone: ToonTone.of(color),
+          tone: IronTone.of(color),
           fontSize: 30,
         ),
       ),

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
 import '../../config/weapons.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../hud/weapon_menu.dart';
-import '../widgets/toon/toon_backdrop.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_controls.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_panel.dart';
-import '../widgets/toon/toon_text.dart';
+import '../widgets/iron/iron_backdrop.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_controls.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_panel.dart';
+import '../widgets/iron/iron_text.dart';
 
 /// How to Play (PRD: 4–6 illustrated pages): a picture card on the left,
 /// the text card on the right, page dots at the foot.
@@ -53,12 +53,12 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
     final last = _page == pages.length - 1;
 
     return Scaffold(
-      body: ToonBackdrop(
+      body: IronBackdrop(
         dim: 0.15,
         child: SafeArea(
           child: Column(
             children: [
-              ToonHeader(title: l10n.menuHowToPlay.toUpperCase()),
+              IronHeader(title: l10n.menuHowToPlay.toUpperCase()),
               Expanded(
                 child: PageView(
                   controller: _controller,
@@ -72,8 +72,8 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
                             Expanded(
                               flex: 4,
                               child: Center(
-                                child: ToonPanel(
-                                  style: ToonPanelStyle.night,
+                                child: IronPanel(
+                                  style: IronPanelStyle.night,
                                   padding: const EdgeInsets.all(12),
                                   child: SizedBox(
                                     width: 230,
@@ -86,7 +86,7 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
                             const SizedBox(width: 20),
                             Expanded(
                               flex: 5,
-                              child: ToonPanel(
+                              child: IronPanel(
                                 padding: const EdgeInsets.fromLTRB(
                                   18,
                                   12,
@@ -98,10 +98,10 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
-                                      ToonText(
+                                      IronText(
                                         title.toUpperCase(),
                                         size: 24,
-                                        color: ToonPalette.sun,
+                                        color: IronPalette.brass,
                                         textAlign: TextAlign.start,
                                       ),
                                       const SizedBox(height: 8),
@@ -127,9 +127,9 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                 child: Row(
                   children: [
-                    ToonButton(
+                    IronButton(
                       label: l10n.back,
-                      tone: ToonTone.sky,
+                      tone: IronTone.steel,
                       fontSize: 16,
                       height: 44,
                       onPressed: _page == 0 ? null : () => _go(-1),
@@ -148,11 +148,11 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
                               height: 14,
                               decoration: BoxDecoration(
                                 color: i == _page
-                                    ? ToonPalette.sun
-                                    : ToonPalette.cream,
+                                    ? IronPalette.brass
+                                    : IronPalette.iron,
                                 borderRadius: BorderRadius.circular(7),
                                 border: Border.all(
-                                  color: ToonPalette.outline,
+                                  color: IronPalette.ink,
                                   width: 2.5,
                                 ),
                               ),
@@ -161,17 +161,17 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
                       ),
                     ),
                     last
-                        ? ToonButton(
+                        ? IronButton(
                             label: l10n.howDone,
-                            icon: ToonGlyph.check,
-                            tone: ToonTone.leaf,
+                            icon: IronGlyph.check,
+                            tone: IronTone.moss,
                             fontSize: 16,
                             height: 44,
                             onPressed: () => Navigator.of(context).pop(),
                           )
-                        : ToonButton(
+                        : IronButton(
                             label: l10n.howNext,
-                            tone: ToonTone.sky,
+                            tone: IronTone.steel,
                             fontSize: 16,
                             height: 44,
                             onPressed: () => _go(1),
@@ -201,9 +201,9 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const ToonIcon(ToonGlyph.walkLeft, size: 34),
+            const IronIcon(IronGlyph.walkLeft, size: 34),
             _figure(Families.rabbit),
-            const ToonIcon(ToonGlyph.walkRight, size: 34),
+            const IronIcon(IronGlyph.walkRight, size: 34),
           ],
         );
       case 1:
@@ -233,7 +233,7 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
             ),
         );
       case 3:
-        return const Center(child: ToonIcon(ToonGlyph.wind, size: 110));
+        return const Center(child: IronIcon(IronGlyph.wind, size: 110));
       case 4:
         final l10n = AppLocalizations.of(context);
         return Center(
@@ -273,11 +273,11 @@ class _AimSketch extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     const start = Offset(122, 92);
     final pencil = Paint()
-      ..color = ToonPalette.white
+      ..color = IronPalette.parchment
       ..strokeWidth = 3
       ..style = PaintingStyle.stroke;
     canvas.drawLine(start, const Offset(52, 132), pencil);
-    final ink = Paint()..color = ToonPalette.sun;
+    final ink = Paint()..color = IronPalette.brass;
     for (var i = 1; i <= 8; i++) {
       final t = i / 8;
       canvas.drawCircle(

@@ -8,8 +8,8 @@ import 'package:flutter/widgets.dart';
 /// trees, fog, and a near hill with a moonlit rim for the animals to stand
 /// on. Static (painted once per size) so menus cost nothing; [groundLine]
 /// is where the near hill's crest sits, as a fraction of the height.
-class ToonBackdrop extends StatelessWidget {
-  const ToonBackdrop({
+class IronBackdrop extends StatelessWidget {
+  const IronBackdrop({
     super.key,
     required this.child,
     this.groundLine = 0.8,

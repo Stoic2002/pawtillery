@@ -2,12 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 
-import '../../../app/toon_palette.dart';
+import '../../../app/iron_palette.dart';
 
-/// Icons drawn in code as chunky strokes with a dark outline
+/// Icons drawn in code as fine lines with an engraved shadow
 /// (docs/art_style_guide.md: no Material icons on screen). Each glyph is
 /// laid out in a 24 × 24 box.
-enum ToonGlyph {
+enum IronGlyph {
   pause,
   back,
   walkLeft,
@@ -33,16 +33,16 @@ enum ToonGlyph {
   trophy,
 }
 
-class ToonIcon extends StatelessWidget {
-  const ToonIcon(
+class IronIcon extends StatelessWidget {
+  const IronIcon(
     this.glyph, {
     super.key,
     this.size = 24,
-    this.color = ToonPalette.white,
-    this.outline = ToonPalette.outline,
+    this.color = IronPalette.parchment,
+    this.outline = IronPalette.ink,
   });
 
-  final ToonGlyph glyph;
+  final IronGlyph glyph;
   final double size;
   final Color color;
   final Color outline;
@@ -50,26 +50,29 @@ class ToonIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SizedBox.square(
     dimension: size,
-    child: CustomPaint(painter: _ToonIconPainter(glyph, color, outline)),
+    child: CustomPaint(painter: _IronIconPainter(glyph, color, outline)),
   );
 }
 
-class _ToonIconPainter extends CustomPainter {
-  _ToonIconPainter(this.glyph, this.color, this.outline);
-  final ToonGlyph glyph;
+class _IronIconPainter extends CustomPainter {
+  _IronIconPainter(this.glyph, this.color, this.outline);
+  final IronGlyph glyph;
   final Color color;
   final Color outline;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.scale(size.width / 24);
-    // Outline pass, then the colour pass on top.
-    _Glyph(canvas, outline, 2.6 + 2.8).draw(glyph);
-    _Glyph(canvas, color, 2.6, outlinePass: false).draw(glyph);
+    // A faint dark shadow pass (engraved), then the line itself.
+    canvas.save();
+    canvas.translate(0, 0.9);
+    _Glyph(canvas, outline.withValues(alpha: 0.7), 2.2).draw(glyph);
+    canvas.restore();
+    _Glyph(canvas, color, 1.9, outlinePass: false).draw(glyph);
   }
 
   @override
-  bool shouldRepaint(_ToonIconPainter old) =>
+  bool shouldRepaint(_IronIconPainter old) =>
       old.glyph != glyph || old.color != color || old.outline != outline;
 }
 
@@ -87,7 +90,7 @@ class _Glyph {
       rim = Paint()
         ..color = color
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.8
+        ..strokeWidth = 1.2
         ..strokeJoin = StrokeJoin.round;
 
   final Canvas canvas;
@@ -109,9 +112,9 @@ class _Glyph {
   void dot(double x, double y, double r) =>
       solid(Path()..addOval(Rect.fromCircle(center: Offset(x, y), radius: r)));
 
-  void draw(ToonGlyph glyph) {
+  void draw(IronGlyph glyph) {
     switch (glyph) {
-      case ToonGlyph.pause:
+      case IronGlyph.pause:
         solid(
           Path()
             ..addRRect(
@@ -121,12 +124,12 @@ class _Glyph {
               RRect.fromLTRBR(13.5, 5, 18, 19, const Radius.circular(1.5)),
             ),
         );
-      case ToonGlyph.back:
+      case IronGlyph.back:
         line(19, 12, 6, 12);
         line(11, 6.5, 5.5, 12);
         line(11, 17.5, 5.5, 12);
-      case ToonGlyph.walkLeft || ToonGlyph.walkRight:
-        final d = glyph == ToonGlyph.walkLeft ? -1.0 : 1.0;
+      case IronGlyph.walkLeft || IronGlyph.walkRight:
+        final d = glyph == IronGlyph.walkLeft ? -1.0 : 1.0;
         solid(
           Path()
             ..moveTo(12 - d * 6, 4.5)
@@ -134,7 +137,7 @@ class _Glyph {
             ..lineTo(12 - d * 6, 19.5)
             ..close(),
         );
-      case ToonGlyph.jump:
+      case IronGlyph.jump:
         stroke(
           Path()
             ..moveTo(4, 18)
@@ -143,36 +146,36 @@ class _Glyph {
         line(19, 9, 14, 8);
         line(19, 9, 17, 13.5);
         line(3.5, 20.5, 20.5, 20.5);
-      case ToonGlyph.highJump:
+      case IronGlyph.highJump:
         line(12, 19, 12, 5);
         line(7, 10, 12, 5);
         line(17, 10, 12, 5);
         line(7, 15, 12, 10);
         line(17, 15, 12, 10);
         line(5, 21, 19, 21);
-      case ToonGlyph.focus:
+      case IronGlyph.focus:
         canvas.drawCircle(const Offset(12, 12), 6.5, pen);
         dot(12, 12, 2);
         line(12, 2, 12, 5);
         line(12, 19, 12, 22);
         line(2, 12, 5, 12);
         line(19, 12, 22, 12);
-      case ToonGlyph.dice:
+      case IronGlyph.dice:
         solid(
           Path()..addRRect(
             RRect.fromLTRBR(4, 4, 20, 20, const Radius.circular(3.5)),
           ),
         );
         if (!outlinePass) {
-          final pip = Paint()..color = ToonPalette.outline;
+          final pip = Paint()..color = IronPalette.ink;
           for (final (x, y) in const [(8.5, 8.5), (15.5, 15.5), (12.0, 12.0)]) {
             canvas.drawCircle(Offset(x, y), 1.6, pip);
           }
         }
-      case ToonGlyph.close:
+      case IronGlyph.close:
         line(6.5, 6.5, 17.5, 17.5);
         line(17.5, 6.5, 6.5, 17.5);
-      case ToonGlyph.bag:
+      case IronGlyph.bag:
         stroke(
           Path()
             ..moveTo(8, 9)
@@ -186,10 +189,10 @@ class _Glyph {
         if (!outlinePass) {
           canvas.drawRect(
             const Rect.fromLTWH(10.5, 12, 3, 3.5),
-            Paint()..color = ToonPalette.outline,
+            Paint()..color = IronPalette.ink,
           );
         }
-      case ToonGlyph.play:
+      case IronGlyph.play:
         solid(
           Path()
             ..moveTo(7.5, 4.5)
@@ -197,7 +200,7 @@ class _Glyph {
             ..lineTo(7.5, 19.5)
             ..close(),
         );
-      case ToonGlyph.replay:
+      case IronGlyph.replay:
         canvas.drawArc(
           const Rect.fromLTWH(5, 5, 14, 14),
           -math.pi * 0.35,
@@ -207,7 +210,7 @@ class _Glyph {
         );
         line(16.5, 3.5, 16.8, 8.2);
         line(16.8, 8.2, 12.4, 8.2);
-      case ToonGlyph.wind:
+      case IronGlyph.wind:
         stroke(
           Path()
             ..moveTo(3, 9)
@@ -223,19 +226,19 @@ class _Glyph {
             ..quadraticBezierTo(20.5, 20, 17.5, 19),
         );
         line(5, 19, 11, 19);
-      case ToonGlyph.timer:
+      case IronGlyph.timer:
         solid(Path()..addOval(Rect.fromCircle(center: const Offset(12, 13.5), radius: 8)));
         line(9.5, 3, 14.5, 3);
         if (!outlinePass) {
           final hand = Paint()
-            ..color = ToonPalette.outline
+            ..color = IronPalette.ink
             ..strokeWidth = 2
             ..strokeCap = StrokeCap.round;
           canvas
             ..drawLine(const Offset(12, 13.5), const Offset(12, 8.5), hand)
             ..drawLine(const Offset(12, 13.5), const Offset(15, 15), hand);
         }
-      case ToonGlyph.gear:
+      case IronGlyph.gear:
         final teeth = Path();
         for (var i = 0; i < 8; i++) {
           final a = i * math.pi / 4;
@@ -248,10 +251,10 @@ class _Glyph {
           canvas.drawCircle(
             const Offset(12, 12),
             2.8,
-            Paint()..color = ToonPalette.outline,
+            Paint()..color = IronPalette.ink,
           );
         }
-      case ToonGlyph.question:
+      case IronGlyph.question:
         stroke(
           Path()
             ..moveTo(7.5, 8.5)
@@ -261,12 +264,12 @@ class _Glyph {
             ..lineTo(12, 15),
         );
         dot(12, 19.5, 1.9);
-      case ToonGlyph.info:
+      case IronGlyph.info:
         dot(12, 5.5, 2.1);
         line(12, 10.5, 12, 19.5);
         line(9.5, 10.5, 12, 10.5);
         line(9, 19.5, 15, 19.5);
-      case ToonGlyph.home:
+      case IronGlyph.home:
         solid(
           Path()
             ..moveTo(3, 12)
@@ -281,22 +284,22 @@ class _Glyph {
         if (!outlinePass) {
           canvas.drawRRect(
             RRect.fromLTRBR(10, 14, 14, 20.5, const Radius.circular(1)),
-            Paint()..color = ToonPalette.outline,
+            Paint()..color = IronPalette.ink,
           );
         }
-      case ToonGlyph.check:
+      case IronGlyph.check:
         stroke(
           Path()
             ..moveTo(4.5, 12.5)
             ..lineTo(10, 18)
             ..lineTo(19.5, 6),
         );
-      case ToonGlyph.plus:
+      case IronGlyph.plus:
         line(12, 5, 12, 19);
         line(5, 12, 19, 12);
-      case ToonGlyph.minus:
+      case IronGlyph.minus:
         line(5, 12, 19, 12);
-      case ToonGlyph.people:
+      case IronGlyph.people:
         dot(8.5, 7.5, 3.4);
         dot(16, 8.5, 2.9);
         solid(
@@ -314,7 +317,7 @@ class _Glyph {
             ..quadraticBezierTo(15.8, 15.5, 14, 13.5)
             ..close(),
         );
-      case ToonGlyph.trophy:
+      case IronGlyph.trophy:
         solid(
           Path()
             ..moveTo(6, 3.5)

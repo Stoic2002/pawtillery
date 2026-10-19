@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 
-import '../../../app/toon_palette.dart';
+import '../../../app/iron_palette.dart';
 import '../../../game/art/animal_art.dart';
 import '../../../l10n/app_localizations.dart';
-import 'toon_button.dart';
-import 'toon_icons.dart';
-import 'toon_panel.dart';
-import 'toon_text.dart';
+import 'iron_button.dart';
+import 'iron_icons.dart';
+import 'iron_panel.dart';
 
-/// A row of chunky options, the chosen one raised in [tone]. Replaces
-/// Material's SegmentedButton everywhere.
-class ToonSegmented<T> extends StatelessWidget {
-  const ToonSegmented({
+/// A row of options on iron plates, the chosen one in [tone] with a
+/// bright brass trim. Replaces Material's SegmentedButton everywhere.
+class IronSegmented<T> extends StatelessWidget {
+  const IronSegmented({
     super.key,
     required this.values,
     required this.selected,
     required this.label,
     required this.onSelect,
-    this.tone = ToonTone.sky,
+    this.tone = IronTone.brass,
     this.wrap = false,
   });
 
@@ -25,7 +24,7 @@ class ToonSegmented<T> extends StatelessWidget {
   final T selected;
   final String Function(T) label;
   final ValueChanged<T> onSelect;
-  final ToonTone tone;
+  final IronTone tone;
 
   /// Wrap onto several lines instead of one row (long labels).
   final bool wrap;
@@ -65,7 +64,7 @@ class _Chip extends StatelessWidget {
 
   final String label;
   final bool selected;
-  final ToonTone tone;
+  final IronTone tone;
   final VoidCallback onTap;
 
   @override
@@ -76,31 +75,28 @@ class _Chip extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: CustomPaint(
-        painter: ToonSlabPainter(
-          tone: selected ? tone : ToonTone.cream,
-          radius: 12,
-          depth: selected ? 4 : 3,
-          outlineWidth: 2.5,
-          gloss: selected,
-          pressed: false,
+        painter: IronSlabPainter(
+          tone: selected ? tone : IronTone.iron,
+          depth: 2,
+          outlineWidth: 1.2,
+          gloss: false,
+          border: selected ? IronPalette.brassLight : IronPalette.ironEdge,
         ),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 46, minHeight: 46),
+          constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(12, 0, 12, selected ? 4 : 3),
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 2),
             child: Align(
               widthFactor: 1,
               heightFactor: 1,
-              child: selected
-                  ? ToonText(label, size: 17, maxLines: 1)
-                  : Text(
-                      label,
-                      maxLines: 1,
-                      style: const TextStyle(
-                        fontSize: 17,
-                        color: ToonPalette.bark,
-                      ),
-                    ),
+              child: Text(
+                label,
+                maxLines: 1,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: selected ? tone.text : IronPalette.mute,
+                ),
+              ),
             ),
           ),
         ),
@@ -109,9 +105,9 @@ class _Chip extends StatelessWidget {
   );
 }
 
-/// An on/off switch: a pill track with a round knob, green when on.
-class ToonSwitch extends StatelessWidget {
-  const ToonSwitch({super.key, required this.value, required this.onChanged});
+/// An on/off switch: a dark slot with a metal knob, brass and moss when on.
+class IronSwitch extends StatelessWidget {
+  const IronSwitch({super.key, required this.value, required this.onChanged});
 
   final bool value;
   final ValueChanged<bool> onChanged;
@@ -131,31 +127,33 @@ class ToonSwitch extends StatelessWidget {
           child: Center(
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 160),
-              width: 68,
-              height: 36,
+              width: 58,
+              height: 28,
               padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                color: value ? ToonPalette.leafDeep : ToonPalette.creamDeep,
-                borderRadius: BorderRadius.circular(18),
-                border: Border.all(color: ToonPalette.outline, width: 3),
+                color: value ? IronPalette.mossDeep : const Color(0xFF111215),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: value ? IronPalette.brass : IronPalette.ironEdge,
+                ),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 160),
-                curve: Curves.easeOutBack,
+                curve: Curves.easeOut,
                 alignment: value ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
-                  width: 26,
-                  height: 26,
+                  width: 20,
+                  height: 20,
                   decoration: BoxDecoration(
-                    color: value ? ToonPalette.leaf : ToonPalette.cream,
                     shape: BoxShape.circle,
-                    border: Border.all(color: ToonPalette.outline, width: 2.5),
+                    gradient: RadialGradient(
+                      center: const Alignment(-0.3, -0.4),
+                      colors: value
+                          ? const [IronPalette.brassLight, IronPalette.brassDeep]
+                          : const [Color(0xFF6A6C72), Color(0xFF2E3036)],
+                    ),
+                    border: Border.all(color: IronPalette.ink),
                   ),
-                  child: value
-                      ? const Center(
-                          child: ToonIcon(ToonGlyph.check, size: 16),
-                        )
-                      : null,
                 ),
               ),
             ),
@@ -166,9 +164,9 @@ class ToonSwitch extends StatelessWidget {
   }
 }
 
-/// A screen header: round back button, the title on a ribbon, actions.
-class ToonHeader extends StatelessWidget {
-  const ToonHeader({super.key, required this.title, this.actions = const []});
+/// A screen header: round back button, the engraved title, actions.
+class IronHeader extends StatelessWidget {
+  const IronHeader({super.key, required this.title, this.actions = const []});
 
   final String title;
   final List<Widget> actions;
@@ -180,15 +178,15 @@ class ToonHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(10, 8, 12, 4),
       child: Row(
         children: [
-          ToonRoundButton(
-            glyph: ToonGlyph.back,
+          IronRoundButton(
+            glyph: IronGlyph.back,
             tooltip: l10n.back,
-            tone: ToonTone.sky,
+            tone: IronTone.steel,
             size: 46,
             onPressed: () => Navigator.of(context).maybePop(),
           ),
           const SizedBox(width: 12),
-          Flexible(child: ToonRibbon(title, fontSize: 22)),
+          Flexible(child: IronRibbon(title, fontSize: 22)),
           const Spacer(),
           ...actions,
         ],
@@ -253,13 +251,13 @@ class _FigurePainter extends CustomPainter {
       old.f.pose != f.pose;
 }
 
-/// A picker sheet: ribbon title over a grid of [ToonTile]s.
-Future<T?> showToonPicker<T>({
+/// A picker sheet: ribbon title over a grid of [IronTile]s.
+Future<T?> showIronPicker<T>({
   required BuildContext context,
   required String title,
   required List<Widget> Function(BuildContext) tiles,
   double maxWidth = 760,
-}) => showToonDialog<T>(
+}) => showIronDialog<T>(
   context: context,
   title: title,
   maxWidth: maxWidth,
@@ -278,9 +276,9 @@ Future<T?> showToonPicker<T>({
   ),
 );
 
-/// A card in a picker or grid: cream slab, sun-yellow when selected.
-class ToonTile extends StatelessWidget {
-  const ToonTile({
+/// A card in a picker or grid: an iron plate, brass-trimmed when selected.
+class IronTile extends StatelessWidget {
+  const IronTile({
     super.key,
     required this.child,
     required this.selected,
@@ -295,7 +293,7 @@ class ToonTile extends StatelessWidget {
   final double width;
 
   /// Overrides the unselected colour (e.g. a "special" card).
-  final ToonTone? tone;
+  final IronTone? tone;
 
   @override
   Widget build(BuildContext context) => Semantics(
@@ -306,14 +304,14 @@ class ToonTile extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: CustomPaint(
-        painter: ToonSlabPainter(
+        painter: IronSlabPainter(
           tone: selected
-              ? ToonTone.sun
-              : tone ?? const ToonTone(Color(0xFFFFFBF0), ToonPalette.creamShade),
-          radius: 14,
-          depth: 4,
-          outlineWidth: selected ? 3.5 : 2.5,
-          gloss: false,
+              ? const IronTone(Color(0xFF3A3326), Color(0xFF1E1B15))
+              : tone ?? IronTone.iron,
+          depth: 3,
+          outlineWidth: selected ? 2 : 1,
+          gloss: selected,
+          border: selected ? IronPalette.brassLight : IronPalette.ironEdge,
         ),
         child: SizedBox(
           width: width,

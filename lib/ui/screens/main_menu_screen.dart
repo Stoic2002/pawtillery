@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
 import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
 import '../../services/audio_service.dart';
-import '../widgets/toon/toon_backdrop.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_controls.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_logo.dart';
+import '../widgets/iron/iron_backdrop.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_controls.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_logo.dart';
 import 'about_screen.dart';
 import 'how_to_play_screen.dart';
 import 'settings_screen.dart';
@@ -37,23 +37,23 @@ class MainMenuScreen extends StatelessWidget {
     final menu = Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        FittedBox(child: ToonLogo(title: l10n.appTitle, size: 54)),
+        FittedBox(child: IronLogo(title: l10n.appTitle, size: 54)),
         const SizedBox(height: 6),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           decoration: BoxDecoration(
-            color: ToonPalette.night,
+            color: IronPalette.night,
             borderRadius: BorderRadius.circular(14),
           ),
           child: Text(
             l10n.menuSubtitle,
-            style: const TextStyle(fontSize: 15, color: ToonPalette.white),
+            style: const TextStyle(fontSize: 15, color: IronPalette.parchment),
           ),
         ),
         const SizedBox(height: 16),
-        ToonButton(
+        IronButton(
           label: l10n.menuPlay,
-          icon: ToonGlyph.play,
+          icon: IronGlyph.play,
           fontSize: 28,
           height: 62,
           minWidth: 240,
@@ -65,26 +65,26 @@ class MainMenuScreen extends StatelessWidget {
           runSpacing: 10,
           alignment: WrapAlignment.center,
           children: [
-            ToonButton(
+            IronButton(
               label: l10n.menuHowToPlay,
-              icon: ToonGlyph.question,
-              tone: ToonTone.sky,
+              icon: IronGlyph.question,
+              tone: IronTone.steel,
               fontSize: 16,
               height: 46,
               onPressed: () => open(const HowToPlayScreen()),
             ),
-            ToonButton(
+            IronButton(
               label: l10n.menuSettings,
-              icon: ToonGlyph.gear,
-              tone: ToonTone.sky,
+              icon: IronGlyph.gear,
+              tone: IronTone.steel,
               fontSize: 16,
               height: 46,
               onPressed: () => open(const SettingsScreen()),
             ),
-            ToonButton(
+            IronButton(
               label: l10n.menuAbout,
-              icon: ToonGlyph.info,
-              tone: ToonTone.sky,
+              icon: IronGlyph.info,
+              tone: IronTone.steel,
               fontSize: 16,
               height: 46,
               onPressed: () => open(const AboutScreen()),
@@ -95,7 +95,7 @@ class MainMenuScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      body: ToonBackdrop(
+      body: IronBackdrop(
         groundLine: _groundLine,
         child: LayoutBuilder(
           builder: (context, box) {

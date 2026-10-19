@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_panel.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_panel.dart';
 
 /// First-match tutorial (PRD: tooltip bertahap — jalan, buka senjata,
 /// bidik, tembak — sekali di giliran pertama, bisa dilewati).
@@ -68,8 +68,8 @@ class TutorialOverlay extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 300),
-                child: ToonPanel(
-                  style: ToonPanelStyle.night,
+                child: IronPanel(
+                  style: IronPanelStyle.night,
                   padding: const EdgeInsets.fromLTRB(14, 12, 8, 4),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -83,17 +83,17 @@ class TutorialOverlay extends StatelessWidget {
                                 text,
                                 style: const TextStyle(
                                   fontSize: 18,
-                                  color: ToonPalette.white,
+                                  color: IronPalette.parchment,
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
                             Transform.rotate(
                               angle: angle,
-                              child: const ToonIcon(
-                                ToonGlyph.back,
+                              child: const IronIcon(
+                                IronGlyph.back,
                                 size: 32,
-                                color: ToonPalette.sun,
+                                color: IronPalette.brass,
                               ),
                             ),
                           ],
@@ -103,7 +103,7 @@ class TutorialOverlay extends StatelessWidget {
                         onPressed: controller.skip,
                         child: Text(l10n.tutorialSkip,
                             style: const TextStyle(
-                                fontSize: 15, color: ToonPalette.sky)),
+                                fontSize: 15, color: IronPalette.steel)),
                       ),
                     ],
                   ),

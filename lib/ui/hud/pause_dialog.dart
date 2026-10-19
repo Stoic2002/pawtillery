@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_panel.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_panel.dart';
 
 enum PauseChoice { resume, settings, exit }
 
@@ -13,7 +13,7 @@ enum PauseChoice { resume, settings, exit }
 /// tap outside) resumes.
 Future<PauseChoice> showPauseDialog(BuildContext context) async {
   final l10n = AppLocalizations.of(context);
-  final choice = await showToonDialog<PauseChoice>(
+  final choice = await showIronDialog<PauseChoice>(
     context: context,
     title: l10n.pauseTitle.toUpperCase(),
     maxWidth: 340,
@@ -22,13 +22,13 @@ Future<PauseChoice> showPauseDialog(BuildContext context) async {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         for (final (c, label, glyph, tone) in [
-          (PauseChoice.resume, l10n.pauseResume, ToonGlyph.play, ToonTone.leaf),
-          (PauseChoice.settings, l10n.menuSettings, ToonGlyph.gear, ToonTone.sky),
-          (PauseChoice.exit, l10n.pauseExit, ToonGlyph.home, ToonTone.tomato),
+          (PauseChoice.resume, l10n.pauseResume, IronGlyph.play, IronTone.moss),
+          (PauseChoice.settings, l10n.menuSettings, IronGlyph.gear, IronTone.steel),
+          (PauseChoice.exit, l10n.pauseExit, IronGlyph.home, IronTone.blood),
         ])
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
-            child: ToonButton(
+            child: IronButton(
               label: label,
               icon: glyph,
               tone: tone,
@@ -45,10 +45,10 @@ Future<PauseChoice> showPauseDialog(BuildContext context) async {
 /// "Leave the match?" confirmation.
 Future<bool> confirmExit(BuildContext context) async {
   final l10n = AppLocalizations.of(context);
-  final ok = await showToonDialog<bool>(
+  final ok = await showIronDialog<bool>(
     context: context,
     title: l10n.pauseExitConfirmTitle.toUpperCase(),
-    titleTone: ToonTone.tomato,
+    titleTone: IronTone.blood,
     maxWidth: 420,
     builder: (context) => Column(
       mainAxisSize: MainAxisSize.min,
@@ -56,7 +56,7 @@ Future<bool> confirmExit(BuildContext context) async {
         Text(
           l10n.pauseExitConfirmBody,
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 17, color: ToonPalette.bark),
+          style: const TextStyle(fontSize: 17, color: IronPalette.mute),
         ),
         const SizedBox(height: 14),
         Wrap(
@@ -64,17 +64,17 @@ Future<bool> confirmExit(BuildContext context) async {
           runSpacing: 8,
           alignment: WrapAlignment.center,
           children: [
-            ToonButton(
+            IronButton(
               label: l10n.dialogCancel,
-              tone: ToonTone.sky,
+              tone: IronTone.steel,
               fontSize: 17,
               minWidth: 120,
               onPressed: () => Navigator.of(context).pop(false),
             ),
-            ToonButton(
+            IronButton(
               label: l10n.dialogLeave,
-              tone: ToonTone.tomato,
-              icon: ToonGlyph.home,
+              tone: IronTone.blood,
+              icon: IronGlyph.home,
               fontSize: 17,
               minWidth: 120,
               onPressed: () => Navigator.of(context).pop(true),

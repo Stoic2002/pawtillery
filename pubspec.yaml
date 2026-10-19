@@ -30,9 +30,14 @@ flutter:
   # Asset folders are registered as soon as they contain real files
   # (Flutter rejects missing directories). See docs/decisions.md.
   fonts:
-    - family: LilitaOne
+    - family: Cinzel
       fonts:
-        - asset: assets/fonts/LilitaOne-Regular.ttf
+        - asset: assets/fonts/Cinzel.ttf
+    - family: Alegreya
+      fonts:
+        - asset: assets/fonts/Alegreya.ttf
+        - asset: assets/fonts/Alegreya-Italic.ttf
+          style: italic
 
   assets:
     - assets/CREDITS.md

@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../config/weapons.dart';
 import '../../game/art/weapon_art.dart';
 import '../../game/pawtillery_game.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../../services/audio_service.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_controls.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_panel.dart';
-import '../widgets/toon/toon_text.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_controls.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_panel.dart';
+import '../widgets/iron/iron_text.dart';
 
 /// Weapon menu (PRD: Menu senjata): a panel that slides in from the right
 /// with a grid of weapon cards — colour art, name, ammo badge. The
@@ -35,8 +35,8 @@ Future<void> showWeaponMenu(BuildContext context, PawtilleryGame game) {
             constraints: const BoxConstraints(maxWidth: 470),
             child: Material(
               type: MaterialType.transparency,
-              child: ToonPanel(
-                style: ToonPanelStyle.night,
+              child: IronPanel(
+                style: IronPanelStyle.night,
                 padding: const EdgeInsets.fromLTRB(10, 8, 10, 10),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -44,19 +44,19 @@ Future<void> showWeaponMenu(BuildContext context, PawtilleryGame game) {
                     Row(
                       children: [
                         const SizedBox(width: 6),
-                        const ToonIcon(ToonGlyph.bag, size: 26, color: ToonPalette.sun),
+                        const IronIcon(IronGlyph.bag, size: 26, color: IronPalette.brass),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: ToonText(
+                          child: IronText(
                             l10n.hudWeapons.toUpperCase(),
                             size: 22,
                             textAlign: TextAlign.start,
                           ),
                         ),
-                        ToonRoundButton(
-                          glyph: ToonGlyph.close,
+                        IronRoundButton(
+                          glyph: IronGlyph.close,
                           tooltip: l10n.dialogCancel,
-                          tone: ToonTone.tomato,
+                          tone: IronTone.blood,
                           size: 40,
                           onPressed: () => Navigator.of(context).pop(),
                         ),
@@ -73,14 +73,14 @@ Future<void> showWeaponMenu(BuildContext context, PawtilleryGame game) {
                             for (final c in choices)
                               Opacity(
                                 opacity: c.usable ? 1 : 0.45,
-                                child: ToonTile(
+                                child: IronTile(
                                   width: 102,
                                   selected:
                                       c.weapon.id == game.aim.value.weaponId,
                                   tone: c.weapon.isSignature
-                                      ? const ToonTone(
-                                          Color(0xFFFFD7C7),
-                                          Color(0xFFFFA98F),
+                                      ? const IronTone(
+                                          Color(0xFF3A1E1A),
+                                          Color(0xFF1E100E),
                                         )
                                       : null,
                                   onTap: c.usable
@@ -111,7 +111,7 @@ Future<void> showWeaponMenu(BuildContext context, PawtilleryGame game) {
                                           text: c.usable
                                               ? l10n.hudSignature
                                               : l10n.hudUsed,
-                                          tone: ToonTone.tomato,
+                                          tone: IronTone.blood,
                                         )
                                       else
                                         AmmoBadge(ammo: c.ammoLeft),
@@ -153,7 +153,7 @@ class AmmoBadge extends StatelessWidget {
     final n = ammo;
     return _Badge(
       text: n == null ? l10n.hudAmmoUnlimited : l10n.hudAmmoLeft(n),
-      tone: n == null ? ToonTone.sky : ToonTone.sun,
+      tone: n == null ? IronTone.steel : IronTone.brass,
     );
   }
 }
@@ -161,7 +161,7 @@ class AmmoBadge extends StatelessWidget {
 class _Badge extends StatelessWidget {
   const _Badge({required this.text, required this.tone});
   final String text;
-  final ToonTone tone;
+  final IronTone tone;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -173,9 +173,9 @@ class _Badge extends StatelessWidget {
         colors: [tone.light, tone.deep],
       ),
       borderRadius: BorderRadius.circular(9),
-      border: Border.all(color: ToonPalette.outline, width: 2),
+      border: Border.all(color: IronPalette.ink, width: 2),
     ),
-    child: ToonText(text, size: 13, maxLines: 1, drop: 1),
+    child: IronText(text, size: 13, maxLines: 1, drop: 1),
   );
 }
 

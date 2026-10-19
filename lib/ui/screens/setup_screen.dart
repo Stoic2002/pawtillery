@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
 import '../../app/match_config.dart';
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
 import '../../config/maps.dart';
@@ -13,12 +13,12 @@ import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../../services/audio_service.dart';
-import '../widgets/toon/toon_backdrop.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_controls.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_panel.dart';
-import '../widgets/toon/toon_text.dart';
+import '../widgets/iron/iron_backdrop.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_controls.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_panel.dart';
+import '../widgets/iron/iron_text.dart';
 import 'arena_screen.dart';
 
 /// Match setup: match rules on the left, one colour tab per team on the
@@ -71,18 +71,18 @@ class _SetupScreenState extends State<SetupScreen> {
     final l10n = AppLocalizations.of(context);
     final config = _config!;
     return Scaffold(
-      body: ToonBackdrop(
+      body: IronBackdrop(
         dim: 0.2,
         child: SafeArea(
           child: Column(
             children: [
-              ToonHeader(
+              IronHeader(
                 title: l10n.setupTitle.toUpperCase(),
                 actions: [
-                  ToonButton(
+                  IronButton(
                     label: l10n.setupRandomAll,
-                    icon: ToonGlyph.dice,
-                    tone: ToonTone.sky,
+                    icon: IronGlyph.dice,
+                    tone: IronTone.steel,
                     fontSize: 16,
                     height: 44,
                     onPressed: () {
@@ -94,9 +94,9 @@ class _SetupScreenState extends State<SetupScreen> {
                     },
                   ),
                   const SizedBox(width: 10),
-                  ToonButton(
+                  IronButton(
                     label: l10n.setupStart,
-                    icon: ToonGlyph.play,
+                    icon: IronGlyph.play,
                     fontSize: 20,
                     height: 48,
                     onPressed: _start,
@@ -111,7 +111,7 @@ class _SetupScreenState extends State<SetupScreen> {
                     children: [
                       SizedBox(
                         width: 268,
-                        child: ToonPanel(
+                        child: IronPanel(
                           padding: const EdgeInsets.fromLTRB(4, 8, 4, 8),
                           child: _Rules(
                             config: config,
@@ -166,28 +166,28 @@ class _Rules extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12),
       children: [
         Center(
-          child: ToonText(
+          child: IronText(
             l10n.setupConditions.toUpperCase(),
             size: 18,
-            color: ToonPalette.sun,
+            color: IronPalette.brass,
           ),
         ),
         label(l10n.setupTeams),
-        ToonSegmented<int>(
+        IronSegmented<int>(
           values: MatchDefaults.teamCountOptions,
           selected: config.teams.length,
           label: (v) => '$v',
           onSelect: (v) => onChanged(config.withTeamCount(v, pool)),
         ),
         label(l10n.setupUnitsPerTeam),
-        ToonSegmented<int>(
+        IronSegmented<int>(
           values: MatchDefaults.unitsPerTeamOptions,
           selected: config.unitsPerTeam,
           label: (v) => '$v',
           onSelect: (v) => onChanged(config.withUnitsPerTeam(v, pool)),
         ),
         label(l10n.setupTurnTime),
-        ToonSegmented<int>(
+        IronSegmented<int>(
           values: MatchDefaults.turnSecondsOptions,
           selected: config.turnSeconds,
           label: (v) => l10n.hudSeconds(v),
@@ -195,18 +195,18 @@ class _Rules extends StatelessWidget {
           wrap: true,
         ),
         label(l10n.setupMap),
-        ToonSegmented<String>(
+        IronSegmented<String>(
           values: [MatchConfig.randomMap, for (final m in Maps.all) m.id],
           selected: config.mapId,
           label: (id) => id == MatchConfig.randomMap
               ? l10n.setupMapRandom
               : l10n.byKey(Maps.byId(id).nameKey),
           onSelect: (id) => onChanged(config.copyWith(mapId: id)),
-          tone: ToonTone.leaf,
+          tone: IronTone.moss,
           wrap: true,
         ),
         label(l10n.setupSuddenDeath),
-        ToonSegmented<int>(
+        IronSegmented<int>(
           values: [for (final m in MatchDefaults.suddenDeathOptions) m ?? 0],
           selected: config.suddenDeathMinutes ?? 0,
           label: (m) => m == 0 ? l10n.setupOff : l10n.setupMinutes(m),
@@ -215,7 +215,7 @@ class _Rules extends StatelessWidget {
                 ? config.copyWith(suddenDeathOff: true)
                 : config.copyWith(suddenDeathMinutes: m),
           ),
-          tone: ToonTone.tomato,
+          tone: IronTone.blood,
           wrap: true,
         ),
       ],
@@ -273,8 +273,8 @@ class _TeamsPanel extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: ToonPanel(
-            accent: Color.lerp(teamColor, ToonPalette.outline, 0.45),
+          child: IronPanel(
+            accent: Color.lerp(teamColor, IronPalette.ink, 0.45),
             padding: const EdgeInsets.fromLTRB(4, 8, 4, 6),
             child: _TeamEditor(
               key: ValueKey('team$selected-$revision'),
@@ -323,15 +323,17 @@ class _TeamTab extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Color.lerp(color, Colors.white, selected ? 0.15 : 0.35)!,
-              selected ? color : Color.lerp(color, Colors.white, 0.2)!,
+              Color.lerp(color, Colors.black, selected ? 0.2 : 0.5)!,
+              Color.lerp(color, Colors.black, selected ? 0.55 : 0.75)!,
             ],
           ),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-          border: Border.all(color: ToonPalette.outline, width: 3),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(3)),
+          border: Border.all(
+            color: selected ? IronPalette.brass : IronPalette.ironEdge,
+          ),
         ),
         alignment: Alignment.center,
-        child: ToonText(label, size: selected ? 17 : 15, maxLines: 1),
+        child: IronText(label, size: selected ? 17 : 15, maxLines: 1),
       ),
     ),
   );
@@ -463,12 +465,12 @@ class _Swatch extends StatelessWidget {
               color: Color(argb),
               shape: BoxShape.circle,
               border: Border.all(
-                color: ToonPalette.outline,
+                color: IronPalette.ink,
                 width: selected ? 3.5 : 2.5,
               ),
             ),
             child: selected
-                ? const Center(child: ToonIcon(ToonGlyph.check, size: 18))
+                ? const Center(child: IronIcon(IronGlyph.check, size: 18))
                 : null,
           ),
         ),
@@ -512,9 +514,9 @@ class _UnitCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.fromLTRB(6, 4, 2, 4),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFBF0),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: ToonPalette.creamDeep, width: 2),
+        color: const Color(0xFF1B1C20),
+        borderRadius: BorderRadius.circular(3),
+        border: Border.all(color: IronPalette.ironEdge),
       ),
       child: Row(
         children: [
@@ -527,11 +529,11 @@ class _UnitCard extends StatelessWidget {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    Color.lerp(Color(teamArgb), Colors.white, 0.55)!,
-                    Color(teamArgb),
+                    Color.lerp(Color(teamArgb), Colors.black, 0.35)!,
+                    Color.lerp(Color(teamArgb), Colors.black, 0.75)!,
                   ],
                 ),
-                border: Border.all(color: ToonPalette.outline, width: 3),
+                border: Border.all(color: IronPalette.brass, width: 1.5),
               ),
               child: ClipOval(
                 child: AnimalFigure(
@@ -575,10 +577,10 @@ class _UnitCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          ToonRoundButton(
-            glyph: ToonGlyph.dice,
+          IronRoundButton(
+            glyph: IronGlyph.dice,
             tooltip: l10n.setupRandomUnit,
-            tone: ToonTone.sky,
+            tone: IronTone.steel,
             size: 42,
             onPressed: onRandom,
           ),
@@ -619,7 +621,7 @@ class _PickField extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12,
-                    color: ToonPalette.bark,
+                    color: IronPalette.mute,
                   ),
                 ),
                 Text(
@@ -633,7 +635,7 @@ class _PickField extends StatelessWidget {
           ),
           const Text(
             '▾',
-            style: TextStyle(fontSize: 16, color: ToonPalette.skyDeep),
+            style: TextStyle(fontSize: 16, color: IronPalette.steel),
           ),
         ],
       ),
@@ -648,12 +650,12 @@ Future<String?> _pickFamily(
   int teamArgb,
 ) {
   final l10n = AppLocalizations.of(context);
-  return showToonPicker<String>(
+  return showIronPicker<String>(
     context: context,
     title: l10n.setupChooseFamily.toUpperCase(),
     tiles: (context) => [
       for (final f in Families.all)
-        ToonTile(
+        IronTile(
           selected: f.id == current,
           onTap: () => Navigator.of(context).pop(f.id),
           child: Column(
@@ -664,7 +666,7 @@ Future<String?> _pickFamily(
                 teamArgb: teamArgb,
                 size: 76,
               ),
-              ToonText(l10n.byKey(f.nameKey), size: 16, maxLines: 1),
+              IronText(l10n.byKey(f.nameKey), size: 16, maxLines: 1),
             ],
           ),
         ),
@@ -675,12 +677,12 @@ Future<String?> _pickFamily(
 /// The breeds of one family.
 Future<String?> _pickBreed(BuildContext context, UnitEntry unit, int teamArgb) {
   final l10n = AppLocalizations.of(context);
-  return showToonPicker<String>(
+  return showIronPicker<String>(
     context: context,
     title: l10n.setupChooseBreed.toUpperCase(),
     tiles: (context) => [
       for (final b in Breeds.ofFamily(unit.familyId))
-        ToonTile(
+        IronTile(
           selected: b.id == unit.breedId,
           onTap: () => Navigator.of(context).pop(b.id),
           child: Column(

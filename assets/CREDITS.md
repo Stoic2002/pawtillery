@@ -5,4 +5,5 @@ and license, and shown on the About screen.
 
 | Asset | Path | Author / source | License |
 | --- | --- | --- | --- |
-| Lilita One | `assets/fonts/LilitaOne-Regular.ttf` | Juan Montoreano (Google Fonts) | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-LilitaOne.txt`) |
+| Cinzel (variable) | `assets/fonts/Cinzel.ttf` | The Cinzel Project Authors (Google Fonts) | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-Cinzel.txt`) |
+| Alegreya (variable, roman and italic) | `assets/fonts/Alegreya*.ttf` | The Alegreya Project Authors (Google Fonts) | SIL Open Font License 1.1 (`assets/fonts/licenses/OFL-Alegreya.txt`) |

@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
 import '../../app/match_config.dart';
-import '../../app/toon_palette.dart';
+import '../../app/iron_palette.dart';
 import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
-import '../widgets/toon/toon_backdrop.dart';
-import '../widgets/toon/toon_button.dart';
-import '../widgets/toon/toon_controls.dart';
-import '../widgets/toon/toon_icons.dart';
-import '../widgets/toon/toon_panel.dart';
-import '../widgets/toon/toon_text.dart';
+import '../widgets/iron/iron_backdrop.dart';
+import '../widgets/iron/iron_button.dart';
+import '../widgets/iron/iron_controls.dart';
+import '../widgets/iron/iron_icons.dart';
+import '../widgets/iron/iron_panel.dart';
+import '../widgets/iron/iron_text.dart';
 import 'arena_screen.dart';
 
 /// What the results screen shows; computed when the match ends.
@@ -54,15 +54,15 @@ class ResultsScreen extends StatelessWidget {
     final winner = result.winnerTeam;
     final topTeam = result.topUnitTeam;
     final winnerColor = winner == null
-        ? ToonPalette.stoneDeep
+        ? IronPalette.ashDeep
         : Color(result.teamColors[winner]);
     final winners = winner == null || winner >= config.teams.length
         ? const <UnitEntry>[]
         : config.teams[winner].units;
 
-    final stats = ToonPanel(
+    final stats = IronPanel(
       title: l10n.resultReport.toUpperCase(),
-      titleTone: ToonTone.sky,
+      titleTone: IronTone.steel,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -71,7 +71,7 @@ class ResultsScreen extends StatelessWidget {
           Text(
             l10n.resultTurns(result.turns),
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 15, color: ToonPalette.bark),
+            style: const TextStyle(fontSize: 15, color: IronPalette.mute),
           ),
           const SizedBox(height: 8),
           Text(l10n.resultMostDamage, style: const TextStyle(fontSize: 15)),
@@ -83,7 +83,7 @@ class ResultsScreen extends StatelessWidget {
                     result.teamNames[topTeam],
                     result.topDamage ?? 0,
                   ),
-            style: const TextStyle(fontSize: 17, color: ToonPalette.tomatoDeep),
+            style: const TextStyle(fontSize: 17, color: IronPalette.bloodDeep),
           ),
           const SizedBox(height: 10),
           Text(l10n.resultKills, style: const TextStyle(fontSize: 15)),
@@ -103,9 +103,9 @@ class ResultsScreen extends StatelessWidget {
       runSpacing: 10,
       alignment: WrapAlignment.center,
       children: [
-        ToonButton(
+        IronButton(
           label: l10n.resultPlayAgain,
-          icon: ToonGlyph.replay,
+          icon: IronGlyph.replay,
           fontSize: 18,
           onPressed: () => Navigator.of(context).pushReplacement(
             MaterialPageRoute<void>(
@@ -113,18 +113,18 @@ class ResultsScreen extends StatelessWidget {
             ),
           ),
         ),
-        ToonButton(
+        IronButton(
           label: l10n.resultChangeTeams,
-          icon: ToonGlyph.people,
-          tone: ToonTone.sky,
+          icon: IronGlyph.people,
+          tone: IronTone.steel,
           fontSize: 16,
           height: 46,
           onPressed: () => Navigator.of(context).pop(),
         ),
-        ToonButton(
+        IronButton(
           label: l10n.resultMainMenu,
-          icon: ToonGlyph.home,
-          tone: ToonTone.sky,
+          icon: IronGlyph.home,
+          tone: IronTone.steel,
           fontSize: 16,
           height: 46,
           onPressed: () =>
@@ -134,7 +134,7 @@ class ResultsScreen extends StatelessWidget {
     );
 
     return Scaffold(
-      body: ToonBackdrop(
+      body: IronBackdrop(
         groundLine: _groundLine,
         child: LayoutBuilder(
           builder: (context, box) {
@@ -166,16 +166,16 @@ class ResultsScreen extends StatelessWidget {
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            ToonIcon(
-                              ToonGlyph.trophy,
+                            IronIcon(
+                              IronGlyph.trophy,
                               size: 46,
                               color: winner == null
-                                  ? ToonPalette.stone
-                                  : ToonPalette.sun,
+                                  ? IronPalette.ash
+                                  : IronPalette.brass,
                             ),
                             const SizedBox(width: 10),
                             Flexible(
-                              child: ToonText(
+                              child: IronText(
                                 winner == null
                                     ? l10n.resultDraw.toUpperCase()
                                     : l10n
@@ -241,7 +241,7 @@ class _KnockoutLine extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             shape: BoxShape.circle,
-            border: Border.all(color: ToonPalette.outline, width: 2.5),
+            border: Border.all(color: IronPalette.ink, width: 2.5),
           ),
         ),
         const SizedBox(width: 8),
@@ -258,9 +258,9 @@ class _KnockoutLine extends StatelessWidget {
           decoration: BoxDecoration(
             color: color,
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: ToonPalette.outline, width: 2.5),
+            border: Border.all(color: IronPalette.ink, width: 2.5),
           ),
-          child: ToonText('$count', size: 16),
+          child: IronText('$count', size: 16),
         ),
       ],
     ),
