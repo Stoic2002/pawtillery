@@ -1,7 +1,8 @@
 # Art & UI Style Guide — Pawtillery
 
-Status: **v2 direction "Sunny Brawl"**, chosen by the developer on
-2026-10-18. It replaces the v1 field-guide look. The quality bar is a
+Status: **v3 direction "Dusk Brawl"**, 2026-10-19. The chunky toon UI
+and cartoon animals of v2 stay; the world moved from sunny to dusk and
+night, because the developer found a sunny farm wrong for a war. The quality bar is a
 commercial painted-cartoon artillery game (the developer pointed at
 Worms W.M.D as the benchmark for polish). The identity, names, characters,
 layouts and assets are our own (PRD: no names, characters, assets or text
@@ -9,11 +10,12 @@ from other games).
 
 ## Identity in one line
 
-> A Saturday-morning cartoon brawl on a sunny farm: chunky, toy-like,
-> warm, loud, and easy to read from arm's length.
+> A cartoon brawl in haunted, stormy, burning places: dark painted
+> worlds, bright chunky characters, easy to read from arm's length.
 
 Animals are expressive cartoon characters, not specimens. The world is
-painted. The interface is made of chunky toy pieces: thick dark outlines,
+painted, moody and lit by one light (moon, storm, fire); the characters
+and UI stay bright on top of it. The interface is made of chunky toy pieces: thick dark outlines,
 two-tone fills, gloss bands and solid drop shadows.
 
 ## What we borrow and what we don't
@@ -27,8 +29,8 @@ What stays **ours**:
 | Theirs (don't) | Ours (do) |
 |---|---|
 | Worms, sheep, banana bombs, holy grenades, concrete donkeys | 13 animal families with their own signature weapons |
-| Their logo, fonts, menu layouts, colour palette, HUD art | Lilita One, the Sunny Brawl palette, ribbons and slabs below |
-| Their maps and set pieces (e.g. their specific levels) | Our themes: farm, coastal cliffs, snowy mountain |
+| Their logo, fonts, menu layouts, colour palette, HUD art | Lilita One, our palette, ribbons and slabs below |
+| Their maps and set pieces (e.g. their specific levels) | Our themes: haunted keep, shipwreck cove, ruined village |
 | Their voice lines and copy | Our own copy (EN/ID) |
 
 ## Palette
@@ -76,7 +78,7 @@ primary (sun) action per screen.
 
 | Widget | Use |
 |---|---|
-| `ToonBackdrop` | Painted farm meadow behind every menu (sky, sun, clouds, hills, lollipop trees, flowers) |
+| `ToonBackdrop` | A battlefield at dusk behind every menu (moon, stars, burning horizon, ruined castle, smoke, bare trees, fog, a moonlit hill) |
 | `ToonButton` | Chunky slab button; `tone` picks the colour |
 | `ToonRoundButton` | Round icon button; supports hold (walk) |
 | `ToonPanel` | Cream card or night HUD panel, optional ribbon title |
@@ -129,13 +131,23 @@ tufted silhouette. Same API as before (`AnimalArt.draw`, poses).
 ## Maps
 
 Set pieces, not flat strips: islands with overhangs, caves and props
-built into the terrain. Each theme has its own parallax backdrop.
+built into the terrain. Each theme has its own sky, weather and parallax
+backdrop, and an **ambient light** (`MapDef.ambientArgb`) multiplied into
+the terrain, decorations and debris, never into the units.
 
-| Theme | Terrain | Props |
-|---|---|---|
-| Farm | soil (embedded stones), hay, plank wood, roof shingles, leaf clumps | barn, haystacks, fences, water tower |
-| Coastal cliffs | stacked boulders, sand, timber | lighthouse, pier, beached boat, rocks, sea |
-| Snowy mountain | stacked boulders, snow, ice, logs | pines, cabin, icicles, frozen lake |
+| Theme | Light | Terrain | Props | Sky |
+|---|---|---|---|---|
+| Haunted Keep | cold moonlight | soil, stacked boulders, castle stone, slate | castle with towers, keep and dungeon, broken drawbridge, moat, graveyard, crypt, dead trees | stars, moon, dark clouds, bats, far castles, fog |
+| Shipwreck Cove | storm grey | stacked boulders, sand, ship timber | broken lighthouse, sea cave, galleon broken in two on a sandbar, island lookout | storm clouds, lightning, rain, rock stacks, a ghost ship |
+| Ruined Village | fire glow | soil, rubble, brick, timber | bombed church and spire, smashed houses, sandbags, flooded crater, cellar | burning skyline, smoke columns, low red sun, embers |
+
+**Terrain edges are antialiased** (coverage alpha on edge pixels, bilinear
+filtering, a 2 px gutter per chunk so filtering has no seams).
+
+**Water** has two layers: a dark swell behind the terrain so islands sit
+in the sea, and a front layer that is clear near the surface and deep
+below, with a rolling surface, lit crest, shadowed trough, foam and
+drifting caustics.
 
 ## Effects
 

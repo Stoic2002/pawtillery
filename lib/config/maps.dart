@@ -1,5 +1,5 @@
 /// Which backdrop, decorations and weather a map gets.
-enum MapTheme { farm, coast, snow }
+enum MapTheme { castle, wreck, ruins }
 
 /// What grows or settles on exposed top edges.
 enum CapStyle {
@@ -42,7 +42,8 @@ class MapDef {
     required this.grassArgb,
     required this.waterArgb,
     this.grassThickness = 7,
-    this.theme = MapTheme.farm,
+    this.ambientArgb = 0xFFFFFFFF,
+    this.theme = MapTheme.castle,
     this.cap = CapStyle.grass,
     this.baseMaterial = TerrainMaterial.soil,
   });
@@ -68,6 +69,10 @@ class MapDef {
 
   /// Cap drawn on exposed top edges, px.
   final int grassThickness;
+
+  /// Light falling on the terrain (multiplied in): moonlight, storm grey,
+  /// fire glow. Units are never tinted, so they stay readable.
+  final int ambientArgb;
   final MapTheme theme;
   final CapStyle cap;
 
@@ -76,46 +81,47 @@ class MapDef {
 }
 
 abstract final class Maps {
-  static const farm = MapDef(
-    id: 'farm',
-    nameKey: 'mapFarm',
-    maskAsset: 'assets/maps/farm/mask.png',
+  static const castle = MapDef(
+    id: 'castle',
+    nameKey: 'mapCastle',
+    maskAsset: 'assets/maps/castle/mask.png',
     waterLevel: 1120,
-    skyTopArgb: 0xFF2E9BE0,
-    skyBottomArgb: 0xFFC9EEFF,
-    dirtArgb: 0xFF9A6236,
-    grassArgb: 0xFF6CC53A,
-    waterArgb: 0xC02E8FD0,
+    skyTopArgb: 0xFF0B1226,
+    skyBottomArgb: 0xFF3A4170,
+    dirtArgb: 0xFF6A4E3A,
+    grassArgb: 0xFF5C7A44,
+    waterArgb: 0xFF16314A,
+    ambientArgb: 0xFF9AA6D6,
+    baseMaterial: TerrainMaterial.soil,
   );
 
-  static const coast = MapDef(
-    id: 'coast',
-    nameKey: 'mapCoast',
-    maskAsset: 'assets/maps/coast/mask.png',
+  static const wreck = MapDef(
+    id: 'wreck',
+    nameKey: 'mapWreck',
+    maskAsset: 'assets/maps/wreck/mask.png',
     waterLevel: 1120,
-    skyTopArgb: 0xFF3AA8E8,
-    skyBottomArgb: 0xFFFFE9C2,
-    dirtArgb: 0xFF7E8494,
-    grassArgb: 0xFF8BCB45,
-    waterArgb: 0xC01FA3B8,
-    theme: MapTheme.coast,
+    skyTopArgb: 0xFF1E252E,
+    skyBottomArgb: 0xFF7D7A72,
+    dirtArgb: 0xFF6B7078,
+    grassArgb: 0xFF667E4C,
+    waterArgb: 0xFF1D4E58,
+    ambientArgb: 0xFFC2C4C6,
+    theme: MapTheme.wreck,
     baseMaterial: TerrainMaterial.rock,
   );
 
-  static const snow = MapDef(
-    id: 'snow',
-    nameKey: 'mapSnow',
-    maskAsset: 'assets/maps/snow/mask.png',
+  static const ruins = MapDef(
+    id: 'ruins',
+    nameKey: 'mapRuins',
+    maskAsset: 'assets/maps/ruins/mask.png',
     waterLevel: 1120,
-    skyTopArgb: 0xFF6E9FE0,
-    skyBottomArgb: 0xFFF6E3F0,
-    dirtArgb: 0xFF6F7690,
-    grassArgb: 0xFFF4FAFF,
-    waterArgb: 0xC0245E9E,
-    grassThickness: 10,
-    theme: MapTheme.snow,
-    cap: CapStyle.snow,
-    baseMaterial: TerrainMaterial.rock,
+    skyTopArgb: 0xFF2A1C24,
+    skyBottomArgb: 0xFFB8643C,
+    dirtArgb: 0xFF6E5440,
+    grassArgb: 0xFF6E7A3E,
+    waterArgb: 0xFF2C3E3A,
+    ambientArgb: 0xFFE2B496,
+    theme: MapTheme.ruins,
   );
 
   /// Test bench from M1; used by tests, not offered to players.
@@ -132,7 +138,7 @@ abstract final class Maps {
   );
 
   /// Maps players can pick (PRD: Peta 1.0).
-  static const all = [farm, coast, snow];
+  static const all = [castle, wreck, ruins];
 
   static MapDef byId(String id) => [...all, sandbox].firstWhere(
     (m) => m.id == id,

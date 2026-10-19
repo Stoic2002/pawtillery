@@ -9,7 +9,7 @@ import '../../sim/terrain_mask.dart';
 
 import '../art/paint_kit.dart';
 
-enum _Kind { tuft, flower, pebble, mushroom, shell, starfish, snowClump }
+enum _Kind { tuft, pebble, mushroom, shell, starfish, bones, rubble }
 
 class _Decor {
   _Decor(this.x, this.y, this.kind, this.seed);
@@ -20,8 +20,10 @@ class _Decor {
 }
 
 /// Small non-colliding details along the ground surface, chosen by theme
-/// and by what the ground is made of (grass tufts, flowers and mushrooms
-/// on soil, shells and starfish on sand, snow clumps in the mountains). A piece disappears for good once
+/// and by what the ground is made of (tufts, toadstools and old bones by
+/// the castle, shells and starfish on the beach, rubble in the ruins).
+/// Each sits on a small contact shadow and takes the map's ambient light,
+/// so it belongs to the painted ground. A piece disappears for good once
 /// the ground under it is blown away. Purely visual.
 class DecorComponent extends Component {
   DecorComponent({required this.mask, required this.map, this.materials})
@@ -42,22 +44,29 @@ class DecorComponent extends Component {
       final i = materials?[y * mask.width + x];
       final m = i == null ? map.baseMaterial : TerrainMaterial.values[i];
       if (map.cap == CapStyle.snow) {
-        return m == TerrainMaterial.rock || m == TerrainMaterial.soil
-            ? const [_Kind.snowClump, _Kind.snowClump, _Kind.pebble]
-            : const [];
+        return const [_Kind.pebble];
       }
-      return switch (m) {
-        TerrainMaterial.sand => const [_Kind.shell, _Kind.starfish, _Kind.tuft],
-        TerrainMaterial.soil || TerrainMaterial.rock =>
-          map.theme == MapTheme.farm
-              ? const [
-                  _Kind.tuft,
-                  _Kind.tuft,
-                  _Kind.flower,
-                  _Kind.mushroom,
-                  _Kind.pebble,
-                ]
-              : const [_Kind.tuft, _Kind.tuft, _Kind.flower, _Kind.pebble],
+      final natural = m == TerrainMaterial.soil || m == TerrainMaterial.rock;
+      return switch (map.theme) {
+        MapTheme.castle when natural => const [
+          _Kind.tuft,
+          _Kind.tuft,
+          _Kind.mushroom,
+          _Kind.pebble,
+          _Kind.bones,
+        ],
+        MapTheme.wreck when m == TerrainMaterial.sand => const [
+          _Kind.shell,
+          _Kind.starfish,
+          _Kind.pebble,
+        ],
+        MapTheme.wreck when natural => const [_Kind.tuft, _Kind.pebble],
+        MapTheme.ruins when natural => const [
+          _Kind.tuft,
+          _Kind.rubble,
+          _Kind.rubble,
+          _Kind.pebble,
+        ],
         _ => const [],
       };
     }
@@ -87,15 +96,32 @@ class DecorComponent extends Component {
     _items.removeWhere((d) => !mask.isSolid(d.x, d.y + 1));
   }
 
+  late final ui.Paint _ambient = ui.Paint()
+    ..colorFilter = ui.ColorFilter.mode(
+      ui.Color(map.ambientArgb),
+      ui.BlendMode.modulate,
+    );
+  final ui.Paint _contact = ui.Paint()..color = const ui.Color(0x55000000);
+
   @override
   void render(ui.Canvas canvas) {
+    canvas.saveLayer(null, _ambient);
     for (final d in _items) {
+      // Sunk a pixel into the ground, on a small contact shadow.
       final o = ui.Offset(d.x.toDouble(), d.y.toDouble() + 1.5);
+      if (d.kind != _Kind.tuft) {
+        canvas.drawOval(
+          ui.Rect.fromCenter(
+            center: o + const ui.Offset(0, -0.5),
+            width: 9,
+            height: 2.6,
+          ),
+          _contact,
+        );
+      }
       switch (d.kind) {
         case _Kind.tuft:
           _tuft(canvas, o, d.seed);
-        case _Kind.flower:
-          _flower(canvas, o, d.seed);
         case _Kind.pebble:
           _pebble(canvas, o, d.seed);
         case _Kind.mushroom:
@@ -104,10 +130,13 @@ class DecorComponent extends Component {
           _shell(canvas, o, d.seed);
         case _Kind.starfish:
           _starfish(canvas, o, d.seed);
-        case _Kind.snowClump:
-          _snowClump(canvas, o, d.seed);
+        case _Kind.bones:
+          _bones(canvas, o, d.seed);
+        case _Kind.rubble:
+          _rubble(canvas, o, d.seed);
       }
     }
+    canvas.restore();
   }
 
   late final ui.Paint _blade = ui.Paint()
@@ -126,25 +155,6 @@ class DecorComponent extends Component {
         _blade,
       );
     }
-  }
-
-  static const _petals = [0xFFF4E04D, 0xFFF2F2F2, 0xFFE57AA8, 0xFFB39DDB];
-
-  void _flower(ui.Canvas c, ui.Offset o, int seed) {
-    final sway = math.sin(_time * 1.4 + o.dx / 30) * 0.8;
-    final top = o + ui.Offset(sway, -9);
-    _blade.color = PaintKit.tone(map.grassArgb, -0.25);
-    c.drawLine(o, top, _blade);
-    final petal = ui.Paint()..color = ui.Color(_petals[seed % _petals.length]);
-    for (var i = 0; i < 5; i++) {
-      final a = i / 5 * math.pi * 2;
-      c.drawCircle(
-        top + ui.Offset(math.cos(a) * 2, math.sin(a) * 2),
-        1.6,
-        petal,
-      );
-    }
-    c.drawCircle(top, 1.2, ui.Paint()..color = const ui.Color(0xFFD9822B));
   }
 
   void _pebble(ui.Canvas c, ui.Offset o, int seed) {
@@ -212,19 +222,44 @@ class DecorComponent extends Component {
       ..drawPath(star, _ink);
   }
 
-  void _snowClump(ui.Canvas c, ui.Offset o, int seed) {
-    final w = 6.0 + seed % 6;
-    final clump = ui.Path()
-      ..moveTo(o.dx - w / 2, o.dy)
-      ..quadraticBezierTo(o.dx - w * 0.4, o.dy - w * 0.5, o.dx, o.dy - w * 0.45)
-      ..quadraticBezierTo(o.dx + w * 0.45, o.dy - w * 0.4, o.dx + w / 2, o.dy)
-      ..close();
-    c
-      ..drawPath(clump, ui.Paint()..color = const ui.Color(0xFFF4FAFF))
-      ..drawCircle(
-        o + ui.Offset(-w * 0.12, -w * 0.3),
-        w * 0.12,
-        ui.Paint()..color = const ui.Color(0xFFFFFFFF),
+  void _bones(ui.Canvas c, ui.Offset o, int seed) {
+    final bone = ui.Paint()
+      ..color = const ui.Color(0xFFE8E0C8)
+      ..strokeWidth = 1.6
+      ..strokeCap = ui.StrokeCap.round;
+    final tilt = (seed % 5 - 2) * 0.3;
+    final d = ui.Offset(math.cos(tilt) * 4, math.sin(tilt) * 4);
+    final mid = o + const ui.Offset(0, -1.2);
+    c.drawLine(mid - d, mid + d, bone);
+    for (final end in [mid - d, mid + d]) {
+      c
+        ..drawCircle(end + const ui.Offset(0, -0.6), 1.1, bone)
+        ..drawCircle(end + const ui.Offset(0, 0.6), 1.1, bone);
+    }
+  }
+
+  void _rubble(ui.Canvas c, ui.Offset o, int seed) {
+    const colors = [0xFF8A7E72, 0xFF9C5A44, 0xFF6E665E];
+    for (var i = 0; i < 3; i++) {
+      final w = 2.5 + (seed >> i) % 3;
+      final r = ui.Rect.fromCenter(
+        center: o + ui.Offset((i - 1) * 3.2, -w * 0.4 - (i == 1 ? 1 : 0)),
+        width: w,
+        height: w * 0.8,
       );
+      c
+        ..save()
+        ..translate(r.center.dx, r.center.dy)
+        ..rotate(((seed >> (i * 3)) % 7 - 3) * 0.2)
+        ..drawRect(
+          ui.Rect.fromCenter(
+            center: ui.Offset.zero,
+            width: r.width,
+            height: r.height,
+          ),
+          ui.Paint()..color = ui.Color(colors[(seed + i) % colors.length]),
+        )
+        ..restore();
+    }
   }
 }

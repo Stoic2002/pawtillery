@@ -8,9 +8,10 @@ primitives into set pieces: islands with overhangs, caves and props that
 are part of the terrain. Standard library only:
 
     python3 tool/gen_maps.py            # all maps
-    python3 tool/gen_maps.py farm       # one map
+    python3 tool/gen_maps.py castle     # one map
 """
 import math
+import random
 import struct
 import sys
 import zlib
@@ -131,205 +132,225 @@ def shores(x, y, left=120, right=2280):
     return y
 
 
-# ------------------------------------------------------------------- farm
+def crenels(m, x0, x1, top, mat=STONE, w=22, h=26):
+    """Battlements along a wall top: merlons with gaps."""
+    x = x0
+    while x + w <= x1:
+        m.rect(x, top - h, x + w, top, m=mat)
+        x += w * 2
 
-def farm():
+
+def broken_top(m, x0, x1, base, top, mat, seed, drop=70):
+    """A wall whose top edge is smashed into a jagged line."""
+    rng = random.Random(seed)
+    pts = [(x0, base)]
+    x = x0
+    while x < x1:
+        pts.append((x, top + rng.randint(0, drop)))
+        x += rng.randint(14, 34)
+    pts += [(x1, top + rng.randint(0, drop)), (x1, base)]
+    m.poly(pts, m=mat)
+
+
+def tombstone(m, x, ground, h, w=34):
+    m.rect(x - w // 2, ground - h, x + w // 2, ground + 6, m=STONE)
+    m.ellipse(x, ground - h, w // 2, w // 2 - 2, m=STONE)
+
+
+def dead_tree(m, x, ground, h, seed):
+    """A bare trunk with a few crooked branches (thin, breakable)."""
+    rng = random.Random(seed)
+    m.poly([(x - 14, ground + 6), (x - 6, ground - h), (x + 6, ground - h),
+            (x + 14, ground + 6)], m=WOOD)
+    for k in range(4):
+        y = ground - h * (0.45 + k * 0.15)
+        side = -1 if k % 2 else 1
+        length = rng.randint(50, 90) * (1 - k * 0.15)
+        m.poly([(x, y), (x + side * length, y - length * 0.6),
+                (x + side * (length + 6), y - length * 0.6 + 8),
+                (x, y + 12)], m=WOOD)
+
+
+# ----------------------------------------------------------------- castle
+
+def castle():
+    m = Mask(SOIL)
+
+    def hills(x):
+        y = 860 + wave(x, (30, 170, 0.3), (12, 53, 1.9))
+        if 1520 <= x <= 1660:  # moat ravine below the water line
+            t = math.cos(math.pi * (x - 1590) / 70) * 0.5 + 0.5
+            y += (1160 - y) * t
+        return shores(x, y)
+
+    m.below(hills)
+
+    # The crag the castle stands on: flat-topped rock.
+    def crag(x):
+        return 1200 - 640 * math.exp(-((x - 1100) / 360) ** 4) + wave(
+            x, (8, 41, 0.5))
+
+    m.below(crag, m=ROCK, x0=640, x1=1530)
+
+    top = 560
+    # Curtain wall with battlements and a gate arch.
+    m.rect(820, 450, 1390, top + 10, m=STONE)
+    crenels(m, 820, 1390, 450)
+    m.rect(925, 486, 985, top + 2, carve=True)
+    m.ellipse(955, 488, 30, 26, carve=True)
+    # Towers with conical roofs.
+    for x0, x1, t, apex in ((790, 900, 300, 210), (1300, 1410, 260, 160)):
+        m.rect(x0, t, x1, top + 10, m=STONE)
+        crenels(m, x0 - 6, x1 + 6, t, w=18, h=20)
+        m.poly([(x0 - 16, t - 18), ((x0 + x1) / 2, apex), (x1 + 16, t - 18)],
+               m=ROOF)
+        m.rect(x0 + 32, t + 50, x1 - 32, t + 90, carve=True)  # arrow slit
+    # The keep: two hollow floors.
+    m.rect(1000, 330, 1210, top + 10, m=STONE)
+    crenels(m, 994, 1216, 330)
+    m.rect(1022, 350, 1188, 440, carve=True)
+    m.rect(1022, 456, 1188, top - 4, carve=True)
+    m.ellipse(1105, 400, 22, 30, carve=True)
+    # Dungeon under the crag.
+    m.rect(920, 712, 1280, 742, carve=True)
+    for cx in (930, 1100, 1270):
+        m.blob(cx, 724, 36, carve=True, wobble=0.15, seed=cx)
+    # Broken drawbridge over the moat.
+    m.rect(1410, 548, 1545, 562, m=WOOD)
+
+    # Graveyard on the right hill: tombstones, a crypt, a dead tree.
+    for x, h in ((1740, 50), (1800, 64), (1870, 46), (2060, 58), (2130, 44)):
+        tombstone(m, x, int(hills(x)), h)
+    cg = int(hills(1960)) + 6
+    m.rect(1910, cg - 120, 2010, cg, m=STONE)
+    m.rect(1932, cg - 90, 1988, cg - 4, carve=True)
+    m.poly([(1896, cg - 118), (1960, cg - 170), (2024, cg - 118)], m=ROOF)
+    dead_tree(m, 2200, int(hills(2200)), 220, seed=4)
+
+    # Left: a ruined watchtower and a dead tree.
+    lg = int(hills(330))
+    broken_top(m, 280, 390, lg + 6, lg - 230, STONE, seed=7, drop=90)
+    m.rect(306, lg - 150, 364, lg + 2, carve=True)
+    dead_tree(m, 560, int(hills(560)), 180, seed=9)
+    m.blob(470, 1000, 80, carve=True, wobble=0.2, seed=21)  # burrow
+    return m
+
+
+# ------------------------------------------------------------------ wreck
+
+def wreck():
+    m = Mask(ROCK)
+
+    # Left headland with a sea cave and a broken lighthouse.
+    def headland(x):
+        y = 600 + wave(x, (22, 110, 0.4), (9, 37, 1.3))
+        y += max(0, x - 520) ** 1.35 * 0.12
+        return shores(x, y)
+
+    m.below(headland, x1=760)
+    m.ellipse(640, 1010, 110, 100, carve=True)
+    m.rect(560, 1020, 760, 1200, carve=True)
+    lx = 300
+    lg = int(headland(lx))
+    broken_top(m, lx - 55, lx + 55, lg + 8, lg - 300, STONE, seed=3, drop=110)
+    m.rect(lx - 26, lg - 220, lx + 26, lg - 30, carve=True)
+    m.rect(lx - 60, lg - 70, lx - 28, lg - 2, carve=True)
+
+    # Sandbar the wreck lies on.
+    m.below(lambda x: 1135 - 60 * math.exp(-((x - 1230) / 300) ** 2),
+            m=SAND, x0=780, x1=1700)
+
+    # Bow half: a hull curving up to the prow, hollow with a deck.
+    bow = [(800, 830), (860, 880), (1170, 880), (1170, 1080), (990, 1100),
+           (880, 1060), (830, 960)]
+    m.poly(bow, m=WOOD)
+    m.poly([(886, 902), (1146, 902), (1146, 956), (880, 956)], carve=True)
+    for wx in (920, 1000, 1080):                  # gun ports
+        m.rect(wx, 990, wx + 22, 1010, carve=True)
+    m.poly([(980, 880), (996, 880), (1050, 600), (1036, 598)], m=WOOD)  # mast
+    m.rect(1010, 660, 1080, 672, m=WOOD)          # crow's nest
+
+    # Stern half, tilted, with a raised stern castle and cabin windows.
+    stern = [(1290, 1090), (1300, 900), (1520, 870), (1540, 760), (1700, 740),
+             (1700, 1010), (1560, 1080)]
+    m.poly(stern, m=WOOD)
+    m.poly([(1326, 922), (1518, 896), (1544, 802), (1680, 788), (1680, 930),
+            (1326, 972)], carve=True)
+    for wx in (1580, 1630):
+        m.rect(wx, 800, wx + 22, 830, carve=True)
+    m.rect(1400, 700, 1414, 900, m=WOOD)          # broken mast stub
+
+    # Right island: rocks, a sandy beach and a lookout shack on stilts.
+    def island(x):
+        y = 1150 - 0.55 * (x - 1700) + wave(x, (12, 60, 0.7))
+        return shores(x, max(y, 730))
+
+    m.below(island, x0=1700)
+    m.recolor(1700, 700, 1980, 1200, ROCK, SAND)
+    sx = 2140
+    sg = int(island(sx))
+    for px in (sx - 80, sx + 60):
+        m.rect(px, sg - 120, px + 12, sg + 6, m=WOOD)
+    m.rect(sx - 96, sg - 230, sx + 86, sg - 120, m=WOOD)
+    m.rect(sx - 74, sg - 210, sx + 64, sg - 132, carve=True)
+    m.poly([(sx - 116, sg - 226), (sx - 5, sg - 290), (sx + 106, sg - 226)],
+           m=ROOF)
+    return m
+
+
+# ------------------------------------------------------------------ ruins
+
+def ruins():
     m = Mask(SOIL)
 
     def ground(x):
-        y = 800 + wave(x, (45, 260, 0.3), (18, 90, 1.7))
-        y -= 120 * math.exp(-((x - 1700) / 260) ** 2)  # orchard hill
-        if 1070 <= x <= 1450:  # duck pond, a basin under the water line
-            t = math.cos(math.pi * (x - 1260) / 190) * 0.5 + 0.5
-            y += (1150 - y) * min(1, t * 1.25)
+        y = 840 + wave(x, (26, 150, 1.1), (10, 47, 0.2))
+        if 1040 <= x <= 1360:  # flooded bomb crater
+            t = math.cos(math.pi * (x - 1200) / 160) * 0.5 + 0.5
+            y += (1160 - y) * min(1, t * 1.3)
         return shores(x, y)
 
     m.below(ground)
 
-    # Barn: thick plank walls, a hollow ground floor with a door each side,
-    # a hay loft, a big pitched roof with eaves.
-    bx0, bx1, floor = 430, 760, int(ground(595)) + 8
-    m.rect(bx0, floor - 250, bx1, floor, m=WOOD)
-    m.rect(bx0 + 22, floor - 120, bx1 - 22, floor - 4, carve=True)   # stalls
-    m.rect(bx0 - 2, floor - 92, bx0 + 24, floor - 4, carve=True)     # door L
-    m.rect(bx1 - 24, floor - 92, bx1 + 2, floor - 4, carve=True)     # door R
-    m.rect(bx0 + 22, floor - 228, bx1 - 22, floor - 140, carve=True)  # loft
-    m.rect(bx0 + 40, floor - 170, bx0 + 150, floor - 140, m=HAY)      # loft hay
-    m.rect(bx0 + 120, floor - 60, bx0 + 210, floor - 4, m=HAY)        # bale
-    m.poly([(bx0 - 40, floor - 248), ((bx0 + bx1) / 2, floor - 400),
-            (bx1 + 40, floor - 248), (bx1 + 40, floor - 230),
-            ((bx0 + bx1) / 2, floor - 378), (bx0 - 40, floor - 230)], m=ROOF)
-    m.poly([(bx0 - 4, floor - 248), ((bx0 + bx1) / 2, floor - 380),
-            (bx1 + 4, floor - 248)], m=WOOD)
-    m.ellipse((bx0 + bx1) / 2, floor - 300, 26, 26, carve=True)      # window
+    # Bombed church: nave walls with a broken roofline, a cracked spire.
+    g = int(ground(380)) + 8
+    broken_top(m, 220, 520, g, g - 230, STONE, seed=11, drop=80)
+    m.rect(246, g - 160, 494, g - 4, carve=True)
+    for wx in (290, 380, 450):
+        m.rect(wx, g - 140, wx + 30, g - 90, carve=True)
+        m.ellipse(wx + 15, g - 140, 15, 15, carve=True)
+    m.rect(250, g - 60, 330, g - 4, m=WOOD)                   # pews
+    broken_top(m, 520, 600, g, g - 420, STONE, seed=12, drop=60)
+    m.rect(540, g - 330, 580, g - 260, carve=True)
 
-    # Haystacks and a staircase of bales.
-    m.blob(960, int(ground(960)) - 40, 85, m=HAY, wobble=0.08, seed=2)
-    m.rect(870, int(ground(960)) - 20, 1050, int(ground(960)) + 30, m=HAY)
-    for i, (x, h) in enumerate([(1040, 1), (1100, 2)]):
-        top = int(ground(x)) + 6
-        for k in range(h):
-            m.rect(x, top - 52 * (k + 1), x + 70, top - 52 * k, m=HAY)
+    # Houses with smashed walls, floors and half roofs.
+    for x0, x1, seed in ((760, 960, 21), (1480, 1720, 22), (1960, 2200, 23)):
+        hg = int(ground((x0 + x1) / 2)) + 8
+        broken_top(m, x0, x1, hg, hg - 214, STONE, seed=seed, drop=40)
+        m.rect(x0 + 26, hg - 150, x1 - 26, hg - 4, carve=True)
+        m.rect(x0 + 20, hg - 96, x1 - 20, hg - 84, m=WOOD)     # floor
+        m.rect(x0 + 50, hg - 150, x0 + 86, hg - 112, carve=True)
+        m.poly([(x0 - 20, hg - 196), (x0 + (x1 - x0) * 0.45, hg - 290),
+                (x0 + (x1 - x0) * 0.55, hg - 250), (x0 + 30, hg - 196)],
+               m=ROOF)
 
-    # Fences either side of the pond (thin, breakable perches).
-    for x0, x1 in ((240, 400), (1380, 1520)):
-        y = int(ground(x0))
-        for x in range(x0, x1, 40):
-            m.rect(x, y - 70, x + 10, int(ground(x)) + 4, m=WOOD)
-        m.rect(x0 - 6, y - 58, x1, y - 46, m=WOOD)
-
-    # Orchard hill with a tunnel through it and an apple tree on top.
-    m.ellipse(1700, 760, 120, 46, carve=True)
-    m.rect(1590, 760, 1810, 800, carve=True)
-    top = int(ground(1700))
-    m.rect(1690, top - 150, 1712, top + 6, m=WOOD)
-    m.blob(1700, top - 200, 110, m=LEAVES, wobble=0.12, seed=3)
-    m.blob(1630, top - 160, 60, m=LEAVES, wobble=0.15, seed=5)
-
-    # Rabbit burrows under the fields.
-    m.blob(330, 960, 70, carve=True, wobble=0.2, seed=11)
-    m.rect(330, 935, 720, 985, carve=True)
-    m.blob(720, 960, 60, carve=True, wobble=0.2, seed=12)
-    m.blob(1000, 1000, 80, carve=True, wobble=0.25, seed=13)
-    m.blob(1950, 960, 90, carve=True, wobble=0.2, seed=14)
-
-    # Water tower on stilts at the far right.
-    tx = 2120
-    tg = int(ground(tx))
-    for lx in (tx - 70, tx + 58):
-        m.rect(lx, tg - 230, lx + 12, tg + 6, m=WOOD)
-    m.rect(tx - 76, tg - 120, tx + 76, tg - 108, m=WOOD)
-    m.ellipse(tx, tg - 290, 100, 70, m=WOOD)
-    m.rect(tx - 100, tg - 290, tx + 100, tg - 230, m=WOOD)
-    m.poly([(tx - 112, tg - 340), (tx, tg - 420), (tx + 112, tg - 340)], m=ROOF)
+    # Sandbag barricades and rubble.
+    for x, n in ((1000, 3), (1420, 2)):
+        sg = int(ground(x)) + 4
+        for row in range(n):
+            for k in range(n - row):
+                m.ellipse(x + k * 40 + row * 20, sg - 14 - row * 24, 22, 14,
+                          m=SAND)
+    for x in (680, 1820, 2280):
+        m.blob(x, int(ground(x)) - 10, 34, m=ROCK, wobble=0.3, seed=x)
+    # A toppled water tank in the crater.
+    m.ellipse(1200, 1080, 70, 40, m=METAL)
+    m.blob(600, 1010, 70, carve=True, wobble=0.2, seed=31)       # cellar
+    m.rect(600, 990, 860, 1030, carve=True)
     return m
 
 
-# ------------------------------------------------------------------ coast
-
-def coast():
-    m = Mask(ROCK)
-
-    # Left headland: a tall cliff that overhangs the sea, a sea cave.
-    def headland(x):
-        y = 520 + wave(x, (25, 120, 0.4), (10, 40, 1.1))
-        y += max(0, x - 640) ** 1.4 * 0.08
-        return shores(x, y)
-
-    m.below(headland, x1=900)
-    m.poly([(640, 560), (920, 600), (980, 660), (900, 700), (700, 720)])
-    m.ellipse(760, 980, 150, 110, carve=True)          # sea cave
-    m.rect(610, 1000, 910, 1200, carve=True)
-    m.blob(330, 760, 120, carve=True, wobble=0.1, seed=4)  # inner grotto
-    m.rect(300, 760, 360, 880, carve=True)
-
-    # Lighthouse: striped stone tower, gallery, lamp room, cap.
-    lx = 360
-    lg = int(headland(lx))
-    m.poly([(lx - 60, lg + 10), (lx - 42, lg - 330), (lx + 42, lg - 330),
-            (lx + 60, lg + 10)], m=STONE)
-    m.rect(lx - 26, lg - 300, lx + 26, lg - 40, carve=True)   # stairwell
-    m.rect(lx - 62, lg - 70, lx - 30, lg - 4, carve=True)      # door
-    m.rect(lx - 70, lg - 345, lx + 70, lg - 330, m=METAL)      # gallery
-    m.rect(lx - 34, lg - 400, lx + 34, lg - 345, m=METAL)      # lamp room
-    m.poly([(lx - 46, lg - 400), (lx, lg - 450), (lx + 46, lg - 400)], m=ROOF)
-
-    # Sea stacks and a rock arch in the bay.
-    m.blob(1080, 1010, 95, wobble=0.2, seed=7)
-    m.poly([(1020, 1060), (1040, 880), (1090, 840), (1130, 870), (1150, 1060)])
-    m.poly([(1240, 1200), (1270, 760), (1360, 700), (1480, 720), (1540, 800),
-            (1560, 1200)])
-    m.ellipse(1400, 1010, 80, 150, carve=True)         # the arch
-
-    # Right: dunes down to a sandy beach, a pier and a beached boat.
-    def dunes(x):
-        y = 1130 - 0.6 * (x - 1700) + wave(x, (14, 70, 0.2), (6, 31, 1.4))
-        return shores(x, max(y, 770))
-
-    m.below(dunes, m=SAND, x0=1640)
-    m.below(lambda x: dunes(x) + 60, m=ROCK, x0=1640)
-    py = 1056
-    m.rect(1560, py, 1800, py + 12, m=WOOD)                  # pier deck
-    for x in range(1570, 1790, 46):
-        m.rect(x, py + 12, x + 10, 1200, m=WOOD)
-    bg = int(dunes(1970))
-    m.poly([(1890, bg - 50), (2050, bg - 50), (2020, bg + 10), (1910, bg + 10)],
-           m=WOOD)                                            # beached boat
-    m.rect(1966, bg - 150, 1976, bg - 50, m=WOOD)             # mast
-    m.poly([(1978, bg - 146), (1978, bg - 58), (2050, bg - 58)], m=SNOW)  # sail
-    # Beach hut on the dune crest.
-    hx = 2200
-    hg = int(dunes(hx))
-    m.rect(hx - 60, hg - 110, hx + 60, hg + 6, m=WOOD)
-    m.rect(hx - 40, hg - 80, hx + 10, hg + 2, carve=True)
-    m.poly([(hx - 80, hg - 108), (hx, hg - 170), (hx + 80, hg - 108)], m=ROOF)
-    return m
-
-
-# ------------------------------------------------------------------- snow
-
-def snow():
-    m = Mask(ROCK)
-
-    def mountain(x):
-        y = 860 + wave(x, (30, 140, 0.5), (12, 47, 2.0))
-        y -= 430 * math.exp(-((x - 1220) / 230) ** 2)     # peak
-        y -= 160 * math.exp(-((x - 860) / 160) ** 2)      # shoulder
-        if 1700 <= x <= 2000:                              # frozen lake
-            y = max(y, 1150)
-        return shores(x, y)
-
-    m.below(mountain, x1=1700)
-    m.below(mountain, x0=2000)
-
-    # Tunnel through the peak and an ice cave with a ledge.
-    m.ellipse(1220, 820, 210, 55, carve=True)
-    m.rect(1000, 820, 1440, 870, carve=True)
-    m.blob(1330, 640, 70, carve=True, wobble=0.15, seed=9)
-    m.rect(1280, 680, 1380, 694, m=ICE)
-
-    # Caverns in the mountain's roots.
-    m.blob(560, 1010, 90, carve=True, wobble=0.22, seed=15)
-    m.blob(900, 1030, 70, carve=True, wobble=0.2, seed=16)
-    m.rect(560, 1000, 900, 1040, carve=True)
-
-    # Overhanging cornice on the peak's right face.
-    m.poly([(1300, 480), (1480, 520), (1500, 560), (1400, 560), (1320, 540)],
-           m=SNOW)
-
-    # Frozen lake: a breakable ice sheet over the water.
-    m.rect(1690, 1086, 2010, 1104, m=ICE)
-    m.blob(1850, 1060, 40, m=SNOW, wobble=0.1, seed=3)
-
-    # Log cabin on the left with a stone chimney and a porch.
-    cx0, cx1 = 260, 520
-    cg = int(mountain(390)) + 6
-    m.rect(cx0, cg - 150, cx1, cg, m=WOOD)
-    m.rect(cx0 + 22, cg - 110, cx1 - 22, cg - 4, carve=True)
-    m.rect(cx1 - 24, cg - 80, cx1 + 2, cg - 4, carve=True)
-    m.rect(cx0 + 60, cg - 92, cx0 + 110, cg - 4, m=WOOD)        # table
-    m.rect(cx0 + 160, cg - 220, cx0 + 200, cg - 150, m=STONE)   # chimney
-    m.poly([(cx0 - 40, cg - 148), ((cx0 + cx1) / 2, cg - 250),
-            (cx1 + 40, cg - 148)], m=ROOF)
-    m.rect(cx1, cg - 6, cx1 + 90, cg + 6, m=WOOD)               # porch
-
-    # Pines: trunks and three tiers each.
-    for px, s in ((680, 1.0), (760, 0.75), (1560, 0.9), (2160, 1.1),
-                  (2260, 0.8)):
-        g = int(mountain(px))
-        m.rect(px - 8 * s, g - 60 * s, px + 8 * s, g + 6, m=WOOD)
-        for k in range(3):
-            base = g - 40 * s - k * 52 * s
-            half = (78 - k * 18) * s
-            m.poly([(px - half, base), (px, base - 92 * s), (px + half, base)],
-                   m=LEAVES)
-
-    # A floating ice floe over the lake.
-    m.blob(1850, 880, 60, m=ICE, wobble=0.12, seed=6)
-    return m
-
-
-MAPS = {'farm': farm, 'coast': coast, 'snow': snow}
+MAPS = {'castle': castle, 'wreck': wreck, 'ruins': ruins}
 
 if __name__ == '__main__':
     for name in sys.argv[1:] or MAPS:

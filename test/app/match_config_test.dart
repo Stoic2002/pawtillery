@@ -62,7 +62,7 @@ void main() {
     final c = MatchConfig.defaults(_names)
         .withTeamCount(3, _names)
         .randomized(Random(3), _names)
-        .copyWith(mapId: 'coast', turnSeconds: 60, suddenDeathOff: true);
+        .copyWith(mapId: 'wreck', turnSeconds: 60, suddenDeathOff: true);
     final back = MatchConfig.fromJson(
         jsonDecode(jsonEncode(c.toJson())), _names)!;
     expect(jsonEncode(back.toJson()), jsonEncode(c.toJson()));

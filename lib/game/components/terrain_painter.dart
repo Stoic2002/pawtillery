@@ -30,6 +30,8 @@ Uint8List? buildChunkPixels(
   final out = Uint8List(w * h * 4);
   const deep = 140;
   final capArgb = map.grassArgb;
+  final (lr, lg, lb) = _rgb(map.ambientArgb);
+  final light = (lr / 255, lg / 255, lb / 255);
   var any = false;
 
   bool air(int x, int y) => !mask.isSolid(x, y);
@@ -41,7 +43,7 @@ Uint8List? buildChunkPixels(
     while (run < deep && mask.isSolid(x, y0 - 1 - run)) {
       run++;
     }
-    int? lastMaterial = materials == null || y0 == 0
+    int? lastMaterial = materials == null || y0 <= 0 || !mask.isSolid(x, y0 - 1)
         ? null
         : materials[(y0 - 1) * mask.width + x];
     // Uneven bottom edge of the cap.
@@ -60,9 +62,9 @@ Uint8List? buildChunkPixels(
         if (f != null) {
           any = true;
           final i = (ly * w + lx) * 4;
-          out[i] = f.$1.round().clamp(0, 255);
-          out[i + 1] = f.$2.round().clamp(0, 255);
-          out[i + 2] = f.$3.round().clamp(0, 255);
+          out[i] = (f.$1 * light.$1).round().clamp(0, 255);
+          out[i + 1] = (f.$2 * light.$2).round().clamp(0, 255);
+          out[i + 2] = (f.$3 * light.$3).round().clamp(0, 255);
           out[i + 3] = 255;
         }
         continue;
@@ -138,11 +140,25 @@ Uint8List? buildChunkPixels(
         (r, g, b) = _shade((r, g, b), -0.2);
       }
 
+      // Antialiased edge: coverage of the 3×3 neighbourhood sets the
+      // alpha of edge pixels, so outlines read smooth under zoom instead
+      // of as stair-steps (premultiplied, as decodeImageFromPixels wants).
+      var alpha = 1.0;
+      if (edge) {
+        var solid = 0;
+        for (var dy = -1; dy <= 1; dy++) {
+          for (var dx = -1; dx <= 1; dx++) {
+            if (mask.isSolid(x + dx, y + dy)) solid++;
+          }
+        }
+        alpha = ((solid / 9 - 0.22) / 0.5).clamp(0.25, 1.0);
+      }
+      (r, g, b) = (r * light.$1, g * light.$2, b * light.$3);
       final i = (ly * w + lx) * 4;
-      out[i] = r.round().clamp(0, 255);
-      out[i + 1] = g.round().clamp(0, 255);
-      out[i + 2] = b.round().clamp(0, 255);
-      out[i + 3] = 255;
+      out[i] = (r * alpha).round().clamp(0, 255);
+      out[i + 1] = (g * alpha).round().clamp(0, 255);
+      out[i + 2] = (b * alpha).round().clamp(0, 255);
+      out[i + 3] = (alpha * 255).round();
     }
   }
   return any ? out : null;
@@ -309,7 +325,7 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
       if (joint == 0) k -= 0.4;
       if ((joint == 4 || joint == 86) && y % 14 == 7) k -= 0.5; // nails
       k += math.sin(x * 0.21 + _vnoise(x / 40, y / 3, 41) * 5) * 0.05;
-      return _shade((0xA8, 0x6E, 0x3E), k);
+      return _shade((0x8C, 0x5E, 0x3A), k);
     case TerrainMaterial.roof:
       // Scalloped shingles in rows.
       final row = y ~/ 11;
@@ -320,7 +336,7 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
       var k = (_hash(x ~/ 18, row) % 7 - 3) * 0.03;
       if (sy > arc) k -= 0.28;
       if (sx == 0) k -= 0.2;
-      return _shade((0xD2, 0x4B, 0x34), k);
+      return _shade((0x8E, 0x40, 0x36), k);
     case TerrainMaterial.hay:
       // Straw: short dark strokes at a slant.
       final s = (x + y * 2 + (_hash(x ~/ 5, y ~/ 9) % 7)) % 9;
@@ -340,10 +356,10 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
       // Bricks with light mortar.
       final row = y ~/ 13;
       final bx = (x + (row.isEven ? 0 : 12)) % 24;
-      if (y % 13 == 0 || bx == 0) return (0xD8, 0xD2, 0xC6);
+      if (y % 13 == 0 || bx == 0) return (0x84, 0x80, 0x7A);
       final tint =
           (_hash((x + (row.isEven ? 0 : 12)) ~/ 24, row) % 9 - 4) * 0.03;
-      return _shade((0xE6, 0xE0, 0xD6), tint - (y % 13 > 10 ? 0.1 : 0));
+      return _shade((0xA6, 0xA0, 0x96), tint - (y % 13 > 10 ? 0.12 : 0));
     case TerrainMaterial.metal:
       var k = math.sin(x * 0.18) * 0.1;
       if (x % 24 == 0 || y % 40 == 0) k -= 0.25; // panels

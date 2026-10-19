@@ -184,6 +184,9 @@ void main() {
             worldSize: size,
             cameraPosition: () => size / 2,
           ).render(canvas);
+          WaterBackComponent(
+                  map: map, worldSize: size, level: () => map.waterLevel)
+              .render(canvas);
           canvas.drawImage(terrain, ui.Offset.zero, ui.Paint());
           decor.render(canvas);
           WaterComponent(
@@ -201,7 +204,7 @@ void main() {
 
 /// Top-left corner (world px) of each map's close-up render.
 const _closeUps = {
-  'farm': ui.Offset(1420, 560),
-  'coast': ui.Offset(150, 470),
-  'snow': ui.Offset(1000, 420),
+  'castle': ui.Offset(720, 220),
+  'wreck': ui.Offset(760, 720),
+  'ruins': ui.Offset(150, 560),
 };

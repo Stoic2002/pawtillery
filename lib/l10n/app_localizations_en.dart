@@ -473,13 +473,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get teamOrange => 'Orange Team';
 
   @override
-  String get mapFarm => 'Sunny Farm';
+  String get mapCastle => 'Haunted Keep';
 
   @override
-  String get mapCoast => 'Lighthouse Cliffs';
+  String get mapWreck => 'Shipwreck Cove';
 
   @override
-  String get mapSnow => 'Snowcap Peak';
+  String get mapRuins => 'Ruined Village';
 
   @override
   String get unitNamePool =>
@@ -744,7 +744,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyMonkeyLatin => 'Primates';
 
   @override
-  String get menuSubtitle => 'Backyard animal artillery!';
+  String get menuSubtitle => 'Animal artillery after dark';
 
   @override
   String get setupChooseFamily => 'Choose a family';

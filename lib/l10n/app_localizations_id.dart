@@ -473,13 +473,13 @@ class AppLocalizationsId extends AppLocalizations {
   String get teamOrange => 'Tim Oranye';
 
   @override
-  String get mapFarm => 'Peternakan Cerah';
+  String get mapCastle => 'Benteng Berhantu';
 
   @override
-  String get mapCoast => 'Tebing Mercusuar';
+  String get mapWreck => 'Teluk Kapal Karam';
 
   @override
-  String get mapSnow => 'Puncak Salju';
+  String get mapRuins => 'Desa Reruntuhan';
 
   @override
   String get unitNamePool =>
@@ -746,7 +746,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get familyMonkeyLatin => 'Primates';
 
   @override
-  String get menuSubtitle => 'Artileri hewan halaman belakang!';
+  String get menuSubtitle => 'Artileri hewan saat malam tiba';
 
   @override
   String get setupChooseFamily => 'Pilih jenis hewan';

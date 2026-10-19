@@ -39,6 +39,6 @@ flutter:
     - assets/fonts/licenses/
     - assets/audio/
     - assets/maps/sandbox/
-    - assets/maps/farm/
-    - assets/maps/coast/
-    - assets/maps/snow/
+    - assets/maps/castle/
+    - assets/maps/wreck/
+    - assets/maps/ruins/

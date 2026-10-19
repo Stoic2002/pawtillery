@@ -642,16 +642,16 @@
   "@teamOrange": {
     "description": "Default name of an orange team."
   },
-  "mapFarm": "Sunny Farm",
-  "@mapFarm": {
+  "mapCastle": "Haunted Keep",
+  "@mapCastle": {
     "description": "Map name."
   },
-  "mapCoast": "Lighthouse Cliffs",
-  "@mapCoast": {
+  "mapWreck": "Shipwreck Cove",
+  "@mapWreck": {
     "description": "Map name."
   },
-  "mapSnow": "Snowcap Peak",
-  "@mapSnow": {
+  "mapRuins": "Ruined Village",
+  "@mapRuins": {
     "description": "Map name."
   },
   "unitNamePool": "Milo,Luna,Bobo,Kiki,Coco,Momo,Pip,Nala,Toby,Ziggy,Biscuit,Pepper,Mochi,Tofu,Nugget,Peanut,Waffle,Pixel",
@@ -1012,7 +1012,7 @@
   "@familyMonkeyLatin": {
     "description": "Scientific name, shown in italic. Not translated."
   },
-  "menuSubtitle": "Backyard animal artillery!",
+  "menuSubtitle": "Animal artillery after dark",
   "@menuSubtitle": {
     "description": "Italic line under the title."
   },

@@ -432,3 +432,29 @@ the principle we adopted; we do not copy their characters or art.
   one merged silhouette.
 - **Gallery:** each map also renders a close-up at the arena's default
   zoom (`build/gallery/map_<id>_close.png`).
+
+## "Dusk Brawl": moody maps, smooth terrain, real water (2026-10-19)
+
+The developer found the sunny look wrong for a war, the terrain
+pixelated, the props not sitting on the ground, and the water flat; they
+asked for spooky places like a castle or the sea, like W.M.D, still with
+no image assets.
+
+- **Why it looked pixelated:** terrain pixels were 1 world px drawn
+  without filtering (to hide chunk seams) at 1.4× zoom on a dense
+  screen. Now edge pixels get coverage alpha, chunks carry a 2 px gutter
+  and are drawn with bilinear filtering from their inner rect: smooth,
+  no seams. Raw pixels are premultiplied as `decodeImageFromPixels`
+  expects.
+- **Props:** decorations get a contact shadow and the map's ambient light
+  (one `saveLayer` with a modulate colour filter per frame).
+- **Maps:** farm/coast/snow replaced by Haunted Keep, Shipwreck Cove and
+  Ruined Village (`tool/gen_maps.py`), each with its own sky and weather
+  (moon/stars/bats; storm, lightning, rain; fire dusk, smoke, embers) and
+  `MapDef.ambientArgb` lighting the terrain. Stone, roof and wood
+  textures were darkened. Saved setups naming old maps fall back to the
+  defaults.
+- **Water:** a back swell behind the terrain plus a front layer with
+  depth gradient, crest, trough, foam and caustics.
+- **Menus:** the meadow became a battlefield at dusk; subtitle "Animal
+  artillery after dark". UI kit and animals unchanged.

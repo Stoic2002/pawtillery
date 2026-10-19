@@ -35,10 +35,16 @@ class TerrainComponent extends PositionComponent {
   late final List<int> _wanted = List.filled(_cols * _rows, 0);
   late final List<int> _shown = List.filled(_cols * _rows, 0);
 
-  // No edge antialiasing: under camera zoom it shows seams between chunks.
+  /// Each chunk image carries a [gutter] of the neighbouring pixels on
+  /// every side. Drawn with bilinear filtering from the inner rect, the
+  /// filter samples real neighbours across chunk borders, so zoomed
+  /// terrain is smooth without seams.
+  static const int gutter = 2;
+
   final ui.Paint _paint = ui.Paint()
-    ..filterQuality = ui.FilterQuality.none
+    ..filterQuality = ui.FilterQuality.low
     ..isAntiAlias = false;
+  final ui.Paint _copy = ui.Paint()..filterQuality = ui.FilterQuality.none;
   final ui.Paint _clearPaint = ui.Paint()..blendMode = ui.BlendMode.clear;
 
   /// Crater edge in the terrain's cartoon style: a dark outline right at
@@ -72,12 +78,26 @@ class TerrainComponent extends PositionComponent {
     final y0 = row * chunkSize;
     final w = (mask.width - x0).clamp(0, chunkSize);
     final h = (mask.height - y0).clamp(0, chunkSize);
-    final pixels = buildChunkPixels(mask, map, materials, x0, y0, w, h);
+    const g = gutter;
+    final pixels = buildChunkPixels(
+      mask,
+      map,
+      materials,
+      x0 - g,
+      y0 - g,
+      w + 2 * g,
+      h + 2 * g,
+    );
     ui.Image? image;
     if (pixels != null) {
       final completer = Completer<ui.Image>();
       ui.decodeImageFromPixels(
-          pixels, w, h, ui.PixelFormat.rgba8888, completer.complete);
+        pixels,
+        w + 2 * g,
+        h + 2 * g,
+        ui.PixelFormat.rgba8888,
+        completer.complete,
+      );
       image = await completer.future;
     }
     if (version != _wanted[index] || isRemoved) {
@@ -135,10 +155,12 @@ class TerrainComponent extends PositionComponent {
         final old = _chunks[index];
         if (old == null) continue;
         final recorder = ui.PictureRecorder();
-        final local =
-            ui.Offset(centerX - col * chunkSize, centerY - row * chunkSize);
+        final local = ui.Offset(
+          centerX - col * chunkSize + gutter,
+          centerY - row * chunkSize + gutter,
+        );
         final c = ui.Canvas(recorder)
-          ..drawImage(old, ui.Offset.zero, _paint)
+          ..drawImage(old, ui.Offset.zero, _copy)
           ..drawCircle(local, r, _clearPaint);
         if (scorch) {
           c
@@ -167,20 +189,32 @@ class TerrainComponent extends PositionComponent {
       final m = materials?[y * mask.width + x];
       colors.add(materialColor(m == null ? map.baseMaterial : TerrainMaterial.values[m]));
     }
-    return colors.isEmpty ? [map.dirtArgb] : colors.toList();
+    // Lit like the terrain they came from.
+    final light = ui.Color(map.ambientArgb);
+    int lit(int argb) {
+      final c = ui.Color(argb);
+      return ui.Color.from(
+        alpha: 1,
+        red: c.r * light.r,
+        green: c.g * light.g,
+        blue: c.b * light.b,
+      ).toARGB32();
+    }
+
+    return [for (final c in colors.isEmpty ? {map.dirtArgb} : colors) lit(c)];
   }
 
   int materialColor(TerrainMaterial m) => switch (m) {
     TerrainMaterial.soil ||
     TerrainMaterial.rock ||
     TerrainMaterial.concrete => map.dirtArgb,
-    TerrainMaterial.wood => 0xFFA86E3E,
+    TerrainMaterial.wood => 0xFF8C5E3A,
     TerrainMaterial.leaves => 0xFF3E9B3A,
-    TerrainMaterial.stone => 0xFFE6E0D6,
+    TerrainMaterial.stone => 0xFFA6A096,
     TerrainMaterial.metal => 0xFF5C6E80,
     TerrainMaterial.crate => 0xFFB68652,
     TerrainMaterial.hay => 0xFFF2C24A,
-    TerrainMaterial.roof => 0xFFD24B34,
+    TerrainMaterial.roof => 0xFF8E4036,
     TerrainMaterial.sand => 0xFFEED392,
     TerrainMaterial.ice => 0xFF9EDEF2,
     TerrainMaterial.snow => 0xFFF2F8FF,
@@ -192,9 +226,18 @@ class TerrainComponent extends PositionComponent {
       for (var col = 0; col < _cols; col++) {
         final image = _chunks[row * _cols + col];
         if (image == null) continue;
-        canvas.drawImage(
+        const g = gutter;
+        final w = image.width - 2.0 * g;
+        final h = image.height - 2.0 * g;
+        canvas.drawImageRect(
           image,
-          ui.Offset((col * chunkSize).toDouble(), (row * chunkSize).toDouble()),
+          ui.Rect.fromLTWH(g.toDouble(), g.toDouble(), w, h),
+          ui.Rect.fromLTWH(
+            (col * chunkSize).toDouble(),
+            (row * chunkSize).toDouble(),
+            w,
+            h,
+          ),
           _paint,
         );
       }

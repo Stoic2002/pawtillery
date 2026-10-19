@@ -11,31 +11,28 @@ class SceneryLayer {
   final double parallax;
 }
 
-/// Painted-cartoon backdrops per map theme (docs/art_style_guide.md):
-/// layered silhouettes that fade towards the sky colour with distance;
-/// the nearer layers get a soft outline like the terrain. Visual only;
-/// uses its own RNG seeded from the map id.
+/// Painted backdrops per map theme (docs/art_style_guide.md): simple,
+/// hazy silhouettes with no outlines, fading towards the sky colour with
+/// distance, so the play layer stands out. Visual only; uses its own RNG
+/// seeded from the map id.
 abstract final class Scenery {
   static List<SceneryLayer> build(MapDef map, double width, double height) {
     final rng = math.Random(_seed(map.id));
     return switch (map.theme) {
-      MapTheme.farm => [
-        SceneryLayer(
-          _ridge(map, rng, width, height, 0.5, 90, 0xFF6E9BC9, 0.55),
-          0.15,
-        ),
-        SceneryLayer(_fields(map, rng, width, height), 0.35),
-        SceneryLayer(_trees(map, rng, width, height), 0.6),
+      MapTheme.castle => [
+        SceneryLayer(_mountains(map, rng, width, height), 0.12),
+        SceneryLayer(_farCastles(map, rng, width, height), 0.3),
+        SceneryLayer(_graveyard(map, rng, width, height), 0.55),
       ],
-      MapTheme.coast => [
-        SceneryLayer(_sea(map, rng, width, height), 0.1),
-        SceneryLayer(_islands(map, rng, width, height), 0.25),
-        SceneryLayer(_boats(map, rng, width, height), 0.4),
+      MapTheme.wreck => [
+        SceneryLayer(_stormSea(map, rng, width, height), 0.08),
+        SceneryLayer(_stacksAndGhostShip(map, rng, width, height), 0.25),
+        SceneryLayer(_nearRocks(map, rng, width, height), 0.5),
       ],
-      MapTheme.snow => [
-        SceneryLayer(_peaks(map, rng, width, height, far: true), 0.15),
-        SceneryLayer(_peaks(map, rng, width, height, far: false), 0.35),
-        SceneryLayer(_pines(map, rng, width, height), 0.6),
+      MapTheme.ruins => [
+        SceneryLayer(_burningCity(map, rng, width, height), 0.12),
+        SceneryLayer(_smokeColumns(map, rng, width, height), 0.25),
+        SceneryLayer(_brokenWalls(map, rng, width, height), 0.55),
       ],
     };
   }
@@ -47,11 +44,7 @@ abstract final class Scenery {
   static ui.Color _haze(MapDef map, int argb, double distance) =>
       ui.Color.lerp(ui.Color(argb), ui.Color(map.skyBottomArgb), distance)!;
 
-  static ui.Paint _line(ui.Color c, double w) => ui.Paint()
-    ..style = ui.PaintingStyle.stroke
-    ..strokeWidth = w
-    ..strokeJoin = ui.StrokeJoin.round
-    ..color = c;
+  static ui.Paint _fill(ui.Color c) => ui.Paint()..color = c;
 
   static ui.Picture _record(void Function(ui.Canvas) draw) {
     final r = ui.PictureRecorder();
@@ -59,7 +52,7 @@ abstract final class Scenery {
     return r.endRecording();
   }
 
-  /// A filled hill line from [base] (fraction of height) to the bottom.
+  /// A hill line from [base] (fraction of height) down past the bottom.
   static ui.Path _hillPath(
     double w,
     double h,
@@ -68,7 +61,7 @@ abstract final class Scenery {
     double phase,
     double period,
   ) {
-    final path = ui.Path()..moveTo(-w, h);
+    final path = ui.Path()..moveTo(-w, h * 1.5);
     for (var x = -w; x <= w * 2; x += 30) {
       path.lineTo(
         x,
@@ -78,296 +71,372 @@ abstract final class Scenery {
       );
     }
     return path
-      ..lineTo(w * 2, h)
+      ..lineTo(w * 2, h * 1.5)
       ..close();
   }
 
-  static ui.Picture _ridge(
+  /// A soft horizontal band of fog.
+  static void _fog(ui.Canvas c, double w, double y, double h, ui.Color color) {
+    final rect = ui.Rect.fromLTWH(-w, y - h / 2, w * 3, h);
+    c.drawRect(
+      rect,
+      ui.Paint()
+        ..shader = ui.Gradient.linear(
+          rect.topCenter,
+          rect.bottomCenter,
+          [color.withValues(alpha: 0), color, color.withValues(alpha: 0)],
+          const [0, 0.5, 1],
+        ),
+    );
+  }
+
+  // ---------------------------------------------------------------- castle
+
+  static ui.Picture _mountains(
     MapDef map,
     math.Random rng,
     double w,
     double h,
-    double base,
-    double amp,
-    int argb,
-    double dist,
   ) => _record((c) {
-    final path = _hillPath(w, h, base, amp, rng.nextDouble() * 9, 260);
-    c.drawPath(path, ui.Paint()..color = _haze(map, argb, dist));
+    for (final (base, dist) in [(0.5, 0.55), (0.58, 0.4)]) {
+      final path = ui.Path()..moveTo(-w, h * 1.5);
+      var x = -w;
+      while (x < w * 2) {
+        path.lineTo(x, h * base + rng.nextDouble() * 60);
+        x += 80 + rng.nextDouble() * 120;
+        path.lineTo(x, h * base - 120 - rng.nextDouble() * 160);
+        x += 80 + rng.nextDouble() * 120;
+      }
+      path
+        ..lineTo(w * 2, h * 1.5)
+        ..close();
+      c.drawPath(path, _fill(_haze(map, 0xFF1A1E3A, dist)));
+    }
+    _fog(
+      c,
+      w,
+      h * 0.62,
+      120,
+      _haze(map, 0xFF8A93C0, 0.2).withValues(alpha: 0.35),
+    );
   });
 
-  // ------------------------------------------------------------------ farm
-
-  static ui.Picture _fields(MapDef map, math.Random rng, double w, double h) =>
-      _record((c) {
-        const dist = 0.35;
-        final path = _hillPath(w, h, 0.6, 55, rng.nextDouble() * 9, 330);
-        c
-          ..save()
-          ..clipPath(path)
-          ..drawRect(
-            ui.Rect.fromLTWH(-w, 0, w * 3, h),
-            ui.Paint()..color = _haze(map, 0xFF7CC64A, dist),
-          );
-        // Patchwork: tilted strips of crops in alternating greens/golds.
-        const crops = [0xFF8ED456, 0xFFE3C45A, 0xFF68B23E, 0xFFB9D35C];
-        for (var x = -w; x < w * 2; x += 140 + rng.nextDouble() * 120) {
-          final strip = ui.Path()
-            ..moveTo(x, h * 0.45)
-            ..lineTo(x + 120, h * 0.45)
-            ..lineTo(x + 260, h)
-            ..lineTo(x + 90, h)
-            ..close();
-          c.drawPath(
-            strip,
-            ui.Paint()
-              ..color = _haze(map, crops[rng.nextInt(crops.length)], dist),
-          );
-        }
-        c.restore();
-        // Silos and barns on the crest.
-        for (var i = 0; i < 4; i++) {
-          final x = -w * 0.2 + i * w * 0.42 + rng.nextDouble() * 200;
-          final ground = h * 0.6 - 40;
-          final barn = ui.Rect.fromLTWH(x, ground - 60, 90, 70);
-          c
-            ..drawRect(barn, ui.Paint()..color = _haze(map, 0xFFC0452E, dist))
-            ..drawPath(
-              ui.Path()
-                ..moveTo(x - 8, ground - 60)
-                ..lineTo(x + 45, ground - 100)
-                ..lineTo(x + 98, ground - 60)
-                ..close(),
-              ui.Paint()..color = _haze(map, 0xFF8A2E22, dist),
-            )
-            ..drawRect(
-              ui.Rect.fromLTWH(x + 100, ground - 110, 34, 120),
-              ui.Paint()..color = _haze(map, 0xFFD9D2C4, dist),
-            )
-            ..drawOval(
-              ui.Rect.fromLTWH(x + 100, ground - 126, 34, 30),
-              ui.Paint()..color = _haze(map, 0xFF9AA4AE, dist),
-            );
-        }
-      });
-
-  static ui.Picture _trees(MapDef map, math.Random rng, double w, double h) =>
-      _record((c) {
-        const dist = 0.38;
-        for (var x = -w * 0.4; x < w * 1.6; x += 160 + rng.nextDouble() * 240) {
-          final ground = h * 0.72 + rng.nextDouble() * 40;
-          final th = 70 + rng.nextDouble() * 60;
-          final trunk = ui.Rect.fromLTWH(x - 8, ground - th, 16, th + 40);
-          c.drawRect(trunk, ui.Paint()..color = _haze(map, 0xFF7A4E2C, dist));
-          final r = 50 + rng.nextDouble() * 30;
-          final crown = ui.Offset(x, ground - th - r * 0.6);
-          final leaf = _haze(map, 0xFF4FAE3C, dist);
-          c
-            ..drawCircle(crown, r, ui.Paint()..color = leaf)
-            ..drawCircle(
-              crown.translate(-r * 0.25, -r * 0.3),
-              r * 0.55,
-              ui.Paint()..color = _haze(map, 0xFF7FD25A, dist),
-            );
-        }
-      });
-
-  // ----------------------------------------------------------------- coast
-
-  static ui.Picture _sea(MapDef map, math.Random rng, double w, double h) =>
-      _record((c) {
-        final horizon = h * 0.62;
-        final rect = ui.Rect.fromLTRB(-w, horizon, w * 2, h);
-        c.drawRect(
-          rect,
-          ui.Paint()
-            ..shader = ui.Gradient.linear(rect.topCenter, rect.bottomCenter, [
-              _haze(map, 0xFF46C3D6, 0.45),
-              _haze(map, 0xFF1C8FB0, 0.1),
-            ]),
-        );
-        final sparkle = ui.Paint()..color = const ui.Color(0x88FFFFFF);
-        for (var i = 0; i < 160; i++) {
-          final x = -w + rng.nextDouble() * w * 3;
-          final y =
-              horizon + 6 + math.pow(rng.nextDouble(), 1.5) * (h - horizon);
-          c.drawRect(
-            ui.Rect.fromLTWH(x, y, 10 + rng.nextDouble() * 18, 2),
-            sparkle,
-          );
-        }
-      });
-
-  static ui.Picture _islands(MapDef map, math.Random rng, double w, double h) =>
-      _record((c) {
-        final horizon = h * 0.62;
-        for (var x = -w * 0.6; x < w * 1.6; x += 380 + rng.nextDouble() * 420) {
-          final iw = 160 + rng.nextDouble() * 260;
-          final ih = 40 + rng.nextDouble() * 90;
-          final path = ui.Path()
-            ..moveTo(x, horizon + 4)
-            ..quadraticBezierTo(
-              x + iw * 0.2,
-              horizon - ih,
-              x + iw * 0.5,
-              horizon - ih * 0.9,
-            )
-            ..quadraticBezierTo(
-              x + iw * 0.85,
-              horizon - ih * 0.8,
-              x + iw,
-              horizon + 4,
-            )
-            ..close();
-          c.drawPath(path, ui.Paint()..color = _haze(map, 0xFF5E8F6E, 0.5));
-          // A palm or two.
-          if (rng.nextBool()) {
-            final px = x + iw * 0.5;
-            final py = horizon - ih * 0.9;
-            final palm = _line(_haze(map, 0xFF4E6A4E, 0.45), 4);
-            c.drawLine(ui.Offset(px, py), ui.Offset(px + 8, py - 50), palm);
-            for (final a in [-2.6, -1.9, -1.2, -0.5]) {
-              c.drawLine(
-                ui.Offset(px + 8, py - 50),
-                ui.Offset(
-                  px + 8 + math.cos(a) * 34,
-                  py - 50 + math.sin(a) * 18 + 14,
-                ),
-                palm,
-              );
-            }
-          }
-        }
-      });
-
-  static ui.Picture _boats(MapDef map, math.Random rng, double w, double h) =>
-      _record((c) {
-        final ink = _line(_haze(map, 0xFF2A1A12, 0.3), 2.5);
-        for (var x = -w * 0.3; x < w * 1.5; x += 520 + rng.nextDouble() * 500) {
-          final y = h * 0.66 + rng.nextDouble() * 50;
-          final hull = ui.Path()
-            ..moveTo(x, y)
-            ..lineTo(x + 90, y)
-            ..lineTo(x + 74, y + 20)
-            ..lineTo(x + 14, y + 20)
-            ..close();
-          final sail = ui.Path()
-            ..moveTo(x + 46, y - 4)
-            ..lineTo(x + 46, y - 86)
-            ..lineTo(x + 86, y - 8)
-            ..close();
-          c
-            ..drawPath(hull, ui.Paint()..color = _haze(map, 0xFFC0452E, 0.3))
-            ..drawPath(hull, ink)
-            ..drawPath(sail, ui.Paint()..color = _haze(map, 0xFFFFF6E6, 0.2))
-            ..drawPath(sail, ink);
-        }
-        // Gulls: little "m" strokes.
-        final gull = _line(_haze(map, 0xFF2A1A12, 0.45), 3);
-        for (var i = 0; i < 9; i++) {
-          final g = ui.Offset(
-            -w * 0.2 + rng.nextDouble() * w * 1.4,
-            h * (0.15 + rng.nextDouble() * 0.25),
-          );
-          c.drawPath(
-            ui.Path()
-              ..moveTo(g.dx - 12, g.dy)
-              ..quadraticBezierTo(g.dx - 6, g.dy - 8, g.dx, g.dy)
-              ..quadraticBezierTo(g.dx + 6, g.dy - 8, g.dx + 12, g.dy),
-            gull,
-          );
-        }
-      });
-
-  // ------------------------------------------------------------------ snow
-
-  static ui.Picture _peaks(
+  static ui.Picture _farCastles(
     MapDef map,
     math.Random rng,
     double w,
-    double h, {
-    required bool far,
-  }) => _record((c) {
-    final dist = far ? 0.6 : 0.38;
-    final rock = _haze(map, far ? 0xFF7C8FB8 : 0xFF6A7AA0, dist);
-    final snow = _haze(map, 0xFFFFFFFF, dist * 0.4);
-    final base = h * (far ? 0.6 : 0.68);
-    for (
-      var x = -w * 0.8;
-      x < w * 1.8;
-      x += (far ? 300 : 380) + rng.nextDouble() * 260
-    ) {
-      final pw = (far ? 380 : 460) + rng.nextDouble() * 260;
-      final ph = (far ? 300 : 260) + rng.nextDouble() * 160;
-      final apex = ui.Offset(
-        x + pw * (0.4 + rng.nextDouble() * 0.2),
-        base - ph,
-      );
-      final peak = ui.Path()
-        ..moveTo(x, base + 200)
-        ..lineTo(apex.dx, apex.dy)
-        ..lineTo(x + pw, base + 200)
-        ..close();
-      c.drawPath(peak, ui.Paint()..color = rock);
-      // Shadow side.
+    double h,
+  ) => _record((c) {
+    const dist = 0.3;
+    final stone = _fill(_haze(map, 0xFF141830, dist));
+    final lit = _fill(const ui.Color(0xFFFFC46A));
+    c.drawPath(_hillPath(w, h, 0.68, 40, rng.nextDouble() * 9, 300), stone);
+    for (var i = 0; i < 3; i++) {
+      final x = -w * 0.3 + i * w * 0.75 + rng.nextDouble() * 300;
+      final base = h * 0.66;
+      // A crag with a little castle on top.
       c.drawPath(
         ui.Path()
-          ..moveTo(apex.dx, apex.dy)
-          ..lineTo(x + pw, base + 200)
-          ..lineTo(apex.dx + pw * 0.05, base + 200)
+          ..moveTo(x - 160, base + 60)
+          ..lineTo(x - 60, base - 120)
+          ..lineTo(x + 70, base - 130)
+          ..lineTo(x + 170, base + 60)
           ..close(),
-        ui.Paint()..color = const ui.Color(0xFF1A2440).withValues(alpha: 0.12),
+        stone,
       );
-      // Snow cap with a jagged hem.
-      final capY = apex.dy + ph * 0.32;
-      final l = apex.dx - (apex.dx - x) * 0.32;
-      final r = apex.dx + (x + pw - apex.dx) * 0.32;
-      final cap = ui.Path()
-        ..moveTo(apex.dx, apex.dy)
-        ..lineTo(r, capY);
-      for (var k = 1; k < 6; k++) {
-        cap.lineTo(r - (r - l) * k / 6, capY + (k.isOdd ? 18 : -4));
+      for (final (dx, tw, th) in [(-50.0, 34.0, 110.0), (30.0, 40.0, 150.0)]) {
+        c
+          ..drawRect(ui.Rect.fromLTWH(x + dx, base - 130 - th, tw, th), stone)
+          ..drawPath(
+            ui.Path()
+              ..moveTo(x + dx - 6, base - 130 - th)
+              ..lineTo(x + dx + tw / 2, base - 130 - th - 44)
+              ..lineTo(x + dx + tw + 6, base - 130 - th)
+              ..close(),
+            stone,
+          );
+        if (rng.nextBool()) {
+          c.drawRect(
+            ui.Rect.fromLTWH(x + dx + tw / 2 - 4, base - 130 - th + 26, 8, 12),
+            lit,
+          );
+        }
       }
-      cap
-        ..lineTo(l, capY)
-        ..close();
-      c.drawPath(cap, ui.Paint()..color = snow);
+      c.drawRect(ui.Rect.fromLTWH(x - 40, base - 190, 90, 60), stone);
+    }
+    _fog(
+      c,
+      w,
+      h * 0.72,
+      90,
+      _haze(map, 0xFF9AA4D0, 0.1).withValues(alpha: 0.3),
+    );
+  });
+
+  static ui.Picture _graveyard(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    const dist = 0.18;
+    final dark = _fill(_haze(map, 0xFF0C0F1E, dist));
+    c.drawPath(_hillPath(w, h, 0.78, 30, rng.nextDouble() * 9, 260), dark);
+    final branch = ui.Paint()
+      ..color = dark.color
+      ..strokeCap = ui.StrokeCap.round;
+    for (var x = -w * 0.5; x < w * 1.6; x += 120 + rng.nextDouble() * 200) {
+      final ground = h * 0.78 - 10;
+      if (rng.nextDouble() < 0.4) {
+        // Bare tree.
+        final th = 120 + rng.nextDouble() * 80;
+        c.drawLine(
+          ui.Offset(x, ground + 20),
+          ui.Offset(x, ground - th),
+          branch..strokeWidth = 12,
+        );
+        for (var k = 0; k < 4; k++) {
+          final y = ground - th * (0.4 + k * 0.15);
+          final side = k.isEven ? 1 : -1;
+          c.drawLine(
+            ui.Offset(x, y),
+            ui.Offset(x + side * (40 + rng.nextDouble() * 40), y - 40),
+            branch..strokeWidth = 5,
+          );
+        }
+      } else {
+        // Leaning gravestones.
+        final gw = 22 + rng.nextDouble() * 14;
+        final gh = 30 + rng.nextDouble() * 30;
+        c
+          ..save()
+          ..translate(x, ground + 6)
+          ..rotate((rng.nextDouble() - 0.5) * 0.3)
+          ..drawRRect(
+            ui.RRect.fromRectAndCorners(
+              ui.Rect.fromLTWH(-gw / 2, -gh, gw, gh + 10),
+              topLeft: ui.Radius.circular(gw / 2),
+              topRight: ui.Radius.circular(gw / 2),
+            ),
+            dark,
+          )
+          ..restore();
+      }
+    }
+    _fog(c, w, h * 0.82, 70, const ui.Color(0x557A84B4));
+  });
+
+  // ----------------------------------------------------------------- wreck
+
+  static ui.Picture _stormSea(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    final horizon = h * 0.62;
+    final rect = ui.Rect.fromLTRB(-w, horizon, w * 2, h * 1.5);
+    c.drawRect(
+      rect,
+      ui.Paint()
+        ..shader = ui.Gradient.linear(
+          rect.topCenter,
+          ui.Offset(rect.left, h),
+          [_haze(map, 0xFF2C5A62, 0.45), _haze(map, 0xFF0E2A32, 0.05)],
+        ),
+    );
+    final cap = _fill(const ui.Color(0x55E6EEF0));
+    for (var i = 0; i < 140; i++) {
+      final x = -w + rng.nextDouble() * w * 3;
+      final y =
+          horizon + 4 + math.pow(rng.nextDouble(), 1.6) * (h - horizon);
+      c.drawRect(ui.Rect.fromLTWH(x, y, 8 + rng.nextDouble() * 22, 1.6), cap);
     }
   });
 
-  static ui.Picture _pines(MapDef map, math.Random rng, double w, double h) =>
-      _record((c) {
-        const dist = 0.25;
-        final green = _haze(map, 0xFF2F7A4E, dist);
-        final snow = _haze(map, 0xFFFFFFFF, 0.05);
-        final ink = _line(_haze(map, 0xFF15301F, dist), 2.5);
-        final hill = _hillPath(w, h, 0.76, 30, rng.nextDouble() * 9, 300);
-        c
-          ..drawPath(hill, ui.Paint()..color = _haze(map, 0xFFEAF2FA, 0.15))
-          ..drawPath(hill, _line(_haze(map, 0xFF6A7AA0, dist), 2.5));
-        for (var x = -w * 0.5; x < w * 1.6; x += 50 + rng.nextDouble() * 120) {
-          final s = 0.6 + rng.nextDouble() * 0.7;
-          final ground = h * 0.78 + rng.nextDouble() * 30;
-          for (var k = 0; k < 3; k++) {
-            final b = ground - k * 34 * s;
-            final half = (44 - k * 10) * s;
-            final tier = ui.Path()
-              ..moveTo(x - half, b)
-              ..lineTo(x, b - 56 * s)
-              ..lineTo(x + half, b)
-              ..close();
-            c
-              ..drawPath(tier, ui.Paint()..color = green)
-              ..drawPath(
-                ui.Path()
-                  ..moveTo(x - half * 0.45, b - 32 * s)
-                  ..lineTo(x, b - 56 * s)
-                  ..lineTo(x + half * 0.45, b - 32 * s)
-                  ..close(),
-                ui.Paint()..color = snow,
-              )
-              ..drawPath(tier, ink);
+  static ui.Picture _stacksAndGhostShip(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    final horizon = h * 0.62;
+    final rock = _fill(_haze(map, 0xFF1C2228, 0.58));
+    for (var x = -w * 0.6; x < w * 1.6; x += 300 + rng.nextDouble() * 400) {
+      final sw = 50 + rng.nextDouble() * 90;
+      final sh = 80 + rng.nextDouble() * 160;
+      c.drawPath(
+        ui.Path()
+          ..moveTo(x, horizon + 6)
+          ..lineTo(x + sw * 0.2, horizon - sh)
+          ..lineTo(x + sw * 0.7, horizon - sh * 0.9)
+          ..lineTo(x + sw, horizon + 6)
+          ..close(),
+        rock,
+      );
+    }
+    // A ghost ship with torn sails on the horizon.
+    final ship = _fill(_haze(map, 0xFF1A1E24, 0.35));
+    final sail = _fill(_haze(map, 0xFF8C8A80, 0.45));
+    final sx = w * 0.62;
+    c.drawPath(
+      ui.Path()
+        ..moveTo(sx - 120, horizon - 20)
+        ..lineTo(sx + 120, horizon - 26)
+        ..lineTo(sx + 96, horizon + 6)
+        ..lineTo(sx - 100, horizon + 6)
+        ..close(),
+      ship,
+    );
+    for (final (dx, mh) in [(-50.0, 150.0), (30.0, 180.0)]) {
+      c
+        ..drawRect(ui.Rect.fromLTWH(sx + dx, horizon - 20 - mh, 5, mh), ship)
+        ..drawPath(
+          ui.Path()
+            ..moveTo(sx + dx + 5, horizon - mh)
+            ..lineTo(sx + dx + 60, horizon - mh + 20)
+            ..lineTo(sx + dx + 48, horizon - mh * 0.55)
+            ..lineTo(sx + dx + 30, horizon - mh * 0.6)
+            ..lineTo(sx + dx + 5, horizon - mh * 0.4)
+            ..close(),
+          sail,
+        );
+    }
+  });
+
+  static ui.Picture _nearRocks(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    final rock = _fill(_haze(map, 0xFF12171C, 0.2));
+    for (var x = -w * 0.5; x < w * 1.6; x += 420 + rng.nextDouble() * 500) {
+      final rw = 120 + rng.nextDouble() * 160;
+      final rh = 60 + rng.nextDouble() * 120;
+      final base = h * 0.72;
+      c.drawPath(
+        ui.Path()
+          ..moveTo(x, base + 200)
+          ..lineTo(x + rw * 0.15, base - rh * 0.6)
+          ..lineTo(x + rw * 0.4, base - rh)
+          ..lineTo(x + rw * 0.75, base - rh * 0.7)
+          ..lineTo(x + rw, base + 200)
+          ..close(),
+        rock,
+      );
+    }
+    _fog(c, w, h * 0.7, 110, const ui.Color(0x4A9AA2A6));
+  });
+
+  // ----------------------------------------------------------------- ruins
+
+  static ui.Picture _burningCity(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    final base = h * 0.64;
+    // Fire glow along the horizon.
+    final glow = ui.Rect.fromLTRB(-w, base - 160, w * 2, base + 40);
+    c.drawRect(
+      glow,
+      ui.Paint()
+        ..shader = ui.Gradient.linear(
+          glow.topCenter,
+          glow.bottomCenter,
+          [const ui.Color(0x00FF7A2A), const ui.Color(0x88FF6A20)],
+        ),
+    );
+    final building = _fill(_haze(map, 0xFF2A1A1A, 0.35));
+    final window = _fill(const ui.Color(0xCCFFB050));
+    for (var x = -w * 0.5; x < w * 1.6; x += 60 + rng.nextDouble() * 70) {
+      final bw = 50 + rng.nextDouble() * 70;
+      final bh = 60 + rng.nextDouble() * 200;
+      // Broken tops: a jagged roofline.
+      final top = ui.Path()
+        ..moveTo(x, base + 200)
+        ..lineTo(x, base - bh);
+      for (var k = 1; k <= 4; k++) {
+        top.lineTo(
+          x + bw * k / 4,
+          base - bh + (k.isOdd ? rng.nextDouble() * 40 : 0),
+        );
+      }
+      top
+        ..lineTo(x + bw, base + 200)
+        ..close();
+      c.drawPath(top, building);
+      for (var wy = base - bh + 30; wy < base - 16; wy += 26) {
+        for (var wx = x + 10; wx < x + bw - 14; wx += 20) {
+          if (rng.nextDouble() < 0.18) {
+            c.drawRect(ui.Rect.fromLTWH(wx, wy, 7, 9), window);
           }
         }
-      });
+      }
+    }
+  });
+
+  static ui.Picture _smokeColumns(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    // Billowing columns: many soft, overlapping puffs that widen and lean
+    // with the wind as they rise.
+    for (var x = -w * 0.3; x < w * 1.5; x += 380 + rng.nextDouble() * 400) {
+      for (var k = 0; k < 26; k++) {
+        final t = k / 25;
+        final r = 26 + t * 90 + rng.nextDouble() * 20;
+        final p = ui.Offset(
+          x + t * t * 260 + (rng.nextDouble() - 0.5) * r * 0.8,
+          h * 0.64 - t * h * 0.55 + (rng.nextDouble() - 0.5) * 30,
+        );
+        final color = _haze(map, 0xFF2E2628, 0.25 + t * 0.35);
+        c.drawCircle(
+          p,
+          r,
+          ui.Paint()
+            ..shader = ui.Gradient.radial(p, r, [
+              color.withValues(alpha: 0.32 * (1 - t * 0.5)),
+              color.withValues(alpha: 0),
+            ]),
+        );
+      }
+    }
+  });
+
+  static ui.Picture _brokenWalls(
+    MapDef map,
+    math.Random rng,
+    double w,
+    double h,
+  ) => _record((c) {
+    final dark = _fill(_haze(map, 0xFF1A1210, 0.15));
+    final hole = _fill(_haze(map, 0xFFB86A40, 0.2));
+    c.drawPath(_hillPath(w, h, 0.76, 24, rng.nextDouble() * 9, 240), dark);
+    for (var x = -w * 0.5; x < w * 1.6; x += 200 + rng.nextDouble() * 260) {
+      final ww = 70 + rng.nextDouble() * 110;
+      final wh = 70 + rng.nextDouble() * 120;
+      final base = h * 0.76;
+      final wall = ui.Path()
+        ..moveTo(x, base + 30)
+        ..lineTo(x, base - wh);
+      for (var k = 1; k <= 5; k++) {
+        wall.lineTo(x + ww * k / 5, base - wh + rng.nextDouble() * wh * 0.6);
+      }
+      wall
+        ..lineTo(x + ww, base + 30)
+        ..close();
+      c
+        ..drawPath(wall, dark)
+        ..drawRect(
+          ui.Rect.fromLTWH(x + ww * 0.3, base - wh * 0.5, ww * 0.2, wh * 0.22),
+          hole,
+        );
+    }
+    _fog(c, w, h * 0.8, 80, const ui.Color(0x44C08060));
+  });
 }

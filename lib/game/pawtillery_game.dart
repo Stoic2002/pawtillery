@@ -163,6 +163,8 @@ class PawtilleryGame extends FlameGame {
         unitNames: unitNames,
       ),
       ProjectilesComponent(sim),
+      WaterBackComponent(
+          map: map, worldSize: worldSize, level: () => sim.waterLevel),
       WaterComponent(
           map: map, worldSize: worldSize, level: () => sim.waterLevel),
       _aimGuide,

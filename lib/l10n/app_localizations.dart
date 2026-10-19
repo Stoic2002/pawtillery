@@ -977,20 +977,20 @@ abstract class AppLocalizations {
   /// Map name.
   ///
   /// In en, this message translates to:
-  /// **'Sunny Farm'**
-  String get mapFarm;
+  /// **'Haunted Keep'**
+  String get mapCastle;
 
   /// Map name.
   ///
   /// In en, this message translates to:
-  /// **'Lighthouse Cliffs'**
-  String get mapCoast;
+  /// **'Shipwreck Cove'**
+  String get mapWreck;
 
   /// Map name.
   ///
   /// In en, this message translates to:
-  /// **'Snowcap Peak'**
-  String get mapSnow;
+  /// **'Ruined Village'**
+  String get mapRuins;
 
   /// Comma-separated names the Random button picks from. Keep them short.
   ///
@@ -1481,7 +1481,7 @@ abstract class AppLocalizations {
   /// Italic line under the title.
   ///
   /// In en, this message translates to:
-  /// **'Backyard animal artillery!'**
+  /// **'Animal artillery after dark'**
   String get menuSubtitle;
 
   /// Catalogue dialog title.
