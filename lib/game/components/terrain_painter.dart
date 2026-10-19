@@ -36,10 +36,19 @@ Uint8List? buildChunkPixels(
 
   bool air(int x, int y) => !mask.isSolid(x, y);
 
+  /// Whether (x, y) is a built or grown object (not the ground itself).
+  bool object(int x, int y) {
+    if (materials == null || !mask.isSolid(x, y)) return false;
+    return !_natural(TerrainMaterial.values[materials[y * mask.width + x]]);
+  }
+
   for (var lx = 0; lx < w; lx++) {
     final x = x0 + lx;
     // Depth of ground directly above the chunk (for continuity).
     var run = 0;
+    // Whether the current run of ground starts at open air (a real top
+    // surface) rather than under an object: grass and snow only grow there.
+    var openTop = true;
     while (run < deep && mask.isSolid(x, y0 - 1 - run)) {
       run++;
     }
@@ -58,6 +67,7 @@ Uint8List? buildChunkPixels(
       if (air(x, y)) {
         run = 0;
         lastMaterial = null;
+        openTop = true;
         final f = _fringe(mask, map, materials, x, y);
         if (f != null) {
           any = true;
@@ -73,7 +83,10 @@ Uint8List? buildChunkPixels(
       final materialIndex = materials?[y * mask.width + x];
       // A new material starts its own depth: ground under a barn or a
       // tree trunk is not "deep" just because the object stands on it.
-      if (materialIndex != lastMaterial && lastMaterial != null) run = 0;
+      if (materialIndex != lastMaterial && lastMaterial != null) {
+        run = 0;
+        openTop = false;
+      }
       lastMaterial = materialIndex;
       if (run < deep) run++;
       final material = materialIndex == null
@@ -97,7 +110,7 @@ Uint8List? buildChunkPixels(
       final airBelow = !edge && (air(x, y + 3) || air(x, y + 5));
       final airSide = !edge && (air(x - 4, y) || air(x + 4, y));
 
-      final capped = _takesCap(map.cap, material) && run <= capDepth;
+      final capped = openTop && _takesCap(map.cap, material) && run <= capDepth;
       var (r, g, b) = capped
           ? _cap(map.cap, capArgb, x, y, run, capDepth)
           : _material(material, map, x, y, run);
@@ -125,6 +138,29 @@ Uint8List? buildChunkPixels(
           k += 0.16; // lit rim on top faces
         }
         if (airBelow) k -= 0.2;
+        // Contact shading where objects meet the ground: the ground just
+        // under a wall, trunk or hull is in its shadow, and the object's
+        // foot is darkened where it sits in the dirt, so nothing looks
+        // pasted on.
+        if (natural) {
+          for (var d = 1; d <= 6; d++) {
+            if (object(x, y - d)) {
+              k -= 0.3 * (1 - (d - 1) / 6);
+              break;
+            }
+          }
+        } else if (materials != null) {
+          for (var d = 1; d <= 8; d++) {
+            final below = y + d;
+            if (mask.isSolid(x, below) &&
+                _natural(
+                  TerrainMaterial.values[materials[below * mask.width + x]],
+                )) {
+              k -= 0.24 * (1 - (d - 1) / 8);
+              break;
+            }
+          }
+        }
         if (airSide) k -= 0.08;
         (r, g, b) = _shade((r, g, b), _posterise(k));
         // Warm/cool drift across big patches, as in a painting.

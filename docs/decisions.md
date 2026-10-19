@@ -458,3 +458,24 @@ no image assets.
   depth gradient, crest, trough, foam and caustics.
 - **Menus:** the meadow became a battlefield at dusk; subtitle "Animal
   artillery after dark". UI kit and animals unchanged.
+
+## Grounded, more believable structures (2026-10-19)
+
+The developer saw buildings, trees and the ships hovering above the
+ground in places. Cause: `tool/gen_maps.py` placed each structure at the
+ground height of its centre, so on a slope one side hung up to ~38 px in
+the air.
+
+- `settle()` in the generator grounds every structure: under the lowest
+  pixel of the structure in each column it fills down to the ground with
+  a footing (stone plinths, soil mounds under trees and tombstones, sand
+  piled under the hulls). Gaps larger than `max_gap` are left as real
+  overhangs (a prow, eaves, a stilt house, branches).
+- Structures got more believable shapes: battered castle footing and
+  tapering towers, arched doors and windows, chains on the drawbridge,
+  house plinths, roof beams and chimneys, trees with flared roots and
+  twigs, ships broken off jaggedly with ribs sticking out, a ladder to the
+  stilt house, footings under the stilts.
+- The painter shades contact: ground right under an object is in its
+  shadow, an object's foot is darker where it meets the dirt, and grass
+  or snow only grows on open tops, never under a wall.

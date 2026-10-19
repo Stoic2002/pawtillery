@@ -204,7 +204,7 @@ void main() {
 
 /// Top-left corner (world px) of each map's close-up render.
 const _closeUps = {
-  'castle': ui.Offset(720, 220),
-  'wreck': ui.Offset(760, 720),
-  'ruins': ui.Offset(150, 560),
+  'castle': ui.Offset(740, 240),
+  'wreck': ui.Offset(840, 780),
+  'ruins': ui.Offset(1400, 560),
 };
