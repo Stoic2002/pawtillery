@@ -1,7 +1,13 @@
 # Audio
 
-Drop sound files here; the game picks them up by name, no code changes.
-Missing files are simply silent. Supported: `.ogg`, `.mp3`, `.wav`.
+Every sound here is synthesized in code by `tool/audio/generate_audio.dart`
+(no samples, no third-party audio). Regenerate after changing it:
+
+    fvm dart run tool/audio/generate_audio.dart
+
+The game picks files up by name; a missing file is simply silent.
+Supported: `.ogg`, `.mp3`, `.wav`. Effects are short WAVs; the music loops
+are Ogg Vorbis, which Android loops without a gap.
 
 | File | Plays when |
 | --- | --- |
@@ -11,8 +17,9 @@ Missing files are simply silent. Supported: `.ogg`, `.mp3`, `.wav`.
 | `sfx_hit` | A unit takes damage |
 | `sfx_death` | A unit is knocked out |
 | `sfx_turn` | A new turn starts |
-| `sfx_ui` | A menu button is pressed |
-| `music_menu` | Menus (loops) |
-| `music_match` | During a match (loops) |
+| `sfx_ui` | A button is pressed |
+| `music_menu` | Menus (loops; C major, 100 BPM, 16 bars) |
+| `music_match` | During a match (loops; D minor, 120 BPM, 16 bars) |
 
-List every third-party file in `assets/CREDITS.md` with its licence.
+List any third-party file added later in `assets/CREDITS.md` with its
+licence.

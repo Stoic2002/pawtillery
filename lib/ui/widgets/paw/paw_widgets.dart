@@ -2,14 +2,17 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../../app/app_services.dart';
 import '../../../app/paw_palette.dart';
 import '../../../config/teams.dart';
+import '../../../services/audio_service.dart';
 
 /// Shared building blocks of the prototype's look (docs/art_style_guide.md):
 /// cream shapes with an ink outline and a solid ink shadow that they sink
 /// into when pressed.
 
-/// Wraps a control so it drops onto its shadow while pressed.
+/// Wraps a control so it drops onto its shadow while pressed, with a soft
+/// click on tap (hold controls stay quiet: they repeat).
 class _Pressable extends StatefulWidget {
   const _Pressable({
     required this.builder,
@@ -61,6 +64,9 @@ class _PressableState extends State<_Pressable> {
       onTapUp: _enabled
           ? (_) {
               setState(() => _down = false);
+              context.getInheritedWidgetOfExactType<AppServices>()?.audio.play(
+                Sfx.ui,
+              );
               widget.onPressed!();
             }
           : null,
