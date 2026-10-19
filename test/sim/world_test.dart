@@ -287,4 +287,7 @@ void main() {
 
 int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 
-const _pinnedScriptHash = 1821668611;
+// Re-pinned 2026-10-19: the hash now covers the eight added shared weapons
+// and the loadout's signature switch (same play, verified against the old
+// layout).
+const _pinnedScriptHash = 2504866130;

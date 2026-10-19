@@ -5,6 +5,7 @@ import '../config/families.dart';
 import '../config/maps.dart';
 import '../config/match_defaults.dart';
 import '../config/teams.dart';
+import '../config/weapons.dart';
 import '../sim/match_setup.dart';
 
 /// One unit on the setup screen.
@@ -89,6 +90,7 @@ class MatchConfig {
     required this.turnSeconds,
     required this.mapId,
     required this.suddenDeathMinutes,
+    this.weapons = WeaponLoadout.standard,
   });
 
   /// [mapId] value meaning "pick one at random".
@@ -99,6 +101,9 @@ class MatchConfig {
   final int turnSeconds;
   final String mapId;
   final int? suddenDeathMinutes;
+
+  /// Weapons on and their ammo (setup's Weapons tab).
+  final WeaponLoadout weapons;
 
   /// PRD defaults: 2 teams × 3 units, 45 s, random map, sudden death 15 min.
   factory MatchConfig.defaults(List<String> namePool) {
@@ -119,6 +124,7 @@ class MatchConfig {
     String? mapId,
     int? suddenDeathMinutes,
     bool suddenDeathOff = false,
+    WeaponLoadout? weapons,
   }) =>
       MatchConfig(
         teams: teams ?? this.teams,
@@ -128,6 +134,7 @@ class MatchConfig {
         suddenDeathMinutes: suddenDeathOff
             ? null
             : (suddenDeathMinutes ?? this.suddenDeathMinutes),
+        weapons: weapons ?? this.weapons,
       );
 
   /// Adds or removes teams; new teams get the first unused colour and
@@ -244,6 +251,7 @@ class MatchConfig {
         'turnSeconds': turnSeconds,
         'map': mapId,
         'suddenDeath': suddenDeathMinutes,
+        'weapons': weapons.toJson(),
       };
 
   /// Restores a saved config; anything invalid (old data, removed breeds)
@@ -297,6 +305,9 @@ class MatchConfig {
       turnSeconds: turnSeconds,
       mapId: mapId,
       suddenDeathMinutes: suddenDeath as int?,
+      // Saved before the Weapons tab existed (or damaged): the standard set.
+      weapons:
+          WeaponLoadout.fromJson(json['weapons']) ?? WeaponLoadout.standard,
     );
   }
 }

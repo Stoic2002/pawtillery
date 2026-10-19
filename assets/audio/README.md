@@ -18,6 +18,8 @@ are Ogg Vorbis, which Android loops without a gap.
 | `sfx_death` | A unit is knocked out |
 | `sfx_turn` | A new turn starts |
 | `sfx_ui` | A button is pressed |
+| `sfx_laser` | The Laser Pointer fires |
+| `sfx_thunder` | Thunder Cloud strikes (before its blast) |
 | `music_menu` | Menus (loops; C major, 100 BPM, 16 bars) |
 | `music_match` | During a match (loops; D minor, 120 BPM, 16 bars) |
 

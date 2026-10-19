@@ -705,7 +705,9 @@ class _Actions extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           _FireButton(
-            label: weapon.delivery is Launch ? l10n.hudFire : l10n.hudUse,
+            label: weapon.delivery is Launch || weapon.delivery is Beam
+                ? l10n.hudFire
+                : l10n.hudUse,
             onPressed: ready ? game.fire : null,
           ),
         ],

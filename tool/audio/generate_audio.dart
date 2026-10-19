@@ -26,8 +26,11 @@ void main() {
     'sfx_death': (death, 0.16),
     'sfx_turn': (turn, 0.2),
     'sfx_ui': (ui, 0.16),
+    'sfx_laser': (laser, 0.22),
+    'sfx_thunder': (thunder, 0.6),
   };
   for (final MapEntry(:key, value: (make, level)) in sfx.entries) {
+    _reseed();
     final buf = make()
       ..fadeEdges()
       ..level(level, maxPeak: 0.89);
@@ -40,6 +43,7 @@ void main() {
     'music_match': matchMusic,
   }.entries) {
     // Music sits well under the effects.
+    _reseed();
     final buf = value()..normalize(0.5);
     _writeWav('$tmpDir/$key.wav', buf, stereo: true);
     _encodeMusic(key);
@@ -157,7 +161,10 @@ double _tanh(double x) {
   return (e - 1) / (e + 1);
 }
 
-final _rng = math.Random(7);
+/// Noise source, reseeded before each sound so adding or changing one
+/// sound never changes the others.
+var _rng = math.Random(7);
+void _reseed() => _rng = math.Random(7);
 double noise() => _rng.nextDouble() * 2 - 1;
 
 /// Frequency of a MIDI note.
@@ -351,6 +358,38 @@ Buf ui() {
     (t) =>
         o.sine(sweep(700, 1250, math.min(1.0, t / 0.03))) * env(t, 0.001, 0.02),
   );
+  return b;
+}
+
+/// A toy laser "pew-zzz": a fast falling square sweep over a buzzing hum.
+Buf laser() {
+  final b = Buf(0.45);
+  final zap = Osc(), hum = Osc();
+  voice(b, 0, 0.45, (t) {
+    final f = sweep(1900, 420, math.min(1.0, t / 0.22));
+    return zap.square(f, harmonics: 3) * env(t, 0.002, 0.09) * 0.6 +
+        hum.square(110 + 8 * math.sin(2 * math.pi * 30 * t), harmonics: 6) *
+            env(t, 0.01, 0.16) *
+            0.25;
+  });
+  return b;
+}
+
+/// A thunder crack: a sharp bright snap, then a low rolling rumble.
+Buf thunder() {
+  final b = Buf(1.8);
+  final snap = OnePole(4000);
+  voice(b, 0, 0.12, (t) => snap.hp(noise()) * env(t, 0.0005, 0.03) * 1.4);
+  final roll = OnePole(500);
+  voice(b, 0.03, 1.75, (t) {
+    // Uneven rumble: slow random-ish swells.
+    final swell =
+        0.6 +
+        0.4 * math.sin(2 * math.pi * 3.1 * t) * math.sin(2 * math.pi * 1.3 * t);
+    roll.cutoff = 180 + 900 * math.exp(-t / 0.25);
+    return roll.lp(noise()) * env(t, 0.02, 0.55) * swell * 2.2;
+  });
+  b.saturate(1.4);
   return b;
 }
 
@@ -694,6 +733,7 @@ void _encodeMusic(String name) {
   final r = Process.runSync('ffmpeg', [
     '-y', '-loglevel', 'error', //
     '-i', '$tmpDir/$name.wav',
+    '-fflags', '+bitexact', '-flags:a', '+bitexact', // stable output
     '-c:a', 'vorbis', '-strict', '-2', '-b:a', '160k',
     '$outDir/$name.ogg',
   ]);

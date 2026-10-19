@@ -1843,6 +1843,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Backyard'**
   String get mapBackyard;
+
+  /// Weapon name.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle Rocket'**
+  String get weaponBottleRocket;
+
+  /// Weapon name.
+  ///
+  /// In en, this message translates to:
+  /// **'Sniffer Rocket'**
+  String get weaponSnifferRocket;
+
+  /// Weapon name.
+  ///
+  /// In en, this message translates to:
+  /// **'Laser Pointer'**
+  String get weaponLaserPointer;
+
+  /// Weapon name.
+  ///
+  /// In en, this message translates to:
+  /// **'Thunder Cloud'**
+  String get weaponThunderCloud;
+
+  /// Weapon name.
+  ///
+  /// In en, this message translates to:
+  /// **'Seed Spitter'**
+  String get weaponSeedSpitter;
+
+  /// Weapon name.
+  ///
+  /// In en, this message translates to:
+  /// **'Firecracker'**
+  String get weaponFirecracker;
+
+  /// Weapon name.
+  ///
+  /// In en, this message translates to:
+  /// **'Flowerpot Rain'**
+  String get weaponFlowerpotRain;
+
+  /// Weapon name.
+  ///
+  /// In en, this message translates to:
+  /// **'Dig Claws'**
+  String get weaponDigClaws;
+
+  /// No description provided for @weaponBottleRocketDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Fast and flat. Still pushed by the wind.'**
+  String get weaponBottleRocketDesc;
+
+  /// No description provided for @weaponSnifferRocketDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Its motor kicks in, then it chases the nearest foe.'**
+  String get weaponSnifferRocketDesc;
+
+  /// No description provided for @weaponLaserPointerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A beam that burns straight through the ground.'**
+  String get weaponLaserPointerDesc;
+
+  /// No description provided for @weaponThunderCloudDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Lightning strikes a spot you pick.'**
+  String get weaponThunderCloudDesc;
+
+  /// No description provided for @weaponSeedSpitterDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Five seeds at once. Best up close.'**
+  String get weaponSeedSpitterDesc;
+
+  /// No description provided for @weaponFirecrackerDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Set it down and run: a big bang in 4 s.'**
+  String get weaponFirecrackerDesc;
+
+  /// No description provided for @weaponFlowerpotRainDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Flowerpots fall on a spot you pick.'**
+  String get weaponFlowerpotRainDesc;
+
+  /// No description provided for @weaponDigClawsDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Dig a short tunnel sideways.'**
+  String get weaponDigClawsDesc;
+
+  /// No description provided for @setupTabWeapons.
+  ///
+  /// In en, this message translates to:
+  /// **'Weapons'**
+  String get setupTabWeapons;
+
+  /// No description provided for @setupWeaponsPreset.
+  ///
+  /// In en, this message translates to:
+  /// **'Preset'**
+  String get setupWeaponsPreset;
+
+  /// No description provided for @setupPresetStandard.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get setupPresetStandard;
+
+  /// No description provided for @setupPresetClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get setupPresetClassic;
+
+  /// No description provided for @setupPresetChaos.
+  ///
+  /// In en, this message translates to:
+  /// **'Chaos'**
+  String get setupPresetChaos;
+
+  /// No description provided for @setupPresetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get setupPresetCustom;
+
+  /// No description provided for @setupWeaponsSignatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Family weapons'**
+  String get setupWeaponsSignatures;
+
+  /// No description provided for @setupWeaponsSignaturesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Each pet\'s own weapon, once per pet.'**
+  String get setupWeaponsSignaturesNote;
+
+  /// No description provided for @setupWeaponsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Ammo per team, per match. Skip Turn is always on.'**
+  String get setupWeaponsHint;
+
+  /// No description provided for @setupAmmoOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get setupAmmoOff;
+
+  /// No description provided for @setupAmmoLess.
+  ///
+  /// In en, this message translates to:
+  /// **'Less ammo'**
+  String get setupAmmoLess;
+
+  /// No description provided for @setupAmmoMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More ammo'**
+  String get setupAmmoMore;
 }
 
 class _AppLocalizationsDelegate

@@ -401,7 +401,10 @@ void main() {
   });
 }
 
-const _pinnedWeaponsHash = 2685680718;
+// Re-pinned 2026-10-19: the hash now covers the eight added shared weapons
+// and the loadout's signature switch (same play, verified against the old
+// layout).
+const _pinnedWeaponsHash = 4107600983;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

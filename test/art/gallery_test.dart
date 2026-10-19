@@ -13,6 +13,7 @@ import 'package:pawtillery/game/components/backdrop_components.dart';
 import 'package:pawtillery/game/components/decor_component.dart';
 import 'package:pawtillery/game/components/scenery_component.dart';
 import 'package:pawtillery/game/components/terrain_painter.dart';
+import 'package:pawtillery/game/effects/particle_system.dart';
 import 'package:pawtillery/game/map_loader.dart';
 import 'package:pawtillery/game/art/animal_art.dart';
 import 'package:pawtillery/game/art/weapon_art.dart';
@@ -86,8 +87,13 @@ void main() {
   testWidgets('weapons: icons and projectiles', (tester) async {
     const cell = 80.0;
     final menu = Weapons.all.where((w) => !w.hidden).toList();
-    final cols = 9;
-    final rows = 4;
+    final flying = [
+      for (final w in Weapons.all)
+        if (w.flight != null) w.id,
+    ];
+    const cols = 9;
+    final iconRows = (menu.length / cols).ceil();
+    final rows = iconRows + (flying.length / cols).ceil() + 1;
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder)
       ..drawRect(
@@ -103,13 +109,9 @@ void main() {
       WeaponArt.icon(canvas, menu[i].id, 56);
       canvas.restore();
     }
-    final flying = [
-      for (final w in Weapons.all)
-        if (w.flight != null) w.id,
-    ];
     for (var i = 0; i < flying.length; i++) {
       final x = (i % cols) * cell + cell / 2;
-      final y = (2 + i ~/ cols) * cell + cell / 2;
+      final y = (iconRows + i ~/ cols) * cell + cell / 2;
       canvas
         ..save()
         ..translate(x, y)
@@ -130,6 +132,23 @@ void main() {
         (rows * cell).round(),
         'weapons',
       ),
+    );
+  });
+
+  testWidgets('effects: laser beam and lightning bolt', (tester) async {
+    final particles = ParticleSystem()
+      ..beam(40, 150, 360, 110)
+      ..bolt(520, 170)
+      ..update(0.05);
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(recorder)
+      ..drawRect(
+        const ui.Rect.fromLTWH(0, 0, 640, 220),
+        ui.Paint()..color = const ui.Color(0xFF3A3050),
+      );
+    particles.render(canvas);
+    await tester.runAsync(
+      () => save(recorder.endRecording(), 640, 220, 'effects'),
     );
   });
 

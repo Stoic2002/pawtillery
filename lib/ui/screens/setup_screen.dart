@@ -14,6 +14,7 @@ import '../../config/weapons.dart';
 import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../../services/audio_service.dart';
+import '../hud/weapon_menu.dart' show WeaponIcon;
 import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/pet_figure.dart';
@@ -21,7 +22,8 @@ import 'arena_screen.dart';
 
 /// Match setup (redesign prototype): a Teams tab with one card per team
 /// (and an "Add team" card), a Rules tab with the match options and the map
-/// picker, and a bottom bar with a summary and Start. The last setup is
+/// picker, a Weapons tab (which weapons are on and their ammo), and a
+/// bottom bar with a summary and Start. The last setup is
 /// restored on the next visit.
 class SetupScreen extends StatefulWidget {
   const SetupScreen({super.key});
@@ -30,7 +32,7 @@ class SetupScreen extends StatefulWidget {
   State<SetupScreen> createState() => _SetupScreenState();
 }
 
-enum _Tab { teams, rules }
+enum _Tab { teams, rules, weapons }
 
 class _SetupScreenState extends State<SetupScreen> {
   MatchConfig? _config;
@@ -89,8 +91,11 @@ class _SetupScreenState extends State<SetupScreen> {
                   selected: _tab,
                   background: Paw.cream,
                   shadow: true,
-                  label: (t) =>
-                      t == _Tab.teams ? l10n.setupTabTeams : l10n.setupTabRules,
+                  label: (t) => switch (t) {
+                    _Tab.teams => l10n.setupTabTeams,
+                    _Tab.rules => l10n.setupTabRules,
+                    _Tab.weapons => l10n.setupTabWeapons,
+                  },
                   onSelect: (t) => setState(() => _tab = t),
                 ),
                 trailing: PawButton(
@@ -110,19 +115,24 @@ class _SetupScreenState extends State<SetupScreen> {
               Expanded(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(24, 6, 24, 14),
-                  child: _tab == _Tab.teams
-                      ? _TeamsTab(
-                          config: config,
-                          revision: _revision,
-                          pool: _pool,
-                          rng: _rng,
-                          onChanged: _update,
-                        )
-                      : _RulesTab(
-                          config: config,
-                          pool: _pool,
-                          onChanged: _update,
-                        ),
+                  child: switch (_tab) {
+                    _Tab.teams => _TeamsTab(
+                      config: config,
+                      revision: _revision,
+                      pool: _pool,
+                      rng: _rng,
+                      onChanged: _update,
+                    ),
+                    _Tab.rules => _RulesTab(
+                      config: config,
+                      pool: _pool,
+                      onChanged: _update,
+                    ),
+                    _Tab.weapons => _WeaponsTab(
+                      loadout: config.weapons,
+                      onChanged: (l) => _update(config.copyWith(weapons: l)),
+                    ),
+                  },
                 ),
               ),
               Container(
@@ -675,6 +685,208 @@ class _RulesTab extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+// --------------------------------------------------------------- weapons
+
+/// Weapons tab: presets and the family-weapon switch on the left, every
+/// shared weapon with its ammo (Off, 1–9, unlimited) on the right.
+class _WeaponsTab extends StatelessWidget {
+  const _WeaponsTab({required this.loadout, required this.onChanged});
+
+  final WeaponLoadout loadout;
+  final ValueChanged<WeaponLoadout> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final presets = [
+      (l10n.setupPresetStandard, WeaponLoadout.standard),
+      (l10n.setupPresetClassic, WeaponLoadout.classic),
+      (l10n.setupPresetChaos, WeaponLoadout.chaos),
+    ];
+    final custom = !presets.any((p) => p.$2.sameAs(loadout));
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          flex: 34,
+          child: PawCard(
+            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
+            child: ListView(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(l10n.setupWeaponsPreset, style: Paw.title(20)),
+                    ),
+                    if (custom)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Paw.peach,
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: Paw.ink, width: 2),
+                        ),
+                        child: Text(l10n.setupPresetCustom, style: Paw.text(12)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                for (final (name, preset) in presets)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: PawButton(
+                      label: name,
+                      height: 42,
+                      fontSize: 15,
+                      shadow: 3,
+                      expand: true,
+                      fill: preset.sameAs(loadout) ? Paw.orange : Paw.cream,
+                      onPressed: () => onChanged(preset),
+                    ),
+                  ),
+                const Divider(height: 14, thickness: 2, color: Paw.peach),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.setupWeaponsSignatures,
+                        style: Paw.text(14),
+                      ),
+                    ),
+                    PawSwitch(
+                      value: loadout.signatures,
+                      label: l10n.setupWeaponsSignatures,
+                      onChanged: (v) => onChanged(loadout.withSignatures(v)),
+                    ),
+                  ],
+                ),
+                Text(
+                  l10n.setupWeaponsSignaturesNote,
+                  style: Paw.text(12, weight: 600, color: Paw.muted),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.setupWeaponsHint,
+                  style: Paw.text(12, weight: 600, color: Paw.muted),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          flex: 66,
+          child: PawCard(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+            child: LayoutBuilder(
+              builder: (context, box) {
+                final cols = box.maxWidth > 520 ? 2 : 1;
+                final w = (box.maxWidth - (cols - 1) * 12) / cols;
+                return SingleChildScrollView(
+                  child: Wrap(
+                    spacing: 12,
+                    children: [
+                      for (final weapon in WeaponLoadout.editable)
+                        SizedBox(
+                          width: w,
+                          child: _AmmoRow(
+                            weapon: weapon,
+                            ammo: loadout.ammoOf(weapon),
+                            onChanged: (v) =>
+                                onChanged(loadout.withAmmo(weapon, v)),
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One weapon in the Weapons tab: icon, name and an ammo stepper that runs
+/// Off, 1 … [WeaponLoadout.maxAmmo], unlimited.
+class _AmmoRow extends StatelessWidget {
+  const _AmmoRow({
+    required this.weapon,
+    required this.ammo,
+    required this.onChanged,
+  });
+
+  final WeaponDef weapon;
+
+  /// null = unlimited, 0 = off.
+  final int? ammo;
+  final ValueChanged<int?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final ammo = this.ammo;
+    final off = ammo == 0;
+    const max = WeaponLoadout.maxAmmo;
+    return Container(
+      height: 48,
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Paw.peach, width: 2)),
+      ),
+      child: Row(
+        children: [
+          Opacity(
+            opacity: off ? 0.4 : 1,
+            child: WeaponIcon(weapon: weapon, size: 30),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              l10n.byKey(weapon.nameKey),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Paw.text(14, color: off ? Paw.muted : Paw.ink),
+            ),
+          ),
+          PawIconBox(
+            icon: Icons.remove_rounded,
+            tooltip: l10n.setupAmmoLess,
+            size: 34,
+            onPressed: off
+                ? null
+                : () => onChanged(ammo == null ? max : ammo - 1),
+          ),
+          SizedBox(
+            width: 44,
+            child: Text(
+              ammo == null
+                  ? l10n.hudAmmoUnlimited
+                  : off
+                  ? l10n.setupAmmoOff
+                  : '$ammo',
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              style: Paw.title(off ? 14 : 18, weight: 800),
+            ),
+          ),
+          PawIconBox(
+            icon: Icons.add_rounded,
+            tooltip: l10n.setupAmmoMore,
+            size: 34,
+            onPressed: ammo == null
+                ? null
+                : () => onChanged(ammo >= max ? null : ammo + 1),
+          ),
+        ],
+      ),
     );
   }
 }

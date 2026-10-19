@@ -1093,5 +1093,57 @@
   "weaponFortressDesc": "Builds a wall in front of you.",
   "weaponHeadbuttDesc": "A strong charge that sends foes flying.",
   "weaponCoconutDesc": "A coconut falls on a spot you pick.",
-  "mapBackyard": "Backyard"
+  "mapBackyard": "Backyard",
+  "weaponBottleRocket": "Bottle Rocket",
+  "@weaponBottleRocket": {
+    "description": "Weapon name."
+  },
+  "weaponSnifferRocket": "Sniffer Rocket",
+  "@weaponSnifferRocket": {
+    "description": "Weapon name."
+  },
+  "weaponLaserPointer": "Laser Pointer",
+  "@weaponLaserPointer": {
+    "description": "Weapon name."
+  },
+  "weaponThunderCloud": "Thunder Cloud",
+  "@weaponThunderCloud": {
+    "description": "Weapon name."
+  },
+  "weaponSeedSpitter": "Seed Spitter",
+  "@weaponSeedSpitter": {
+    "description": "Weapon name."
+  },
+  "weaponFirecracker": "Firecracker",
+  "@weaponFirecracker": {
+    "description": "Weapon name."
+  },
+  "weaponFlowerpotRain": "Flowerpot Rain",
+  "@weaponFlowerpotRain": {
+    "description": "Weapon name."
+  },
+  "weaponDigClaws": "Dig Claws",
+  "@weaponDigClaws": {
+    "description": "Weapon name."
+  },
+  "weaponBottleRocketDesc": "Fast and flat. Still pushed by the wind.",
+  "weaponSnifferRocketDesc": "Its motor kicks in, then it chases the nearest foe.",
+  "weaponLaserPointerDesc": "A beam that burns straight through the ground.",
+  "weaponThunderCloudDesc": "Lightning strikes a spot you pick.",
+  "weaponSeedSpitterDesc": "Five seeds at once. Best up close.",
+  "weaponFirecrackerDesc": "Set it down and run: a big bang in 4 s.",
+  "weaponFlowerpotRainDesc": "Flowerpots fall on a spot you pick.",
+  "weaponDigClawsDesc": "Dig a short tunnel sideways.",
+  "setupTabWeapons": "Weapons",
+  "setupWeaponsPreset": "Preset",
+  "setupPresetStandard": "Standard",
+  "setupPresetClassic": "Classic",
+  "setupPresetChaos": "Chaos",
+  "setupPresetCustom": "Custom",
+  "setupWeaponsSignatures": "Family weapons",
+  "setupWeaponsSignaturesNote": "Each pet's own weapon, once per pet.",
+  "setupWeaponsHint": "Ammo per team, per match. Skip Turn is always on.",
+  "setupAmmoOff": "Off",
+  "setupAmmoLess": "Less ammo",
+  "setupAmmoMore": "More ammo"
 }

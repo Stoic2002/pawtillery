@@ -72,6 +72,7 @@ class PawtilleryGame extends FlameGame {
     required this.map,
     this.timings = const TurnTimings(),
     this.suddenDeathAfterTicks,
+    this.loadout = WeaponLoadout.standard,
     this.showAimGuide = true,
   });
 
@@ -89,6 +90,9 @@ class PawtilleryGame extends FlameGame {
   final MapDef map;
   final TurnTimings timings;
   final int? suddenDeathAfterTicks;
+
+  /// Weapons on and their ammo (setup's Weapons tab).
+  final WeaponLoadout loadout;
 
   /// Settings: draw the aim guide path (the readout always shows).
   bool showAimGuide;
@@ -141,6 +145,7 @@ class PawtilleryGame extends FlameGame {
       rosters: rosters,
       timings: timings,
       suddenDeathAfterTicks: suddenDeathAfterTicks,
+      loadout: loadout,
     );
     stats = MatchStats(sim);
 
@@ -196,8 +201,8 @@ class PawtilleryGame extends FlameGame {
 
   WeaponDef get weapon => Weapons.byId(aim.value.weaponId);
 
-  /// The menu for the active unit: the shared arsenal plus its family's
-  /// signature weapon.
+  /// The menu for the active unit: the shared weapons switched on for this
+  /// match plus its family's signature weapon (if signatures are on).
   List<WeaponChoice> weaponChoices() {
     final unit = sim.activeUnit;
     if (unit == null) return const [];
@@ -208,11 +213,12 @@ class PawtilleryGame extends FlameGame {
         ...Weapons.shared,
         if (family != null) Weapons.byId(family.signatureWeaponId),
       ])
-        WeaponChoice(
-          weapon: w,
-          ammoLeft: sim.ammoLeft(unit.team, w),
-          usable: sim.canUse(unit, w),
-        ),
+        if (loadout.enabled(w))
+          WeaponChoice(
+            weapon: w,
+            ammoLeft: sim.ammoLeft(unit.team, w),
+            usable: sim.canUse(unit, w),
+          ),
     ];
   }
 
@@ -292,7 +298,14 @@ class PawtilleryGame extends FlameGame {
     var id = Weapons.rock.id;
     if (unit != null) {
       final last = _weaponByTeam[unit.team];
-      if (last != null && sim.canUse(unit, Weapons.byId(last))) id = last;
+      if (last != null && sim.canUse(unit, Weapons.byId(last))) {
+        id = last;
+      } else if (!sim.canUse(unit, Weapons.rock)) {
+        // Rock switched off or used up: the first weapon still usable.
+        id = Weapons.shared
+            .firstWhere((w) => sim.canUse(unit, w), orElse: () => Weapons.skip)
+            .id;
+      }
     }
     aim.value = AimState(
       weaponId: id,
@@ -433,6 +446,12 @@ class PawtilleryGame extends FlameGame {
           _terrain.carve(x, y, radius, scorch: false);
           particles.dust(x.toDouble(), (y + radius).toDouble(), strength: 0.4);
           _aimGuide.invalidate();
+        case BeamFired(:final x0, :final y0, :final x1, :final y1, :final radius):
+          _terrain.carveLine(x0, y0, x1, y1, radius);
+          particles.beam(x0, y0, x1, y1);
+          _aimGuide.invalidate();
+        case LightningStruck(:final x, :final y):
+          particles.bolt(x.toDouble(), y.toDouble());
         case TerrainAdded(:final area):
           _terrain.rebuild(area);
           _aimGuide.invalidate();

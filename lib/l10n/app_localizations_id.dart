@@ -934,4 +934,95 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get mapBackyard => 'Halaman Belakang';
+
+  @override
+  String get weaponBottleRocket => 'Roket Botol';
+
+  @override
+  String get weaponSnifferRocket => 'Roket Pelacak';
+
+  @override
+  String get weaponLaserPointer => 'Laser Pointer';
+
+  @override
+  String get weaponThunderCloud => 'Awan Petir';
+
+  @override
+  String get weaponSeedSpitter => 'Penyembur Biji';
+
+  @override
+  String get weaponFirecracker => 'Petasan';
+
+  @override
+  String get weaponFlowerpotRain => 'Hujan Pot Bunga';
+
+  @override
+  String get weaponDigClaws => 'Cakar Gali';
+
+  @override
+  String get weaponBottleRocketDesc =>
+      'Cepat dan lurus. Tetap terdorong angin.';
+
+  @override
+  String get weaponSnifferRocketDesc =>
+      'Mesinnya menyala, lalu mengejar musuh terdekat.';
+
+  @override
+  String get weaponLaserPointerDesc => 'Sinar yang membakar tembus tanah.';
+
+  @override
+  String get weaponThunderCloudDesc => 'Petir menyambar titik yang kamu pilih.';
+
+  @override
+  String get weaponSeedSpitterDesc =>
+      'Lima biji sekaligus. Paling kuat dari dekat.';
+
+  @override
+  String get weaponFirecrackerDesc =>
+      'Taruh lalu lari: ledakan besar dalam 4 detik.';
+
+  @override
+  String get weaponFlowerpotRainDesc =>
+      'Pot bunga berjatuhan di titik yang kamu pilih.';
+
+  @override
+  String get weaponDigClawsDesc => 'Gali terowongan pendek ke samping.';
+
+  @override
+  String get setupTabWeapons => 'Senjata';
+
+  @override
+  String get setupWeaponsPreset => 'Preset';
+
+  @override
+  String get setupPresetStandard => 'Standar';
+
+  @override
+  String get setupPresetClassic => 'Klasik';
+
+  @override
+  String get setupPresetChaos => 'Kacau';
+
+  @override
+  String get setupPresetCustom => 'Kustom';
+
+  @override
+  String get setupWeaponsSignatures => 'Senjata khas keluarga';
+
+  @override
+  String get setupWeaponsSignaturesNote =>
+      'Senjata khas tiap hewan, sekali per hewan.';
+
+  @override
+  String get setupWeaponsHint =>
+      'Amunisi per tim, per pertandingan. Lewati Giliran selalu ada.';
+
+  @override
+  String get setupAmmoOff => 'Mati';
+
+  @override
+  String get setupAmmoLess => 'Kurangi amunisi';
+
+  @override
+  String get setupAmmoMore => 'Tambah amunisi';
 }

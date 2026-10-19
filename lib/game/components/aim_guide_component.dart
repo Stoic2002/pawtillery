@@ -59,6 +59,10 @@ class AimGuideComponent extends Component {
     ),
   );
   final ui.Paint _pill = ui.Paint()..color = const ui.Color(0xFF2B2118);
+  final ui.Paint _beam = ui.Paint()
+    ..strokeWidth = 2
+    ..strokeCap = ui.StrokeCap.round
+    ..color = const ui.Color(0x99E5484D);
   final ui.Paint _dash = ui.Paint()
     ..style = ui.PaintingStyle.stroke
     ..strokeWidth = 1.4
@@ -96,7 +100,7 @@ class AimGuideComponent extends Component {
       powerPercent: a.power,
       terrain: sim.terrain,
       waterLevel: sim.waterLevel,
-      speedScale: unit.stats.firePowerScale,
+      speedScale: unit.stats.firePowerScale * weapon.launchSpeedScale,
     );
     final points = path.length ~/ 2;
     final keep = math.max(1, (points * ControlsConfig.aimGuideFraction).ceil());
@@ -129,7 +133,7 @@ class AimGuideComponent extends Component {
         )
         ..drawCircle(c, 16, _cross)
         ..drawCircle(c, 3, ui.Paint()..color = const ui.Color(0xFF2B2118));
-      if (weapon.delivery is AirStrike) {
+      if (weapon.delivery is AirStrike || weapon.delivery is Lightning) {
         canvas.drawLine(
           ui.Offset(c.dx, 0),
           ui.Offset(c.dx, c.dy - 16),
@@ -153,7 +157,16 @@ class AimGuideComponent extends Component {
         canvas.drawPath(m.extractPath(d, d + 5), _dash..strokeWidth = 1.4);
       }
     }
-    if (weapon.aim == AimMode.direction) {
+    final delivery = weapon.delivery;
+    if (delivery is Beam && showPath()) {
+      // Laser: a faint red line over the part of the beam the guide shows.
+      final start = center + dir * (unit.stats.hitRadius + 2);
+      canvas.drawLine(
+        start,
+        start + dir * (delivery.length * ControlsConfig.aimGuideFraction * 2),
+        _beam,
+      );
+    } else if (weapon.aim == AimMode.direction) {
       final start = center + dir * (unit.stats.hitRadius + 6);
       canvas.drawLine(start, start + dir * 40, _line);
     } else if (flight is Boomerang && showPath()) {

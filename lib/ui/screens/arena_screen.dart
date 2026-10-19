@@ -97,6 +97,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
       suddenDeathAfterTicks: config.suddenDeathMinutes == null
           ? null
           : config.suddenDeathMinutes! * 60 * MatchDefaults.ticksPerSecond,
+      loadout: config.weapons,
       showAimGuide: AppServices.of(context).settings.showAimGuide,
     );
     game.hud.addListener(_onHudChanged);

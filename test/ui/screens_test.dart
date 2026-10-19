@@ -3,11 +3,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pawtillery/app/app.dart';
 import 'package:pawtillery/app/app_services.dart';
 import 'package:pawtillery/app/match_config.dart';
+import 'package:pawtillery/config/weapons.dart';
 import 'package:pawtillery/l10n/app_localizations.dart';
 import 'package:pawtillery/services/audio_service.dart';
 import 'package:pawtillery/services/settings_store.dart';
 import 'package:pawtillery/ui/hud/pause_dialog.dart';
 import 'package:pawtillery/ui/screens/results_screen.dart';
+import 'package:pawtillery/ui/widgets/paw/paw_widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Landscape phone, like the real target.
@@ -107,6 +109,54 @@ void main() {
     expect(saved.teams, hasLength(4), reason: 'the setup on screen is saved');
     // Leave before the arena finishes loading its map.
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('setup: weapons tab sets ammo and presets, and is saved',
+      (tester) async {
+    await _landscape(tester);
+    final settings = await _settings();
+    await tester.pumpWidget(
+        PawtilleryApp(locale: const Locale('en'), settings: settings));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Play'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Weapons'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Laser Pointer'), findsOneWidget);
+    expect(find.text('Custom'), findsNothing);
+
+    // Rock (unlimited) down to 9, then switch family weapons off.
+    await tester.tap(find.byTooltip('Less ammo').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Custom'), findsOneWidget);
+    await tester.ensureVisible(find.byType(PawSwitch));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PawSwitch));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Start match'));
+    await tester.pump();
+    final saved = settings.lastMatch(const [])!.weapons;
+    expect(saved.ammoOf(Weapons.rock), 9);
+    expect(saved.signatures, isFalse);
+    await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('setup: the Classic preset turns the new weapons off',
+      (tester) async {
+    await _landscape(tester);
+    final settings = await _settings();
+    await tester.pumpWidget(
+        PawtilleryApp(locale: const Locale('en'), settings: settings));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Play'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Weapons'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Classic'));
+    await tester.pumpAndSettle();
+    expect(find.text('Off'), findsNWidgets(8));
   });
 
   testWidgets('setup: a unit opens the unit editor', (tester) async {
@@ -223,6 +273,9 @@ void main() {
         await tester.tap(find.text('Aturan'));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull, reason: 'Aturan');
+        await tester.tap(find.text('Senjata'));
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull, reason: 'Senjata');
       }
       await _back(tester);
     }

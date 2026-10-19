@@ -42,6 +42,9 @@ void main() {
       expect(AudioService.sfxFor(const UnitDied(0, DeathCause.hp)), Sfx.death);
       expect(AudioService.sfxFor(const TurnStarted(team: 0, unitId: 0)),
           Sfx.turn);
+      expect(AudioService.sfxFor(const WeaponUsed(0, 'laserPointer')),
+          Sfx.laser);
+      expect(AudioService.sfxFor(const LightningStruck(0, 0)), Sfx.thunder);
       expect(AudioService.sfxFor(const MinePlaced(0)), isNull);
     });
 

@@ -175,6 +175,52 @@ class TerrainComponent extends PositionComponent {
     }
   }
 
+  /// Burns a straight tunnel [radius] wide from (x0, y0) to (x1, y1)
+  /// (laser), one stroke per touched chunk, with a thin scorched rim.
+  void carveLine(double x0, double y0, double x1, double y1, int radius) {
+    final pad = radius + 2;
+    final c0 = ((math.min(x0, x1) - pad) ~/ chunkSize).clamp(0, _cols - 1);
+    final c1 = ((math.max(x0, x1) + pad) ~/ chunkSize).clamp(0, _cols - 1);
+    final r0 = ((math.min(y0, y1) - pad) ~/ chunkSize).clamp(0, _rows - 1);
+    final r1 = ((math.max(y0, y1) + pad) ~/ chunkSize).clamp(0, _rows - 1);
+    final width = (radius + 0.5) * 2;
+    final clear = ui.Paint()
+      ..blendMode = ui.BlendMode.clear
+      ..style = ui.PaintingStyle.stroke
+      ..strokeCap = ui.StrokeCap.round
+      ..strokeWidth = width;
+    final scorch = ui.Paint()
+      ..blendMode = ui.BlendMode.srcATop
+      ..style = ui.PaintingStyle.stroke
+      ..strokeCap = ui.StrokeCap.round
+      ..strokeWidth = width + 3
+      ..color = const ui.Color(0x99301A10);
+    for (var row = r0; row <= r1; row++) {
+      for (var col = c0; col <= c1; col++) {
+        final index = row * _cols + col;
+        if (_wanted[index] != _shown[index]) {
+          _buildChunk(col, row);
+          continue;
+        }
+        final old = _chunks[index];
+        if (old == null) continue;
+        final dx = -col * chunkSize + gutter + 0.5;
+        final dy = -row * chunkSize + gutter + 0.5;
+        final a = ui.Offset(x0 + dx, y0 + dy);
+        final b = ui.Offset(x1 + dx, y1 + dy);
+        final recorder = ui.PictureRecorder();
+        ui.Canvas(recorder)
+          ..drawImage(old, ui.Offset.zero, _copy)
+          ..drawLine(a, b, scorch)
+          ..drawLine(a, b, clear);
+        final picture = recorder.endRecording();
+        _chunks[index] = picture.toImageSync(old.width, old.height);
+        picture.dispose();
+        old.dispose();
+      }
+    }
+  }
+
   /// Colours of the ground around a crater just carved at (cx, cy), for
   /// the debris: samples the rim (still solid) and maps each material to
   /// its paint colour; the cap colour when a sample is near the top.

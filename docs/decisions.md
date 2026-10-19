@@ -562,3 +562,40 @@ new packages; ffmpeg is a developer-machine tool only, not shipped).
 - **Buttons:** every `_Pressable` control (Paw buttons, circle buttons,
   steppers) plays the `sfx_ui` pop on tap; hold-to-walk buttons stay
   quiet.
+
+## Eight more weapons and a Weapons tab (2026-10-19)
+
+The developer found the arsenal too small and asked for weapon
+management. Names and designs are our own (pets and backyard things);
+only genre mechanics are shared with other games.
+
+- **New shared weapons** (`lib/config/weapons.dart`, balance there):
+  Bottle Rocket (fast, flat: gravity ×0.35, launch ×1.2, wind), Sniffer
+  Rocket (normal arc for 45 ticks, then a motor at 330 px/s that steers
+  towards the nearest enemy), Laser Pointer (a 520 px beam that burns a
+  5 px tunnel and hits each unit once), Thunder Cloud (a bolt down a chosen
+  column, blasting the first ground or unit), Seed Spitter (five seeds at
+  once in an 18° fan), Firecracker (set down, 4 s fuse, big blast), Flowerpot
+  Rain (five pots from the sky) and Dig Claws (dig 80 px sideways, no
+  damage, unlimited).
+- **New sim pieces:** deliveries `Beam`, `Lightning`, `DropCharge`;
+  flight `Homing` (sqrt and arithmetic only, so it stays deterministic);
+  `Launch.spreadDeg`; `WeaponDef.launchSpeedScale`. Events `BeamFired`
+  (the renderer carves the tunnel with one stroke per chunk instead of one
+  image per circle) and `LightningStruck`.
+- **Weapon management:** `WeaponLoadout` (per weapon: off, 1–9 or
+  unlimited, per team; a switch for family weapons; Skip Turn always on)
+  with presets Standard, Classic (the original eight) and Chaos (all
+  unlimited). A new Weapons tab in Setup edits it; it is saved with the
+  last setup, storing only differences from the defaults. Disabled
+  weapons are hidden from the in-match menu; if Rock is off, a turn starts
+  on the first usable weapon.
+- **Ammo bug found on the way:** ammo only went down for weapons whose
+  default was limited; it now goes down for any weapon with a count.
+- **Determinism pins:** the state hash now includes the new weapons' ammo
+  and the signature switch, so both pinned hashes changed. Hashing with
+  the old layout reproduced the old pins exactly, so earlier weapons play
+  the same.
+- **Sound:** `sfx_laser` and `sfx_thunder` were added to the generator,
+  which now reseeds its noise per sound (adding a sound no longer changes
+  the others) and encodes Ogg bit-exact (same code, same files).

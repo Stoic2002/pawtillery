@@ -68,9 +68,131 @@ abstract final class WeaponArt {
         _seed(c, 1.2);
       case 'coconut':
         _coconut(c);
+      case 'bottleRocket':
+        _rocket(c, 0xFF5AA9E6, 0xFFE5484D);
+      case 'snifferRocket':
+        _sniffer(c);
+      case 'seedSpitter':
+        _seed(c, 0.55);
+      case 'firecracker':
+        _firecracker(c, 1);
+      case 'flowerpot':
+        _flowerpot(c, 1);
       default:
         _rock(c, 5, 0xFF9E9A94);
     }
+  }
+
+  /// Weapons drawn pointing along their flight (the renderer rotates them
+  /// to the velocity instead of tumbling them), with a motor flame.
+  static bool pointsAlongFlight(String id) =>
+      id == 'bottleRocket' || id == 'snifferRocket';
+
+  /// A small bottle rocket pointing right, about 18 px long: a translucent
+  /// bottle body, a coloured nose cone and two fins.
+  static void _rocket(ui.Canvas c, int body, int nose) {
+    for (final s in [-1.0, 1.0]) {
+      final fin = ui.Path()
+        ..moveTo(-4, s * 2.5)
+        ..lineTo(-9, s * 6)
+        ..lineTo(-8.5, s * 2)
+        ..close();
+      _shaded(c, fin, nose);
+    }
+    final bottle = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-8, -3.2, 12, 6.4), const ui.Radius.circular(2.4));
+    c
+      ..drawRRect(bottle, PaintKit.lit(bottle.outerRect, body, light: 0.45))
+      ..drawRRect(bottle, PaintKit.edge(body, 0.7))
+      ..drawRect(const ui.Rect.fromLTWH(-4, -3.2, 3, 6.4),
+          PaintKit.solid(0xCCFFF6E6));
+    final cone = ui.Path()
+      ..moveTo(3.5, -3.2)
+      ..quadraticBezierTo(10, -1.5, 10.5, 0)
+      ..quadraticBezierTo(10, 1.5, 3.5, 3.2)
+      ..close();
+    _shaded(c, cone, nose);
+    c.drawLine(const ui.Offset(-6.5, -1.8), const ui.Offset(1.5, -1.8),
+        PaintKit.solid(0x66FFFFFF)..strokeWidth = 0.8);
+  }
+
+  /// The homing rocket: a round lavender body with a dark sniffing nose and
+  /// a little eye, pointing right.
+  static void _sniffer(ui.Canvas c) {
+    const body = 0xFF9C7BE8;
+    for (final s in [-1.0, 1.0]) {
+      final fin = ui.Path()
+        ..moveTo(-3, s * 3)
+        ..lineTo(-8.5, s * 6.5)
+        ..lineTo(-7.5, s * 1.5)
+        ..close();
+      _shaded(c, fin, 0xFFF5B700);
+    }
+    final hull = ui.Rect.fromCenter(
+        center: const ui.Offset(0.5, 0), width: 16, height: 8);
+    c
+      ..drawOval(hull, PaintKit.lit(hull, body, light: 0.4))
+      ..drawOval(hull, PaintKit.edge(body, 0.7))
+      ..drawCircle(const ui.Offset(8.4, 0), 2, PaintKit.solid(0xFF2B2118))
+      ..drawCircle(const ui.Offset(8.9, -0.6), 0.6, PaintKit.solid(0xAAFFFFFF))
+      ..drawCircle(const ui.Offset(3.5, -1.6), 1.3, PaintKit.solid(0xFFFFFFFF))
+      ..drawCircle(const ui.Offset(3.8, -1.6), 0.7, PaintKit.solid(0xFF2B2118));
+  }
+
+  /// A red paper firecracker with gold bands and a fuse, upright.
+  static void _firecracker(ui.Canvas c, double s) {
+    const red = 0xFFD63A2F;
+    final tube = ui.RRect.fromRectAndRadius(
+        ui.Rect.fromCenter(center: ui.Offset.zero, width: 7 * s, height: 13 * s),
+        ui.Radius.circular(1.5 * s));
+    c
+      ..drawRRect(tube, PaintKit.lit(tube.outerRect, red, light: 0.4))
+      ..drawRRect(tube, PaintKit.edge(red, 0.7));
+    for (final y in [-4.0, 4.0]) {
+      c.drawRect(
+          ui.Rect.fromCenter(
+              center: ui.Offset(0, y * s), width: 7 * s, height: 1.6 * s),
+          PaintKit.solid(0xFFF5C542));
+    }
+    c.drawPath(
+        ui.Path()
+          ..moveTo(0, -6.5 * s)
+          ..quadraticBezierTo(2 * s, -9 * s, 0.5 * s, -10.5 * s),
+        ui.Paint()
+          ..style = ui.PaintingStyle.stroke
+          ..strokeWidth = 0.9 * s
+          ..strokeCap = ui.StrokeCap.round
+          ..color = const ui.Color(0xFF5A4636));
+  }
+
+  /// A terracotta flowerpot with a little green sprout.
+  static void _flowerpot(ui.Canvas c, double s) {
+    const clay = 0xFFC0623A;
+    for (final a in [-0.5, 0.5]) {
+      c
+        ..save()
+        ..translate(0, -4 * s)
+        ..rotate(a);
+      final leaf = ui.Path()
+        ..moveTo(0, 0)
+        ..quadraticBezierTo(2.5 * s, -2 * s, 0, -6 * s)
+        ..quadraticBezierTo(-2.5 * s, -2 * s, 0, 0);
+      _shaded(c, leaf, 0xFF4CA35A);
+      c.restore();
+    }
+    final pot = ui.Path()
+      ..moveTo(-5 * s, -3 * s)
+      ..lineTo(5 * s, -3 * s)
+      ..lineTo(3.6 * s, 6 * s)
+      ..lineTo(-3.6 * s, 6 * s)
+      ..close();
+    _shaded(c, pot, clay);
+    final rim = ui.RRect.fromRectAndRadius(
+        ui.Rect.fromLTWH(-6 * s, -5 * s, 12 * s, 3 * s),
+        ui.Radius.circular(1 * s));
+    c
+      ..drawRRect(rim, PaintKit.lit(rim.outerRect, PaintKit.toneArgb(clay, 0.1)))
+      ..drawRRect(rim, PaintKit.edge(clay, 0.6));
   }
 
   static void _shaded(ui.Canvas c, ui.Path path, int argb,
@@ -382,8 +504,186 @@ abstract final class WeaponArt {
         _horns(c);
       case 'coconut':
         big(() => _coconut(c), 1.8);
+      case 'bottleRocket':
+        big(() {
+          c.rotate(-0.7);
+          _rocket(c, 0xFF5AA9E6, 0xFFE5484D);
+        }, 1.45);
+      case 'snifferRocket':
+        _trail(c, const [ui.Offset(-13, 11), ui.Offset(-8, 2), ui.Offset(-2, -2)]);
+        big(() {
+          c
+            ..translate(2, -2)
+            ..rotate(-0.35);
+          _sniffer(c);
+        }, 1.4);
+      case 'laserPointer':
+        _laser(c);
+      case 'thunderCloud':
+        _cloudBolt(c);
+      case 'seedSpitter':
+        _spitter(c);
+      case 'firecracker':
+        big(() {
+          c.rotate(0.25);
+          _firecracker(c, 1);
+        }, 1.75);
+        _spark(c, const ui.Offset(5, -14), 3.4);
+      case 'flowerpotRain':
+        for (final (x, y, a) in [(-7.0, -5.0, -0.3), (6.0, -8.0, 0.25), (0.0, 7.0, 0.1)]) {
+          c
+            ..save()
+            ..translate(x, y)
+            ..rotate(a)
+            ..scale(1.1);
+          _flowerpot(c, 1);
+          c.restore();
+        }
+      case 'digClaws':
+        _claws(c);
       default:
         big(() => _rock(c, 6, 0xFF9E9A94));
+    }
+  }
+
+  /// Speed dashes behind something moving along [points].
+  static void _trail(ui.Canvas c, List<ui.Offset> points) {
+    final paint = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..strokeCap = ui.StrokeCap.round
+      ..color = const ui.Color(0x998B5CF6);
+    final path = ui.Path()..moveTo(points.first.dx, points.first.dy);
+    for (var i = 1; i + 1 < points.length; i += 2) {
+      path.quadraticBezierTo(
+          points[i].dx, points[i].dy, points[i + 1].dx, points[i + 1].dy);
+    }
+    for (final m in path.computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += 5) {
+        c.drawPath(m.extractPath(d, d + 2.6), paint);
+      }
+    }
+  }
+
+  static void _spark(ui.Canvas c, ui.Offset at, double r) {
+    final star = ui.Path();
+    for (var i = 0; i < 10; i++) {
+      final rr = i.isEven ? r : r * 0.42;
+      final a = -math.pi / 2 + i * math.pi / 5;
+      final p = at + ui.Offset(math.cos(a) * rr, math.sin(a) * rr);
+      i == 0 ? star.moveTo(p.dx, p.dy) : star.lineTo(p.dx, p.dy);
+    }
+    star.close();
+    c
+      ..drawPath(star, PaintKit.solid(0xFFFFD25A))
+      ..drawPath(star, PaintKit.edge(0xFFE2681C, 0.6));
+  }
+
+  /// A pen-shaped laser pointer firing a red beam at a dot.
+  static void _laser(ui.Canvas c) {
+    c
+      ..drawLine(
+          const ui.Offset(1, 3),
+          const ui.Offset(13, -9),
+          ui.Paint()
+            ..color = const ui.Color(0x66FF3B30)
+            ..strokeWidth = 4
+            ..strokeCap = ui.StrokeCap.round)
+      ..drawLine(
+          const ui.Offset(1, 3),
+          const ui.Offset(13, -9),
+          ui.Paint()
+            ..color = const ui.Color(0xFFFF5A4E)
+            ..strokeWidth = 1.4
+            ..strokeCap = ui.StrokeCap.round)
+      ..drawCircle(const ui.Offset(13, -9), 3.2, PaintKit.solid(0x88FF3B30))
+      ..drawCircle(const ui.Offset(13, -9), 1.6, PaintKit.solid(0xFFFFE0DC));
+    c
+      ..save()
+      ..translate(-5, 9)
+      ..rotate(-math.pi / 4);
+    final body = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-9, -2.6, 16, 5.2), const ui.Radius.circular(2.4));
+    c
+      ..drawRRect(body, PaintKit.lit(body.outerRect, 0xFF4A5560, light: 0.4))
+      ..drawRRect(body, PaintKit.edge(0xFF4A5560, 0.7))
+      ..drawRect(const ui.Rect.fromLTWH(5, -2.6, 2.4, 5.2),
+          PaintKit.solid(0xFFC9CED4))
+      ..drawCircle(const ui.Offset(-1, -2.6), 1.3, PaintKit.solid(0xFFE5484D))
+      ..restore();
+  }
+
+  /// A grey storm cloud with a yellow bolt.
+  static void _cloudBolt(ui.Canvas c) {
+    final bolt = ui.Path()
+      ..moveTo(1, -1)
+      ..lineTo(-5, 8)
+      ..lineTo(0, 8)
+      ..lineTo(-3, 15)
+      ..lineTo(6, 4)
+      ..lineTo(1, 4)
+      ..lineTo(5, -1)
+      ..close();
+    c
+      ..drawPath(bolt, PaintKit.solid(0xFFF5C542))
+      ..drawPath(bolt, PaintKit.edge(0xFFB8860B, 0.7));
+    final cloud = ui.Path()
+      ..addOval(ui.Rect.fromCircle(center: const ui.Offset(-7, -4), radius: 6))
+      ..addOval(ui.Rect.fromCircle(center: const ui.Offset(1, -8), radius: 8))
+      ..addOval(ui.Rect.fromCircle(center: const ui.Offset(9, -3), radius: 6))
+      ..addRRect(ui.RRect.fromRectAndRadius(
+          const ui.Rect.fromLTRB(-13, -4, 15, 3), const ui.Radius.circular(3.5)));
+    final merged = ui.Path.combine(ui.PathOperation.union, cloud, ui.Path());
+    _shaded(c, merged, 0xFF8C96A4, light: 0.35);
+  }
+
+  /// A green pod tube spitting a fan of seeds.
+  static void _spitter(ui.Canvas c) {
+    for (final (dy, a) in [(-7.0, -0.35), (0.0, 0.0), (7.0, 0.35)]) {
+      c
+        ..save()
+        ..translate(9, dy)
+        ..rotate(math.pi / 2 + a);
+      _seed(c, 0.6);
+      c.restore();
+    }
+    c
+      ..save()
+      ..rotate(-0.15);
+    final pod = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-14, -4.5, 17, 9), const ui.Radius.circular(4.5));
+    c
+      ..drawRRect(pod, PaintKit.lit(pod.outerRect, 0xFF6FAE45, light: 0.4))
+      ..drawRRect(pod, PaintKit.edge(0xFF6FAE45, 0.7))
+      ..drawOval(const ui.Rect.fromLTWH(0.5, -3.2, 3.6, 6.4),
+          PaintKit.solid(0xFF2E4A1E))
+      ..restore();
+  }
+
+  /// A paw with three long claws and dug-up earth.
+  static void _claws(ui.Canvas c) {
+    const pad = 0xFF8D6E63;
+    const claw = 0xFFEDE3D2;
+    for (final (x, a) in [(-6.0, -0.35), (0.0, 0.0), (6.0, 0.35)]) {
+      c
+        ..save()
+        ..translate(x, -4)
+        ..rotate(a);
+      final path = ui.Path()
+        ..moveTo(-1.8, 0)
+        ..quadraticBezierTo(-1.5, -9, 2.5, -12)
+        ..quadraticBezierTo(1.5, -6, 1.8, 0)
+        ..close();
+      _shaded(c, path, claw, light: 0.4);
+      c.restore();
+    }
+    final palm = ui.Rect.fromCenter(
+        center: const ui.Offset(0, 4), width: 20, height: 13);
+    c
+      ..drawOval(palm, PaintKit.lit(palm, pad))
+      ..drawOval(palm, PaintKit.edge(pad, 0.7));
+    for (final (x, y) in [(-9.0, 12.0), (-4.0, 13.5), (8.0, 12.5)]) {
+      c.drawCircle(ui.Offset(x, y), 1.8, PaintKit.solid(0xFF7A5A3A));
     }
   }
 

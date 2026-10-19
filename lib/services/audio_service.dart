@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import '../sim/events.dart';
 import 'settings_store.dart';
 
-enum Sfx { fire, explosion, jump, hit, death, turn, ui }
+enum Sfx { fire, explosion, jump, hit, death, turn, ui, laser, thunder }
 
 enum Music { menu, match }
 
@@ -104,7 +104,9 @@ class AudioService {
 
   /// Which sound a sim event makes, if any.
   static Sfx? sfxFor(SimEvent event) => switch (event) {
+        WeaponUsed(weaponId: 'laserPointer') => Sfx.laser,
         WeaponUsed() => Sfx.fire,
+        LightningStruck() => Sfx.thunder,
         ExplosionEvent() => Sfx.explosion,
         UnitJumped() => Sfx.jump,
         UnitDamaged() => Sfx.hit,

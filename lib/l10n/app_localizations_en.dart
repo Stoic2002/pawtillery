@@ -933,4 +933,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get mapBackyard => 'Backyard';
+
+  @override
+  String get weaponBottleRocket => 'Bottle Rocket';
+
+  @override
+  String get weaponSnifferRocket => 'Sniffer Rocket';
+
+  @override
+  String get weaponLaserPointer => 'Laser Pointer';
+
+  @override
+  String get weaponThunderCloud => 'Thunder Cloud';
+
+  @override
+  String get weaponSeedSpitter => 'Seed Spitter';
+
+  @override
+  String get weaponFirecracker => 'Firecracker';
+
+  @override
+  String get weaponFlowerpotRain => 'Flowerpot Rain';
+
+  @override
+  String get weaponDigClaws => 'Dig Claws';
+
+  @override
+  String get weaponBottleRocketDesc =>
+      'Fast and flat. Still pushed by the wind.';
+
+  @override
+  String get weaponSnifferRocketDesc =>
+      'Its motor kicks in, then it chases the nearest foe.';
+
+  @override
+  String get weaponLaserPointerDesc =>
+      'A beam that burns straight through the ground.';
+
+  @override
+  String get weaponThunderCloudDesc => 'Lightning strikes a spot you pick.';
+
+  @override
+  String get weaponSeedSpitterDesc => 'Five seeds at once. Best up close.';
+
+  @override
+  String get weaponFirecrackerDesc => 'Set it down and run: a big bang in 4 s.';
+
+  @override
+  String get weaponFlowerpotRainDesc => 'Flowerpots fall on a spot you pick.';
+
+  @override
+  String get weaponDigClawsDesc => 'Dig a short tunnel sideways.';
+
+  @override
+  String get setupTabWeapons => 'Weapons';
+
+  @override
+  String get setupWeaponsPreset => 'Preset';
+
+  @override
+  String get setupPresetStandard => 'Standard';
+
+  @override
+  String get setupPresetClassic => 'Classic';
+
+  @override
+  String get setupPresetChaos => 'Chaos';
+
+  @override
+  String get setupPresetCustom => 'Custom';
+
+  @override
+  String get setupWeaponsSignatures => 'Family weapons';
+
+  @override
+  String get setupWeaponsSignaturesNote =>
+      'Each pet\'s own weapon, once per pet.';
+
+  @override
+  String get setupWeaponsHint =>
+      'Ammo per team, per match. Skip Turn is always on.';
+
+  @override
+  String get setupAmmoOff => 'Off';
+
+  @override
+  String get setupAmmoLess => 'Less ammo';
+
+  @override
+  String get setupAmmoMore => 'More ammo';
 }

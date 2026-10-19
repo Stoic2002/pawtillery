@@ -35,6 +35,7 @@ class SimWorld implements SimContext {
     required int teamCount,
     required TurnTimings timings,
     this.suddenDeathAfterTicks,
+    this.loadout = WeaponLoadout.standard,
   })  : _waterLevel = waterLevel,
         _units = units,
         turn = TurnManager(teamCount: teamCount, timings: timings),
@@ -42,7 +43,7 @@ class SimWorld implements SimContext {
           for (var t = 0; t < teamCount; t++)
             {
               for (final w in Weapons.shared)
-                if (w.ammo != null) w.id: w.ammo!,
+                if (loadout.ammoOf(w) case final int n) w.id: n,
             },
         ] {
     _beginTurn();
@@ -57,6 +58,7 @@ class SimWorld implements SimContext {
     required List<List<UnitSpec>> rosters,
     TurnTimings timings = const TurnTimings(),
     int? suddenDeathAfterTicks,
+    WeaponLoadout loadout = WeaponLoadout.standard,
   }) {
     final rng = SimRng(seed);
     final count = rosters.fold(0, (n, r) => n + r.length);
@@ -89,6 +91,7 @@ class SimWorld implements SimContext {
       teamCount: rosters.length,
       timings: timings,
       suddenDeathAfterTicks: suddenDeathAfterTicks,
+      loadout: loadout,
     );
   }
 
@@ -101,6 +104,7 @@ class SimWorld implements SimContext {
     required List<UnitPlacement> placements,
     TurnTimings timings = const TurnTimings(),
     int? suddenDeathAfterTicks,
+    WeaponLoadout loadout = WeaponLoadout.standard,
   }) {
     return SimWorld._(
       seed: seed,
@@ -120,10 +124,14 @@ class SimWorld implements SimContext {
       teamCount: teamCount,
       timings: timings,
       suddenDeathAfterTicks: suddenDeathAfterTicks,
+      loadout: loadout,
     );
   }
 
   final int seed;
+
+  /// Weapons on and their starting ammo (setup's Weapons tab).
+  final WeaponLoadout loadout;
   @override
   final SimRng rng;
   @override
@@ -165,7 +173,8 @@ class SimWorld implements SimContext {
   /// Follow-up shots of a burst weapon: (due tick, unit id, fire input).
   final List<(int, int, Fire)> _pendingShots = [];
 
-  /// Per team: remaining ammo of limited shared weapons.
+  /// Per team: remaining ammo of limited shared weapons (absent =
+  /// unlimited).
   final List<Map<String, int>> _ammo;
 
   int _nextProjectileId = 0;
@@ -204,11 +213,11 @@ class SimWorld implements SimContext {
   /// Remaining ammo of [weapon] for [team]; null = unlimited (or a
   /// signature weapon, which is tracked per unit).
   int? ammoLeft(int team, WeaponDef weapon) =>
-      weapon.ammo == null || weapon.isSignature ? null : _ammo[team][weapon.id];
+      weapon.isSignature ? null : _ammo[team][weapon.id];
 
   /// Whether [unit] may use [weapon] right now (ignoring the turn phase).
   bool canUse(Unit unit, WeaponDef weapon) {
-    if (weapon.hidden) return false;
+    if (!loadout.enabled(weapon)) return false;
     if (weapon.isSignature) {
       return weapon.familyId == unit.familyId && !unit.signatureUsed;
     }
@@ -222,7 +231,7 @@ class SimWorld implements SimContext {
       Teleport() => _canTeleportTo(unit, x, y),
       BuildWall(:final width, :final height) =>
         _wallFits(_wallRect(x, y, width, height)),
-      AirStrike() => x >= 0 && x < terrain.width,
+      AirStrike() || Lightning() => x >= 0 && x < terrain.width,
       _ => true,
     };
   }
@@ -307,6 +316,12 @@ class SimWorld implements SimContext {
     final dir = _horizontalDir(unit, input.angleDeg);
 
     switch (weapon.delivery) {
+      case Launch(:final shots, :final spreadDeg)
+          when spreadDeg > 0 && shots > 1:
+        for (var i = 0; i < shots; i++) {
+          final offset = (spreadDeg * (2 * i - (shots - 1))) ~/ (2 * (shots - 1));
+          _launchShot(unit, weapon, input, angleDeg: input.angleDeg + offset);
+        }
       case Launch(:final shots, :final shotIntervalTicks):
         _launchShot(unit, weapon, input);
         for (var i = 1; i < shots; i++) {
@@ -355,6 +370,23 @@ class SimWorld implements SimContext {
         final rect = _wallRect(tx!, ty!, width, height)!;
         terrain.fillRect(rect.left, rect.top, rect.width, rect.height);
         _events.add(TerrainAdded(rect));
+      case Beam(:final length, :final carveRadius):
+        unit.facing = dir;
+        _beam(unit, weapon, input.angleDeg, length, carveRadius);
+      case Lightning():
+        _lightning(unit, weapon, tx!);
+      case DropCharge():
+        final f = unit.facing;
+        spawnProjectile(Projectile(
+          id: nextProjectileId(),
+          ownerId: unit.id,
+          weapon: weapon,
+          x: unit.centerX + f * (unit.stats.hitRadius + 3),
+          y: unit.centerY,
+          vx: f * 20,
+          vy: -60,
+          fuseTicks: weapon.fuseTicks,
+        ));
       case SkipTurn():
         break;
       case final SpawnWalker spec:
@@ -374,8 +406,8 @@ class SimWorld implements SimContext {
 
     if (weapon.isSignature) {
       unit.signatureUsed = true;
-    } else if (weapon.ammo != null) {
-      _ammo[unit.team][weapon.id] = _ammo[unit.team][weapon.id]! - 1;
+    } else if (_ammo[unit.team][weapon.id] case final int left) {
+      _ammo[unit.team][weapon.id] = left - 1;
     }
     _events.add(WeaponUsed(unit.id, weapon.id));
     turn.hasFired = true;
@@ -388,8 +420,9 @@ class SimWorld implements SimContext {
     return c > 1e-9 ? 1 : (c < -1e-9 ? -1 : unit.facing);
   }
 
-  void _launchShot(Unit unit, WeaponDef weapon, Fire input) {
-    final (x, y) = launchOrigin(unit, input.angleDeg);
+  void _launchShot(Unit unit, WeaponDef weapon, Fire input, {int? angleDeg}) {
+    final angle = angleDeg ?? input.angleDeg;
+    final (x, y) = launchOrigin(unit, angle);
     var fuse = weapon.fuseTicks;
     if (weapon.playerFuse && input.fuseTicks != null) {
       fuse = input.fuseTicks!
@@ -401,9 +434,9 @@ class SimWorld implements SimContext {
       weapon: weapon,
       x: x,
       y: y,
-      angleDeg: input.angleDeg,
+      angleDeg: angle,
       powerPercent: input.powerPercent,
-      speedScale: unit.stats.firePowerScale,
+      speedScale: unit.stats.firePowerScale * weapon.launchSpeedScale,
       fuseTicks: fuse,
     );
     final flight = weapon.flight;
@@ -414,9 +447,68 @@ class SimWorld implements SimContext {
         ..vx = SimTrig.cosDeg(input.angleDeg) * flight.speed
         ..vy = -SimTrig.sinDeg(input.angleDeg) * flight.speed;
     }
-    final dirX = SimTrig.cosDeg(input.angleDeg);
+    final dirX = SimTrig.cosDeg(angle);
     if (dirX.abs() > 1e-9) unit.facing = dirX > 0 ? 1 : -1;
     spawnProjectile(p);
+  }
+
+  /// Laser: walks the line 1 px at a time from the launch point, burning
+  /// the ground every few px, hitting each unit once and setting off mines
+  /// it touches. Stops at the map edge or the water.
+  void _beam(Unit unit, WeaponDef weapon, int angleDeg, int length, int radius) {
+    final (x0, y0) = launchOrigin(unit, angleDeg);
+    final dx = SimTrig.cosDeg(angleDeg);
+    final dy = -SimTrig.sinDeg(angleDeg);
+    var x = x0;
+    var y = y0;
+    final hit = <int>{};
+    for (var d = 0; d < length; d++) {
+      final nx = x0 + dx * d;
+      final ny = y0 + dy * d;
+      if (nx < 0 || nx >= terrain.width || ny < 0 || ny >= terrain.height ||
+          ny >= waterLevel) {
+        break;
+      }
+      x = nx;
+      y = ny;
+      if (d % 3 == 0) terrain.carveCircle(x.round(), y.round(), radius);
+      for (final u in _units) {
+        if (!u.alive || u.id == unit.id || hit.contains(u.id)) continue;
+        final ux = u.centerX - x;
+        final uy = u.centerY - y;
+        final r = u.stats.hitRadius;
+        if (ux * ux + uy * uy <= r * r) {
+          hit.add(u.id);
+          strikeUnit(u, weapon.maxDamage, dx, dy, weapon.knockbackScale,
+              sourceId: unit.id);
+        }
+      }
+      for (final m in _mines) {
+        final mx = m.x - x;
+        final my = m.centerY - y;
+        if (mx * mx + my * my <= 36) m.countdown = min(m.countdown ?? 1, 1);
+      }
+    }
+    _events.add(BeamFired(x0, y0, x, y, radius));
+  }
+
+  /// Thunder Cloud: the bolt runs down column [x] from the top of the map
+  /// and blasts the first ground or living unit; over open water it fizzles
+  /// at the surface.
+  void _lightning(Unit unit, WeaponDef weapon, int x) {
+    var y = 0;
+    while (y < waterLevel && y < terrain.height) {
+      if (terrain.isSolid(x, y) ||
+          ProjectilePhysics.unitAt(x + 0.5, y + 0.5, _units) != null) {
+        break;
+      }
+      y++;
+    }
+    _events.add(LightningStruck(x, y));
+    _blast(x, y, weapon,
+        cause: DamageCause.explosion,
+        carve: weapon.terrainDamage,
+        sourceId: unit.id);
   }
 
   void _firePendingShots() {
@@ -892,6 +984,7 @@ class SimWorld implements SimContext {
         h.add(team[w.id] ?? -1);
       }
     }
+    h.add(loadout.signatures ? 1 : 0);
     for (final u in _units) {
       h
         ..add(u.id)

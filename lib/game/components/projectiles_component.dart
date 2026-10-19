@@ -36,18 +36,51 @@ class ProjectilesComponent extends Component {
         continue;
       }
       final flight = p.weapon.flight;
-      // Carrots point along their flight; everything else tumbles.
-      final angle = flight is Drill
+      final along = WeaponArt.pointsAlongFlight(p.weapon.id);
+      // Carrots and rockets point along their flight; everything else
+      // tumbles.
+      // The firecracker stands upright so its fuse stays on top.
+      final angle = flight is Drill || along
           ? math.atan2(p.vy, p.vx)
+          : p.weapon.id == Weapons.firecracker.id
+          ? 0.0
           : p.ageTicks * (flight is Boomerang ? 0.45 : 0.12);
       canvas
         ..save()
         ..translate(p.x, p.y)
         ..rotate(angle);
+      if (along) _flame(canvas, p.mode == 1 || p.weapon.flight is! Homing);
       WeaponArt.projectile(canvas, p.weapon.id);
       canvas.restore();
+      if (p.weapon.id == Weapons.firecracker.id) _fuseSpark(canvas, p);
     }
     _drawMines(canvas);
+  }
+
+  /// A flickering motor flame behind a rocket (drawn pointing right);
+  /// small before a homing rocket's motor starts.
+  void _flame(ui.Canvas canvas, bool burning) {
+    final flicker = 0.8 + 0.2 * math.sin(_time * 50);
+    final len = (burning ? 11.0 : 4.0) * flicker;
+    final flame = ui.Path()
+      ..moveTo(-8, -2.6)
+      ..quadraticBezierTo(-8 - len * 0.6, -2, -8 - len, 0)
+      ..quadraticBezierTo(-8 - len * 0.6, 2, -8, 2.6)
+      ..close();
+    _light.color = const ui.Color(0xCCFF8A2A);
+    canvas.drawPath(flame, _light);
+    _light.color = const ui.Color(0xEEFFE08A);
+    canvas.drawOval(
+        ui.Rect.fromLTWH(-8 - len * 0.45, -1.2, len * 0.45, 2.4), _light);
+  }
+
+  /// The lit fuse on a firecracker blinks faster as it runs out.
+  void _fuseSpark(ui.Canvas canvas, Projectile p) {
+    final left = (p.fuseTicks ?? 0) / 60;
+    if ((_time * (left < 1.5 ? 14 : 5)).floor().isEven) {
+      _light.color = const ui.Color(0xFFFFD25A);
+      canvas.drawCircle(ui.Offset(p.x, p.y - 10), 2.4, _light);
+    }
   }
 
   void _drawWalker(ui.Canvas canvas, Projectile p) {

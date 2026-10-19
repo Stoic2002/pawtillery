@@ -24,11 +24,13 @@ sealed class Delivery {
   const Delivery();
 }
 
-/// Fires [shots] projectiles from the unit, [shotIntervalTicks] apart.
+/// Fires [shots] projectiles from the unit, [shotIntervalTicks] apart. With
+/// [spreadDeg], all shots leave at once in a fan that wide around the aim.
 final class Launch extends Delivery {
-  const Launch({this.shots = 1, this.shotIntervalTicks = 0});
+  const Launch({this.shots = 1, this.shotIntervalTicks = 0, this.spreadDeg = 0});
   final int shots;
   final int shotIntervalTicks;
+  final int spreadDeg;
 }
 
 /// Drops [count] [childId] projectiles from above the chosen column.
@@ -79,6 +81,27 @@ final class BuildWall extends Delivery {
   const BuildWall({required this.width, required this.height});
   final int width;
   final int height;
+}
+
+/// A straight beam [length] px from the unit along the aim. It burns a
+/// [carveRadius] tunnel through the ground and hits every unit on its way
+/// once (never the user).
+final class Beam extends Delivery {
+  const Beam({required this.length, required this.carveRadius});
+  final int length;
+  final int carveRadius;
+}
+
+/// A bolt from the sky straight down the chosen column; it blasts the
+/// first ground or unit it meets.
+final class Lightning extends Delivery {
+  const Lightning();
+}
+
+/// Sets this weapon down in front of the unit with its fuse lit; it then
+/// moves with its [FlightSpec].
+final class DropCharge extends Delivery {
+  const DropCharge();
 }
 
 final class SkipTurn extends Delivery {
@@ -150,6 +173,22 @@ final class Drill extends FlightSpec {
   final int tunnelRadius;
 }
 
+/// Flies like a normal shot for [delayTicks], then its motor starts:
+/// constant [speed], no gravity or wind, turning towards the nearest enemy
+/// unit by [steer] (0–1) of the way each tick. Explodes on what it touches.
+final class Homing extends FlightSpec {
+  const Homing({
+    required this.delayTicks,
+    required this.speed,
+    required this.steer,
+  });
+  final int delayTicks;
+
+  /// px/s.
+  final double speed;
+  final double steer;
+}
+
 // --------------------------------------------------------------- impact
 
 sealed class ImpactSpec {
@@ -209,6 +248,7 @@ class WeaponDef {
     this.ammo,
     this.endsTurn = false,
     this.gravityScale = 1,
+    this.launchSpeedScale = 1,
     this.knockbackScale = 1,
     this.terrainDamage = true,
     this.familyId,
@@ -241,6 +281,10 @@ class WeaponDef {
   final int? ammo;
   final bool endsTurn;
   final double gravityScale;
+
+  /// Launch speed relative to a normal throw at the same power (rockets
+  /// leave faster).
+  final double launchSpeedScale;
   final double knockbackScale;
   final bool terrainDamage;
 
@@ -361,6 +405,112 @@ abstract final class Weapons {
     ammo: 2,
     endsTurn: true,
     placeholderArgb: 0xFF7E57C2,
+  );
+
+  // ---- added arsenal (2026-10-19, docs/decisions.md) -----------------
+
+  /// A fast, flat rocket: low gravity, still pushed by the wind.
+  static const bottleRocket = WeaponDef(
+    id: 'bottleRocket',
+    nameKey: 'weaponBottleRocket',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Ballistic(),
+    affectedByWind: true,
+    maxDamage: 45,
+    radius: 42,
+    gravityScale: 0.35,
+    launchSpeedScale: 1.2,
+    ammo: 3,
+    placeholderArgb: 0xFF3B82F6,
+  );
+
+  /// Thrown like a rock; after a moment its motor starts and it chases
+  /// the nearest enemy.
+  static const snifferRocket = WeaponDef(
+    id: 'snifferRocket',
+    nameKey: 'weaponSnifferRocket',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Homing(delayTicks: 45, speed: 330, steer: 0.08),
+    affectedByWind: true,
+    maxDamage: 40,
+    radius: 40,
+    ammo: 1,
+    placeholderArgb: 0xFF8B5CF6,
+  );
+
+  /// A beam that burns straight through the ground.
+  static const laserPointer = WeaponDef(
+    id: 'laserPointer',
+    nameKey: 'weaponLaserPointer',
+    aim: AimMode.direction,
+    delivery: Beam(length: 520, carveRadius: 5),
+    maxDamage: 28,
+    knockbackScale: 0.6,
+    ammo: 2,
+    placeholderArgb: 0xFFE5484D,
+  );
+
+  /// A lightning bolt down a chosen column.
+  static const thunderCloud = WeaponDef(
+    id: 'thunderCloud',
+    nameKey: 'weaponThunderCloud',
+    aim: AimMode.target,
+    delivery: Lightning(),
+    maxDamage: 45,
+    radius: 34,
+    ammo: 1,
+    placeholderArgb: 0xFFF5B700,
+  );
+
+  /// Five seeds at once in a narrow fan; weak alone, strong up close.
+  static const seedSpitter = WeaponDef(
+    id: 'seedSpitter',
+    nameKey: 'weaponSeedSpitter',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(shots: 5, spreadDeg: 18),
+    flight: Ballistic(),
+    maxDamage: 12,
+    radius: 14,
+    gravityScale: 0.25,
+    launchSpeedScale: 1.1,
+    ammo: 2,
+    placeholderArgb: 0xFF7A9A3A,
+  );
+
+  /// Set down and run: a big blast after four seconds.
+  static const firecracker = WeaponDef(
+    id: 'firecracker',
+    nameKey: 'weaponFirecracker',
+    aim: AimMode.none,
+    delivery: DropCharge(),
+    flight: Bouncy(restitution: 0.25),
+    maxDamage: 70,
+    radius: 65,
+    fuseTicks: 4 * 60,
+    ammo: 1,
+    placeholderArgb: 0xFFE2681C,
+  );
+
+  /// Five flowerpots fall across the chosen spot.
+  static const flowerpotRain = WeaponDef(
+    id: 'flowerpotRain',
+    nameKey: 'weaponFlowerpotRain',
+    aim: AimMode.target,
+    delivery: AirStrike(childId: 'flowerpot', count: 5, spacing: 34),
+    ammo: 1,
+    placeholderArgb: 0xFFC0623A,
+  );
+
+  /// Dig a short tunnel sideways (a tool, no damage).
+  static const digClaws = WeaponDef(
+    id: 'digClaws',
+    nameKey: 'weaponDigClaws',
+    aim: AimMode.direction,
+    delivery: Dash(distance: 80, speed: 140, carveRadius: 13),
+    knockbackScale: 0,
+    placeholderArgb: 0xFF8D6E63,
   );
 
   static const skip = WeaponDef(
@@ -531,6 +681,18 @@ abstract final class Weapons {
     placeholderArgb: 0xFFFFF9C4,
   );
 
+  static const flowerpot = WeaponDef(
+    id: 'flowerpot',
+    nameKey: 'weaponFlowerpotRain',
+    hidden: true,
+    aim: AimMode.none,
+    delivery: Launch(),
+    flight: Ballistic(),
+    maxDamage: 22,
+    radius: 28,
+    placeholderArgb: 0xFFC0623A,
+  );
+
   static const seedMine = WeaponDef(
     id: 'seedMine',
     nameKey: 'weaponSeedMines',
@@ -545,11 +707,19 @@ abstract final class Weapons {
   /// The shared arsenal, in menu order.
   static const shared = [
     rock,
+    bottleRocket,
+    snifferRocket,
     grenade,
     cluster,
+    firecracker,
     twinSling,
+    seedSpitter,
+    laserPointer,
+    thunderCloud,
+    flowerpotRain,
     punch,
     mine,
+    digClaws,
     teleport,
     skip,
   ];
@@ -573,6 +743,7 @@ abstract final class Weapons {
     clusterBomblet,
     hairballBomb,
     egg,
+    flowerpot,
     seedMine,
   ];
 
@@ -580,4 +751,94 @@ abstract final class Weapons {
 
   static WeaponDef byId(String id) =>
       _byId[id] ?? (throw ArgumentError('Unknown weapon: $id'));
+}
+
+/// Which shared weapons a match starts with and how many of each, per team
+/// (setup's Weapons tab). [ammo] overrides a weapon's default: null =
+/// unlimited, 0 = off; weapons not listed keep [WeaponDef.ammo]. Skip
+/// Turn is always on. [signatures] turns every family weapon on or off.
+class WeaponLoadout {
+  const WeaponLoadout({this.ammo = const {}, this.signatures = true});
+
+  final Map<String, int?> ammo;
+  final bool signatures;
+
+  /// Highest ammo the setup offers before "unlimited".
+  static const maxAmmo = 9;
+
+  static const standard = WeaponLoadout();
+
+  /// Only the original eight shared weapons, default ammo.
+  static final classic = WeaponLoadout(ammo: {
+    for (final w in Weapons.shared)
+      if (!_classicIds.contains(w.id)) w.id: 0,
+  });
+
+  /// Everything unlimited.
+  static final chaos = WeaponLoadout(ammo: {
+    for (final w in Weapons.shared) w.id: null,
+  });
+
+  static const _classicIds = {
+    'rock', 'grenade', 'cluster', 'twinSling', 'punch', 'mine', //
+    'teleport', 'skip',
+  };
+
+  /// Weapons whose ammo the player can change (all shared but Skip).
+  static List<WeaponDef> get editable =>
+      [for (final w in Weapons.shared) if (w.id != Weapons.skip.id) w];
+
+  /// Starting ammo of [weapon] per team; null = unlimited.
+  int? ammoOf(WeaponDef weapon) {
+    if (weapon.id == Weapons.skip.id) return null;
+    return ammo.containsKey(weapon.id) ? ammo[weapon.id] : weapon.ammo;
+  }
+
+  /// Whether [weapon] can appear in this match at all.
+  bool enabled(WeaponDef weapon) {
+    if (weapon.hidden) return false;
+    if (weapon.isSignature) return signatures;
+    return ammoOf(weapon) != 0;
+  }
+
+  WeaponLoadout withAmmo(WeaponDef weapon, int? value) => WeaponLoadout(
+        ammo: {...ammo, weapon.id: value},
+        signatures: signatures,
+      );
+
+  WeaponLoadout withSignatures(bool on) =>
+      WeaponLoadout(ammo: ammo, signatures: on);
+
+  /// Same effective ammo for every weapon and the same signature switch.
+  bool sameAs(WeaponLoadout other) =>
+      signatures == other.signatures &&
+      editable.every((w) => ammoOf(w) == other.ammoOf(w));
+
+  /// Only overrides that differ from the defaults, so a saved standard
+  /// loadout picks up future default changes.
+  Map<String, Object?> toJson() => {
+        'ammo': {
+          for (final w in editable)
+            if (ammoOf(w) != w.ammo) w.id: ammoOf(w) ?? -1,
+        },
+        'signatures': signatures,
+      };
+
+  /// Unknown weapons and bad values are skipped; null if [json] is not a
+  /// loadout at all.
+  static WeaponLoadout? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final raw = json['ammo'];
+    final signatures = json['signatures'];
+    if (raw is! Map || signatures is! bool) return null;
+    final ids = {for (final w in editable) w.id};
+    return WeaponLoadout(
+      ammo: {
+        for (final MapEntry(:key, :value) in raw.entries)
+          if (ids.contains(key) && value is int && value >= -1 && value <= maxAmmo)
+            key as String: value == -1 ? null : value,
+      },
+      signatures: signatures,
+    );
+  }
 }

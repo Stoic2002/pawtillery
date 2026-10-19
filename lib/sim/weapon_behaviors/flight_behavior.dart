@@ -5,6 +5,7 @@ import 'ballistic_behavior.dart';
 import 'boomerang_behavior.dart';
 import 'bouncy_behavior.dart';
 import 'drill_behavior.dart';
+import 'homing_behavior.dart';
 import 'sim_context.dart';
 import 'walker_behavior.dart';
 
@@ -29,6 +30,7 @@ abstract class FlightBehavior {
       final Bouncy spec => BouncyBehavior(spec),
       final Boomerang spec => BoomerangBehavior(spec),
       final Drill spec => DrillBehavior(spec),
+      final Homing spec => HomingBehavior(spec),
       null => throw ArgumentError('${w.id} has no flight behaviour'),
     };
   }

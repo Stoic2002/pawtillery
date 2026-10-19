@@ -201,6 +201,39 @@ class ParticleSystem extends Component {
     }
   }
 
+  /// Laser: a bright red beam that fades fast, with sparks where it ends.
+  void beam(double x0, double y0, double x1, double y1) {
+    _streaks.add(_Streak([ui.Offset(x0, y0), ui.Offset(x1, y1)], 0.45,
+        0xFFFF4A3D, 7));
+    for (var i = 0; i < 12; i++) {
+      final a = _rand(0, math.pi * 2);
+      final speed = _rand(60, 220);
+      _spawn(
+        x: x1, y: y1,
+        vx: math.cos(a) * speed, vy: math.sin(a) * speed,
+        life: _rand(0.2, 0.45), size: 1.6, gravity: 300,
+        argb: 0xFFFFB0A0, kind: _glow,
+      );
+    }
+  }
+
+  /// Lightning: a jagged bolt from the top of the map down to ([x], [y]).
+  void bolt(double x, double y) {
+    final points = <ui.Offset>[ui.Offset(x + _rand(-30, 30), y - 900)];
+    const segments = 14;
+    for (var i = 1; i < segments; i++) {
+      final t = i / segments;
+      points.add(ui.Offset(
+          x + _rand(-22, 22) * (1 - t), y - 900 + 900 * t));
+    }
+    points.add(ui.Offset(x, y));
+    _streaks.add(_Streak(points, 0.5, 0xFFFFF2A8, 6));
+    _spawn(
+      x: x, y: y, life: 0.25, size: 14, grow: 120,
+      argb: 0xFFFFF6C8, kind: _glow,
+    );
+  }
+
   /// Something fell into the water.
   void splash(double x, double y, {required int waterArgb}) {
     for (var i = 0; i < 14; i++) {
@@ -215,8 +248,16 @@ class ParticleSystem extends Component {
     }
   }
 
+  /// Lines that flash and fade (beams, bolts); few and short-lived, so a
+  /// plain list is fine.
+  final List<_Streak> _streaks = [];
+
   @override
   void update(double dt) {
+    for (final st in _streaks) {
+      st.age += dt;
+    }
+    _streaks.removeWhere((st) => st.age >= st.life);
     var i = 0;
     while (i < _count) {
       _age[i] += dt;
@@ -266,8 +307,38 @@ class ParticleSystem extends Component {
     )!;
   }
 
+  final ui.Paint _streakPaint = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeCap = ui.StrokeCap.round
+    ..strokeJoin = ui.StrokeJoin.round
+    ..blendMode = ui.BlendMode.plus;
+
+  void _renderStreaks(ui.Canvas canvas) {
+    for (final st in _streaks) {
+      final fade = 1 - st.age / st.life;
+      final path = ui.Path()..moveTo(st.points.first.dx, st.points.first.dy);
+      for (final p in st.points.skip(1)) {
+        path.lineTo(p.dx, p.dy);
+      }
+      // Wide soft glow, then a white-hot core.
+      _streakPaint
+        ..strokeWidth = st.width * 2.4
+        ..color = ui.Color(st.argb).withValues(alpha: 0.35 * fade);
+      canvas.drawPath(path, _streakPaint);
+      _streakPaint
+        ..strokeWidth = st.width
+        ..color = ui.Color(st.argb).withValues(alpha: 0.9 * fade);
+      canvas.drawPath(path, _streakPaint);
+      _streakPaint
+        ..strokeWidth = st.width * 0.35
+        ..color = const ui.Color(0xFFFFFFFF).withValues(alpha: fade);
+      canvas.drawPath(path, _streakPaint);
+    }
+  }
+
   @override
   void render(ui.Canvas canvas) {
+    _renderStreaks(canvas);
     // Normal pass (smoke, chunks, dust, drops), then additive (fire, glow).
     for (final additive in const [false, true]) {
       for (var i = 0; i < _count; i++) {
@@ -318,4 +389,13 @@ class ParticleSystem extends Component {
       }
     }
   }
+}
+
+class _Streak {
+  _Streak(this.points, this.life, this.argb, this.width);
+  final List<ui.Offset> points;
+  final double life;
+  final int argb;
+  final double width;
+  double age = 0;
 }

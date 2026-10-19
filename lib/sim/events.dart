@@ -95,6 +95,25 @@ final class TerrainCarved extends SimEvent {
   final int radius;
 }
 
+/// A laser beam from (x0, y0) to (x1, y1); the ground within [radius] of
+/// the line was burnt away (the mask is already carved).
+final class BeamFired extends SimEvent {
+  const BeamFired(this.x0, this.y0, this.x1, this.y1, this.radius);
+  final double x0;
+  final double y0;
+  final double x1;
+  final double y1;
+  final int radius;
+}
+
+/// Lightning struck down column [x] from the sky to [y], where it blasts
+/// (an [ExplosionEvent] follows).
+final class LightningStruck extends SimEvent {
+  const LightningStruck(this.x, this.y);
+  final int x;
+  final int y;
+}
+
 /// Ground was added (Benteng); the area must be redrawn from the mask.
 final class TerrainAdded extends SimEvent {
   const TerrainAdded(this.area);
