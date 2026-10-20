@@ -723,7 +723,7 @@ class SimWorld implements SimContext {
     for (final o in _objects) {
       if ((o.x - x).abs() <= weapon.radius) _hitObject(o);
     }
-    _events.add(SatelliteStruck(x, bottom, carve));
+    _events.add(SatelliteStruck(x, bottom, carve, targetY: strike.y));
   }
 
   /// Laser: walks the line 1 px at a time from the launch point, burning

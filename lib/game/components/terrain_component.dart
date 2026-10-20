@@ -146,33 +146,62 @@ class TerrainComponent extends PositionComponent {
 
     for (var row = r0; row <= r1; row++) {
       for (var col = c0; col <= c1; col++) {
-        final index = row * _cols + col;
-        if (_wanted[index] != _shown[index]) {
-          // A rebuild is still decoding from an older mask; redo it.
-          _buildChunk(col, row);
-          continue;
-        }
-        final old = _chunks[index];
-        if (old == null) continue;
-        final recorder = ui.PictureRecorder();
-        final local = ui.Offset(
-          centerX - col * chunkSize + gutter,
-          centerY - row * chunkSize + gutter,
-        );
-        final c = ui.Canvas(recorder)
-          ..drawImage(old, ui.Offset.zero, _copy)
-          ..drawCircle(local, r, _clearPaint);
-        if (scorch) {
-          c
-            ..drawCircle(local, r + 5, _scorchSoft)
-            ..drawCircle(local, r + 1.2, _scorch);
-        }
-        final picture = recorder.endRecording();
-        _chunks[index] = picture.toImageSync(old.width, old.height);
-        picture.dispose();
-        old.dispose();
+        _queue(col, row, (c, origin) {
+          final local = ui.Offset(centerX, centerY) + origin;
+          c.drawCircle(local, r, _clearPaint);
+          if (scorch) {
+            c
+              ..drawCircle(local, r + 5, _scorchSoft)
+              ..drawCircle(local, r + 1.2, _scorch);
+          }
+        });
       }
     }
+  }
+
+  /// Edits waiting for [flush], per chunk index. Each gets the chunk's
+  /// canvas and the offset from world to chunk-image coordinates.
+  final Map<int, List<void Function(ui.Canvas c, ui.Offset origin)>> _pending =
+      {};
+
+  void _queue(int col, int row, void Function(ui.Canvas, ui.Offset) edit) {
+    final index = row * _cols + col;
+    if (_wanted[index] != _shown[index]) {
+      // A rebuild is still decoding from an older mask; redo it (the mask
+      // already has this edit).
+      _buildChunk(col, row);
+      return;
+    }
+    (_pending[index] ??= []).add(edit);
+  }
+
+  /// Applies the queued edits: each touched chunk is re-drawn once, however
+  /// many blasts, tunnel steps or beams hit it this frame (a cluster bomb
+  /// or digging no longer re-renders the same chunk several times).
+  void flush() {
+    if (_pending.isEmpty) return;
+    for (final MapEntry(key: index, value: edits) in _pending.entries) {
+      if (_wanted[index] != _shown[index]) {
+        _buildChunk(index % _cols, index ~/ _cols);
+        continue;
+      }
+      final old = _chunks[index];
+      if (old == null) continue;
+      final origin = ui.Offset(
+        -(index % _cols) * chunkSize + gutter.toDouble(),
+        -(index ~/ _cols) * chunkSize + gutter.toDouble(),
+      );
+      final recorder = ui.PictureRecorder();
+      final c = ui.Canvas(recorder)..drawImage(old, ui.Offset.zero, _copy);
+      for (final edit in edits) {
+        edit(c, origin);
+      }
+      final picture = recorder.endRecording();
+      _chunks[index] = picture.toImageSync(old.width, old.height);
+      picture.dispose();
+      old.dispose();
+    }
+    _pending.clear();
   }
 
   /// Burns a straight tunnel [radius] wide from (x0, y0) to (x1, y1)
@@ -195,28 +224,16 @@ class TerrainComponent extends PositionComponent {
       ..strokeCap = ui.StrokeCap.round
       ..strokeWidth = width + 3
       ..color = const ui.Color(0x99301A10);
+    const half = ui.Offset(0.5, 0.5);
+    final a = ui.Offset(x0, y0) + half;
+    final b = ui.Offset(x1, y1) + half;
     for (var row = r0; row <= r1; row++) {
       for (var col = c0; col <= c1; col++) {
-        final index = row * _cols + col;
-        if (_wanted[index] != _shown[index]) {
-          _buildChunk(col, row);
-          continue;
-        }
-        final old = _chunks[index];
-        if (old == null) continue;
-        final dx = -col * chunkSize + gutter + 0.5;
-        final dy = -row * chunkSize + gutter + 0.5;
-        final a = ui.Offset(x0 + dx, y0 + dy);
-        final b = ui.Offset(x1 + dx, y1 + dy);
-        final recorder = ui.PictureRecorder();
-        ui.Canvas(recorder)
-          ..drawImage(old, ui.Offset.zero, _copy)
-          ..drawLine(a, b, scorch)
-          ..drawLine(a, b, clear);
-        final picture = recorder.endRecording();
-        _chunks[index] = picture.toImageSync(old.width, old.height);
-        picture.dispose();
-        old.dispose();
+        _queue(col, row, (c, origin) {
+          c
+            ..drawLine(a + origin, b + origin, scorch)
+            ..drawLine(a + origin, b + origin, clear);
+        });
       }
     }
   }

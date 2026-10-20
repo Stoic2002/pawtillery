@@ -31,7 +31,9 @@ class AudioService {
     } on Object catch (e) {
       debugPrint('Audio disabled: $e');
     }
-    return AudioService._(settings, files);
+    // Loading the effects runs in the background: the menu shows at once
+    // and a sound that isn't ready yet is just skipped.
+    return AudioService._(settings, files)..preloadEffects().ignore();
   }
 
   /// No sound at all (tests).
@@ -44,6 +46,7 @@ class AudioService {
   final SettingsStore _settings;
   final Set<String> _files;
   final Map<Sfx, int> _lastPlayedMs = {};
+  final Map<Sfx, _Voices> _voices = {};
   final Stopwatch _clock = Stopwatch()..start();
   Music? _music;
   bool _bgmPlaying = false;
@@ -57,21 +60,65 @@ class AudioService {
     return null;
   }
 
+  /// How many copies of a sound can ring at once (overlapping blasts).
+  static int _voiceCount(Sfx sfx) => switch (sfx) {
+        Sfx.explosion || Sfx.hit => 4,
+        _ => 2,
+      };
+
+  /// Loads every effect once into a few reusable low-latency players, so
+  /// playing a sound is a single restart: no asset copy, decode or new
+  /// player at the moment of the blast (which made sounds lag behind the
+  /// picture), and no player left behind after each sound (low-latency
+  /// players never report "completed", so one-shot players leaked).
+  Future<void> preloadEffects() async {
+    await Future.wait([
+      for (final sfx in Sfx.values)
+        if (_file('sfx_${sfx.name}') case final String file)
+          _loadVoices(sfx, file),
+    ]);
+  }
+
+  Future<void> _loadVoices(Sfx sfx, String file) async {
+    try {
+      final players = <AudioPlayer>[];
+      for (var i = 0; i < _voiceCount(sfx); i++) {
+        final p = AudioPlayer()..audioCache = FlameAudio.audioCache;
+        await p.setAudioContext(_effectsContext);
+        await p.setPlayerMode(PlayerMode.lowLatency);
+        await p.setReleaseMode(ReleaseMode.stop);
+        await p.setSource(AssetSource(file));
+        players.add(p);
+      }
+      _voices[sfx] = _Voices(players);
+    } on Object catch (e) {
+      debugPrint('Sound $file not loaded: $e');
+    }
+  }
+
+  static final AudioContext _effectsContext = AudioContextConfig(
+    focus: AudioContextConfigFocus.mixWithOthers,
+  ).build();
+
   /// Plays [sfx]; the same sound at most once per 60 ms, so a cluster
   /// explosion doesn't stack six copies.
   void play(Sfx sfx) {
     final volume = _settings.sfxVolume;
-    final file = _file('sfx_${sfx.name}');
-    if (file == null || volume <= 0) return;
+    final voices = _voices[sfx];
+    if (voices == null || volume <= 0) return;
     final now = _clock.elapsedMilliseconds;
     if (now - (_lastPlayedMs[sfx] ?? -1000) < 60) return;
     _lastPlayedMs[sfx] = now;
-    _playSafely(file, volume);
+    _restart(voices.next(), volume);
   }
 
-  Future<void> _playSafely(String file, double volume) async {
+  /// Stop first: a low-latency player still counts as "playing" after its
+  /// sound ended, and would ignore a plain resume.
+  Future<void> _restart(AudioPlayer player, double volume) async {
     try {
-      await FlameAudio.play(file, volume: volume);
+      await player.stop();
+      await player.setVolume(volume);
+      await player.resume();
     } on Object catch (e) {
       debugPrint('Sound failed: $e');
     }
@@ -117,7 +164,24 @@ class AudioService {
         _ => null,
       };
 
-  void dispose() => _settings.removeListener(_applyMusicVolume);
+  void dispose() {
+    _settings.removeListener(_applyMusicVolume);
+    for (final v in _voices.values) {
+      for (final p in v.players) {
+        p.dispose().ignore();
+      }
+    }
+    _voices.clear();
+  }
+}
+
+/// A sound's players, used in turn.
+class _Voices {
+  _Voices(this.players);
+  final List<AudioPlayer> players;
+  int _next = 0;
+
+  AudioPlayer next() => players[_next++ % players.length];
 }
 
 /// Short vibrations (PRD: getaran saat menembak dan ledakan), off when the

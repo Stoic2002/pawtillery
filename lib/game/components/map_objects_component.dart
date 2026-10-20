@@ -62,7 +62,7 @@ class MapObjectsComponent extends Component {
       if (lit && (_time * 14).floor().isOdd) {
         // A blinking white-hot barrel about to go.
         canvas.saveLayer(
-          null,
+          const ui.Rect.fromLTRB(-30, -45, 30, 10),
           ui.Paint()
             ..colorFilter = const ui.ColorFilter.mode(
               Color(0x88FFFFFF),
@@ -81,8 +81,9 @@ class MapObjectsComponent extends Component {
       final t = p.age / 1.4;
       final y = p.y - 34 - 26 * t;
       final alpha = (1 - math.max(0, t - 0.6) / 0.4).clamp(0.0, 1.0);
+      // Bounded to the pop-up: a full-screen layer is costly on phones.
       canvas.saveLayer(
-        null,
+        ui.Rect.fromCenter(center: Offset(p.x, y), width: 90, height: 40),
         ui.Paint()..color = Color.fromRGBO(0, 0, 0, alpha),
       );
       final weapon = p.weaponId;

@@ -69,6 +69,21 @@ class AimGuideComponent extends Component {
     ..strokeWidth = 1.4
     ..color = const ui.Color(0x662B2118);
 
+  /// The dashed aim ring around (0, 0), built once (measuring and cutting
+  /// the dashes every frame allocated dozens of paths while aiming).
+  static final ui.Path _dashedRing = () {
+    const ring = 52.0;
+    final circle = ui.Path()
+      ..addOval(ui.Rect.fromCircle(center: ui.Offset.zero, radius: ring));
+    final dashes = ui.Path();
+    for (final m in circle.computeMetrics()) {
+      for (var d = 0.0; d < m.length; d += 9) {
+        dashes.addPath(m.extractPath(d, d + 5), ui.Offset.zero);
+      }
+    }
+    return dashes;
+  }();
+
   List<double> _path = const [];
   Object? _cacheKey;
   bool _dirty = true;
@@ -164,14 +179,7 @@ class AimGuideComponent extends Component {
     final center = ui.Offset(unit.centerX, unit.centerY);
     final flight = weapon.flight;
     // The aim circle: a dashed ring around the unit, as in the prototype.
-    const ring = 52.0;
-    final circle = ui.Path()
-      ..addOval(ui.Rect.fromCircle(center: center, radius: ring));
-    for (final m in circle.computeMetrics()) {
-      for (var d = 0.0; d < m.length; d += 9) {
-        canvas.drawPath(m.extractPath(d, d + 5), _dash..strokeWidth = 1.4);
-      }
-    }
+    canvas.drawPath(_dashedRing.shift(center), _dash..strokeWidth = 1.4);
     final delivery = weapon.delivery;
     if (delivery is Beam && showPath()) {
       // Laser: a faint red line over the part of the beam the guide shows.
