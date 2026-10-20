@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -66,6 +68,7 @@ class ArenaHud extends StatelessWidget {
                     weapon.aim == AimMode.direction);
             final teamColor = Color(game.teamColors[hud.activeTeam]);
             final remote = remoteTurnName?.call();
+            final digging = remote == null && game.digging;
             return Stack(
               children: [
                 SafeArea(
@@ -101,7 +104,17 @@ class ArenaHud extends StatelessWidget {
                             alignment: Alignment.bottomCenter,
                             child: _RemoteTurn(name: remote, color: teamColor),
                           ),
-                        if (!hud.isOver && remote == null) ...[
+                        if (!hud.isOver && digging) ...[
+                          Align(
+                            alignment: Alignment.bottomLeft,
+                            child: _DigJoystick(game: game),
+                          ),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: _DigDone(game: game),
+                          ),
+                        ],
+                        if (!hud.isOver && remote == null && !digging) ...[
                           Align(
                             alignment: Alignment.bottomLeft,
                             child: _Walk(
@@ -164,6 +177,174 @@ class ArenaHud extends StatelessWidget {
           },
         );
       },
+    );
+  }
+}
+
+/// Dig mode: a joystick that steers the tunnel. The knob follows the
+/// finger inside the ring; its direction is sent while held, and letting
+/// go stops digging on the spot (the timer keeps running).
+class _DigJoystick extends StatefulWidget {
+  const _DigJoystick({required this.game});
+
+  final PawtilleryGame game;
+
+  @override
+  State<_DigJoystick> createState() => _DigJoystickState();
+}
+
+class _DigJoystickState extends State<_DigJoystick> {
+  static const double _size = 132;
+  static const double _knob = 52;
+  static const double _deadZone = 10;
+
+  Offset _offset = Offset.zero;
+
+  void _move(Offset local) {
+    const c = Offset(_size / 2, _size / 2);
+    var v = local - c;
+    const max = (_size - _knob) / 2;
+    if (v.distance > max) v = v / v.distance * max;
+    setState(() => _offset = v);
+    if (v.distance < _deadZone) {
+      widget.game.setDig(null);
+      return;
+    }
+    final deg = (math.atan2(-v.dy, v.dx) * 180 / math.pi).round() % 360;
+    widget.game.setDig(deg);
+  }
+
+  void _release() {
+    setState(() => _offset = Offset.zero);
+    widget.game.setDig(null);
+  }
+
+  @override
+  void dispose() {
+    widget.game.setDig(null);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      label: l10n.hudDigHint,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onPanStart: (d) => _move(d.localPosition),
+        onPanUpdate: (d) => _move(d.localPosition),
+        onPanEnd: (_) => _release(),
+        onPanCancel: _release,
+        child: SizedBox.square(
+          dimension: _size,
+          child: Stack(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Paw.cream.withValues(alpha: 0.85),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Paw.ink, width: 3),
+                  boxShadow: Paw.drop(4),
+                ),
+              ),
+              // Direction ticks.
+              for (final a in const [0.0, 90.0, 180.0, 270.0])
+                Positioned(
+                  left: _size / 2 + math.cos(a * math.pi / 180) * 50 - 4,
+                  top: _size / 2 - math.sin(a * math.pi / 180) * 50 - 4,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Paw.line,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              Positioned(
+                left: _size / 2 - _knob / 2 + _offset.dx,
+                top: _size / 2 - _knob / 2 + _offset.dy,
+                child: Container(
+                  width: _knob,
+                  height: _knob,
+                  decoration: BoxDecoration(
+                    color: Paw.orange,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Paw.ink, width: 3),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.pets_rounded,
+                    size: 24,
+                    color: Paw.ink,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Dig mode: how long is left, and Done to stop and retreat.
+class _DigDone extends StatelessWidget {
+  const _DigDone({required this.game});
+
+  final PawtilleryGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final unit = game.sim.activeUnit;
+    final spec = Weapons.digClaws.delivery as DigMode;
+    final time = unit == null ? 0.0 : unit.digTicks / spec.durationTicks;
+    final distance = unit == null ? 0.0 : unit.digLeft / spec.maxDistance;
+    final left = math.min(time, distance).clamp(0.0, 1.0);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Container(
+          width: 150,
+          padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+          decoration: BoxDecoration(
+            color: Paw.cream,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: Paw.ink, width: 2),
+            boxShadow: Paw.drop(3),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l10n.hudDigHint, style: Paw.text(12)),
+              const SizedBox(height: 4),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: LinearProgressIndicator(
+                  value: left,
+                  minHeight: 8,
+                  color: Paw.orange,
+                  backgroundColor: Paw.peach,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 10),
+        PawButton(
+          label: l10n.hudDigDone,
+          icon: Icons.check_rounded,
+          fill: Paw.green,
+          display: true,
+          fontSize: 20,
+          height: 60,
+          borderWidth: 3,
+          onPressed: game.stopDigging,
+        ),
+      ],
     );
   }
 }

@@ -24,6 +24,8 @@ void applyImpact(ImpactSpec spec, Projectile p, SimContext ctx) {
           vy: vy,
         ));
       });
+    case AddGround(:final radius):
+      ctx.addGround(p.freeX.round(), p.freeY.round(), radius);
     case ScatterMines(:final mineId, :final count):
       final mine = Weapons.byId(mineId);
       _fan(count, spec.minSpeed, spec.maxSpeed, ctx, (vx, vy) {

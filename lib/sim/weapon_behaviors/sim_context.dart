@@ -26,6 +26,9 @@ abstract interface class SimContext {
   /// Removes terrain without hurting anyone (tunnels).
   void carveTunnel(int x, int y, int radius);
 
+  /// Adds a disc of ground (Tanah Liat), leaving units' bodies clear.
+  void addGround(int x, int y, int radius);
+
   /// Adds a projectile; it starts moving on the next tick.
   void spawnProjectile(Projectile p);
   int nextProjectileId();

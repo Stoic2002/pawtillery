@@ -111,6 +111,12 @@ abstract final class WeaponArt {
         _flowerpot(c, 1);
       case 'missile':
         _missile(c);
+      case 'blackHole':
+        _voidOrb(c);
+      case 'stickyBomb':
+        _sticky(c);
+      case 'clay':
+        _clayLump(c);
       case 'bomberBomb':
         _aerialBomb(c);
       default:
@@ -396,6 +402,80 @@ abstract final class WeaponArt {
           PaintKit.solid(0x552E323A));
   }
 
+
+  /// A small dark orb with a violet glow ring (black hole in flight).
+  static void _voidOrb(ui.Canvas c) {
+    c
+      ..drawCircle(ui.Offset.zero, 9, PaintKit.solid(0x553B2A5C))
+      ..drawCircle(ui.Offset.zero, 6.5, PaintKit.solid(0xFF140C22))
+      ..drawCircle(
+          ui.Offset.zero,
+          6.5,
+          ui.Paint()
+            ..style = ui.PaintingStyle.stroke
+            ..strokeWidth = 1.6
+            ..color = const ui.Color(0xFFB98CFF))
+      ..drawCircle(const ui.Offset(-2, -2.2), 1.2, PaintKit.solid(0x88E6D6FF));
+  }
+
+  /// A round bomb covered in green goo, with drips and a red light.
+  static void _sticky(ui.Canvas c) {
+    _ball(c, 6, 0xFF3A3F45, light: 0.4);
+    final goo = ui.Path()
+      ..moveTo(-6, -1)
+      ..quadraticBezierTo(-6, -7, 0, -7)
+      ..quadraticBezierTo(6, -7, 6, -1)
+      ..quadraticBezierTo(4.5, 1, 3.5, -0.5)
+      ..quadraticBezierTo(2.5, 3.5, 1, 0)
+      ..quadraticBezierTo(-1, 2, -2.5, -0.5)
+      ..quadraticBezierTo(-4.5, 2.5, -6, -1)
+      ..close();
+    c
+      ..drawPath(goo, PaintKit.lit(goo.getBounds(), 0xFF6CBF3A, light: 0.45))
+      ..drawPath(goo, PaintKit.edge(0xFF6CBF3A, 0.6))
+      ..drawCircle(const ui.Offset(0, 3), 1.6, PaintKit.solid(0xFFE5484D))
+      ..drawCircle(const ui.Offset(-2.4, -4.6), 1, PaintKit.solid(0x88FFFFFF));
+  }
+
+  /// A lump of brown modelling clay with thumb dents.
+  static void _clayLump(ui.Canvas c) {
+    final lump = ui.Path()
+      ..moveTo(-6, 2)
+      ..quadraticBezierTo(-7, -4, -2, -6)
+      ..quadraticBezierTo(3, -7.5, 6, -3)
+      ..quadraticBezierTo(8, 2, 4, 5)
+      ..quadraticBezierTo(-2, 7, -6, 2)
+      ..close();
+    _shaded(c, lump, 0xFFB0764A, light: 0.35);
+    c
+      ..drawOval(const ui.Rect.fromLTWH(-3, -3.5, 3.4, 2.4),
+          PaintKit.solid(0x33000000))
+      ..drawOval(const ui.Rect.fromLTWH(1.4, -0.5, 2.8, 2),
+          PaintKit.solid(0x33000000));
+  }
+
+  /// Two curved arrows chasing each other (swap places).
+  static void _swapArrows(ui.Canvas c) {
+    final paint = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 3.2
+      ..strokeCap = ui.StrokeCap.round;
+    for (final (start, argb) in [(-2.9, 0xFF9C6ADE), (0.25, 0xFFFF8A3D)]) {
+      paint.color = ui.Color(argb);
+      final rect = ui.Rect.fromCircle(center: ui.Offset.zero, radius: 10);
+      c.drawArc(rect, start, 2.3, false, paint);
+      final end = start + 2.3;
+      final tip = ui.Offset(math.cos(end) * 10, math.sin(end) * 10);
+      final dir = ui.Offset(-math.sin(end), math.cos(end));
+      final side = ui.Offset(math.cos(end), math.sin(end));
+      final head = ui.Path()
+        ..moveTo(tip.dx + dir.dx * 4.5, tip.dy + dir.dy * 4.5)
+        ..lineTo(tip.dx + side.dx * 4, tip.dy + side.dy * 4)
+        ..lineTo(tip.dx - side.dx * 4, tip.dy - side.dy * 4)
+        ..close();
+      c.drawPath(head, PaintKit.solid(argb));
+    }
+  }
 
   /// A red crosshair ring (the missile icon).
   static void _crosshair(ui.Canvas c, ui.Offset at, double r) {
@@ -883,6 +963,14 @@ abstract final class WeaponArt {
         c.restore();
       case 'satellite':
         big(() => _satellite(c), 1.15);
+      case 'blackHole':
+        big(() => _voidOrb(c), 1.7);
+      case 'stickyBomb':
+        big(() => _sticky(c), 2);
+      case 'clay':
+        big(() => _clayLump(c), 1.9);
+      case 'swap':
+        _swapArrows(c);
       case 'homingMissile':
         _crosshair(c, const ui.Offset(8, -8), 6);
         big(() {

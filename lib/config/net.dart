@@ -3,8 +3,9 @@ abstract final class NetConfig {
   /// Bumped whenever a message changes shape or the simulation changes
   /// without an app version bump (new weapons); phones with another version
   /// are turned away in the lobby. 2 = bomber, satellite, homing missile;
-  /// 3 = jet missile, storm cloud delay, bird flock; 4 = map objects.
-  static const int protocolVersion = 4;
+  /// 3 = jet missile, storm cloud delay, bird flock; 4 = map objects;
+  /// 5 = dig mode, black hole, sticky bomb, clay, swap.
+  static const int protocolVersion = 5;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;

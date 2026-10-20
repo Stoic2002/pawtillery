@@ -52,6 +52,9 @@ class Projectile {
   /// Body of a walking projectile (Bebek Peledak), moved with [UnitPhysics].
   Unit? body;
 
+  /// Sticky bomb: the unit it is stuck to (-1 = stuck to the ground).
+  int? stuckTo;
+
   /// The point a guided missile steers to (Rudal Pemburu); null = it
   /// chases the nearest enemy.
   double? targetX;

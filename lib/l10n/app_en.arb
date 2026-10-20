@@ -1133,7 +1133,7 @@
   "weaponSeedSpitterDesc": "Five seeds at once. Best up close.",
   "weaponFirecrackerDesc": "Set it down and run: a big bang in 4 s.",
   "weaponFlowerpotRainDesc": "Flowerpots fall on a spot you pick.",
-  "weaponDigClawsDesc": "Dig a short tunnel sideways.",
+  "weaponDigClawsDesc": "Dig mode: steer a tunnel any way you like with the joystick for 4 s.",
   "setupTabWeapons": "Weapons",
   "setupWeaponsPreset": "Preset",
   "setupPresetStandard": "Standard",
@@ -1394,5 +1394,45 @@
   "weaponBarrel": "Fuel Barrel",
   "@weaponBarrel": {
     "description": "Starter map object that explodes."
+  },
+  "hudDigHint": "Drag to dig",
+  "@hudDigHint": {
+    "description": "Dig mode: the joystick hint."
+  },
+  "hudDigDone": "Done",
+  "@hudDigDone": {
+    "description": "Dig mode: stop digging and retreat."
+  },
+  "weaponBlackHole": "Black Hole",
+  "@weaponBlackHole": {
+    "description": "Weapon: pulls units in, then collapses."
+  },
+  "weaponBlackHoleDesc": "Lands, pulls everyone nearby towards it for two seconds, then collapses with a bang.",
+  "@weaponBlackHoleDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponStickyBomb": "Sticky Bomb",
+  "@weaponStickyBomb": {
+    "description": "Weapon: sticks to what it hits."
+  },
+  "weaponStickyBombDesc": "Sticks to the first pet (or ground) it touches and goes off after 3 s, wherever it is carried.",
+  "@weaponStickyBombDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponClay": "Clay",
+  "@weaponClay": {
+    "description": "Weapon: adds ground where it lands."
+  },
+  "weaponClayDesc": "Builds a lump of ground where it lands: bridges, walls, or a pet stuck in a hole.",
+  "@weaponClayDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponSwap": "Swap",
+  "@weaponSwap": {
+    "description": "Weapon: trade places with a unit."
+  },
+  "weaponSwapDesc": "Tap any pet: you trade places with it.",
+  "@weaponSwapDesc": {
+    "description": "Weapon menu description."
   }
 }

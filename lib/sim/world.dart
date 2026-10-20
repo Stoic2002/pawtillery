@@ -299,6 +299,11 @@ class SimWorld implements SimContext {
   bool isValidTarget(Unit unit, WeaponDef weapon, int x, int y) {
     return switch (weapon.delivery) {
       Teleport() => _canTeleportTo(unit, x, y),
+      SwapPlaces() => switch (ProjectilePhysics.unitAt(
+          x.toDouble(), y.toDouble(), _units)) {
+        final other? => other.id != unit.id,
+        null => false,
+      },
       BuildWall(:final width, :final height) =>
         _wallFits(_wallRect(x, y, width, height)),
       AirStrike() || Lightning() || AirRaid() || OrbitalStrike() =>
@@ -342,14 +347,19 @@ class SimWorld implements SimContext {
     final unit = activeUnit;
     if (unit == null || !unit.alive) return 0;
     var walkDir = 0;
+    final busy = unit.isDashing || unit.isDigging;
     for (final input in inputs) {
       switch (input) {
         case Walk(:final direction):
-          if (turn.allowsMovement && !unit.isDashing) walkDir = direction;
+          if (turn.allowsMovement && !busy) walkDir = direction;
         case Jump(:final kind):
-          if (turn.allowsMovement && !unit.isDashing) _jump(unit, kind);
+          if (turn.allowsMovement && !busy) _jump(unit, kind);
         case Fire():
           if (turn.allowsFire) _fire(unit, input);
+        case Dig(:final angleDeg):
+          if (unit.isDigging) _dig(unit, angleDeg);
+        case StopDigging():
+          if (unit.isDigging) _stopDigging(unit);
       }
     }
     return walkDir;
@@ -447,6 +457,28 @@ class SimWorld implements SimContext {
           ..dashRemaining = distance.toDouble()
           ..dashSinceCarve = 0
           ..dashWeapon = weapon;
+      case DigMode(:final durationTicks, :final maxDistance):
+        unit
+          ..digTicks = durationTicks
+          ..digLeft = maxDistance;
+        // Digging starts with a hole around the body.
+        carveTunnel(unit.centerX.round(), unit.centerY.round(),
+            (weapon.delivery as DigMode).carveRadius);
+      case SwapPlaces():
+        final other = ProjectilePhysics.unitAt(
+            tx!.toDouble(), ty!.toDouble(), _units)!;
+        final (x, y) = (unit.x, unit.y);
+        unit
+          ..x = other.x
+          ..y = other.y;
+        other
+          ..x = x
+          ..y = y;
+        UnitPhysics.launch(unit, 0, 0);
+        UnitPhysics.launch(other, 0, 0);
+        _events
+          ..add(UnitTeleported(unit.id))
+          ..add(UnitTeleported(other.id));
       case Teleport():
         unit
           ..x = tx!.toDouble()
@@ -502,7 +534,40 @@ class SimWorld implements SimContext {
     }
     _events.add(WeaponUsed(unit.id, weapon.id));
     turn.hasFired = true;
+    // Digging keeps the action phase (and its clock) until it ends.
+    if (weapon.delivery is DigMode) return;
     _setPhase(weapon.endsTurn ? TurnPhase.settling : TurnPhase.retreat);
+  }
+
+  /// One tick of tunnelling towards [angleDeg]: carves ahead of the body
+  /// and moves it, staying inside the map and above the water.
+  void _dig(Unit unit, int angleDeg) {
+    final spec = Weapons.digClaws.delivery as DigMode;
+    final step = min(unit.digLeft, spec.speed * PhysicsConfig.dt);
+    if (step <= 0) return;
+    final dx = SimTrig.cosDeg(angleDeg) * step;
+    final dy = -SimTrig.sinDeg(angleDeg) * step;
+    final h = unit.stats.bodyHeight.toDouble();
+    final nx = (unit.x + dx).clamp(2.0, terrain.width - 3.0);
+    final ny = (unit.y + dy).clamp(h + 2, waterLevel - 2.0);
+    unit
+      ..x = nx
+      ..y = ny
+      ..digLeft -= step
+      ..vx = 0
+      ..vy = 0;
+    if (dx.abs() > 1e-9) unit.facing = dx > 0 ? 1 : -1;
+    carveTunnel(unit.centerX.round(), unit.centerY.round(), spec.carveRadius);
+  }
+
+  /// Dig mode is over: the unit drops from wherever it is and the retreat
+  /// starts.
+  void _stopDigging(Unit unit) {
+    unit
+      ..digTicks = 0
+      ..digLeft = 0;
+    UnitPhysics.launch(unit, 0, 0);
+    if (turn.phase == TurnPhase.action) _setPhase(TurnPhase.retreat);
   }
 
   /// -1 / 1 from the aim angle; straight up or down keeps the facing.
@@ -781,6 +846,36 @@ class SimWorld implements SimContext {
   }
 
   @override
+  void addGround(int x, int y, int radius) {
+    final left = (x - radius).clamp(0, terrain.width - 1);
+    final right = (x + radius).clamp(0, terrain.width - 1);
+    final top = (y - radius).clamp(0, terrain.height - 1);
+    final bottom = (y + radius).clamp(0, terrain.height - 1);
+    final r2 = radius * radius;
+    for (var py = top; py <= bottom; py++) {
+      for (var px = left; px <= right; px++) {
+        final dx = px - x;
+        final dy = py - y;
+        if (dx * dx + dy * dy > r2 || _insideAUnit(px, py)) continue;
+        terrain.data[py * terrain.width + px] = 1;
+      }
+    }
+    _events.add(TerrainAdded(IntRect(left, top, right + 1, bottom + 1)));
+  }
+
+  /// Whether pixel ([px], [py]) is in (or right next to) a living unit's
+  /// body column, which added ground must never fill.
+  bool _insideAUnit(int px, int py) {
+    for (final u in _units) {
+      if (!u.alive) continue;
+      final cx = u.x.floor();
+      if ((px - cx).abs() > 2) continue;
+      if (py >= u.y - u.stats.bodyHeight - 2 && py <= u.y) return true;
+    }
+    return false;
+  }
+
+  @override
   void carveTunnel(int x, int y, int radius) {
     if (terrain.carveCircle(x, y, radius) != null) {
       _events.add(TerrainCarved(x, y, radius));
@@ -992,7 +1087,14 @@ class SimWorld implements SimContext {
     final active = activeUnit;
     for (final u in _units) {
       if (!u.alive) continue;
-      if (u.isDashing) {
+      if (u.isDigging) {
+        // Held in its tunnel (no gravity) until digging ends.
+        u.digTicks--;
+        if (u.digTicks <= 0 || u.digLeft <= 0 ||
+            turn.phase != TurnPhase.action) {
+          _stopDigging(u);
+        }
+      } else if (u.isDashing) {
         _stepDash(u);
       } else {
         if (walkDir != 0 && u == active) {
@@ -1180,7 +1282,8 @@ class SimWorld implements SimContext {
       _pendingShots.isEmpty &&
       _aircraft.isEmpty &&
       _strikes.isEmpty &&
-      _units.every((u) => !u.alive || (u.grounded && !u.isDashing)) &&
+      _units.every(
+          (u) => !u.alive || (u.grounded && !u.isDashing && !u.isDigging)) &&
       _mines.every((m) => m.grounded && m.countdown == null) &&
       _objects.every((o) => o.grounded && o.fuse == null);
 
@@ -1304,6 +1407,8 @@ class SimWorld implements SimContext {
         ..add(u.signatureUsed ? 1 : 0)
         ..add(u.dashDir)
         ..addDouble(u.dashRemaining)
+        ..add(u.digTicks)
+        ..addDouble(u.digLeft)
         ..addDouble(u.x)
         ..addDouble(u.y)
         ..addDouble(u.vx)
@@ -1325,7 +1430,8 @@ class SimWorld implements SimContext {
         ..addDouble(p.vy)
         ..addDouble(p.traveled)
         ..addDouble(p.targetX ?? -1)
-        ..addDouble(p.targetY ?? -1);
+        ..addDouble(p.targetY ?? -1)
+        ..add(p.stuckTo ?? -2);
     }
     h.add(_mines.length);
     for (final m in _mines) {

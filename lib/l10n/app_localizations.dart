@@ -1937,7 +1937,7 @@ abstract class AppLocalizations {
   /// No description provided for @weaponDigClawsDesc.
   ///
   /// In en, this message translates to:
-  /// **'Dig a short tunnel sideways.'**
+  /// **'Dig mode: steer a tunnel any way you like with the joystick for 4 s.'**
   String get weaponDigClawsDesc;
 
   /// No description provided for @setupTabWeapons.
@@ -2329,6 +2329,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Fuel Barrel'**
   String get weaponBarrel;
+
+  /// Dig mode: the joystick hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to dig'**
+  String get hudDigHint;
+
+  /// Dig mode: stop digging and retreat.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get hudDigDone;
+
+  /// Weapon: pulls units in, then collapses.
+  ///
+  /// In en, this message translates to:
+  /// **'Black Hole'**
+  String get weaponBlackHole;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Lands, pulls everyone nearby towards it for two seconds, then collapses with a bang.'**
+  String get weaponBlackHoleDesc;
+
+  /// Weapon: sticks to what it hits.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticky Bomb'**
+  String get weaponStickyBomb;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Sticks to the first pet (or ground) it touches and goes off after 3 s, wherever it is carried.'**
+  String get weaponStickyBombDesc;
+
+  /// Weapon: adds ground where it lands.
+  ///
+  /// In en, this message translates to:
+  /// **'Clay'**
+  String get weaponClay;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Builds a lump of ground where it lands: bridges, walls, or a pet stuck in a hole.'**
+  String get weaponClayDesc;
+
+  /// Weapon: trade places with a unit.
+  ///
+  /// In en, this message translates to:
+  /// **'Swap'**
+  String get weaponSwap;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap any pet: you trade places with it.'**
+  String get weaponSwapDesc;
 }
 
 class _AppLocalizationsDelegate

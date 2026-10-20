@@ -36,6 +36,10 @@ class ProjectilesComponent extends Component {
         continue;
       }
       final flight = p.weapon.flight;
+      if (flight is Vortex && p.mode == 1) {
+        _drawVortex(canvas, p, flight);
+        continue;
+      }
       final along = WeaponArt.pointsAlongFlight(p.weapon.id);
       // Carrots and rockets point along their flight; everything else
       // tumbles.
@@ -58,8 +62,47 @@ class ProjectilesComponent extends Component {
       WeaponArt.projectile(canvas, p.weapon.id);
       canvas.restore();
       if (p.weapon.id == Weapons.firecracker.id) _fuseSpark(canvas, p);
+      if (flight is Sticky && (_time * 8).floor().isEven) {
+        _light.color = const ui.Color(0xCCFF5A4E);
+        canvas.drawCircle(ui.Offset(p.x, p.y + 3), 3.4, _light);
+      }
     }
     _drawMines(canvas);
+  }
+
+  /// The black hole at work: a dark core, a swirl of violet arms turning
+  /// faster as it nears collapse, and the faint edge of its pull.
+  void _drawVortex(ui.Canvas canvas, Projectile p, Vortex spec) {
+    final t = p.traveled / spec.pullTicks;
+    final spin = _time * (4 + 10 * t);
+    canvas
+      ..save()
+      ..translate(p.x, p.y);
+    _light
+      ..color = const ui.Color(0x223B2A5C)
+      ..style = ui.PaintingStyle.fill;
+    canvas.drawCircle(ui.Offset.zero, spec.pullRadius, _light);
+    final arm = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeCap = ui.StrokeCap.round;
+    for (var i = 0; i < 4; i++) {
+      final a = spin + i * math.pi / 2;
+      arm
+        ..strokeWidth = 4 - i * 0.5
+        ..color = ui.Color.fromARGB(200 - i * 30, 185, 140, 255);
+      canvas.drawArc(
+        ui.Rect.fromCircle(center: ui.Offset.zero, radius: 30 - i * 5),
+        a,
+        1.9,
+        false,
+        arm,
+      );
+    }
+    final core = 9 + 4 * math.sin(_time * 12) * t;
+    canvas
+      ..drawCircle(ui.Offset.zero, core + 4, _light..color = const ui.Color(0x88B98CFF))
+      ..drawCircle(ui.Offset.zero, core, _light..color = const ui.Color(0xFF0B0612))
+      ..restore();
   }
 
   /// A flickering motor flame behind a rocket (drawn pointing right);

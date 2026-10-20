@@ -986,7 +986,8 @@ class AppLocalizationsId extends AppLocalizations {
       'Pot bunga berjatuhan di titik yang kamu pilih.';
 
   @override
-  String get weaponDigClawsDesc => 'Gali terowongan pendek ke samping.';
+  String get weaponDigClawsDesc =>
+      'Mode gali: arahkan terowongan ke mana saja dengan joystick selama 4 detik.';
 
   @override
   String get setupTabWeapons => 'Senjata';
@@ -1202,4 +1203,38 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get weaponBarrel => 'Tong Bahan Bakar';
+
+  @override
+  String get hudDigHint => 'Geser untuk menggali';
+
+  @override
+  String get hudDigDone => 'Selesai';
+
+  @override
+  String get weaponBlackHole => 'Lubang Hitam';
+
+  @override
+  String get weaponBlackHoleDesc =>
+      'Mendarat, menyedot semua yang di dekatnya selama dua detik, lalu meledak.';
+
+  @override
+  String get weaponStickyBomb => 'Bom Lengket';
+
+  @override
+  String get weaponStickyBombDesc =>
+      'Menempel di peliharaan (atau tanah) pertama yang disentuh dan meledak setelah 3 detik, ke mana pun ia terbawa.';
+
+  @override
+  String get weaponClay => 'Tanah Liat';
+
+  @override
+  String get weaponClayDesc =>
+      'Membuat gundukan tanah di tempat mendarat: jembatan, tembok, atau mengurung lawan.';
+
+  @override
+  String get weaponSwap => 'Tukar Tempat';
+
+  @override
+  String get weaponSwapDesc =>
+      'Ketuk peliharaan mana saja: kalian bertukar tempat.';
 }

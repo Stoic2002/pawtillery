@@ -7,6 +7,8 @@ import 'bouncy_behavior.dart';
 import 'drill_behavior.dart';
 import 'homing_behavior.dart';
 import 'sim_context.dart';
+import 'sticky_behavior.dart';
+import 'vortex_behavior.dart';
 import 'walker_behavior.dart';
 
 /// One way a projectile can move and react (PRD: perilaku khusus sebagai
@@ -31,6 +33,8 @@ abstract class FlightBehavior {
       final Boomerang spec => BoomerangBehavior(spec),
       final Drill spec => DrillBehavior(spec),
       final Homing spec => HomingBehavior(spec),
+      final Vortex spec => VortexBehavior(spec),
+      Sticky() => const StickyBehavior(),
       null => throw ArgumentError('${w.id} has no flight behaviour'),
     };
   }

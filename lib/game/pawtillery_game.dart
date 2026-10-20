@@ -143,6 +143,9 @@ class PawtilleryGame extends FlameGame {
 
   final List<SimInput> _pendingInputs = [];
   int _walkDir = 0;
+
+  /// Dig mode: the joystick's direction (degrees), null while released.
+  int? _digAngle;
   double _accumulator = 0;
   final Stopwatch _stopwatch = Stopwatch();
 
@@ -213,6 +216,25 @@ class PawtilleryGame extends FlameGame {
   void setWalk(int direction) => _walkDir = direction;
 
   void jump(JumpKind kind) => _pendingInputs.add(Jump(kind));
+
+  /// The active unit is in dig mode and this phone controls it.
+  bool get digging => hasControl && (sim.activeUnit?.isDigging ?? false);
+
+  /// Dig mode joystick: a direction in degrees (0 = right, 90 = up), or
+  /// null when released.
+  void setDig(int? angleDeg) => _digAngle = angleDeg;
+
+  /// Dig mode's Done button.
+  void stopDigging() {
+    _digAngle = null;
+    _pendingInputs.add(const StopDigging());
+  }
+
+  /// Inputs repeated every tick while held.
+  List<SimInput> get _held => [
+    if (_walkDir != 0) Walk(_walkDir),
+    if (_digAngle case final int a) Dig(a),
+  ];
 
   // ------------------------------------------------------------ weapons
 
@@ -316,6 +338,7 @@ class PawtilleryGame extends FlameGame {
   /// New turn: restore the team's last weapon if it can still be used.
   void _onTurnStarted() {
     _walkDir = 0;
+    _digAngle = null;
     final unit = sim.activeUnit;
     var id = Weapons.rock.id;
     if (unit != null) {
@@ -444,10 +467,7 @@ class PawtilleryGame extends FlameGame {
   }
 
   void _stepSim() {
-    final inputs = [
-      if (_walkDir != 0) Walk(_walkDir),
-      ..._pendingInputs,
-    ];
+    final inputs = [..._held, ..._pendingInputs];
     _pendingInputs.clear();
     _runStep(() => sim.step(inputs));
   }
@@ -456,7 +476,7 @@ class PawtilleryGame extends FlameGame {
   /// if it controls the active team, then step every tick whose inputs
   /// are here (several when behind). Returns the number of steps.
   int _stepNet(Lockstep lock) {
-    if (lock.produce(_walkDir, _pendingInputs) || !lock.isMyTurn) {
+    if (lock.produce(_held, _pendingInputs) || !lock.isMyTurn) {
       _pendingInputs.clear();
     }
     var steps = 0;
@@ -537,6 +557,9 @@ class PawtilleryGame extends FlameGame {
             when cause == DeathCause.water:
           particles.splash(sim.units[unitId].centerX, sim.waterLevel.toDouble(),
               waterArgb: map.waterArgb);
+        case UnitTeleported(:final unitId):
+          final u = sim.units[unitId];
+          particles.sparkle(u.centerX, u.centerY, argb: 0xFFB98CFF);
         case CrateCollected(:final unitId, :final health, :final hp,
               :final weaponId):
           final u = sim.units[unitId];
@@ -552,7 +575,6 @@ class PawtilleryGame extends FlameGame {
               UnitDied() ||
               UnitJumped() ||
               UnitSaved() ||
-              UnitTeleported() ||
               WeaponUsed() ||
               MinePlaced() ||
               MineTriggered() ||

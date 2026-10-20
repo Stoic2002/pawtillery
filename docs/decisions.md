@@ -768,3 +768,38 @@ starts.
   burns once lit), a cream crate with a green cross and a wooden star
   crate. A pickup shows "+25" or the weapon's icon with "+1" over the
   unit, with a sparkle.
+
+## Dig mode with a joystick, and four unique weapons (2026-10-20)
+
+The developer reported that Dig Claws couldn't dig into the ground, was
+too fast, and couldn't be steered, and asked for a joystick. They also
+wanted more weapons with genuinely new mechanics.
+
+- **Why the old Dig Claws failed:** it was a sideways dash that only
+  used the aim for left or right, carved at body height above the feet
+  (so flat ground was never touched), and covered 80 px in about 0.6 s.
+- **Dig mode** (`DigMode`): Use puts the unit into dig mode for up to
+  4 s or 220 px. A joystick replaces the walk buttons and steers in any
+  direction at 55 px/s, carving a 15 px tunnel around the body; letting
+  go holds the unit in place. Done (or running out of time or distance)
+  ends it, the unit drops, and the retreat starts. The turn clock keeps
+  running during it. New held input `Dig(angle)` plus `StopDigging`;
+  lockstep now repeats a list of held inputs (walk and dig) in each
+  frame. The joystick is only for dig mode: left/right/jump buttons stay
+  more precise for walking.
+- **Lubang Hitam** (`Vortex`): lands, then pulls every unit within 170 px
+  for 2 s (stronger towards the middle), then collapses (35 dmg). A
+  grounded pet is lifted into a small hop towards it, because a landing
+  snaps a unit to whole pixels and would swallow a small pull.
+- **Bom Lengket** (`Sticky`): sticks to the first pet (and rides with
+  it) or to the ground it hits; 3 s fuse, 50 dmg.
+- **Tanah Liat** (`AddGround`): adds a 30 px disc of ground where it
+  lands, never inside a pet's body (it can wall one in).
+- **Tukar Tempat** (`SwapPlaces`): tap any pet and the two of you trade
+  places; it ends the turn.
+- Ammo in Standard: 1, 2, 2 and 1. All four are off in Classic and
+  unlimited in Chaos. Code-drawn icons; the black hole draws a swirling
+  vortex, the sticky bomb blinks red, and swaps and teleports sparkle.
+- **Determinism:** dig state and sticky targets are in the hash. Both
+  pins changed; the previous layout still gives the previous pins. The
+  Wi-Fi protocol version is now 5.

@@ -117,6 +117,28 @@ final class Teleport extends Delivery {
   const Teleport();
 }
 
+/// The shooter and the unit at the tapped spot trade places.
+final class SwapPlaces extends Delivery {
+  const SwapPlaces();
+}
+
+/// Dig mode: for up to [durationTicks] (and [maxDistance] px) the unit
+/// tunnels through the ground at [speed] px/s in the direction the player
+/// holds, carving a [carveRadius] tunnel around its body. The turn goes on
+/// to the retreat when it ends (time, distance, or the player is done).
+final class DigMode extends Delivery {
+  const DigMode({
+    required this.durationTicks,
+    required this.maxDistance,
+    required this.speed,
+    required this.carveRadius,
+  });
+  final int durationTicks;
+  final double maxDistance;
+  final double speed;
+  final int carveRadius;
+}
+
 /// Adds a [width] × [height] block of ground centred on the target.
 final class BuildWall extends Delivery {
   const BuildWall({required this.width, required this.height});
@@ -240,6 +262,28 @@ final class Homing extends FlightSpec {
   final int? fuelTicks;
 }
 
+/// Ballistic until it touches anything, then it stops there and becomes a
+/// vortex for [pullTicks]: every unit within [pullRadius] is pulled
+/// towards it, harder the closer it is (up to [pullAccel] px/s²). Then it
+/// collapses in a blast.
+final class Vortex extends FlightSpec {
+  const Vortex({
+    required this.pullTicks,
+    required this.pullRadius,
+    required this.pullAccel,
+  });
+  final int pullTicks;
+  final double pullRadius;
+  final double pullAccel;
+}
+
+/// Ballistic until it touches something, then it sticks: to a unit (and
+/// rides along wherever it goes) or to the ground. Explodes when its fuse
+/// runs out.
+final class Sticky extends FlightSpec {
+  const Sticky();
+}
+
 // --------------------------------------------------------------- impact
 
 sealed class ImpactSpec {
@@ -265,6 +309,13 @@ final class Split extends ImpactSpec {
   final bool explodeSelf;
   final double minSpeed;
   final double maxSpeed;
+}
+
+/// Adds a round blob of ground [radius] px across the landing point
+/// (never inside a unit's body), instead of exploding.
+final class AddGround extends ImpactSpec {
+  const AddGround({required this.radius});
+  final int radius;
 }
 
 /// Scatters [count] [mineId] mines around the landing point.
@@ -605,14 +656,71 @@ abstract final class Weapons {
     placeholderArgb: 0xFF9AA3A8,
   );
 
-  /// Dig a short tunnel sideways (a tool, no damage).
+  /// Dig mode: steer a tunnel through the ground with a joystick (a tool,
+  /// no damage).
   static const digClaws = WeaponDef(
     id: 'digClaws',
     nameKey: 'weaponDigClaws',
-    aim: AimMode.direction,
-    delivery: Dash(distance: 80, speed: 140, carveRadius: 13),
+    aim: AimMode.none,
+    delivery: DigMode(
+      durationTicks: 4 * 60,
+      maxDistance: 220,
+      speed: 55,
+      carveRadius: 15,
+    ),
     knockbackScale: 0,
     placeholderArgb: 0xFF8D6E63,
+  );
+
+  // ---- unique arsenal (2026-10-20, docs/decisions.md) ----------------
+
+  /// Lands, then pulls everyone nearby in for two seconds and collapses.
+  static const blackHole = WeaponDef(
+    id: 'blackHole',
+    nameKey: 'weaponBlackHole',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Vortex(pullTicks: 2 * 60, pullRadius: 170, pullAccel: 1100),
+    maxDamage: 35,
+    radius: 48,
+    ammo: 1,
+    placeholderArgb: 0xFF3B2A5C,
+  );
+
+  /// Sticks to the first unit (or ground) it touches; blows up after 3 s.
+  static const stickyBomb = WeaponDef(
+    id: 'stickyBomb',
+    nameKey: 'weaponStickyBomb',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Sticky(),
+    maxDamage: 50,
+    radius: 44,
+    fuseTicks: 3 * 60,
+    ammo: 2,
+    placeholderArgb: 0xFF6CBF3A,
+  );
+
+  /// Builds ground where it lands: bridges, walls, burying an enemy.
+  static const clay = WeaponDef(
+    id: 'clay',
+    nameKey: 'weaponClay',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Ballistic(onImpact: AddGround(radius: 30)),
+    ammo: 2,
+    placeholderArgb: 0xFFB0764A,
+  );
+
+  /// Tap a unit: you and it trade places.
+  static const swap = WeaponDef(
+    id: 'swap',
+    nameKey: 'weaponSwap',
+    aim: AimMode.target,
+    delivery: SwapPlaces(),
+    endsTurn: true,
+    ammo: 1,
+    placeholderArgb: 0xFF9C6ADE,
   );
 
   static const skip = WeaponDef(
@@ -875,10 +983,14 @@ abstract final class Weapons {
     flowerpotRain,
     bomber,
     satellite,
+    blackHole,
+    stickyBomb,
+    clay,
     punch,
     mine,
     digClaws,
     teleport,
+    swap,
     skip,
   ];
 

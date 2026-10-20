@@ -124,20 +124,6 @@ void main() {
           hasLength(5));
     });
 
-    test('Cakar Gali digs sideways without hurting anyone', () {
-      final t = flatMap()..fillRect(230, 300, 120, 100);
-      final w = world(
-        [UnitPlacement(0, 200, 400), UnitPlacement(1, 1800, 400)],
-        terrain: t,
-      );
-      final before = solidCount(w.terrain);
-      final x0 = w.units[0].x;
-      final e = fireAndSettle(
-          w, const Fire(weaponId: 'digClaws', angleDeg: 0));
-      expect(solidCount(w.terrain), lessThan(before));
-      expect(w.units[0].x, greaterThan(x0 + 40));
-      expect(e.whereType<UnitDamaged>(), isEmpty);
-    });
   });
 
   group('loadout', () {

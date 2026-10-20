@@ -136,6 +136,11 @@ class Unit {
   WeaponDef? dashWeapon;
   bool get isDashing => dashRemaining > 0;
 
+  /// Dig mode (Cakar Gali): ticks and distance (px) left; 0 = not digging.
+  int digTicks = 0;
+  double digLeft = 0;
+  bool get isDigging => digTicks > 0;
+
   double get centerX => x.floorToDouble() + 0.5;
   double get centerY => y - stats.bodyHeight / 2;
 }

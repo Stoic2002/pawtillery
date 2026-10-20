@@ -401,11 +401,11 @@ void main() {
   });
 }
 
-// Re-pinned 2026-10-20 (twice): the hash now also covers the bomber,
-// satellite and missile (4107600983 → 1977243991), then the starter map
-// objects (→ 3580160855). Same play each time: the previous layout still
-// gives the previous pin.
-const _pinnedWeaponsHash = 3580160855;
+// Re-pinned 2026-10-20 (three times): the hash now also covers the bomber,
+// satellite and missile (4107600983 → 1977243991), the starter map objects
+// (→ 3580160855), then dig mode and the sticky bomb (→ 2358037495). Same
+// play each time: the previous layout still gives the previous pin.
+const _pinnedWeaponsHash = 2358037495;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {
@@ -431,6 +431,8 @@ class _FakeContext implements SimContext {
       strikes.add((u.id, damage));
   @override
   void carveTunnel(int x, int y, int r) => carves.add((x, y));
+  @override
+  void addGround(int x, int y, int radius) {}
   @override
   void explode(double x, double y, WeaponDef weapon, {int? sourceId}) {}
   @override

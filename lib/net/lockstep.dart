@@ -89,9 +89,10 @@ class Lockstep {
   }
 
   /// Called once per tick of real time. If this phone controls the active
-  /// team, records frames up to [delay] ticks ahead: [walkDir] in each,
-  /// [queued] (jump, fire) in the first. Returns whether [queued] was used.
-  bool produce(int walkDir, List<SimInput> queued) {
+  /// team, records frames up to [delay] ticks ahead: [held] (walk, dig
+  /// direction) in each, [queued] (jump, fire) in the first. Returns
+  /// whether [queued] was used.
+  bool produce(List<SimInput> held, List<SimInput> queued) {
     if (isOver) return false;
     if (!_producing && _handOver && isMyTurn) {
       _producing = true;
@@ -103,10 +104,7 @@ class Lockstep {
     final from = _known + 1;
     final frames = <List<SimInput>>[];
     while (_known < target) {
-      final frame = [
-        if (walkDir != 0) Walk(walkDir),
-        if (frames.isEmpty) ...queued,
-      ];
+      final frame = [...held, if (frames.isEmpty) ...queued];
       _known++;
       _frames[_known] = frame;
       frames.add(frame);

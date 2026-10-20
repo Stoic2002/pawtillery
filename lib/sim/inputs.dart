@@ -47,3 +47,15 @@ final class Fire extends SimInput {
   final int? targetX;
   final int? targetY;
 }
+
+/// Dig mode: tunnel one tick towards [angleDeg] (0 = right, 90 = up); sent
+/// every tick while the joystick is held.
+final class Dig extends SimInput {
+  const Dig(this.angleDeg);
+  final int angleDeg;
+}
+
+/// Dig mode: done digging (the retreat starts).
+final class StopDigging extends SimInput {
+  const StopDigging();
+}

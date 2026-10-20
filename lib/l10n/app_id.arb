@@ -306,7 +306,7 @@
   "weaponSeedSpitterDesc": "Lima biji sekaligus. Paling kuat dari dekat.",
   "weaponFirecrackerDesc": "Taruh lalu lari: ledakan besar dalam 4 detik.",
   "weaponFlowerpotRainDesc": "Pot bunga berjatuhan di titik yang kamu pilih.",
-  "weaponDigClawsDesc": "Gali terowongan pendek ke samping.",
+  "weaponDigClawsDesc": "Mode gali: arahkan terowongan ke mana saja dengan joystick selama 4 detik.",
   "setupTabWeapons": "Senjata",
   "setupWeaponsPreset": "Preset",
   "setupPresetStandard": "Standar",
@@ -372,5 +372,15 @@
   "setupMapObjects": "Objek di peta",
   "setupObjectsFew": "Sedikit",
   "setupObjectsMany": "Banyak",
-  "weaponBarrel": "Tong Bahan Bakar"
+  "weaponBarrel": "Tong Bahan Bakar",
+  "hudDigHint": "Geser untuk menggali",
+  "hudDigDone": "Selesai",
+  "weaponBlackHole": "Lubang Hitam",
+  "weaponBlackHoleDesc": "Mendarat, menyedot semua yang di dekatnya selama dua detik, lalu meledak.",
+  "weaponStickyBomb": "Bom Lengket",
+  "weaponStickyBombDesc": "Menempel di peliharaan (atau tanah) pertama yang disentuh dan meledak setelah 3 detik, ke mana pun ia terbawa.",
+  "weaponClay": "Tanah Liat",
+  "weaponClayDesc": "Membuat gundukan tanah di tempat mendarat: jembatan, tembok, atau mengurung lawan.",
+  "weaponSwap": "Tukar Tempat",
+  "weaponSwapDesc": "Ketuk peliharaan mana saja: kalian bertukar tempat."
 }

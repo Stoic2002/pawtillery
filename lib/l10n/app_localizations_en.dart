@@ -983,7 +983,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weaponFlowerpotRainDesc => 'Flowerpots fall on a spot you pick.';
 
   @override
-  String get weaponDigClawsDesc => 'Dig a short tunnel sideways.';
+  String get weaponDigClawsDesc =>
+      'Dig mode: steer a tunnel any way you like with the joystick for 4 s.';
 
   @override
   String get setupTabWeapons => 'Weapons';
@@ -1201,4 +1202,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weaponBarrel => 'Fuel Barrel';
+
+  @override
+  String get hudDigHint => 'Drag to dig';
+
+  @override
+  String get hudDigDone => 'Done';
+
+  @override
+  String get weaponBlackHole => 'Black Hole';
+
+  @override
+  String get weaponBlackHoleDesc =>
+      'Lands, pulls everyone nearby towards it for two seconds, then collapses with a bang.';
+
+  @override
+  String get weaponStickyBomb => 'Sticky Bomb';
+
+  @override
+  String get weaponStickyBombDesc =>
+      'Sticks to the first pet (or ground) it touches and goes off after 3 s, wherever it is carried.';
+
+  @override
+  String get weaponClay => 'Clay';
+
+  @override
+  String get weaponClayDesc =>
+      'Builds a lump of ground where it lands: bridges, walls, or a pet stuck in a hole.';
+
+  @override
+  String get weaponSwap => 'Swap';
+
+  @override
+  String get weaponSwapDesc => 'Tap any pet: you trade places with it.';
 }

@@ -92,7 +92,7 @@ class TestPhone {
         );
       }
     }
-    lock.produce(walk, queued);
+    lock.produce([if (walk != 0) Walk(walk)], queued);
     var n = 0;
     while (n < 5 && lock.step() != null) {
       n++;
