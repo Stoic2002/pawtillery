@@ -114,6 +114,22 @@ final class LightningStruck extends SimEvent {
   final int y;
 }
 
+/// The satellite's beam burnt down column [x] from the sky to [y]; the
+/// ground within [radius] of it is gone (the mask is already carved).
+final class SatelliteStruck extends SimEvent {
+  const SatelliteStruck(this.x, this.y, this.radius);
+  final int x;
+  final int y;
+  final int radius;
+}
+
+/// A bomber dropped a bomb at ([x], [y]).
+final class BombDropped extends SimEvent {
+  const BombDropped(this.x, this.y);
+  final double x;
+  final double y;
+}
+
 /// Ground was added (Benteng); the area must be redrawn from the mask.
 final class TerrainAdded extends SimEvent {
   const TerrainAdded(this.area);

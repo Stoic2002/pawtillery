@@ -6,6 +6,7 @@ import '../config/match_defaults.dart';
 import '../config/physics.dart';
 import '../config/units.dart';
 import '../config/weapons.dart';
+import 'air_support.dart';
 import 'damage.dart';
 import 'events.dart';
 import 'inputs.dart';
@@ -170,6 +171,15 @@ class SimWorld implements SimContext {
   final List<Mine> _mines = [];
   late final List<Mine> mines = UnmodifiableListView(_mines);
 
+  /// Bombers crossing the sky (Pesawat Pengebom).
+  final List<Bomber> _bombers = [];
+  late final List<Bomber> bombers = UnmodifiableListView(_bombers);
+
+  /// Satellite strikes waiting to fire.
+  final List<PendingStrike> _strikes = [];
+  late final List<PendingStrike> pendingStrikes =
+      UnmodifiableListView(_strikes);
+
   /// Follow-up shots of a burst weapon: (due tick, unit id, fire input).
   final List<(int, int, Fire)> _pendingShots = [];
 
@@ -227,11 +237,15 @@ class SimWorld implements SimContext {
 
   /// Whether a target weapon may be used at world point ([x], [y]).
   bool isValidTarget(Unit unit, WeaponDef weapon, int x, int y) {
+    if (weapon.aim == AimMode.targetAndAim) {
+      return x >= 0 && x < terrain.width && y >= 0 && y < terrain.height;
+    }
     return switch (weapon.delivery) {
       Teleport() => _canTeleportTo(unit, x, y),
       BuildWall(:final width, :final height) =>
         _wallFits(_wallRect(x, y, width, height)),
-      AirStrike() || Lightning() => x >= 0 && x < terrain.width,
+      AirStrike() || Lightning() || BomberRun() || OrbitalStrike() =>
+        x >= 0 && x < terrain.width,
       _ => true,
     };
   }
@@ -256,6 +270,7 @@ class SimWorld implements SimContext {
 
     final walkDir = _applyInputs(inputs);
     _firePendingShots();
+    _stepAirSupport();
     _stepProjectiles();
     _stepMines();
     _stepUnits(walkDir);
@@ -306,7 +321,8 @@ class SimWorld implements SimContext {
       return;
     }
     if (!canUse(unit, weapon)) return;
-    final needsTarget = weapon.aim == AimMode.target;
+    final needsTarget =
+        weapon.aim == AimMode.target || weapon.aim == AimMode.targetAndAim;
     final tx = input.targetX;
     final ty = input.targetY;
     if (needsTarget &&
@@ -340,6 +356,16 @@ class SimWorld implements SimContext {
             vy: 0,
           ));
         }
+      case final BomberRun run:
+        _callBomber(unit, run, tx!, ty!);
+      case OrbitalStrike(:final delayTicks):
+        _strikes.add(PendingStrike(
+          dueTick: _tick + delayTicks,
+          x: tx!,
+          y: ty!,
+          ownerId: unit.id,
+          weapon: weapon,
+        ));
       case PlaceMine():
         unit.facing = dir;
         spawnMine(weapon, unit.centerX + dir * (unit.stats.hitRadius + 4),
@@ -447,9 +473,103 @@ class SimWorld implements SimContext {
         ..vx = SimTrig.cosDeg(input.angleDeg) * flight.speed
         ..vy = -SimTrig.sinDeg(input.angleDeg) * flight.speed;
     }
+    if (flight is Homing && flight.chosenTarget) {
+      p
+        ..targetX = input.targetX?.toDouble()
+        ..targetY = input.targetY?.toDouble();
+    }
     final dirX = SimTrig.cosDeg(angle);
     if (dirX.abs() > 1e-9) unit.facing = dirX > 0 ? 1 : -1;
     spawnProjectile(p);
+  }
+
+  /// Pesawat Pengebom: the plane comes from the shooter's side of the
+  /// target. Each bomb is released early by the distance it drifts while
+  /// falling from the plane to the tapped height, so the carpet lands
+  /// around the tapped spot.
+  void _callBomber(Unit unit, BomberRun run, int tx, int ty) {
+    final bomb = Weapons.byId(run.childId);
+    final dir = tx >= unit.centerX ? 1 : -1;
+    final height = ty - run.altitude;
+    final fallSeconds = height > 0
+        ? sqrt(2 * height / (PhysicsConfig.gravity * bomb.gravityScale))
+        : 0.0;
+    final drift = run.speed * fallSeconds;
+    final drops = [
+      for (var i = 0; i < run.count; i++)
+        tx + dir * ((i * 2 - (run.count - 1)) * run.spacing / 2 - drift),
+    ];
+    _bombers.add(Bomber(
+      ownerId: unit.id,
+      bomb: bomb,
+      dir: dir,
+      x: drops.first - dir * run.leadIn,
+      y: run.altitude.toDouble(),
+      speed: run.speed,
+      dropXs: drops,
+      exitX: drops.last + dir * run.leadIn,
+    ));
+  }
+
+  /// Moves bombers (dropping bombs as they pass their release points) and
+  /// fires satellite strikes that are due.
+  void _stepAirSupport() {
+    for (var i = _bombers.length - 1; i >= 0; i--) {
+      final b = _bombers[i];
+      b.x += b.dir * b.speed * PhysicsConfig.dt;
+      while (b.dropped < b.dropXs.length &&
+          (b.dir > 0
+              ? b.x >= b.dropXs[b.dropped]
+              : b.x <= b.dropXs[b.dropped])) {
+        final x = b.dropXs[b.dropped++];
+        final y = b.y + 8;
+        spawnProjectile(Projectile(
+          id: nextProjectileId(),
+          ownerId: b.ownerId,
+          weapon: b.bomb,
+          x: x,
+          y: y,
+          vx: b.dir * b.speed,
+          vy: 0,
+        ));
+        _events.add(BombDropped(x, y));
+      }
+      if (b.gone) _bombers.removeAt(i);
+    }
+    for (var i = _strikes.length - 1; i >= 0; i--) {
+      final strike = _strikes[i];
+      if (strike.dueTick > _tick) continue;
+      _strikes.removeAt(i);
+      _orbital(strike);
+    }
+  }
+
+  /// Satelit: burns column [PendingStrike.x] from the top of the map to the
+  /// water, carving a shaft and hitting every unit within the beam's reach
+  /// once (pushed sideways, away from the beam), and setting off mines in
+  /// it.
+  void _orbital(PendingStrike strike) {
+    final weapon = strike.weapon;
+    final carve = (weapon.delivery as OrbitalStrike).carveRadius;
+    final x = strike.x;
+    final bottom = min(waterLevel, terrain.height);
+    for (var y = 0; y < bottom; y += 4) {
+      terrain.carveCircle(x, y, carve);
+    }
+    for (final u in _units) {
+      if (!u.alive || u.centerY > bottom + u.stats.hitRadius) continue;
+      final dx = u.centerX - x;
+      if (dx.abs() > weapon.radius + u.stats.hitRadius) continue;
+      strikeUnit(u, weapon.maxDamage, dx >= 0 ? 1.0 : -1.0, 0,
+          weapon.knockbackScale,
+          sourceId: strike.ownerId);
+    }
+    for (final m in _mines) {
+      if ((m.x - x).abs() <= weapon.radius) {
+        m.countdown = min(m.countdown ?? 1, 1);
+      }
+    }
+    _events.add(SatelliteStruck(x, bottom, carve));
   }
 
   /// Laser: walks the line 1 px at a time from the launch point, burning
@@ -878,6 +998,8 @@ class SimWorld implements SimContext {
       _projectiles.isEmpty &&
       _spawned.isEmpty &&
       _pendingShots.isEmpty &&
+      _bombers.isEmpty &&
+      _strikes.isEmpty &&
       _units.every((u) => !u.alive || (u.grounded && !u.isDashing)) &&
       _mines.every((m) => m.grounded && m.countdown == null);
 
@@ -886,6 +1008,8 @@ class SimWorld implements SimContext {
   void _finishTurn() {
     // A settle timeout must not leave a burst half-fired into the next turn.
     _pendingShots.clear();
+    _bombers.clear();
+    _strikes.clear();
     if (_suddenDeath) _maybeRaiseWater();
     for (final u in _units) {
       if (u.alive && u.hp <= 0) _kill(u, DeathCause.hp);
@@ -1018,7 +1142,9 @@ class SimWorld implements SimContext {
         ..addDouble(p.y)
         ..addDouble(p.vx)
         ..addDouble(p.vy)
-        ..addDouble(p.traveled);
+        ..addDouble(p.traveled)
+        ..addDouble(p.targetX ?? -1)
+        ..addDouble(p.targetY ?? -1);
     }
     h.add(_mines.length);
     for (final m in _mines) {
@@ -1030,6 +1156,19 @@ class SimWorld implements SimContext {
         ..addDouble(m.y);
     }
     h.add(_pendingShots.length);
+    h.add(_bombers.length);
+    for (final b in _bombers) {
+      h
+        ..add(b.dir)
+        ..add(b.dropped)
+        ..addDouble(b.x);
+    }
+    h.add(_strikes.length);
+    for (final s in _strikes) {
+      h
+        ..add(s.dueTick)
+        ..add(s.x);
+    }
     h.addBytes(terrain.data);
     return h.value;
   }

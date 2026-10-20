@@ -23,6 +23,15 @@ abstract final class WeaponArt {
     canvas.drawPicture(_cached('p:$id', (c) => _projectile(c, id)));
   }
 
+  /// The bomber plane (Pesawat Pengebom), about 96 px long, centred on the
+  /// origin and flying right; mirrored when [facingLeft].
+  static void bomberPlane(ui.Canvas canvas, {required bool facingLeft}) {
+    canvas.save();
+    if (facingLeft) canvas.scale(-1, 1);
+    canvas.drawPicture(_cached('plane', _plane));
+    canvas.restore();
+  }
+
   /// A mine lying on the ground (origin = resting point).
   static void mine(ui.Canvas canvas, {required bool small}) =>
       canvas.drawPicture(_cached('mine:$small', (c) {
@@ -78,6 +87,10 @@ abstract final class WeaponArt {
         _firecracker(c, 1);
       case 'flowerpot':
         _flowerpot(c, 1);
+      case 'homingMissile':
+        _missile(c);
+      case 'bomberBomb':
+        _aerialBomb(c);
       default:
         _rock(c, 5, 0xFF9E9A94);
     }
@@ -86,7 +99,199 @@ abstract final class WeaponArt {
   /// Weapons drawn pointing along their flight (the renderer rotates them
   /// to the velocity instead of tumbling them), with a motor flame.
   static bool pointsAlongFlight(String id) =>
-      id == 'bottleRocket' || id == 'snifferRocket';
+      hasMotor(id) || id == 'bomberBomb';
+
+  /// Rockets: drawn with a motor flame behind them.
+  static bool hasMotor(String id) =>
+      id == 'bottleRocket' || id == 'snifferRocket' || id == 'homingMissile';
+
+  /// The guided missile, about 22 px long pointing right: a light grey
+  /// body with a dark nose, a black band, canards and four tail fins.
+  static void _missile(ui.Canvas c) {
+    const body = 0xFFC9CDD0;
+    const dark = 0xFF3D4246;
+    for (final s in [-1.0, 1.0]) {
+      final fin = ui.Path()
+        ..moveTo(-5, s * 2.4)
+        ..lineTo(-10.5, s * 6.5)
+        ..lineTo(-10.5, s * 2.2)
+        ..close();
+      _shaded(c, fin, dark);
+      final canard = ui.Path()
+        ..moveTo(3, s * 2.4)
+        ..lineTo(1, s * 4.6)
+        ..lineTo(-0.5, s * 2.4)
+        ..close();
+      _shaded(c, canard, dark);
+    }
+    final hull = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-10, -2.6, 16, 5.2), const ui.Radius.circular(1.6));
+    c
+      ..drawRRect(hull, PaintKit.lit(hull.outerRect, body, light: 0.5))
+      ..drawRRect(hull, PaintKit.edge(body, 0.7))
+      ..drawRect(const ui.Rect.fromLTWH(-6.5, -2.6, 1.8, 5.2),
+          PaintKit.solid(0xFF2B2118));
+    final nose = ui.Path()
+      ..moveTo(6, -2.6)
+      ..quadraticBezierTo(11.5, -1.4, 12, 0)
+      ..quadraticBezierTo(11.5, 1.4, 6, 2.6)
+      ..close();
+    _shaded(c, nose, dark, light: 0.4);
+    c.drawLine(const ui.Offset(-9, -1.4), const ui.Offset(5, -1.4),
+        PaintKit.solid(0x77FFFFFF)..strokeWidth = 0.8);
+  }
+
+  /// An olive aerial bomb pointing right (nose first), about 16 px.
+  static void _aerialBomb(ui.Canvas c) {
+    const olive = 0xFF56643F;
+    for (final s in [-1.0, 1.0]) {
+      final fin = ui.Path()
+        ..moveTo(-4, s * 1.5)
+        ..lineTo(-8.5, s * 4.8)
+        ..lineTo(-8.5, s * 1)
+        ..close();
+      _shaded(c, fin, 0xFF3E4A2C);
+    }
+    final hull = ui.Path()
+      ..moveTo(-5, -1.8)
+      ..quadraticBezierTo(1, -4.4, 6, -2.6)
+      ..quadraticBezierTo(9, -1.2, 9, 0)
+      ..quadraticBezierTo(9, 1.2, 6, 2.6)
+      ..quadraticBezierTo(1, 4.4, -5, 1.8)
+      ..close();
+    _shaded(c, hull, olive, light: 0.4);
+    c
+      ..drawRect(const ui.Rect.fromLTWH(1.5, -3.6, 1.2, 7.2),
+          PaintKit.solid(0xFFF5B700))
+      ..drawLine(const ui.Offset(-3.5, -1.6), const ui.Offset(4.5, -2.3),
+          PaintKit.solid(0x55FFFFFF)..strokeWidth = 0.8);
+  }
+
+  /// Side view of a twin-engine bomber flying right: an olive fuselage with
+  /// a glazed nose, a tail fin, a wing with two engines and spinning
+  /// propeller discs, and a roundel.
+  static void _plane(ui.Canvas c) {
+    const hullArgb = 0xFF6B7657;
+    const darkArgb = 0xFF4A5340;
+    // Far wing, darker, behind the fuselage; then the tail fin.
+    final farWing = ui.Path()
+      ..moveTo(-4, -4)
+      ..lineTo(14, -4)
+      ..lineTo(2, -15)
+      ..lineTo(-8, -15)
+      ..close();
+    _shaded(c, farWing, darkArgb);
+    final tailFin = ui.Path()
+      ..moveTo(-34, -3)
+      ..lineTo(-44, -20)
+      ..lineTo(-36, -20)
+      ..lineTo(-24, -4)
+      ..close();
+    _shaded(c, tailFin, hullArgb, light: 0.4);
+    final hull = ui.Path()
+      ..moveTo(-46, -3)
+      ..quadraticBezierTo(-40, -8, -20, -8)
+      ..lineTo(30, -8)
+      ..quadraticBezierTo(46, -7, 48, 0)
+      ..quadraticBezierTo(46, 6, 30, 7)
+      ..lineTo(-20, 6)
+      ..quadraticBezierTo(-40, 5, -46, 1)
+      ..close();
+    _shaded(c, hull, hullArgb, light: 0.45);
+    // Glazed nose and cockpit.
+    final glass = ui.Path()
+      ..moveTo(36, -7.2)
+      ..quadraticBezierTo(46, -6, 47.5, 0)
+      ..lineTo(38, 0)
+      ..close();
+    c
+      ..drawPath(glass, PaintKit.solid(0xCC9FD4E8))
+      ..drawPath(glass, PaintKit.edge(0xFF9FD4E8, 0.6))
+      ..drawRRect(
+          ui.RRect.fromRectAndRadius(const ui.Rect.fromLTWH(22, -11, 10, 4),
+              const ui.Radius.circular(2)),
+          PaintKit.solid(0xCC9FD4E8));
+    // Near tailplane.
+    final tailplane = ui.Path()
+      ..moveTo(-30, 0)
+      ..lineTo(-46, 4)
+      ..lineTo(-40, 6)
+      ..lineTo(-24, 3)
+      ..close();
+    _shaded(c, tailplane, darkArgb);
+    // Near wing with two engines.
+    final wing = ui.Path()
+      ..moveTo(-6, 1)
+      ..lineTo(18, 1)
+      ..lineTo(4, 13)
+      ..lineTo(-12, 13)
+      ..close();
+    _shaded(c, wing, hullArgb, light: 0.35);
+    for (final ex in [-2.0, 12.0]) {
+      final nacelle = ui.RRect.fromRectAndRadius(
+          ui.Rect.fromLTWH(ex - 4, -1, 12, 6), const ui.Radius.circular(3));
+      c
+        ..drawRRect(
+            nacelle, PaintKit.lit(nacelle.outerRect, darkArgb, light: 0.4))
+        ..drawRRect(nacelle, PaintKit.edge(darkArgb, 0.6))
+        ..drawOval(
+            ui.Rect.fromCenter(
+                center: ui.Offset(ex + 9, 2), width: 3, height: 15),
+            PaintKit.solid(0x553D4246))
+        ..drawCircle(ui.Offset(ex + 8.6, 2), 1.4, PaintKit.solid(0xFF2B2118));
+    }
+    // Roundel and a panel line.
+    c
+      ..drawCircle(const ui.Offset(-14, -1), 4.2, PaintKit.solid(0xFFF6F2E8))
+      ..drawCircle(const ui.Offset(-14, -1), 4.2, PaintKit.edge(0xFF2B2118, 0.5))
+      ..drawCircle(const ui.Offset(-14, -1), 2.2, PaintKit.solid(0xFFC0392B))
+      ..drawLine(const ui.Offset(-40, -1), const ui.Offset(34, -1),
+          PaintKit.solid(0x33000000)..strokeWidth = 0.6);
+  }
+
+  /// A satellite: a gold body between two blue solar panels, with a dish
+  /// and a beam firing down.
+  static void _satellite(ui.Canvas c) {
+    c
+      ..drawRect(const ui.Rect.fromLTWH(-1.8, 2, 3.6, 14),
+          PaintKit.solid(0x887FD3FF))
+      ..drawRect(const ui.Rect.fromLTWH(-0.8, 2, 1.6, 14),
+          PaintKit.solid(0xFFF4FBFF));
+    for (final s in [-1.0, 1.0]) {
+      final panel = ui.Rect.fromLTWH(s < 0 ? -15 : 5, -7, 10, 7);
+      c
+        ..drawRect(panel, PaintKit.lit(panel, 0xFF2F5FA8, light: 0.4))
+        ..drawRect(panel, PaintKit.edge(0xFF1E3A66, 0.6))
+        ..drawLine(ui.Offset(panel.center.dx, panel.top),
+            ui.Offset(panel.center.dx, panel.bottom),
+            PaintKit.solid(0x66FFFFFF)..strokeWidth = 0.6)
+        ..drawLine(ui.Offset(s * 5, -3.5), ui.Offset(s * 3, -3.5),
+            PaintKit.solid(0xFF6B7280)..strokeWidth = 1.2);
+    }
+    final body = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-3.5, -9, 7, 11), const ui.Radius.circular(1.2));
+    c
+      ..drawRRect(body, PaintKit.lit(body.outerRect, 0xFFD4A62A, light: 0.45))
+      ..drawRRect(body, PaintKit.edge(0xFFD4A62A, 0.6))
+      ..drawCircle(const ui.Offset(0, 2.6), 2.2, PaintKit.solid(0xFFB8BEC4))
+      ..drawCircle(
+          const ui.Offset(0, 2.6), 2.2, PaintKit.edge(0xFF6B7280, 0.5));
+  }
+
+  /// A red crosshair ring (the missile icon).
+  static void _crosshair(ui.Canvas c, ui.Offset at, double r) {
+    final paint = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..color = const ui.Color(0xFFE5484D);
+    c
+      ..drawCircle(at, r, paint)
+      ..drawLine(at + ui.Offset(-r - 2, 0), at + ui.Offset(-r + 2.5, 0), paint)
+      ..drawLine(at + ui.Offset(r - 2.5, 0), at + ui.Offset(r + 2, 0), paint)
+      ..drawLine(at + ui.Offset(0, -r - 2), at + ui.Offset(0, -r + 2.5), paint)
+      ..drawLine(at + ui.Offset(0, r - 2.5), at + ui.Offset(0, r + 2), paint);
+  }
+
 
   /// A small bottle rocket pointing right, about 18 px long: a translucent
   /// bottle body, a coloured nose cone and two fins.
@@ -541,6 +746,32 @@ abstract final class WeaponArt {
         }
       case 'digClaws':
         _claws(c);
+      case 'bomber':
+        for (final (x, y) in [(-5.0, 6.0), (2.0, 11.0), (9.0, 6.0)]) {
+          c
+            ..save()
+            ..translate(x, y)
+            ..rotate(1.2)
+            ..scale(0.75);
+          _aerialBomb(c);
+          c.restore();
+        }
+        c
+          ..save()
+          ..translate(1, -6)
+          ..scale(0.33);
+        _plane(c);
+        c.restore();
+      case 'satellite':
+        big(() => _satellite(c), 1.15);
+      case 'homingMissile':
+        _crosshair(c, const ui.Offset(8, -8), 6);
+        big(() {
+          c
+            ..translate(-2, 3)
+            ..rotate(-0.75);
+          _missile(c);
+        }, 1.2);
       default:
         big(() => _rock(c, 6, 0xFF9E9A94));
     }

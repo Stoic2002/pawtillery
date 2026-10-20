@@ -362,5 +362,12 @@
   "netHostLost": "Koneksi ke host terputus.",
   "netDesyncTitle": "Tidak sinkron",
   "netDesyncBody": "HP-HP tidak lagi sepakat soal match ini, jadi match harus berhenti. Pastikan semua HP memakai versi yang sama.",
-  "netBackToLobby": "Kembali ke lobby"
+  "netBackToLobby": "Kembali ke lobby",
+  "weaponBomber": "Pesawat Pengebom",
+  "weaponSatellite": "Serangan Satelit",
+  "weaponHomingMissile": "Rudal Pemburu",
+  "weaponBomberDesc": "Pesawat terbang melintas dan menjatuhkan lima bom di titik yang kamu pilih.",
+  "weaponSatelliteDesc": "Menandai satu titik, lalu laser dari orbit membakar lurus ke bawah menembus semuanya.",
+  "weaponHomingMissileDesc": "Ketuk target, lalu luncurkan: rudal mengejar titik itu sampai bahan bakarnya habis.",
+  "hudTapTargetThenAim": "Ketuk target, lalu bidik"
 }

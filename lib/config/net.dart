@@ -1,8 +1,9 @@
 /// Local-network multiplayer (Play on Wi-Fi): ports, timing and limits.
 abstract final class NetConfig {
-  /// Bumped whenever a message changes shape; phones with another version
-  /// are turned away in the lobby.
-  static const int protocolVersion = 1;
+  /// Bumped whenever a message changes shape or the simulation changes
+  /// without an app version bump (new weapons); phones with another version
+  /// are turned away in the lobby. 2 = bomber, satellite, homing missile.
+  static const int protocolVersion = 2;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;

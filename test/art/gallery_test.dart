@@ -125,6 +125,15 @@ void main() {
       ..scale(3);
     WeaponArt.mine(canvas, small: false);
     canvas.restore();
+    // The bomber plane, both ways, on the last row.
+    for (final (x, left) in [(cell * 1.2, false), (cell * 3.4, true)]) {
+      canvas
+        ..save()
+        ..translate(x, rows * cell - cell / 2)
+        ..scale(1.4);
+      WeaponArt.bomberPlane(canvas, facingLeft: left);
+      canvas.restore();
+    }
     await tester.runAsync(
       () => save(
         recorder.endRecording(),
@@ -135,20 +144,23 @@ void main() {
     );
   });
 
-  testWidgets('effects: laser beam and lightning bolt', (tester) async {
+  testWidgets('effects: laser beam, lightning bolt, satellite strike', (
+    tester,
+  ) async {
     final particles = ParticleSystem()
       ..beam(40, 150, 360, 110)
       ..bolt(520, 170)
+      ..orbital(720, 190)
       ..update(0.05);
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder)
       ..drawRect(
-        const ui.Rect.fromLTWH(0, 0, 640, 220),
+        const ui.Rect.fromLTWH(0, 0, 800, 220),
         ui.Paint()..color = const ui.Color(0xFF3A3050),
       );
     particles.render(canvas);
     await tester.runAsync(
-      () => save(recorder.endRecording(), 640, 220, 'effects'),
+      () => save(recorder.endRecording(), 800, 220, 'effects'),
     );
   });
 

@@ -1354,5 +1354,33 @@
   "netBackToLobby": "Back to lobby",
   "@netBackToLobby": {
     "description": "Return to the Wi-Fi room's lobby."
+  },
+  "weaponBomber": "Bomber",
+  "@weaponBomber": {
+    "description": "Weapon: a bomber plane drops a carpet of bombs."
+  },
+  "weaponSatellite": "Satellite Strike",
+  "@weaponSatellite": {
+    "description": "Weapon: a laser from orbit burns down a column."
+  },
+  "weaponHomingMissile": "Homing Missile",
+  "@weaponHomingMissile": {
+    "description": "Weapon: a missile that chases a target you pick."
+  },
+  "weaponBomberDesc": "A bomber flies over and drops five bombs on a spot you pick.",
+  "@weaponBomberDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponSatelliteDesc": "Marks a spot, then a laser from orbit burns straight down through everything.",
+  "@weaponSatelliteDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponHomingMissileDesc": "Tap a target, then launch: the missile chases that spot until its fuel runs out.",
+  "@weaponHomingMissileDesc": {
+    "description": "Weapon menu description."
+  },
+  "hudTapTargetThenAim": "Tap a target, then aim",
+  "@hudTapTargetThenAim": {
+    "description": "Hint for the homing missile before a target is picked."
   }
 }

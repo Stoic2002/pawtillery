@@ -401,10 +401,10 @@ void main() {
   });
 }
 
-// Re-pinned 2026-10-19: the hash now covers the eight added shared weapons
-// and the loadout's signature switch (same play, verified against the old
-// layout).
-const _pinnedWeaponsHash = 4107600983;
+// Re-pinned 2026-10-20: the hash now also covers the bomber, satellite and
+// homing missile (ammo, planes, pending strikes, missile targets). Same
+// play: hashing with the old layout still gives the old pin, 4107600983.
+const _pinnedWeaponsHash = 1977243991;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

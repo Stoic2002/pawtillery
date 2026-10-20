@@ -1168,4 +1168,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get netBackToLobby => 'Back to lobby';
+
+  @override
+  String get weaponBomber => 'Bomber';
+
+  @override
+  String get weaponSatellite => 'Satellite Strike';
+
+  @override
+  String get weaponHomingMissile => 'Homing Missile';
+
+  @override
+  String get weaponBomberDesc =>
+      'A bomber flies over and drops five bombs on a spot you pick.';
+
+  @override
+  String get weaponSatelliteDesc =>
+      'Marks a spot, then a laser from orbit burns straight down through everything.';
+
+  @override
+  String get weaponHomingMissileDesc =>
+      'Tap a target, then launch: the missile chases that spot until its fuel runs out.';
+
+  @override
+  String get hudTapTargetThenAim => 'Tap a target, then aim';
 }

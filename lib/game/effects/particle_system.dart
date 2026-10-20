@@ -217,6 +217,29 @@ class ParticleSystem extends Component {
     }
   }
 
+  /// Satellite strike: a thick cold-white beam from far above down to
+  /// ([x], [y]), a flash where it ends and sparks along the shaft.
+  void orbital(double x, double y) {
+    final top = math.min(-300.0, y - 1600);
+    _streaks
+      ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 0.75, 0x887FD3FF, 30))
+      ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 0.55, 0xFFF4FBFF, 10));
+    _spawn(
+      x: x, y: y, life: 0.35, size: 18, grow: 160,
+      argb: 0xFFE6F7FF, kind: _glow,
+    );
+    for (var i = 0; i < 18; i++) {
+      final a = _rand(0, math.pi * 2);
+      final speed = _rand(40, 200);
+      _spawn(
+        x: x + _rand(-8, 8), y: _rand(math.max(0, y - 500), y),
+        vx: math.cos(a) * speed, vy: math.sin(a) * speed,
+        life: _rand(0.25, 0.6), size: 1.8, gravity: 250,
+        argb: 0xFFBDE9FF, kind: _glow,
+      );
+    }
+  }
+
   /// Lightning: a jagged bolt from the top of the map down to ([x], [y]).
   void bolt(double x, double y) {
     final points = <ui.Offset>[ui.Offset(x + _rand(-30, 30), y - 900)];

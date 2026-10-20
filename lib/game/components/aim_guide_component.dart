@@ -7,6 +7,7 @@ import 'package:flutter/painting.dart';
 import '../../config/controls.dart';
 import '../../config/weapons.dart';
 import '../../sim/physics.dart';
+import '../../sim/unit.dart';
 import '../../sim/world.dart';
 import '../hud_state.dart';
 
@@ -80,9 +81,15 @@ class AimGuideComponent extends Component {
     final a = aim();
     final unit = sim.activeUnit;
     final weapon = Weapons.byId(a.weaponId);
+    final guided = weapon.aim == AimMode.targetAndAim;
     final thrown =
-        weapon.aim == AimMode.angleAndPower && weapon.flight is! Boomerang;
-    if (!a.active || unit == null || !unit.alive || !thrown || !showPath()) {
+        (weapon.aim == AimMode.angleAndPower && weapon.flight is! Boomerang) ||
+        guided;
+    if (!(a.active || guided) ||
+        unit == null ||
+        !unit.alive ||
+        !thrown ||
+        !showPath()) {
       _path = const [];
       return;
     }
@@ -114,35 +121,55 @@ class AimGuideComponent extends Component {
     if (unit == null || !unit.alive) return;
     final weapon = Weapons.byId(a.weaponId);
 
-    if (weapon.aim == AimMode.target) {
+    final guided = weapon.aim == AimMode.targetAndAim;
+    if (weapon.aim == AimMode.target || guided) {
       final tx = a.targetX;
       final ty = a.targetY;
-      if (tx == null || ty == null) return;
-      // The prototype's target: an ink ring with an orange wash (grey
-      // when the spot is not allowed) and a centre dot.
-      final c = ui.Offset(tx.toDouble(), ty.toDouble());
-      _cross.color = const ui.Color(0xFF2B2118);
-      canvas
-        ..drawCircle(
-          c,
-          16,
-          ui.Paint()
-            ..color = a.targetValid
-                ? const ui.Color(0x59FF8A3D)
-                : const ui.Color(0x59CFC4B3),
-        )
-        ..drawCircle(c, 16, _cross)
-        ..drawCircle(c, 3, ui.Paint()..color = const ui.Color(0xFF2B2118));
-      if (weapon.delivery is AirStrike || weapon.delivery is Lightning) {
-        canvas.drawLine(
-          ui.Offset(c.dx, 0),
-          ui.Offset(c.dx, c.dy - 16),
-          _dash..strokeWidth = 2,
-        );
+      if (tx == null || ty == null) {
+        if (!guided) return;
+      } else {
+        _targetMarker(canvas, weapon, a, tx, ty);
       }
-      return;
+      // The missile is also aimed with the slingshot: draw that too.
+      if (!guided) return;
     }
-    if (!a.active) return;
+    if (!a.active && !guided) return;
+    _aimRing(canvas, unit, weapon, a);
+  }
+
+  /// The prototype's target: an ink ring with an orange wash (grey when the
+  /// spot is not allowed) and a centre dot; a dashed drop line for things
+  /// that come from the sky.
+  void _targetMarker(
+      ui.Canvas canvas, WeaponDef weapon, AimState a, int tx, int ty) {
+    final c = ui.Offset(tx.toDouble(), ty.toDouble());
+    _cross.color = const ui.Color(0xFF2B2118);
+    canvas
+      ..drawCircle(
+        c,
+        16,
+        ui.Paint()
+          ..color = a.targetValid
+              ? const ui.Color(0x59FF8A3D)
+              : const ui.Color(0x59CFC4B3),
+      )
+      ..drawCircle(c, 16, _cross)
+      ..drawCircle(c, 3, ui.Paint()..color = const ui.Color(0xFF2B2118));
+    final delivery = weapon.delivery;
+    if (delivery is AirStrike ||
+        delivery is Lightning ||
+        delivery is OrbitalStrike ||
+        delivery is BomberRun) {
+      canvas.drawLine(
+        ui.Offset(c.dx, 0),
+        ui.Offset(c.dx, c.dy - 16),
+        _dash..strokeWidth = 2,
+      );
+    }
+  }
+
+  /// The slingshot's dashed ring, aim line or path, and the readout.
+  void _aimRing(ui.Canvas canvas, Unit unit, WeaponDef weapon, AimState a) {
 
     final rad = a.angle * math.pi / 180;
     final dir = ui.Offset(math.cos(rad), -math.sin(rad));
@@ -191,7 +218,8 @@ class AimGuideComponent extends Component {
     }
 
     if (weapon.aim == AimMode.angleAndPower ||
-        weapon.aim == AimMode.direction) {
+        weapon.aim == AimMode.direction ||
+        weapon.aim == AimMode.targetAndAim) {
       // "45° · 60%" on a dark pill above the unit.
       final text = weapon.aim == AimMode.direction
           ? '${a.angle}°'

@@ -49,7 +49,12 @@ class ProjectilesComponent extends Component {
         ..save()
         ..translate(p.x, p.y)
         ..rotate(angle);
-      if (along) _flame(canvas, p.mode == 1 || p.weapon.flight is! Homing);
+      // Rockets show their motor: small before a homing motor starts, gone
+      // once a guided missile has burnt out.
+      if (WeaponArt.hasMotor(p.weapon.id) &&
+          !(flight is Homing && p.mode == 2)) {
+        _flame(canvas, p.mode == 1 || flight is! Homing);
+      }
       WeaponArt.projectile(canvas, p.weapon.id);
       canvas.restore();
       if (p.weapon.id == Weapons.firecracker.id) _fuseSpark(canvas, p);

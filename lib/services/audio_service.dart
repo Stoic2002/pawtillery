@@ -107,6 +107,7 @@ class AudioService {
         WeaponUsed(weaponId: 'laserPointer') => Sfx.laser,
         WeaponUsed() => Sfx.fire,
         LightningStruck() => Sfx.thunder,
+        SatelliteStruck() => Sfx.laser,
         ExplosionEvent() => Sfx.explosion,
         UnitJumped() => Sfx.jump,
         UnitDamaged() => Sfx.hit,
@@ -136,6 +137,8 @@ class Haptics {
         _buzz(radius >= 50
             ? HapticFeedback.heavyImpact
             : HapticFeedback.mediumImpact);
+      case SatelliteStruck():
+        _buzz(HapticFeedback.heavyImpact);
       default:
         break;
     }

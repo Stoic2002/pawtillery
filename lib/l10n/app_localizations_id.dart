@@ -1169,4 +1169,28 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get netBackToLobby => 'Kembali ke lobby';
+
+  @override
+  String get weaponBomber => 'Pesawat Pengebom';
+
+  @override
+  String get weaponSatellite => 'Serangan Satelit';
+
+  @override
+  String get weaponHomingMissile => 'Rudal Pemburu';
+
+  @override
+  String get weaponBomberDesc =>
+      'Pesawat terbang melintas dan menjatuhkan lima bom di titik yang kamu pilih.';
+
+  @override
+  String get weaponSatelliteDesc =>
+      'Menandai satu titik, lalu laser dari orbit membakar lurus ke bawah menembus semuanya.';
+
+  @override
+  String get weaponHomingMissileDesc =>
+      'Ketuk target, lalu luncurkan: rudal mengejar titik itu sampai bahan bakarnya habis.';
+
+  @override
+  String get hudTapTargetThenAim => 'Ketuk target, lalu bidik';
 }

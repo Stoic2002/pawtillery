@@ -677,3 +677,40 @@ because the iOS Simulator is how two "phones" are tested on one Mac
 (Play on Wi-Fi). `web/` stays because the web build still works, without
 the Wi-Fi option. `flutter create --platforms=macos .` (or windows,
 linux) brings one back if it is ever wanted.
+
+## Bomber, satellite strike and homing missile (2026-10-20)
+
+The developer asked for bombs from a plane, a strike from a satellite and
+a homing missile, and chose a plainly military look over pet-themed
+versions. Mechanics follow the genre (Air Strike and Homing Missile in
+Worms, Homing Bee in Hedgewars); names and drawings are our own.
+
+- **Pesawat Pengebom** (`BomberRun`): tap a spot. A bomber comes in from
+  the shooter's side at the top of the map and releases five bombs. Each
+  bomb is released early by the distance it drifts while falling (it
+  keeps the plane's speed), so the carpet lands around the tapped spot and
+  slants in flight. The turn waits for the plane to leave. Bombs are a
+  hidden child weapon (30 damage each, no wind).
+- **Serangan Satelit** (`OrbitalStrike`): tap a column. A red sighting
+  line and a closing ring show for 1.25 s, then a beam burns straight down
+  to the water, carving a shaft and hitting every unit within reach once
+  (55 damage, pushed sideways). It does not spare the shooter.
+- **Rudal Pemburu**: the new aim mode `targetAndAim`. Tap a target, then
+  aim the launch with the slingshot. After a 0.5 s arc the motor locks on
+  to the tapped point (not a unit) and steers to it for 4 s, then burns
+  out and falls. Hills can block it. `Homing` gained `chosenTarget` and
+  `fuelTicks`; the Sniffer Rocket is unchanged.
+- **Balance:** each is 1 per team in the Standard loadout, off in Classic,
+  unlimited in Chaos (presets and setup's Weapons tab pick them up
+  automatically).
+- **Determinism:** bombers, pending strikes and missile targets are in
+  the state hash. Both pins changed; hashing with the old layout still
+  gives the old pins, so play with the existing weapons is unchanged. The
+  Wi-Fi protocol version went to 2, so a phone on the older build is
+  turned away instead of desyncing.
+- **Art and effects:** a twin-engine olive bomber with spinning
+  propellers, an olive aerial bomb, a grey missile with canards (motor
+  flame until it burns out), a satellite icon, and the orbital beam as a
+  thick cold-white column with sparks. Sound: the laser effect and a heavy
+  buzz for the beam.
+

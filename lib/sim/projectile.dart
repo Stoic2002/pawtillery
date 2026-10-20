@@ -51,4 +51,9 @@ class Projectile {
 
   /// Body of a walking projectile (Bebek Peledak), moved with [UnitPhysics].
   Unit? body;
+
+  /// The point a guided missile steers to (Rudal Pemburu); null = it
+  /// chases the nearest enemy.
+  double? targetX;
+  double? targetY;
 }

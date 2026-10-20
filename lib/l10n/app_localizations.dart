@@ -2269,6 +2269,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to lobby'**
   String get netBackToLobby;
+
+  /// Weapon: a bomber plane drops a carpet of bombs.
+  ///
+  /// In en, this message translates to:
+  /// **'Bomber'**
+  String get weaponBomber;
+
+  /// Weapon: a laser from orbit burns down a column.
+  ///
+  /// In en, this message translates to:
+  /// **'Satellite Strike'**
+  String get weaponSatellite;
+
+  /// Weapon: a missile that chases a target you pick.
+  ///
+  /// In en, this message translates to:
+  /// **'Homing Missile'**
+  String get weaponHomingMissile;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'A bomber flies over and drops five bombs on a spot you pick.'**
+  String get weaponBomberDesc;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Marks a spot, then a laser from orbit burns straight down through everything.'**
+  String get weaponSatelliteDesc;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a target, then launch: the missile chases that spot until its fuel runs out.'**
+  String get weaponHomingMissileDesc;
+
+  /// Hint for the homing missile before a target is picked.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a target, then aim'**
+  String get hudTapTargetThenAim;
 }
 
 class _AppLocalizationsDelegate

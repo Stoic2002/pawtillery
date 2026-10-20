@@ -16,6 +16,10 @@ enum AimMode {
 
   /// Tap a point on the map, then confirm.
   target,
+
+  /// Tap a target on the map and aim the launch with the slingshot (the
+  /// guided missile).
+  targetAndAim,
 }
 
 // ------------------------------------------------------------- delivery
@@ -43,6 +47,37 @@ final class AirStrike extends Delivery {
   final String childId;
   final int count;
   final int spacing;
+}
+
+/// A bomber flies in from the shooter's side at [altitude] (world y) and
+/// [speed] px/s and drops [count] [childId] bombs, released so that they
+/// land [spacing] px apart around the chosen spot. The bombs keep the
+/// plane's speed, so they fall at a slant. It appears [leadIn] px before
+/// its first drop and leaves the same distance after its last.
+final class BomberRun extends Delivery {
+  const BomberRun({
+    required this.childId,
+    required this.count,
+    required this.spacing,
+    required this.speed,
+    required this.altitude,
+    required this.leadIn,
+  });
+  final String childId;
+  final int count;
+  final int spacing;
+  final double speed;
+  final int altitude;
+  final int leadIn;
+}
+
+/// The chosen column is marked, and after [delayTicks] a beam from orbit
+/// burns straight down it to the water: a [carveRadius] shaft through the
+/// ground, and every unit within reach of it hit once (the shooter too).
+final class OrbitalStrike extends Delivery {
+  const OrbitalStrike({required this.delayTicks, required this.carveRadius});
+  final int delayTicks;
+  final int carveRadius;
 }
 
 /// Puts this weapon down as a mine next to the unit.
@@ -174,19 +209,27 @@ final class Drill extends FlightSpec {
 }
 
 /// Flies like a normal shot for [delayTicks], then its motor starts:
-/// constant [speed], no gravity or wind, turning towards the nearest enemy
-/// unit by [steer] (0–1) of the way each tick. Explodes on what it touches.
+/// constant [speed], no gravity or wind, turning towards its quarry by
+/// [steer] (0–1) of the way each tick. Explodes on what it touches.
+///
+/// The quarry is the nearest enemy unit, or with [chosenTarget] the point
+/// the player tapped. With [fuelTicks] the motor burns out after that long
+/// and the projectile falls like a normal shot.
 final class Homing extends FlightSpec {
   const Homing({
     required this.delayTicks,
     required this.speed,
     required this.steer,
+    this.chosenTarget = false,
+    this.fuelTicks,
   });
   final int delayTicks;
 
   /// px/s.
   final double speed;
   final double steer;
+  final bool chosenTarget;
+  final int? fuelTicks;
 }
 
 // --------------------------------------------------------------- impact
@@ -503,6 +546,58 @@ abstract final class Weapons {
     placeholderArgb: 0xFFC0623A,
   );
 
+  // ---- military air support (2026-10-20, docs/decisions.md) ----------
+
+  /// A bomber crosses the sky and carpets the chosen spot with five bombs.
+  static const bomber = WeaponDef(
+    id: 'bomber',
+    nameKey: 'weaponBomber',
+    aim: AimMode.target,
+    delivery: BomberRun(
+      childId: 'bomberBomb',
+      count: 5,
+      spacing: 36,
+      speed: 300,
+      altitude: 40,
+      leadIn: 520,
+    ),
+    ammo: 1,
+    placeholderArgb: 0xFF5B6B4A,
+  );
+
+  /// A satellite marks a column, then burns it from orbit.
+  static const satellite = WeaponDef(
+    id: 'satellite',
+    nameKey: 'weaponSatellite',
+    aim: AimMode.target,
+    delivery: OrbitalStrike(delayTicks: 75, carveRadius: 14),
+    maxDamage: 55,
+    radius: 22,
+    knockbackScale: 0.7,
+    ammo: 1,
+    placeholderArgb: 0xFF7FD3FF,
+  );
+
+  /// Tap a target, then launch: after a short arc the missile locks on
+  /// and steers to that spot until its fuel runs out.
+  static const homingMissile = WeaponDef(
+    id: 'homingMissile',
+    nameKey: 'weaponHomingMissile',
+    aim: AimMode.targetAndAim,
+    delivery: Launch(),
+    flight: Homing(
+      delayTicks: 30,
+      speed: 380,
+      steer: 0.12,
+      chosenTarget: true,
+      fuelTicks: 4 * 60,
+    ),
+    maxDamage: 50,
+    radius: 46,
+    ammo: 1,
+    placeholderArgb: 0xFF9AA3A8,
+  );
+
   /// Dig a short tunnel sideways (a tool, no damage).
   static const digClaws = WeaponDef(
     id: 'digClaws',
@@ -704,11 +799,25 @@ abstract final class Weapons {
     placeholderArgb: 0xFFD7B56D,
   );
 
+  /// One bomb of the bomber's carpet: heavy, not pushed by the wind.
+  static const bomberBomb = WeaponDef(
+    id: 'bomberBomb',
+    nameKey: 'weaponBomber',
+    aim: AimMode.none,
+    delivery: Launch(),
+    flight: Ballistic(),
+    maxDamage: 30,
+    radius: 32,
+    hidden: true,
+    placeholderArgb: 0xFF4E5A3C,
+  );
+
   /// The shared arsenal, in menu order.
   static const shared = [
     rock,
     bottleRocket,
     snifferRocket,
+    homingMissile,
     grenade,
     cluster,
     firecracker,
@@ -717,6 +826,8 @@ abstract final class Weapons {
     laserPointer,
     thunderCloud,
     flowerpotRain,
+    bomber,
+    satellite,
     punch,
     mine,
     digClaws,
@@ -745,6 +856,7 @@ abstract final class Weapons {
     egg,
     flowerpot,
     seedMine,
+    bomberBomb,
   ];
 
   static final Map<String, WeaponDef> _byId = {for (final w in all) w.id: w};

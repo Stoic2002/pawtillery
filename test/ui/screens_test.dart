@@ -156,7 +156,9 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('Classic'));
     await tester.pumpAndSettle();
-    expect(find.text('Off'), findsNWidgets(8));
+    // Everything added after the original eight: 8 pet-themed weapons and
+    // the 3 military ones.
+    expect(find.text('Off'), findsNWidgets(11));
   });
 
   testWidgets('setup: a unit opens the unit editor', (tester) async {

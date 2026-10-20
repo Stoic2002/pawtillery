@@ -20,6 +20,7 @@ import '../sim/turn_manager.dart';
 import '../sim/world.dart';
 import 'camera/arena_camera.dart';
 import 'components/aim_guide_component.dart';
+import 'components/air_support_component.dart';
 import 'components/backdrop_components.dart';
 import 'components/decor_component.dart';
 import 'components/projectiles_component.dart';
@@ -182,6 +183,7 @@ class PawtilleryGame extends FlameGame {
         unitNames: unitNames,
       ),
       ProjectilesComponent(sim),
+      AirSupportComponent(sim),
       WaterBackComponent(
           map: map, worldSize: worldSize, level: () => sim.waterLevel),
       WaterComponent(
@@ -247,15 +249,18 @@ class PawtilleryGame extends FlameGame {
     );
   }
 
-  /// Slingshot result; ignored for weapons that aren't aimed that way.
+  /// Slingshot result; ignored for weapons that aren't aimed that way. The
+  /// homing missile is ready only once it also has a target.
   void setAim({required int angle, required int power}) {
     final mode = weapon.aim;
     if (!canAim ||
-        (mode != AimMode.angleAndPower && mode != AimMode.direction)) {
+        (mode != AimMode.angleAndPower &&
+            mode != AimMode.direction &&
+            mode != AimMode.targetAndAim)) {
       return;
     }
     aim.value = aim.value.copyWith(
-      active: true,
+      active: mode != AimMode.targetAndAim || aim.value.targetValid,
       angle: angle % 360,
       power: power.clamp(0, 100),
     );
@@ -271,10 +276,16 @@ class PawtilleryGame extends FlameGame {
       fuseSeconds:
           seconds.clamp(FuseConfig.minSeconds, FuseConfig.maxSeconds));
 
-  /// Picks a target for target weapons from a screen position.
+  /// Picks a target for target weapons (and the homing missile) from a
+  /// screen position.
   void setTargetAtScreen(Vector2 screen) {
     final unit = sim.activeUnit;
-    if (!canAim || unit == null || weapon.aim != AimMode.target) return;
+    final mode = weapon.aim;
+    if (!canAim ||
+        unit == null ||
+        (mode != AimMode.target && mode != AimMode.targetAndAim)) {
+      return;
+    }
     final p = camera.globalToLocal(screen);
     final x = p.x.round();
     final y = p.y.round();
@@ -395,6 +406,9 @@ class PawtilleryGame extends FlameGame {
     if (sim.projectiles.isNotEmpty) {
       final p = sim.projectiles.first;
       _camera.follow(Vector2(p.x, p.y));
+    } else if (sim.bombers.isNotEmpty) {
+      final b = sim.bombers.first;
+      _camera.follow(Vector2(b.x, b.y));
     } else {
       _keepActiveUnitInView();
     }
@@ -493,6 +507,10 @@ class PawtilleryGame extends FlameGame {
           _aimGuide.invalidate();
         case LightningStruck(:final x, :final y):
           particles.bolt(x.toDouble(), y.toDouble());
+        case SatelliteStruck(:final x, :final y, :final radius):
+          _terrain.carveLine(x.toDouble(), 0, x.toDouble(), y.toDouble(), radius);
+          particles.orbital(x.toDouble(), y.toDouble());
+          _aimGuide.invalidate();
         case TerrainAdded(:final area):
           _terrain.rebuild(area);
           _aimGuide.invalidate();
@@ -513,6 +531,7 @@ class PawtilleryGame extends FlameGame {
           particles.splash(sim.units[unitId].centerX, sim.waterLevel.toDouble(),
               waterArgb: map.waterArgb);
         case ProjectileLaunched() ||
+              BombDropped() ||
               ProjectileRemoved() ||
               UnitDamaged() ||
               UnitDied() ||

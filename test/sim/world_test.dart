@@ -287,7 +287,7 @@ void main() {
 
 int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 
-// Re-pinned 2026-10-19: the hash now covers the eight added shared weapons
-// and the loadout's signature switch (same play, verified against the old
-// layout).
-const _pinnedScriptHash = 2504866130;
+// Re-pinned 2026-10-20: the hash now also covers the bomber, satellite and
+// homing missile (ammo, planes, pending strikes, missile targets). Same
+// play: hashing with the old layout still gives the old pin, 2504866130.
+const _pinnedScriptHash = 973916818;

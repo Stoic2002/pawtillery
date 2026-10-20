@@ -56,11 +56,20 @@ class ArenaHud extends StatelessWidget {
             final weapon = Weapons.byId(aim.weaponId);
             final acting = hud.phase == TurnPhase.action && game.canAim;
             final targeting = acting && weapon.aim == AimMode.target;
+            final l10n = AppLocalizations.of(context);
+            final hint = targeting
+                ? l10n.hudTapTarget
+                : acting &&
+                      weapon.aim == AimMode.targetAndAim &&
+                      !aim.hasTarget
+                ? l10n.hudTapTargetThenAim
+                : null;
             final aiming =
                 acting &&
                 aim.active &&
                 (weapon.aim == AimMode.angleAndPower ||
-                    weapon.aim == AimMode.direction);
+                    weapon.aim == AimMode.direction ||
+                    weapon.aim == AimMode.targetAndAim);
             final teamColor = Color(game.teamColors[hud.activeTeam]);
             final remote = remoteTurnName?.call();
             return Stack(
@@ -86,7 +95,7 @@ class ArenaHud extends StatelessWidget {
                             game: game,
                             teamColor: teamColor,
                             symbol: teamSymbols[hud.activeTeam],
-                            targeting: targeting,
+                            hint: hint,
                           ),
                         ),
                         Align(
@@ -314,14 +323,15 @@ class _TopCentre extends StatelessWidget {
     required this.game,
     required this.teamColor,
     required this.symbol,
-    required this.targeting,
+    required this.hint,
   });
 
   final HudState hud;
   final PawtilleryGame game;
   final Color teamColor;
   final TeamSymbol symbol;
-  final bool targeting;
+  /// A how-to-aim hint under the clock (target weapons).
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
@@ -457,7 +467,7 @@ class _TopCentre extends StatelessWidget {
               ),
             ),
           ],
-          if (targeting) ...[
+          if (hint case final String text) ...[
             const SizedBox(height: 6),
             pill(
               fill: Paw.ink,
@@ -470,10 +480,7 @@ class _TopCentre extends StatelessWidget {
                     color: Paw.cream,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    l10n.hudTapTarget,
-                    style: Paw.text(14, color: Paw.cream),
-                  ),
+                  Text(text, style: Paw.text(14, color: Paw.cream)),
                 ],
               ),
             ),
@@ -1008,7 +1015,8 @@ class _AimPanel extends StatelessWidget {
             l10n.hudIncrease,
             () => game.adjustAngle(ControlsConfig.angleStep),
           ),
-          if (weapon.aim == AimMode.angleAndPower) ...[
+          if (weapon.aim == AimMode.angleAndPower ||
+              weapon.aim == AimMode.targetAndAim) ...[
             divider(),
             round(
               Icons.remove_rounded,

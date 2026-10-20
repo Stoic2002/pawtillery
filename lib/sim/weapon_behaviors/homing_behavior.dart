@@ -8,10 +8,12 @@ import '../unit.dart';
 import 'flight_behavior.dart';
 import 'sim_context.dart';
 
-/// Roket Pelacak: a normal arc for [Homing.delayTicks] (mode 0), then a
-/// motor at constant speed (mode 1) that bends its heading towards the
-/// nearest enemy each tick. Only sqrt and arithmetic, so it stays
-/// deterministic across devices.
+/// Roket Pelacak and Rudal Pemburu: a normal arc for [Homing.delayTicks]
+/// (mode 0), then a motor at constant speed (mode 1) that bends its
+/// heading towards the quarry each tick: the nearest enemy, or the point
+/// the player chose. With fuel, it burns out (mode 2) and falls like a
+/// normal shot. Only sqrt and arithmetic, so it stays deterministic
+/// across devices.
 class HomingBehavior extends FlightBehavior {
   const HomingBehavior(this.spec);
   final Homing spec;
@@ -19,14 +21,18 @@ class HomingBehavior extends FlightBehavior {
   @override
   FlightOutcome tick(Projectile p, SimContext ctx) {
     final FlightOutcome o;
-    if (p.mode == 0) {
+    final fuel = spec.fuelTicks;
+    if (p.mode != 1) {
       o = ProjectilePhysics.step(p, ctx.terrain,
           wind: ctx.wind, waterLevel: ctx.waterLevel, units: ctx.units);
-      if (o == FlightOutcome.flying && p.ageTicks >= spec.delayTicks) {
+      if (p.mode == 0 &&
+          o == FlightOutcome.flying &&
+          p.ageTicks >= spec.delayTicks) {
         p.mode = 1;
       }
     } else {
       p.ageTicks++;
+      if (fuel != null && p.ageTicks >= spec.delayTicks + fuel) p.mode = 2;
       _steer(p, ctx.units);
       o = ProjectilePhysics.sweep(p, ctx.terrain, p.vx * PhysicsConfig.dt,
           p.vy * PhysicsConfig.dt,
@@ -42,10 +48,19 @@ class HomingBehavior extends FlightBehavior {
     final speed = sqrt(p.vx * p.vx + p.vy * p.vy);
     var dirX = speed == 0 ? 0.0 : p.vx / speed;
     var dirY = speed == 0 ? -1.0 : p.vy / speed;
-    final target = nearestEnemy(p, units);
-    if (target != null) {
-      final tx = target.centerX - p.x;
-      final ty = target.centerY - p.y;
+    final double? qx;
+    final double? qy;
+    if (p.targetX != null && p.targetY != null) {
+      qx = p.targetX;
+      qy = p.targetY;
+    } else {
+      final target = nearestEnemy(p, units);
+      qx = target?.centerX;
+      qy = target?.centerY;
+    }
+    if (qx != null && qy != null) {
+      final tx = qx - p.x;
+      final ty = qy - p.y;
       final d = sqrt(tx * tx + ty * ty);
       if (d > 0) {
         dirX += tx / d * spec.steer;
