@@ -652,10 +652,9 @@ covered hotseat only; hotseat is unchanged.
   `CHANGE_WIFI_MULTICAST_STATE`, plus a small `MainActivity` method
   channel that holds a `WifiManager.MulticastLock` while the Wi-Fi screens
   are open, because many phones drop broadcast packets without one. This
-  is a few lines of platform code, not a package. macOS gets the network
-  client/server entitlements (two copies on one Mac are handy for
-  testing). The web has no sockets: `lib/net/lan.dart` exports a stub
-  there, and the menu hides the option.
+  is a few lines of platform code, not a package. The web has no
+  sockets: `lib/net/lan.dart` exports a stub there, and the menu hides
+  the option.
 - **Tests:** protocol round trips, and lockstep matches with two and
   three phones through in-memory links (with dropped frames to exercise
   catch-up), all ending with equal hashes. Also a forced desync, rejected
@@ -668,3 +667,13 @@ covered hotseat only; hotseat is unchanged.
   same final state hash (`Pawtillery final state hash: …`, printed like
   the seed). Leaving as host showed "lost the connection" on the guest,
   and "Back to lobby" brought both back for another match.
+
+## Desktop platform folders removed (2026-10-20)
+
+`macos/`, `windows/` and `linux/` came from `flutter create` at M0 and
+were never a target (the PRD is Android, landscape phones). The developer
+asked to remove them, and `.metadata` no longer lists them. `ios/` stays
+because the iOS Simulator is how two "phones" are tested on one Mac
+(Play on Wi-Fi). `web/` stays because the web build still works, without
+the Wi-Fi option. `flutter create --platforms=macos .` (or windows,
+linux) brings one back if it is ever wanted.
