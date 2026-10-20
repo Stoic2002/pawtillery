@@ -1190,4 +1190,16 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get weaponHomingMissileDesc =>
       'Ketuk target: jet tempur datang dan menembakkan rudal yang mengejar titik itu sampai bahan bakarnya habis.';
+
+  @override
+  String get setupMapObjects => 'Objek di peta';
+
+  @override
+  String get setupObjectsFew => 'Sedikit';
+
+  @override
+  String get setupObjectsMany => 'Banyak';
+
+  @override
+  String get weaponBarrel => 'Tong Bahan Bakar';
 }

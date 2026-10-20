@@ -401,10 +401,11 @@ void main() {
   });
 }
 
-// Re-pinned 2026-10-20: the hash now also covers the bomber, satellite and
-// homing missile (ammo, planes, pending strikes, missile targets). Same
-// play: hashing with the old layout still gives the old pin, 4107600983.
-const _pinnedWeaponsHash = 1977243991;
+// Re-pinned 2026-10-20 (twice): the hash now also covers the bomber,
+// satellite and missile (4107600983 → 1977243991), then the starter map
+// objects (→ 3580160855). Same play each time: the previous layout still
+// gives the previous pin.
+const _pinnedWeaponsHash = 3580160855;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

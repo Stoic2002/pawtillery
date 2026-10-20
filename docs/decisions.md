@@ -740,3 +740,31 @@ same with the other weapons that come from outside.
   for the cloud, eggs and missile, so the Wi-Fi protocol version is now
   3. The pinned hashes did not change (their scripts don't use these
   weapons).
+
+## Starter objects on every map (2026-10-20)
+
+The developer asked for objects that are already on the map when a match
+starts.
+
+- **Objects:** mines (armed from the first turn), fuel barrels (40
+  damage, 52 px blast; a blast or beam lights one and it goes off 0.4 s
+  later, so barrels chain), health crates (+25 HP up to the maximum)
+  and weapon crates (+1 of a random limited weapon in this match's
+  loadout). A blast breaks a crate. Barrels and crates fall when the
+  ground under them goes, like mines.
+- **Per-map mix** (`MapDef.objects`, balance in `lib/config/map_objects.dart`):
+  Backyard leans on barrels, Castle on powder kegs and weapon crates,
+  Shipwreck on sea mines, Ruins on traps and health. Setup's Rules tab
+  has "Map objects: Off / A few / Lots" (Lots doubles the mix; default
+  A few). It is saved with the setup, and older saves get the default.
+- **Placement** is drawn from the match seed after the units: flat dry
+  ground, at least 90 px from units and 45 px apart. It is best effort,
+  so a crowded map gets fewer objects instead of failing. Unit spawns
+  are unchanged.
+- **Determinism:** objects are in the state hash. Both pins changed; the
+  previous layout still gives the previous pins. The Wi-Fi protocol
+  version is now 4.
+- **Art:** a code-drawn red drum with a flame label (it blinks white and
+  burns once lit), a cream crate with a green cross and a wooden star
+  crate. A pickup shows "+25" or the weapon's icon with "+1" over the
+  unit, with a sparkle.

@@ -1189,4 +1189,16 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get weaponHomingMissileDesc =>
       'Tap a target: a fighter jet flies in and fires a missile that chases that spot until its fuel runs out.';
+
+  @override
+  String get setupMapObjects => 'Map objects';
+
+  @override
+  String get setupObjectsFew => 'A few';
+
+  @override
+  String get setupObjectsMany => 'Lots';
+
+  @override
+  String get weaponBarrel => 'Fuel Barrel';
 }

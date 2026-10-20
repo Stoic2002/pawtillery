@@ -130,6 +130,28 @@ final class BombDropped extends SimEvent {
   final double y;
 }
 
+/// A starter object is gone: blown up, destroyed, picked up, or lost in
+/// the water.
+final class ObjectRemoved extends SimEvent {
+  const ObjectRemoved(this.objectId);
+  final int objectId;
+}
+
+/// A unit picked up a crate: [hp] healed (health crate) or one more of
+/// [weaponId] for its team (weapon crate; null if it held nothing).
+final class CrateCollected extends SimEvent {
+  const CrateCollected(
+    this.unitId, {
+    required this.health,
+    this.hp = 0,
+    this.weaponId,
+  });
+  final int unitId;
+  final bool health;
+  final int hp;
+  final String? weaponId;
+}
+
 /// Ground was added (Benteng); the area must be redrawn from the mask.
 final class TerrainAdded extends SimEvent {
   const TerrainAdded(this.area);

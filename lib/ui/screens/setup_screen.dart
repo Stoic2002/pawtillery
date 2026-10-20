@@ -7,6 +7,7 @@ import '../../app/match_config.dart';
 import '../../app/paw_palette.dart';
 import '../../config/breeds.dart';
 import '../../config/families.dart';
+import '../../config/map_objects.dart';
 import '../../config/maps.dart';
 import '../../config/match_defaults.dart';
 import '../../config/teams.dart';
@@ -644,6 +645,19 @@ class _RulesTab extends StatelessWidget {
                           ? config.copyWith(suddenDeathOff: true)
                           : config.copyWith(suddenDeathMinutes: m),
                     ),
+                  ),
+                ),
+                row(
+                  l10n.setupMapObjects,
+                  PawPillToggle<ObjectAmount>(
+                    values: ObjectAmount.values,
+                    selected: config.objects,
+                    label: (a) => switch (a) {
+                      ObjectAmount.off => l10n.setupOff,
+                      ObjectAmount.few => l10n.setupObjectsFew,
+                      ObjectAmount.many => l10n.setupObjectsMany,
+                    },
+                    onSelect: (a) => onChanged(config.copyWith(objects: a)),
                   ),
                   last: true,
                 ),

@@ -1,3 +1,5 @@
+import 'map_objects.dart';
+
 /// Which backdrop, decorations and weather a map gets.
 enum MapTheme { backyard, castle, wreck, ruins }
 
@@ -53,6 +55,12 @@ class MapDef {
     this.theme = MapTheme.castle,
     this.cap = CapStyle.grass,
     this.baseMaterial = TerrainMaterial.soil,
+    this.objects = const ObjectMix(
+      mines: 2,
+      barrels: 2,
+      healthCrates: 1,
+      weaponCrates: 1,
+    ),
   });
 
   final String id;
@@ -89,6 +97,9 @@ class MapDef {
 
   /// What unencoded ground is made of.
   final TerrainMaterial baseMaterial;
+
+  /// Starter objects at "a few" (setup: Map objects).
+  final ObjectMix objects;
 }
 
 abstract final class Maps {
@@ -106,6 +117,8 @@ abstract final class Maps {
     ambientArgb: 0xFFF2DCD0,
     rimArgb: 0xFFFFB27A,
     theme: MapTheme.backyard,
+    // Gas canisters by the fence.
+    objects: ObjectMix(mines: 2, barrels: 3, healthCrates: 1, weaponCrates: 1),
   );
 
   static const castle = MapDef(
@@ -121,6 +134,8 @@ abstract final class Maps {
     ambientArgb: 0xFF9AA6D6,
     rimArgb: 0xFFAFC2FF,
     baseMaterial: TerrainMaterial.soil,
+    // Powder kegs on the battlements.
+    objects: ObjectMix(mines: 1, barrels: 3, healthCrates: 1, weaponCrates: 2),
   );
 
   static const wreck = MapDef(
@@ -136,6 +151,8 @@ abstract final class Maps {
     ambientArgb: 0xFFC2C4C6,
     theme: MapTheme.wreck,
     baseMaterial: TerrainMaterial.rock,
+    // Sea mines washed up on the hull.
+    objects: ObjectMix(mines: 4, barrels: 2, healthCrates: 1, weaponCrates: 1),
   );
 
   static const ruins = MapDef(
@@ -151,6 +168,8 @@ abstract final class Maps {
     ambientArgb: 0xFFE2B496,
     rimArgb: 0xFFFF9A55,
     theme: MapTheme.ruins,
+    // Old traps among the stones, and supplies left behind.
+    objects: ObjectMix(mines: 3, barrels: 2, healthCrates: 2, weaponCrates: 1),
   );
 
   /// Test bench from M1; used by tests, not offered to players.

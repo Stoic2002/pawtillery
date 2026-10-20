@@ -2305,6 +2305,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap a target: a fighter jet flies in and fires a missile that chases that spot until its fuel runs out.'**
   String get weaponHomingMissileDesc;
+
+  /// Setup option: starter barrels, crates and mines on the map.
+  ///
+  /// In en, this message translates to:
+  /// **'Map objects'**
+  String get setupMapObjects;
+
+  /// Map objects option.
+  ///
+  /// In en, this message translates to:
+  /// **'A few'**
+  String get setupObjectsFew;
+
+  /// Map objects option.
+  ///
+  /// In en, this message translates to:
+  /// **'Lots'**
+  String get setupObjectsMany;
+
+  /// Starter map object that explodes.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel Barrel'**
+  String get weaponBarrel;
 }
 
 class _AppLocalizationsDelegate

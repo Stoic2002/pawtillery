@@ -108,6 +108,7 @@ class AudioService {
         WeaponUsed() => Sfx.fire,
         LightningStruck() => Sfx.thunder,
         SatelliteStruck() => Sfx.laser,
+        CrateCollected() => Sfx.turn,
         ExplosionEvent() => Sfx.explosion,
         UnitJumped() => Sfx.jump,
         UnitDamaged() => Sfx.hit,

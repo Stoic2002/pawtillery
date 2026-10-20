@@ -834,6 +834,18 @@ abstract final class Weapons {
     placeholderArgb: 0xFF9AA3A8,
   );
 
+  /// A starter fuel barrel blowing up (map objects).
+  static const barrel = WeaponDef(
+    id: 'barrel',
+    nameKey: 'weaponBarrel',
+    aim: AimMode.none,
+    delivery: Launch(),
+    maxDamage: 40,
+    radius: 52,
+    hidden: true,
+    placeholderArgb: 0xFFC0392B,
+  );
+
   /// One bomb of the bomber's carpet: heavy, not pushed by the wind.
   static const bomberBomb = WeaponDef(
     id: 'bomberBomb',
@@ -893,6 +905,7 @@ abstract final class Weapons {
     seedMine,
     bomberBomb,
     missile,
+    barrel,
   ];
 
   static final Map<String, WeaponDef> _byId = {for (final w in all) w.id: w};

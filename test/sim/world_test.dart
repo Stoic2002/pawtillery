@@ -287,7 +287,8 @@ void main() {
 
 int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 
-// Re-pinned 2026-10-20: the hash now also covers the bomber, satellite and
-// homing missile (ammo, planes, pending strikes, missile targets). Same
-// play: hashing with the old layout still gives the old pin, 2504866130.
-const _pinnedScriptHash = 973916818;
+// Re-pinned 2026-10-20 (twice): the hash now also covers the bomber,
+// satellite and missile (2504866130 → 973916818), then the starter map
+// objects (→ 2080593234). Same play each time: the previous layout still
+// gives the previous pin.
+const _pinnedScriptHash = 2080593234;

@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math' show min, sqrt;
 import 'dart:typed_data';
 
+import '../config/map_objects.dart';
 import '../config/match_defaults.dart';
 import '../config/physics.dart';
 import '../config/units.dart';
@@ -10,6 +11,7 @@ import 'air_support.dart';
 import 'damage.dart';
 import 'events.dart';
 import 'inputs.dart';
+import 'map_object.dart';
 import 'match_setup.dart';
 import 'mine.dart';
 import 'physics.dart';
@@ -60,6 +62,7 @@ class SimWorld implements SimContext {
     TurnTimings timings = const TurnTimings(),
     int? suddenDeathAfterTicks,
     WeaponLoadout loadout = WeaponLoadout.standard,
+    ObjectMix? objects,
   }) {
     final rng = SimRng(seed);
     final count = rosters.fold(0, (n, r) => n + r.length);
@@ -83,7 +86,7 @@ class SimWorld implements SimContext {
         ));
       }
     }
-    return SimWorld._(
+    final world = SimWorld._(
       seed: seed,
       rng: rng,
       terrain: terrain,
@@ -94,6 +97,10 @@ class SimWorld implements SimContext {
       suddenDeathAfterTicks: suddenDeathAfterTicks,
       loadout: loadout,
     );
+    if (objects != null && objects.total > 0) {
+      world._placeObjects(objects, points);
+    }
+    return world;
   }
 
   /// Explicit placements; for tests and scripted setups.
@@ -171,6 +178,11 @@ class SimWorld implements SimContext {
   final List<Mine> _mines = [];
   late final List<Mine> mines = UnmodifiableListView(_mines);
 
+  /// Starter barrels and crates (map objects).
+  final List<MapObject> _objects = [];
+  late final List<MapObject> objects = UnmodifiableListView(_objects);
+  int _nextObjectId = 0;
+
   /// Aircraft (and bird flocks) crossing the sky for air raids.
   final List<Aircraft> _aircraft = [];
   late final List<Aircraft> aircraft = UnmodifiableListView(_aircraft);
@@ -194,6 +206,54 @@ class SimWorld implements SimContext {
   final List<SimEvent> _events = [];
 
   int get teamCount => turn.teamCount;
+
+  /// Starter objects on flat ground away from the units ([unitPoints]):
+  /// mines (armed from the first turn), barrels and crates.
+  void _placeObjects(ObjectMix mix, List<(int, int)> unitPoints) {
+    final points = findObjectPoints(
+      terrain: terrain,
+      waterLevel: waterLevel,
+      count: mix.total,
+      rng: rng,
+      avoid: unitPoints,
+      minDistance: ObjectConfig.minDistanceBetween,
+      avoidDistance: ObjectConfig.minDistanceFromUnits,
+    );
+    final kinds = [
+      for (var i = 0; i < mix.mines; i++) null,
+      for (var i = 0; i < mix.barrels; i++) ObjectKind.barrel,
+      for (var i = 0; i < mix.healthCrates; i++) ObjectKind.healthCrate,
+      for (var i = 0; i < mix.weaponCrates; i++) ObjectKind.weaponCrate,
+    ];
+    for (var i = 0; i < points.length; i++) {
+      final (x, y) = points[i];
+      final kind = kinds[i];
+      if (kind == null) {
+        _mines.add(Mine(
+          id: _nextMineId++,
+          weapon: Weapons.mine,
+          x: x.toDouble(),
+          y: y.toDouble(),
+          armedOnTurn: 0,
+        )..grounded = true);
+      } else {
+        addObject(kind, x, y);
+      }
+    }
+  }
+
+  /// Puts a starter object down with its base on row [y] (tests and
+  /// scripted setups; matches place them with the map's mix).
+  MapObject addObject(ObjectKind kind, int x, int y) {
+    final o = MapObject(
+      id: _nextObjectId++,
+      kind: kind,
+      x: x.toDouble(),
+      y: y.toDouble(),
+    )..grounded = terrain.isSolid(x, y);
+    _objects.add(o);
+    return o;
+  }
 
   Unit? get activeUnit {
     final id = turn.activeUnitId;
@@ -270,6 +330,7 @@ class SimWorld implements SimContext {
     _stepAirSupport();
     _stepProjectiles();
     _stepMines();
+    _stepObjects();
     _stepUnits(walkDir);
     _stepTurn();
     return List.of(_events);
@@ -594,6 +655,9 @@ class SimWorld implements SimContext {
         m.countdown = min(m.countdown ?? 1, 1);
       }
     }
+    for (final o in _objects) {
+      if ((o.x - x).abs() <= weapon.radius) _hitObject(o);
+    }
     _events.add(SatelliteStruck(x, bottom, carve));
   }
 
@@ -632,6 +696,12 @@ class SimWorld implements SimContext {
         final mx = m.x - x;
         final my = m.centerY - y;
         if (mx * mx + my * my <= 36) m.countdown = min(m.countdown ?? 1, 1);
+      }
+      for (final o in _objects) {
+        final ox = o.x - x;
+        final oy = o.centerY - y;
+        const r = ObjectConfig.size / 2 + 2;
+        if (ox * ox + oy * oy <= r * r) _hitObject(o);
       }
     }
     _events.add(BeamFired(x0, y0, x, y, radius));
@@ -756,6 +826,91 @@ class SimWorld implements SimContext {
         m.countdown = min(m.countdown ?? 1, 1);
       }
     }
+
+    final reach = radius + ObjectConfig.size / 2;
+    for (final o in _objects) {
+      final dx = o.x - x;
+      final dy = o.centerY - y;
+      if (dx * dx + dy * dy <= reach * reach) _hitObject(o);
+    }
+  }
+
+  /// Caught in a blast or a beam: a barrel lights (and blows up shortly),
+  /// a crate breaks.
+  void _hitObject(MapObject o) {
+    if (o.kind == ObjectKind.barrel) {
+      o.fuse = min(o.fuse ?? ObjectConfig.barrelFuseTicks,
+          ObjectConfig.barrelFuseTicks);
+    } else {
+      o.destroyed = true;
+    }
+  }
+
+  /// Objects fall when the ground under them goes; lit barrels count down
+  /// and explode; a unit touching a crate picks it up.
+  void _stepObjects() {
+    for (var i = _objects.length - 1; i >= 0; i--) {
+      if (i >= _objects.length) continue;
+      final o = _objects[i];
+      if (o.destroyed) continue;
+      final move = MinePhysics.step(o, terrain, waterLevel);
+      if (move == MineMove.water || move == MineMove.outOfBounds) {
+        o.destroyed = true;
+        continue;
+      }
+      final fuse = o.fuse;
+      if (fuse != null) {
+        if (fuse <= 1) {
+          _objects.removeAt(i);
+          _events.add(ObjectRemoved(o.id));
+          _blast(o.x.round(), o.centerY.round(), Weapons.barrel,
+              cause: DamageCause.explosion, carve: true);
+        } else {
+          o.fuse = fuse - 1;
+        }
+        continue;
+      }
+      if (o.kind == ObjectKind.barrel) continue;
+      for (final u in _units) {
+        if (!u.alive) continue;
+        final dx = u.centerX - o.x;
+        final dy = u.centerY - o.centerY;
+        const r = ObjectConfig.pickupRadius;
+        if (dx * dx + dy * dy <= r * r) {
+          _collect(u, o);
+          o.destroyed = true;
+          break;
+        }
+      }
+    }
+    for (var i = _objects.length - 1; i >= 0; i--) {
+      if (!_objects[i].destroyed) continue;
+      _events.add(ObjectRemoved(_objects[i].id));
+      _objects.removeAt(i);
+    }
+  }
+
+  /// Health crate: HP up to the unit's maximum. Weapon crate: one more of
+  /// a random limited weapon this match uses, for the unit's team.
+  void _collect(Unit u, MapObject crate) {
+    if (crate.kind == ObjectKind.healthCrate) {
+      final before = u.hp;
+      u.hp = min(u.stats.maxHp, u.hp + ObjectConfig.healthAmount);
+      _events.add(CrateCollected(u.id, health: true, hp: u.hp - before));
+      return;
+    }
+    final ammo = _ammo[u.team];
+    final choices = [
+      for (final w in Weapons.shared)
+        if (loadout.enabled(w) && ammo[w.id] != null) w,
+    ];
+    if (choices.isEmpty) {
+      _events.add(CrateCollected(u.id, health: false));
+      return;
+    }
+    final w = choices[rng.nextIntInRange(0, choices.length - 1)];
+    ammo[w.id] = ammo[w.id]! + 1;
+    _events.add(CrateCollected(u.id, health: false, weaponId: w.id));
   }
 
   /// Applies [amount] of damage, with the unit's damage-taken modifier for
@@ -1026,7 +1181,8 @@ class SimWorld implements SimContext {
       _aircraft.isEmpty &&
       _strikes.isEmpty &&
       _units.every((u) => !u.alive || (u.grounded && !u.isDashing)) &&
-      _mines.every((m) => m.grounded && m.countdown == null);
+      _mines.every((m) => m.grounded && m.countdown == null) &&
+      _objects.every((o) => o.grounded && o.fuse == null);
 
   /// Deaths from HP are resolved only once everything is at rest, then the
   /// winner check runs (PRD: Core loop).
@@ -1179,6 +1335,17 @@ class SimWorld implements SimContext {
         ..add(m.grounded ? 1 : 0)
         ..addDouble(m.x)
         ..addDouble(m.y);
+    }
+    h.add(_nextObjectId);
+    h.add(_objects.length);
+    for (final o in _objects) {
+      h
+        ..add(o.id)
+        ..add(o.kind.index)
+        ..add(o.fuse ?? -1)
+        ..add(o.grounded ? 1 : 0)
+        ..addDouble(o.x)
+        ..addDouble(o.y);
     }
     h.add(_pendingShots.length);
     h.add(_aircraft.length);

@@ -192,12 +192,14 @@ class _ArenaScreenState extends State<ArenaScreen> {
         for (final u in t.units) u.name,
     ];
     final net = widget.net;
+    final map = net != null
+        ? Maps.byId(net.match!.mapId)
+        : config.resolveMap(math.Random(_seed));
     final game = PawtilleryGame(
       seed: _seed,
       rosters: config.rosters(),
-      map: net != null
-          ? Maps.byId(net.match!.mapId)
-          : config.resolveMap(math.Random(_seed)),
+      map: map,
+      objects: map.objects.forAmount(config.objects),
       teamColors: [
         for (final t in config.teams) Teams.styles[t.styleIndex].colorArgb,
       ],

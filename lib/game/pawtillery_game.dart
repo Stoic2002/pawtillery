@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 
 import '../config/controls.dart';
 import '../config/families.dart';
+import '../config/map_objects.dart';
 import '../config/maps.dart';
 import '../config/teams.dart';
 import '../config/match_defaults.dart';
@@ -23,6 +24,7 @@ import 'components/aim_guide_component.dart';
 import 'components/air_support_component.dart';
 import 'components/backdrop_components.dart';
 import 'components/decor_component.dart';
+import 'components/map_objects_component.dart';
 import 'components/projectiles_component.dart';
 import 'components/scenery_component.dart';
 import 'components/terrain_component.dart';
@@ -78,6 +80,7 @@ class PawtilleryGame extends FlameGame {
     this.loadout = WeaponLoadout.standard,
     this.showAimGuide = true,
     this.lockstep,
+    this.objects,
   });
 
   final int seed;
@@ -101,6 +104,9 @@ class PawtilleryGame extends FlameGame {
   /// Settings: draw the aim guide path (the readout always shows).
   bool showAimGuide;
 
+  /// Starter objects to place (barrels, crates, mines); null = none.
+  final ObjectMix? objects;
+
   /// Play on Wi-Fi: steps come from the network instead of the clock
   /// alone, and only the active team's phone has controls.
   final Lockstep? lockstep;
@@ -115,6 +121,7 @@ class PawtilleryGame extends FlameGame {
   late final TerrainComponent _terrain;
   late final AimGuideComponent _aimGuide;
   late final ArenaCamera _camera;
+  late final MapObjectsComponent _objects;
 
   // State the Flutter HUD listens to.
   final hud = ValueNotifier<HudState?>(null);
@@ -154,6 +161,7 @@ class PawtilleryGame extends FlameGame {
       timings: timings,
       suddenDeathAfterTicks: suddenDeathAfterTicks,
       loadout: loadout,
+      objects: objects,
     );
     stats = MatchStats(sim);
     lockstep?.attach(sim);
@@ -182,6 +190,7 @@ class PawtilleryGame extends FlameGame {
         teamSymbols: teamSymbols,
         unitNames: unitNames,
       ),
+      _objects = MapObjectsComponent(sim),
       ProjectilesComponent(sim),
       AirSupportComponent(sim, teamColors: teamColors),
       WaterBackComponent(
@@ -528,8 +537,16 @@ class PawtilleryGame extends FlameGame {
             when cause == DeathCause.water:
           particles.splash(sim.units[unitId].centerX, sim.waterLevel.toDouble(),
               waterArgb: map.waterArgb);
+        case CrateCollected(:final unitId, :final health, :final hp,
+              :final weaponId):
+          final u = sim.units[unitId];
+          _objects.popup(u.centerX, u.y,
+              hp: health ? hp : null, weaponId: weaponId);
+          particles.sparkle(u.centerX, u.centerY,
+              argb: health ? 0xFF3CCB6C : 0xFFFFD25A);
         case ProjectileLaunched() ||
               BombDropped() ||
+              ObjectRemoved() ||
               ProjectileRemoved() ||
               UnitDamaged() ||
               UnitDied() ||

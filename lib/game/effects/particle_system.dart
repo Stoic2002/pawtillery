@@ -240,6 +240,20 @@ class ParticleSystem extends Component {
     }
   }
 
+  /// A burst of small glowing dots (a crate picked up).
+  void sparkle(double x, double y, {required int argb}) {
+    for (var i = 0; i < 16; i++) {
+      final a = _rand(0, math.pi * 2);
+      final speed = _rand(40, 150);
+      _spawn(
+        x: x, y: y,
+        vx: math.cos(a) * speed, vy: math.sin(a) * speed - 60,
+        life: _rand(0.35, 0.7), size: 2, gravity: 120,
+        argb: argb, kind: _glow,
+      );
+    }
+  }
+
   /// Lightning: a jagged bolt from [top] (default: far above) down to
   /// ([x], [y]).
   void bolt(double x, double y, {double? top}) {

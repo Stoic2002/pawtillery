@@ -64,3 +64,32 @@ bool _farEnough(List<(int, int)> points, int x, int y, int distance) {
   }
   return true;
 }
+
+/// Up to [count] points on flat, dry ground for starter objects, at least
+/// [minDistance] apart and [avoidDistance] from every point in [avoid]
+/// (the units). Best effort: a crowded map gets fewer objects, never an
+/// error. Draws only from [rng].
+List<(int, int)> findObjectPoints({
+  required TerrainMask terrain,
+  required int waterLevel,
+  required int count,
+  required SimRng rng,
+  required List<(int, int)> avoid,
+  required int minDistance,
+  required int avoidDistance,
+  int margin = 40,
+  int attempts = 3000,
+}) {
+  final points = <(int, int)>[];
+  const height = 16;
+  for (var i = 0; i < attempts && points.length < count; i++) {
+    final x = rng.nextIntInRange(margin, terrain.width - margin - 1);
+    final y = surfaceY(terrain, x, height);
+    if (y == null || y >= waterLevel - 2) continue;
+    if (!_isFlat(terrain, x, y, height, 3)) continue;
+    if (!_farEnough(avoid, x, y, avoidDistance)) continue;
+    if (!_farEnough(points, x, y, minDistance)) continue;
+    points.add((x, y));
+  }
+  return points;
+}

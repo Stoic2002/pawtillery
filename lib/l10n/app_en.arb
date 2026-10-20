@@ -1378,5 +1378,21 @@
   "weaponHomingMissileDesc": "Tap a target: a fighter jet flies in and fires a missile that chases that spot until its fuel runs out.",
   "@weaponHomingMissileDesc": {
     "description": "Weapon menu description."
+  },
+  "setupMapObjects": "Map objects",
+  "@setupMapObjects": {
+    "description": "Setup option: starter barrels, crates and mines on the map."
+  },
+  "setupObjectsFew": "A few",
+  "@setupObjectsFew": {
+    "description": "Map objects option."
+  },
+  "setupObjectsMany": "Lots",
+  "@setupObjectsMany": {
+    "description": "Map objects option."
+  },
+  "weaponBarrel": "Fuel Barrel",
+  "@weaponBarrel": {
+    "description": "Starter map object that explodes."
   }
 }

@@ -5,24 +5,11 @@ import '../config/units.dart';
 import '../config/weapons.dart';
 import 'terrain_mask.dart';
 
-/// A mine lying on (or falling to) the ground. Armed from turn
-/// [armedOnTurn]; once triggered it explodes after a short countdown.
-class Mine {
-  Mine({
-    required this.id,
-    required this.weapon,
-    required this.x,
-    required this.y,
-    required this.armedOnTurn,
-    this.vx = 0,
-    this.vy = 0,
-    this.ownerId,
-  });
+/// Something small lying on (or falling to) the ground: a mine, a barrel,
+/// a crate. Moved by [MinePhysics].
+class GroundBody {
+  GroundBody({required this.x, required this.y, this.vx = 0, this.vy = 0});
 
-  final int id;
-  final WeaponDef weapon;
-  final int armedOnTurn;
-  final int? ownerId;
   double x;
 
   /// Resting row (like a unit's feet pixel) once grounded.
@@ -30,6 +17,26 @@ class Mine {
   double vx;
   double vy;
   bool grounded = false;
+}
+
+/// A mine. Armed from turn [armedOnTurn]; once triggered it explodes after
+/// a short countdown.
+class Mine extends GroundBody {
+  Mine({
+    required this.id,
+    required this.weapon,
+    required super.x,
+    required super.y,
+    required this.armedOnTurn,
+    super.vx,
+    super.vy,
+    this.ownerId,
+  });
+
+  final int id;
+  final WeaponDef weapon;
+  final int armedOnTurn;
+  final int? ownerId;
 
   /// Ticks until it explodes; null = not triggered.
   int? countdown;
@@ -43,7 +50,7 @@ abstract final class MinePhysics {
   static const double _dt = PhysicsConfig.dt;
 
   /// Falls (with any throw velocity) until it lands on ground.
-  static MineMove step(Mine m, TerrainMask t, int waterLevel) {
+  static MineMove step(GroundBody m, TerrainMask t, int waterLevel) {
     if (m.grounded) {
       if (t.isSolid(m.x.floor(), m.y.floor())) return MineMove.resting;
       m.grounded = false;
