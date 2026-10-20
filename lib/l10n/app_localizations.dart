@@ -2303,14 +2303,8 @@ abstract class AppLocalizations {
   /// Weapon menu description.
   ///
   /// In en, this message translates to:
-  /// **'Tap a target, then launch: the missile chases that spot until its fuel runs out.'**
+  /// **'Tap a target: a fighter jet flies in and fires a missile that chases that spot until its fuel runs out.'**
   String get weaponHomingMissileDesc;
-
-  /// Hint for the homing missile before a target is picked.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap a target, then aim'**
-  String get hudTapTargetThenAim;
 }
 
 class _AppLocalizationsDelegate

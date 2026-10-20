@@ -81,15 +81,9 @@ class AimGuideComponent extends Component {
     final a = aim();
     final unit = sim.activeUnit;
     final weapon = Weapons.byId(a.weaponId);
-    final guided = weapon.aim == AimMode.targetAndAim;
     final thrown =
-        (weapon.aim == AimMode.angleAndPower && weapon.flight is! Boomerang) ||
-        guided;
-    if (!(a.active || guided) ||
-        unit == null ||
-        !unit.alive ||
-        !thrown ||
-        !showPath()) {
+        weapon.aim == AimMode.angleAndPower && weapon.flight is! Boomerang;
+    if (!a.active || unit == null || !unit.alive || !thrown || !showPath()) {
       _path = const [];
       return;
     }
@@ -121,19 +115,13 @@ class AimGuideComponent extends Component {
     if (unit == null || !unit.alive) return;
     final weapon = Weapons.byId(a.weaponId);
 
-    final guided = weapon.aim == AimMode.targetAndAim;
-    if (weapon.aim == AimMode.target || guided) {
+    if (weapon.aim == AimMode.target) {
       final tx = a.targetX;
       final ty = a.targetY;
-      if (tx == null || ty == null) {
-        if (!guided) return;
-      } else {
-        _targetMarker(canvas, weapon, a, tx, ty);
-      }
-      // The missile is also aimed with the slingshot: draw that too.
-      if (!guided) return;
+      if (tx != null && ty != null) _targetMarker(canvas, weapon, a, tx, ty);
+      return;
     }
-    if (!a.active && !guided) return;
+    if (!a.active) return;
     _aimRing(canvas, unit, weapon, a);
   }
 
@@ -159,7 +147,7 @@ class AimGuideComponent extends Component {
     if (delivery is AirStrike ||
         delivery is Lightning ||
         delivery is OrbitalStrike ||
-        delivery is BomberRun) {
+        delivery is AirRaid) {
       canvas.drawLine(
         ui.Offset(c.dx, 0),
         ui.Offset(c.dx, c.dy - 16),
@@ -218,8 +206,7 @@ class AimGuideComponent extends Component {
     }
 
     if (weapon.aim == AimMode.angleAndPower ||
-        weapon.aim == AimMode.direction ||
-        weapon.aim == AimMode.targetAndAim) {
+        weapon.aim == AimMode.direction) {
       // "45° · 60%" on a dark pill above the unit.
       final text = weapon.aim == AimMode.direction
           ? '${a.angle}°'

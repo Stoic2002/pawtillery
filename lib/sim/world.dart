@@ -171,11 +171,11 @@ class SimWorld implements SimContext {
   final List<Mine> _mines = [];
   late final List<Mine> mines = UnmodifiableListView(_mines);
 
-  /// Bombers crossing the sky (Pesawat Pengebom).
-  final List<Bomber> _bombers = [];
-  late final List<Bomber> bombers = UnmodifiableListView(_bombers);
+  /// Aircraft (and bird flocks) crossing the sky for air raids.
+  final List<Aircraft> _aircraft = [];
+  late final List<Aircraft> aircraft = UnmodifiableListView(_aircraft);
 
-  /// Satellite strikes waiting to fire.
+  /// Satellite beams and storm-cloud bolts waiting to land.
   final List<PendingStrike> _strikes = [];
   late final List<PendingStrike> pendingStrikes =
       UnmodifiableListView(_strikes);
@@ -237,14 +237,11 @@ class SimWorld implements SimContext {
 
   /// Whether a target weapon may be used at world point ([x], [y]).
   bool isValidTarget(Unit unit, WeaponDef weapon, int x, int y) {
-    if (weapon.aim == AimMode.targetAndAim) {
-      return x >= 0 && x < terrain.width && y >= 0 && y < terrain.height;
-    }
     return switch (weapon.delivery) {
       Teleport() => _canTeleportTo(unit, x, y),
       BuildWall(:final width, :final height) =>
         _wallFits(_wallRect(x, y, width, height)),
-      AirStrike() || Lightning() || BomberRun() || OrbitalStrike() =>
+      AirStrike() || Lightning() || AirRaid() || OrbitalStrike() =>
         x >= 0 && x < terrain.width,
       _ => true,
     };
@@ -321,8 +318,7 @@ class SimWorld implements SimContext {
       return;
     }
     if (!canUse(unit, weapon)) return;
-    final needsTarget =
-        weapon.aim == AimMode.target || weapon.aim == AimMode.targetAndAim;
+    final needsTarget = weapon.aim == AimMode.target;
     final tx = input.targetX;
     final ty = input.targetY;
     if (needsTarget &&
@@ -356,15 +352,19 @@ class SimWorld implements SimContext {
             vy: 0,
           ));
         }
-      case final BomberRun run:
-        _callBomber(unit, run, tx!, ty!);
-      case OrbitalStrike(:final delayTicks):
+      case final AirRaid raid:
+        _callAirRaid(unit, raid, tx!, ty!);
+      case OrbitalStrike(:final delayTicks) ||
+          Lightning(:final delayTicks) when delayTicks > 0:
         _strikes.add(PendingStrike(
           dueTick: _tick + delayTicks,
           x: tx!,
           y: ty!,
           ownerId: unit.id,
           weapon: weapon,
+          firedTick: _tick,
+          // The cloud rides in on the wind.
+          fromDir: _wind >= 0 ? -1 : 1,
         ));
       case PlaceMine():
         unit.facing = dir;
@@ -400,7 +400,11 @@ class SimWorld implements SimContext {
         unit.facing = dir;
         _beam(unit, weapon, input.angleDeg, length, carveRadius);
       case Lightning():
-        _lightning(unit, weapon, tx!);
+        _lightning(unit.id, weapon, tx!);
+      case OrbitalStrike():
+        _orbital(PendingStrike(
+            dueTick: _tick, x: tx!, y: ty!, ownerId: unit.id,
+            weapon: weapon, firedTick: _tick));
       case DropCharge():
         final f = unit.facing;
         spawnProjectile(Projectile(
@@ -473,49 +477,60 @@ class SimWorld implements SimContext {
         ..vx = SimTrig.cosDeg(input.angleDeg) * flight.speed
         ..vy = -SimTrig.sinDeg(input.angleDeg) * flight.speed;
     }
-    if (flight is Homing && flight.chosenTarget) {
-      p
-        ..targetX = input.targetX?.toDouble()
-        ..targetY = input.targetY?.toDouble();
-    }
     final dirX = SimTrig.cosDeg(angle);
     if (dirX.abs() > 1e-9) unit.facing = dirX > 0 ? 1 : -1;
     spawnProjectile(p);
   }
 
-  /// Pesawat Pengebom: the plane comes from the shooter's side of the
-  /// target. Each bomb is released early by the distance it drifts while
-  /// falling from the plane to the tapped height, so the carpet lands
-  /// around the tapped spot.
-  void _callBomber(Unit unit, BomberRun run, int tx, int ty) {
-    final bomb = Weapons.byId(run.childId);
+  /// Air raids come from the shooter's side of the target. Free-falling
+  /// payloads are released early by the distance they drift while falling
+  /// from the craft to the ground under the tapped column (or the water),
+  /// so they land around it wherever in the column the player tapped; a
+  /// guided payload is released [AirRaid.releaseAhead] before the spot.
+  void _callAirRaid(Unit unit, AirRaid raid, int tx, int ty) {
+    final payload = Weapons.byId(raid.childId);
     final dir = tx >= unit.centerX ? 1 : -1;
-    final height = ty - run.altitude;
-    final fallSeconds = height > 0
-        ? sqrt(2 * height / (PhysicsConfig.gravity * bomb.gravityScale))
-        : 0.0;
-    final drift = run.speed * fallSeconds;
+    final ahead = raid.releaseAhead;
+    final double lead;
+    if (ahead != null) {
+      lead = ahead.toDouble();
+    } else {
+      var ground = raid.altitude;
+      while (ground < waterLevel && !terrain.isSolid(tx, ground)) {
+        ground++;
+      }
+      final height = ground - raid.altitude;
+      final fallSeconds = height > 0
+          ? sqrt(2 * height / (PhysicsConfig.gravity * payload.gravityScale))
+          : 0.0;
+      lead = raid.speed * fallSeconds;
+    }
     final drops = [
-      for (var i = 0; i < run.count; i++)
-        tx + dir * ((i * 2 - (run.count - 1)) * run.spacing / 2 - drift),
+      for (var i = 0; i < raid.count; i++)
+        (tx + dir * ((i * 2 - (raid.count - 1)) * raid.spacing / 2 - lead))
+            .clamp(0, terrain.width - 1)
+            .toDouble(),
     ];
-    _bombers.add(Bomber(
+    _aircraft.add(Aircraft(
       ownerId: unit.id,
-      bomb: bomb,
+      craft: raid.craft,
+      payload: payload,
       dir: dir,
-      x: drops.first - dir * run.leadIn,
-      y: run.altitude.toDouble(),
-      speed: run.speed,
+      x: drops.first - dir * raid.leadIn,
+      y: raid.altitude.toDouble(),
+      speed: raid.speed,
       dropXs: drops,
-      exitX: drops.last + dir * run.leadIn,
+      exitX: drops.last + dir * raid.leadIn,
+      targetX: tx.toDouble(),
+      targetY: ty.toDouble(),
     ));
   }
 
-  /// Moves bombers (dropping bombs as they pass their release points) and
-  /// fires satellite strikes that are due.
+  /// Moves aircraft (dropping their payload as they pass their release
+  /// points) and lands strikes from the sky that are due.
   void _stepAirSupport() {
-    for (var i = _bombers.length - 1; i >= 0; i--) {
-      final b = _bombers[i];
+    for (var i = _aircraft.length - 1; i >= 0; i--) {
+      final b = _aircraft[i];
       b.x += b.dir * b.speed * PhysicsConfig.dt;
       while (b.dropped < b.dropXs.length &&
           (b.dir > 0
@@ -523,24 +538,34 @@ class SimWorld implements SimContext {
               : b.x <= b.dropXs[b.dropped])) {
         final x = b.dropXs[b.dropped++];
         final y = b.y + 8;
-        spawnProjectile(Projectile(
+        final p = Projectile(
           id: nextProjectileId(),
           ownerId: b.ownerId,
-          weapon: b.bomb,
+          weapon: b.payload,
           x: x,
           y: y,
           vx: b.dir * b.speed,
           vy: 0,
-        ));
+        );
+        if (b.payload.flight case Homing(chosenTarget: true)) {
+          p
+            ..targetX = b.targetX
+            ..targetY = b.targetY;
+        }
+        spawnProjectile(p);
         _events.add(BombDropped(x, y));
       }
-      if (b.gone) _bombers.removeAt(i);
+      if (b.gone) _aircraft.removeAt(i);
     }
     for (var i = _strikes.length - 1; i >= 0; i--) {
       final strike = _strikes[i];
       if (strike.dueTick > _tick) continue;
       _strikes.removeAt(i);
-      _orbital(strike);
+      if (strike.weapon.delivery is Lightning) {
+        _lightning(strike.ownerId, strike.weapon, strike.x);
+      } else {
+        _orbital(strike);
+      }
     }
   }
 
@@ -615,7 +640,7 @@ class SimWorld implements SimContext {
   /// Thunder Cloud: the bolt runs down column [x] from the top of the map
   /// and blasts the first ground or living unit; over open water it fizzles
   /// at the surface.
-  void _lightning(Unit unit, WeaponDef weapon, int x) {
+  void _lightning(int ownerId, WeaponDef weapon, int x) {
     var y = 0;
     while (y < waterLevel && y < terrain.height) {
       if (terrain.isSolid(x, y) ||
@@ -628,7 +653,7 @@ class SimWorld implements SimContext {
     _blast(x, y, weapon,
         cause: DamageCause.explosion,
         carve: weapon.terrainDamage,
-        sourceId: unit.id);
+        sourceId: ownerId);
   }
 
   void _firePendingShots() {
@@ -998,7 +1023,7 @@ class SimWorld implements SimContext {
       _projectiles.isEmpty &&
       _spawned.isEmpty &&
       _pendingShots.isEmpty &&
-      _bombers.isEmpty &&
+      _aircraft.isEmpty &&
       _strikes.isEmpty &&
       _units.every((u) => !u.alive || (u.grounded && !u.isDashing)) &&
       _mines.every((m) => m.grounded && m.countdown == null);
@@ -1008,7 +1033,7 @@ class SimWorld implements SimContext {
   void _finishTurn() {
     // A settle timeout must not leave a burst half-fired into the next turn.
     _pendingShots.clear();
-    _bombers.clear();
+    _aircraft.clear();
     _strikes.clear();
     if (_suddenDeath) _maybeRaiseWater();
     for (final u in _units) {
@@ -1156,8 +1181,8 @@ class SimWorld implements SimContext {
         ..addDouble(m.y);
     }
     h.add(_pendingShots.length);
-    h.add(_bombers.length);
-    for (final b in _bombers) {
+    h.add(_aircraft.length);
+    for (final b in _aircraft) {
       h
         ..add(b.dir)
         ..add(b.dropped)

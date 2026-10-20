@@ -56,20 +56,14 @@ class ArenaHud extends StatelessWidget {
             final weapon = Weapons.byId(aim.weaponId);
             final acting = hud.phase == TurnPhase.action && game.canAim;
             final targeting = acting && weapon.aim == AimMode.target;
-            final l10n = AppLocalizations.of(context);
             final hint = targeting
-                ? l10n.hudTapTarget
-                : acting &&
-                      weapon.aim == AimMode.targetAndAim &&
-                      !aim.hasTarget
-                ? l10n.hudTapTargetThenAim
+                ? AppLocalizations.of(context).hudTapTarget
                 : null;
             final aiming =
                 acting &&
                 aim.active &&
                 (weapon.aim == AimMode.angleAndPower ||
-                    weapon.aim == AimMode.direction ||
-                    weapon.aim == AimMode.targetAndAim);
+                    weapon.aim == AimMode.direction);
             final teamColor = Color(game.teamColors[hud.activeTeam]);
             final remote = remoteTurnName?.call();
             return Stack(
@@ -1015,8 +1009,7 @@ class _AimPanel extends StatelessWidget {
             l10n.hudIncrease,
             () => game.adjustAngle(ControlsConfig.angleStep),
           ),
-          if (weapon.aim == AimMode.angleAndPower ||
-              weapon.aim == AimMode.targetAndAim) ...[
+          if (weapon.aim == AimMode.angleAndPower) ...[
             divider(),
             round(
               Icons.remove_rounded,

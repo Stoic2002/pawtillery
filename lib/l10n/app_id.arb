@@ -368,6 +368,5 @@
   "weaponHomingMissile": "Rudal Pemburu",
   "weaponBomberDesc": "Pesawat terbang melintas dan menjatuhkan lima bom di titik yang kamu pilih.",
   "weaponSatelliteDesc": "Menandai satu titik, lalu laser dari orbit membakar lurus ke bawah menembus semuanya.",
-  "weaponHomingMissileDesc": "Ketuk target, lalu luncurkan: rudal mengejar titik itu sampai bahan bakarnya habis.",
-  "hudTapTargetThenAim": "Ketuk target, lalu bidik"
+  "weaponHomingMissileDesc": "Ketuk target: jet tempur datang dan menembakkan rudal yang mengejar titik itu sampai bahan bakarnya habis."
 }

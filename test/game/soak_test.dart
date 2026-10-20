@@ -98,19 +98,6 @@ Fire? _botFire(SimWorld w, Random rng) {
     if (family != null) Weapons.byId(family.signatureWeaponId),
   ].where((weapon) => w.canUse(unit, weapon) && weapon.id != 'skip').toList();
   final weapon = options[rng.nextInt(options.length)];
-  if (weapon.aim == AimMode.targetAndAim) {
-    // The homing missile: a random enemy as the target, a random launch.
-    final enemies =
-        w.units.where((u) => u.alive && u.team != unit.team).toList();
-    final e = enemies[rng.nextInt(enemies.length)];
-    return Fire(
-      weaponId: weapon.id,
-      angleDeg: 30 + rng.nextInt(121),
-      powerPercent: 30 + rng.nextInt(71),
-      targetX: e.centerX.round(),
-      targetY: e.centerY.round(),
-    );
-  }
   if (weapon.aim == AimMode.target) {
     for (var i = 0; i < 30; i++) {
       final x = rng.nextInt(w.terrain.width);

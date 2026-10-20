@@ -313,9 +313,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   bool get _slingshotWeapon {
     final mode = _game!.weapon.aim;
-    return mode == AimMode.angleAndPower ||
-        mode == AimMode.direction ||
-        mode == AimMode.targetAndAim;
+    return mode == AimMode.angleAndPower || mode == AimMode.direction;
   }
 
   void _onScaleStart(ScaleStartDetails d) {

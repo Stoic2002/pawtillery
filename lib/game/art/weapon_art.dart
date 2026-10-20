@@ -32,6 +32,28 @@ abstract final class WeaponArt {
     canvas.restore();
   }
 
+  /// A fighter jet, about 84 px long, centred on the origin and flying
+  /// right; mirrored when [facingLeft].
+  static void fighterJet(ui.Canvas canvas, {required bool facingLeft}) {
+    canvas.save();
+    if (facingLeft) canvas.scale(-1, 1);
+    canvas.drawPicture(_cached('jet', _jet));
+    canvas.restore();
+  }
+
+  /// The satellite in orbit (no beam), about 96 px across, centred.
+  static void satellite(ui.Canvas canvas) {
+    canvas
+      ..save()
+      ..scale(3.2);
+    canvas.drawPicture(_cached('satellite', _satelliteBody));
+    canvas.restore();
+  }
+
+  /// A dark storm cloud about 150 px wide, centred on the origin.
+  static void stormCloud(ui.Canvas canvas) =>
+      canvas.drawPicture(_cached('storm', _storm));
+
   /// A mine lying on the ground (origin = resting point).
   static void mine(ui.Canvas canvas, {required bool small}) =>
       canvas.drawPicture(_cached('mine:$small', (c) {
@@ -87,7 +109,7 @@ abstract final class WeaponArt {
         _firecracker(c, 1);
       case 'flowerpot':
         _flowerpot(c, 1);
-      case 'homingMissile':
+      case 'missile':
         _missile(c);
       case 'bomberBomb':
         _aerialBomb(c);
@@ -103,7 +125,7 @@ abstract final class WeaponArt {
 
   /// Rockets: drawn with a motor flame behind them.
   static bool hasMotor(String id) =>
-      id == 'bottleRocket' || id == 'snifferRocket' || id == 'homingMissile';
+      id == 'bottleRocket' || id == 'snifferRocket' || id == 'missile';
 
   /// The guided missile, about 22 px long pointing right: a light grey
   /// body with a dark nose, a black band, canards and four tail fins.
@@ -249,14 +271,18 @@ abstract final class WeaponArt {
           PaintKit.solid(0x33000000)..strokeWidth = 0.6);
   }
 
-  /// A satellite: a gold body between two blue solar panels, with a dish
-  /// and a beam firing down.
+  /// A satellite firing its beam down (the menu icon).
   static void _satellite(ui.Canvas c) {
     c
       ..drawRect(const ui.Rect.fromLTWH(-1.8, 2, 3.6, 14),
           PaintKit.solid(0x887FD3FF))
       ..drawRect(const ui.Rect.fromLTWH(-0.8, 2, 1.6, 14),
           PaintKit.solid(0xFFF4FBFF));
+    _satelliteBody(c);
+  }
+
+  /// A gold body between two blue solar panels, with a dish underneath.
+  static void _satelliteBody(ui.Canvas c) {
     for (final s in [-1.0, 1.0]) {
       final panel = ui.Rect.fromLTWH(s < 0 ? -15 : 5, -7, 10, 7);
       c
@@ -277,6 +303,99 @@ abstract final class WeaponArt {
       ..drawCircle(
           const ui.Offset(0, 2.6), 2.2, PaintKit.edge(0xFF6B7280, 0.5));
   }
+
+  /// Side view of a fighter jet flying right: a grey fuselage with a sharp
+  /// nose and a tinted canopy, a swept wing, an intake, a tall tail fin and
+  /// the exhaust nozzle at the back.
+  static void _jet(ui.Canvas c) {
+    const hullArgb = 0xFF8C959C;
+    const darkArgb = 0xFF5C656C;
+    final farWing = ui.Path()
+      ..moveTo(-6, -3)
+      ..lineTo(10, -3)
+      ..lineTo(-14, -14)
+      ..lineTo(-20, -14)
+      ..close();
+    _shaded(c, farWing, darkArgb);
+    final fin = ui.Path()
+      ..moveTo(-26, -4)
+      ..lineTo(-38, -22)
+      ..lineTo(-31, -22)
+      ..lineTo(-16, -5)
+      ..close();
+    _shaded(c, fin, hullArgb, light: 0.4);
+    final hull = ui.Path()
+      ..moveTo(-40, -4)
+      ..lineTo(-12, -6)
+      ..quadraticBezierTo(18, -7, 30, -3.5)
+      ..lineTo(44, 0)
+      ..lineTo(30, 3)
+      ..quadraticBezierTo(10, 5, -12, 5)
+      ..lineTo(-40, 4)
+      ..close();
+    _shaded(c, hull, hullArgb, light: 0.5);
+    // Canopy.
+    final canopy = ui.Path()
+      ..moveTo(8, -6)
+      ..quadraticBezierTo(18, -12, 28, -4)
+      ..close();
+    c
+      ..drawPath(canopy, PaintKit.solid(0xEE4B6E8A))
+      ..drawPath(canopy, PaintKit.edge(0xFF2B3A48, 0.6))
+      ..drawLine(const ui.Offset(14, -8.6), const ui.Offset(22, -7.2),
+          PaintKit.solid(0x88FFFFFF)..strokeWidth = 0.9);
+    // Intake and nozzle.
+    c
+      ..drawRRect(
+          ui.RRect.fromRectAndRadius(const ui.Rect.fromLTWH(-6, -1, 10, 5),
+              const ui.Radius.circular(1.5)),
+          PaintKit.solid(0xFF3A4046))
+      ..drawRect(const ui.Rect.fromLTWH(-43, -3.5, 4, 7),
+          PaintKit.solid(0xFF3A4046));
+    final wing = ui.Path()
+      ..moveTo(-8, 2)
+      ..lineTo(12, 2)
+      ..lineTo(-16, 12)
+      ..lineTo(-24, 12)
+      ..close();
+    _shaded(c, wing, hullArgb, light: 0.35);
+    final tailplane = ui.Path()
+      ..moveTo(-28, 1)
+      ..lineTo(-42, 7)
+      ..lineTo(-36, 7)
+      ..lineTo(-22, 2)
+      ..close();
+    _shaded(c, tailplane, darkArgb);
+    c
+      ..drawLine(const ui.Offset(-36, 0), const ui.Offset(30, 0),
+          PaintKit.solid(0x33000000)..strokeWidth = 0.6)
+      ..drawCircle(const ui.Offset(-28, -1), 2.6, PaintKit.solid(0xFFF6F2E8))
+      ..drawCircle(const ui.Offset(-28, -1), 1.3, PaintKit.solid(0xFFC0392B));
+  }
+
+  /// A dark, heavy storm cloud: overlapping puffs with a lighter top and a
+  /// flat dark underside.
+  static void _storm(ui.Canvas c) {
+    final puffs = ui.Path()
+      ..addOval(ui.Rect.fromCircle(center: const ui.Offset(-46, 6), radius: 24))
+      ..addOval(ui.Rect.fromCircle(center: const ui.Offset(-18, -10), radius: 32))
+      ..addOval(ui.Rect.fromCircle(center: const ui.Offset(18, -14), radius: 34))
+      ..addOval(ui.Rect.fromCircle(center: const ui.Offset(50, 4), radius: 26))
+      ..addRRect(ui.RRect.fromRectAndRadius(
+          const ui.Rect.fromLTRB(-66, 0, 72, 26), const ui.Radius.circular(13)));
+    final cloud = ui.Path.combine(ui.PathOperation.union, puffs, ui.Path());
+    final bounds = cloud.getBounds();
+    c
+      ..drawPath(cloud, PaintKit.vertical(bounds, 0xFF4A505C))
+      ..drawPath(cloud, PaintKit.edge(0xFF2E323A, 1.4))
+      ..drawOval(const ui.Rect.fromLTWH(-30, -36, 50, 20),
+          PaintKit.solid(0x22FFFFFF))
+      ..drawRRect(
+          ui.RRect.fromRectAndRadius(const ui.Rect.fromLTRB(-60, 14, 66, 26),
+              const ui.Radius.circular(8)),
+          PaintKit.solid(0x552E323A));
+  }
+
 
   /// A red crosshair ring (the missile icon).
   static void _crosshair(ui.Canvas c, ui.Offset at, double r) {

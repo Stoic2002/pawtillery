@@ -93,7 +93,7 @@ void main() {
     ];
     const cols = 9;
     final iconRows = (menu.length / cols).ceil();
-    final rows = iconRows + (flying.length / cols).ceil() + 1;
+    final rows = iconRows + (flying.length / cols).ceil() + 3;
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder)
       ..drawRect(
@@ -125,15 +125,30 @@ void main() {
       ..scale(3);
     WeaponArt.mine(canvas, small: false);
     canvas.restore();
-    // The bomber plane, both ways, on the last row.
-    for (final (x, left) in [(cell * 1.2, false), (cell * 3.4, true)]) {
-      canvas
-        ..save()
-        ..translate(x, rows * cell - cell / 2)
-        ..scale(1.4);
-      WeaponArt.bomberPlane(canvas, facingLeft: left);
-      canvas.restore();
-    }
+    // Things in the sky, on the last rows: bomber, jet, satellite, cloud.
+    final sky = rows * cell - cell * 1.6;
+    canvas
+      ..save()
+      ..translate(cell * 1.3, sky)
+      ..scale(1.3);
+    WeaponArt.bomberPlane(canvas, facingLeft: false);
+    canvas.restore();
+    canvas
+      ..save()
+      ..translate(cell * 3.6, sky)
+      ..scale(1.4);
+    WeaponArt.fighterJet(canvas, facingLeft: true);
+    canvas.restore();
+    canvas
+      ..save()
+      ..translate(cell * 5.4, sky);
+    WeaponArt.satellite(canvas);
+    canvas.restore();
+    canvas
+      ..save()
+      ..translate(cell * 7.4, sky);
+    WeaponArt.stormCloud(canvas);
+    canvas.restore();
     await tester.runAsync(
       () => save(
         recorder.endRecording(),

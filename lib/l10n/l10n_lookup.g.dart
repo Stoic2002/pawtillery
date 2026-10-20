@@ -126,7 +126,6 @@ extension L10nByKey on AppLocalizations {
         'hudSignature' => hudSignature,
         'hudSuddenDeath' => hudSuddenDeath,
         'hudTapTarget' => hudTapTarget,
-        'hudTapTargetThenAim' => hudTapTargetThenAim,
         'hudUse' => hudUse,
         'hudUsed' => hudUsed,
         'hudWalkLeft' => hudWalkLeft,

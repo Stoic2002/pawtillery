@@ -20,9 +20,9 @@ void main() {
           Fire(weaponId: 'bomber', targetX: 1200, targetY: 395),
         ]),
       ];
-      expect(w.bombers.single.dir, 1);
+      expect(w.aircraft.single.dir, 1);
       // The turn waits for the plane and every bomb.
-      while (w.bombers.isNotEmpty || w.projectiles.isNotEmpty) {
+      while (w.aircraft.isNotEmpty || w.projectiles.isNotEmpty) {
         expect(w.turn.turnNumber, turn);
         events.addAll(w.step(const []));
       }
@@ -48,7 +48,7 @@ void main() {
       ]);
       toAction(w);
       w.step(const [Fire(weaponId: 'bomber', targetX: 600, targetY: 395)]);
-      final b = w.bombers.single;
+      final b = w.aircraft.single;
       expect(b.dir, -1);
       expect(b.x, greaterThan(600));
     });
@@ -93,36 +93,39 @@ void main() {
   });
 
   group('Rudal Pemburu', () {
-    test('chases the chosen target, not the nearest enemy', () {
+    test('a jet fires it; it chases the chosen target, not the nearest '
+        'enemy', () {
       final w = world([
         UnitPlacement(0, 200, 400),
         UnitPlacement(1, 500, 400),
         UnitPlacement(1, 1500, 400),
       ]);
       final target = w.units[2];
-      final e = fireAndSettle(
-        w,
+      toAction(w);
+      w.step([
         Fire(
           weaponId: 'homingMissile',
-          angleDeg: 60,
-          powerPercent: 50,
           targetX: target.centerX.round(),
           targetY: target.centerY.round(),
         ),
-      );
+      ]);
+      final jet = w.aircraft.single;
+      expect(jet.craft, CraftKind.jet);
+      expect(jet.dir, 1);
+      final e = [...runUntil(w, () => w.turn.turnNumber > 1)];
+      expect(e.whereType<BombDropped>(), hasLength(1));
       expect(damageTo(e, 2), isNotEmpty);
       expect(damageTo(e, 1), isEmpty);
       expect((explosions(e).single.x - 1500).abs(), lessThan(50));
+      expect(w.ammoLeft(0, Weapons.homingMissile), 0);
     });
 
     test('needs a target to fire', () {
       final w = world([UnitPlacement(0, 200, 400), UnitPlacement(1, 900, 400)]);
       toAction(w);
-      final e = w.step(const [
-        Fire(weaponId: 'homingMissile', angleDeg: 60, powerPercent: 50),
-      ]);
+      final e = w.step(const [Fire(weaponId: 'homingMissile')]);
       expect(e.whereType<WeaponUsed>(), isEmpty);
-      expect(w.projectiles, isEmpty);
+      expect(w.aircraft, isEmpty);
     });
 
     test('burns out and falls when it cannot reach its target in time', () {
@@ -131,20 +134,14 @@ void main() {
         UnitPlacement(1, 1800, 400),
       ]);
       toAction(w);
-      // Circling a point in open sky until the fuel runs out.
+      // A point high in open sky: it circles there until the fuel runs out.
       w.step(const [
-        Fire(
-          weaponId: 'homingMissile',
-          angleDeg: 80,
-          powerPercent: 40,
-          targetX: 400,
-          targetY: 60,
-        ),
+        Fire(weaponId: 'homingMissile', targetX: 900, targetY: 150),
       ]);
-      final spec = Weapons.homingMissile.flight! as Homing;
+      final spec = Weapons.missile.flight! as Homing;
       var burntOut = false;
       final events = <SimEvent>[];
-      for (var i = 0; i < 2000 && w.projectiles.isNotEmpty; i++) {
+      for (var i = 0; i < 3000; i++) {
         events.addAll(w.step(const []));
         if (w.projectiles.isNotEmpty && w.projectiles.first.mode == 2) {
           burntOut = true;
@@ -153,10 +150,41 @@ void main() {
             greaterThanOrEqualTo(spec.delayTicks + spec.fuelTicks!),
           );
         }
+        if (burntOut && w.projectiles.isEmpty) break;
       }
       expect(burntOut, isTrue);
       expect(explosions(events), isNotEmpty);
     });
+  });
+
+  group('Awan Petir', () {
+    test('the cloud drifts in on the wind, then strikes after the delay', () {
+      final w = world([UnitPlacement(0, 200, 400), UnitPlacement(1, 900, 400)]);
+      toAction(w);
+      final fired = w.step(const [
+        Fire(weaponId: 'thunderCloud', targetX: 905, targetY: 300),
+      ]);
+      expect(fired.whereType<LightningStruck>(), isEmpty);
+      final strike = w.pendingStrikes.single;
+      expect(strike.fromDir, w.wind >= 0 ? -1 : 1);
+      final delay = (Weapons.thunderCloud.delivery as Lightning).delayTicks;
+      final events = <SimEvent>[];
+      for (var i = 0; i < delay; i++) {
+        events.addAll(w.step(const []));
+      }
+      expect(events.whereType<LightningStruck>(), hasLength(1));
+      expect(damageTo(events, 1), isNotEmpty);
+    });
+  });
+
+  test('Serangan Telur comes as a flock of the shooter\'s birds', () {
+    final w = world([
+      UnitPlacement(0, 200, 400, familyId: 'bird'),
+      UnitPlacement(1, 1800, 400),
+    ]);
+    toAction(w);
+    w.step(const [Fire(weaponId: 'eggStrike', targetX: 1000, targetY: 100)]);
+    expect(w.aircraft.single.craft, CraftKind.flock);
   });
 
   test('Classic leaves them out; Chaos makes them unlimited', () {

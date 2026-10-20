@@ -1188,8 +1188,5 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weaponHomingMissileDesc =>
-      'Tap a target, then launch: the missile chases that spot until its fuel runs out.';
-
-  @override
-  String get hudTapTargetThenAim => 'Tap a target, then aim';
+      'Tap a target: a fighter jet flies in and fires a missile that chases that spot until its fuel runs out.';
 }

@@ -714,3 +714,29 @@ Worms, Homing Bee in Hedgewars); names and drawings are our own.
   thick cold-white column with sparks. Sound: the laser effect and a heavy
   buzz for the beam.
 
+
+## Weapons from outside arrive on screen (2026-10-20)
+
+The developer liked watching the bomber drop its bombs and asked for the
+same with the other weapons that come from outside.
+
+- **One air-raid delivery** (`AirRaid`, replacing `BomberRun`) with a
+  craft kind: bomber, fighter jet, or bird flock. Free-falling payloads
+  are released by their fall drift to the ground under the tapped
+  column (not the tapped height), so tapping anywhere in the column
+  works.
+- **Rudal Pemburu** is now called in: tap a target, and a fighter jet
+  streaks in from the shooter's side and fires the missile 420 px before
+  the spot. It still locks on, can be blocked by hills, and burns out
+  after 4 s. The "tap then aim" mode it used before was removed.
+- **Serangan Satelit:** the satellite glides in over its column during
+  the existing 1.25 s delay, then its dish charges up before the beam.
+- **Awan Petir:** now has a 1 s delay. A storm cloud drifts in from the
+  side the wind blows from, flickers, then strikes. The bolt starts at
+  the cloud.
+- **Serangan Telur** (bird signature) comes as a V of five birds of the
+  shooter's own breed and team colour.
+- The camera follows the craft, satellite or cloud. Sim timing changed
+  for the cloud, eggs and missile, so the Wi-Fi protocol version is now
+  3. The pinned hashes did not change (their scripts don't use these
+  weapons).

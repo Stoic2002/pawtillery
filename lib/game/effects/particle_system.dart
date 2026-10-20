@@ -219,8 +219,8 @@ class ParticleSystem extends Component {
 
   /// Satellite strike: a thick cold-white beam from far above down to
   /// ([x], [y]), a flash where it ends and sparks along the shaft.
-  void orbital(double x, double y) {
-    final top = math.min(-300.0, y - 1600);
+  void orbital(double x, double y, {double? top}) {
+    top ??= math.min(-300.0, y - 1600);
     _streaks
       ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 0.75, 0x887FD3FF, 30))
       ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 0.55, 0xFFF4FBFF, 10));
@@ -240,14 +240,16 @@ class ParticleSystem extends Component {
     }
   }
 
-  /// Lightning: a jagged bolt from the top of the map down to ([x], [y]).
-  void bolt(double x, double y) {
-    final points = <ui.Offset>[ui.Offset(x + _rand(-30, 30), y - 900)];
+  /// Lightning: a jagged bolt from [top] (default: far above) down to
+  /// ([x], [y]).
+  void bolt(double x, double y, {double? top}) {
+    final from = top ?? y - 900;
+    final h = y - from;
+    final points = <ui.Offset>[ui.Offset(x + _rand(-14, 14), from)];
     const segments = 14;
     for (var i = 1; i < segments; i++) {
       final t = i / segments;
-      points.add(ui.Offset(
-          x + _rand(-22, 22) * (1 - t), y - 900 + 900 * t));
+      points.add(ui.Offset(x + _rand(-22, 22) * (1 - t), from + h * t));
     }
     points.add(ui.Offset(x, y));
     _streaks.add(_Streak(points, 0.5, 0xFFFFF2A8, 6));

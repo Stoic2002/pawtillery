@@ -1189,8 +1189,5 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get weaponHomingMissileDesc =>
-      'Ketuk target, lalu luncurkan: rudal mengejar titik itu sampai bahan bakarnya habis.';
-
-  @override
-  String get hudTapTargetThenAim => 'Ketuk target, lalu bidik';
+      'Ketuk target: jet tempur datang dan menembakkan rudal yang mengejar titik itu sampai bahan bakarnya habis.';
 }

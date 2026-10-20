@@ -1375,12 +1375,8 @@
   "@weaponSatelliteDesc": {
     "description": "Weapon menu description."
   },
-  "weaponHomingMissileDesc": "Tap a target, then launch: the missile chases that spot until its fuel runs out.",
+  "weaponHomingMissileDesc": "Tap a target: a fighter jet flies in and fires a missile that chases that spot until its fuel runs out.",
   "@weaponHomingMissileDesc": {
     "description": "Weapon menu description."
-  },
-  "hudTapTargetThenAim": "Tap a target, then aim",
-  "@hudTapTargetThenAim": {
-    "description": "Hint for the homing missile before a target is picked."
   }
 }

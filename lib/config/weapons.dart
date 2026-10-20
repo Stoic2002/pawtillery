@@ -16,10 +16,6 @@ enum AimMode {
 
   /// Tap a point on the map, then confirm.
   target,
-
-  /// Tap a target on the map and aim the launch with the slingshot (the
-  /// guided missile).
-  targetAndAim,
 }
 
 // ------------------------------------------------------------- delivery
@@ -49,19 +45,27 @@ final class AirStrike extends Delivery {
   final int spacing;
 }
 
-/// A bomber flies in from the shooter's side at [altitude] (world y) and
-/// [speed] px/s and drops [count] [childId] bombs, released so that they
-/// land [spacing] px apart around the chosen spot. The bombs keep the
-/// plane's speed, so they fall at a slant. It appears [leadIn] px before
-/// its first drop and leaves the same distance after its last.
-final class BomberRun extends Delivery {
-  const BomberRun({
+/// What flies in for an [AirRaid] (drawing only).
+enum CraftKind { bomber, jet, flock }
+
+/// An aircraft (or a flock of birds) flies in from the shooter's side at
+/// [altitude] (world y) and [speed] px/s and drops [count] [childId]
+/// projectiles, which keep its speed and so fall at a slant. They are
+/// released early by their fall drift so they land [spacing] px apart
+/// around the chosen spot; a guided payload is instead released
+/// [releaseAhead] px before the spot and steers there itself. The craft
+/// appears [leadIn] px before its first drop and leaves the same distance
+/// after its last.
+final class AirRaid extends Delivery {
+  const AirRaid({
     required this.childId,
     required this.count,
-    required this.spacing,
     required this.speed,
     required this.altitude,
     required this.leadIn,
+    this.spacing = 0,
+    this.releaseAhead,
+    this.craft = CraftKind.bomber,
   });
   final String childId;
   final int count;
@@ -69,6 +73,8 @@ final class BomberRun extends Delivery {
   final double speed;
   final int altitude;
   final int leadIn;
+  final int? releaseAhead;
+  final CraftKind craft;
 }
 
 /// The chosen column is marked, and after [delayTicks] a beam from orbit
@@ -128,9 +134,11 @@ final class Beam extends Delivery {
 }
 
 /// A bolt from the sky straight down the chosen column; it blasts the
-/// first ground or unit it meets.
+/// first ground or unit it meets. With [delayTicks], a storm cloud drifts
+/// in on the wind first.
 final class Lightning extends Delivery {
-  const Lightning();
+  const Lightning({this.delayTicks = 0});
+  final int delayTicks;
 }
 
 /// Sets this weapon down in front of the unit with its fuse lit; it then
@@ -500,7 +508,7 @@ abstract final class Weapons {
     id: 'thunderCloud',
     nameKey: 'weaponThunderCloud',
     aim: AimMode.target,
-    delivery: Lightning(),
+    delivery: Lightning(delayTicks: 60),
     maxDamage: 45,
     radius: 34,
     ammo: 1,
@@ -553,7 +561,7 @@ abstract final class Weapons {
     id: 'bomber',
     nameKey: 'weaponBomber',
     aim: AimMode.target,
-    delivery: BomberRun(
+    delivery: AirRaid(
       childId: 'bomberBomb',
       count: 5,
       spacing: 36,
@@ -578,22 +586,21 @@ abstract final class Weapons {
     placeholderArgb: 0xFF7FD3FF,
   );
 
-  /// Tap a target, then launch: after a short arc the missile locks on
-  /// and steers to that spot until its fuel runs out.
+  /// Tap a target: a fighter jet streaks in and fires a missile that
+  /// steers to that spot until its fuel runs out.
   static const homingMissile = WeaponDef(
     id: 'homingMissile',
     nameKey: 'weaponHomingMissile',
-    aim: AimMode.targetAndAim,
-    delivery: Launch(),
-    flight: Homing(
-      delayTicks: 30,
-      speed: 380,
-      steer: 0.12,
-      chosenTarget: true,
-      fuelTicks: 4 * 60,
+    aim: AimMode.target,
+    delivery: AirRaid(
+      childId: 'missile',
+      count: 1,
+      speed: 460,
+      altitude: 70,
+      leadIn: 560,
+      releaseAhead: 420,
+      craft: CraftKind.jet,
     ),
-    maxDamage: 50,
-    radius: 46,
     ammo: 1,
     placeholderArgb: 0xFF9AA3A8,
   );
@@ -663,7 +670,15 @@ abstract final class Weapons {
     nameKey: 'weaponEggStrike',
     familyId: 'bird',
     aim: AimMode.target,
-    delivery: AirStrike(childId: 'egg', count: 5, spacing: 40),
+    delivery: AirRaid(
+      childId: 'egg',
+      count: 5,
+      spacing: 40,
+      speed: 240,
+      altitude: 80,
+      leadIn: 420,
+      craft: CraftKind.flock,
+    ),
     placeholderArgb: 0xFFFFF9C4,
   );
 
@@ -799,6 +814,26 @@ abstract final class Weapons {
     placeholderArgb: 0xFFD7B56D,
   );
 
+  /// The jet's missile (Rudal Pemburu): after a short drop its motor locks
+  /// on to the tapped spot.
+  static const missile = WeaponDef(
+    id: 'missile',
+    nameKey: 'weaponHomingMissile',
+    aim: AimMode.none,
+    delivery: Launch(),
+    flight: Homing(
+      delayTicks: 15,
+      speed: 380,
+      steer: 0.12,
+      chosenTarget: true,
+      fuelTicks: 4 * 60,
+    ),
+    maxDamage: 50,
+    radius: 46,
+    hidden: true,
+    placeholderArgb: 0xFF9AA3A8,
+  );
+
   /// One bomb of the bomber's carpet: heavy, not pushed by the wind.
   static const bomberBomb = WeaponDef(
     id: 'bomberBomb',
@@ -857,6 +892,7 @@ abstract final class Weapons {
     flowerpot,
     seedMine,
     bomberBomb,
+    missile,
   ];
 
   static final Map<String, WeaponDef> _byId = {for (final w in all) w.id: w};
