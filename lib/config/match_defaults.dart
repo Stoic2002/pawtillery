@@ -13,6 +13,11 @@ abstract final class MatchDefaults {
   /// 1.5 s, kept in whole ticks.
   static const int bannerTicks = 90;
 
+  /// After a turn's last hit (damage or a death), hold everything still
+  /// this long before the next turn, so every player sees who got hurt:
+  /// 2 s, kept in whole ticks.
+  static const int hitHoldTicks = 120;
+
   /// Give up waiting for everything to come to rest after this long.
   static const int settleTimeoutSeconds = 20;
 

@@ -634,6 +634,18 @@
   "@menuAbout": {
     "description": "Main menu button."
   },
+  "menuQuit": "Quit game",
+  "@menuQuit": {
+    "description": "Main menu button that closes the app (Android)."
+  },
+  "quitAppTitle": "Quit Pawtillery?",
+  "@quitAppTitle": {
+    "description": "Title of the confirmation shown before the app closes."
+  },
+  "quitAppBody": "Your pets will be waiting for the next match.",
+  "@quitAppBody": {
+    "description": "Body of the confirmation shown before the app closes."
+  },
   "teamPurple": "Purple Team",
   "@teamPurple": {
     "description": "Default name of a purple team."

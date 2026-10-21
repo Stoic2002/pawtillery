@@ -2,7 +2,6 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:pawtillery/app/paw_palette.dart';
-import 'package:pawtillery/game/art/animal_art.dart';
 
 /// Which part of the launcher icon to paint.
 enum AppIconLayer {
@@ -13,19 +12,19 @@ enum AppIconLayer {
   /// iOS: the whole picture edge to edge, opaque (iOS rounds it).
   square,
 
-  /// Adaptive icon background: sky and hill, edge to edge.
+  /// Adaptive icon background: the warm gradient, edge to edge.
   background,
 
-  /// Adaptive icon foreground: the pet and its shot, transparent.
+  /// Adaptive icon foreground: the bomb, transparent.
   foreground,
 
   /// Android 13 themed icon: the foreground as one white silhouette.
   monochrome,
 }
 
-/// The launcher icon, code-drawn in the redesign's style (no image
-/// assets): an orange-collared chibi cat standing on the menu's green hill
-/// under a blue sky, with a dashed shot arc ending in a lit bomb.
+/// The launcher icon, code-drawn (no image assets) and kept flat and
+/// simple so it reads at 48 px: one round ink bomb with a cream paw print
+/// on its face and a lit fuse, on a warm orange gradient.
 ///
 /// Everything is laid out in a 100 × 100 content box. Each layer maps that
 /// box into the canvas: adaptive layers keep it inside the 66/108 safe zone,
@@ -37,7 +36,7 @@ void paintAppIcon(Canvas canvas, Size size, {required AppIconLayer layer}) {
       layer == AppIconLayer.monochrome;
   final contentFrac = adaptive
       ? 0.66
-      : (layer == AppIconLayer.full ? 0.9 : 1.0);
+      : (layer == AppIconLayer.full ? 0.86 : 0.94);
   final box = size.shortestSide * contentFrac;
   final origin = Offset((size.width - box) / 2, (size.height - box) / 2);
 
@@ -57,22 +56,14 @@ void paintAppIcon(Canvas canvas, Size size, {required AppIconLayer layer}) {
           Size(size.width * 0.92, size.height * 0.92);
       final rrect = RRect.fromRectAndRadius(
         rect,
-        Radius.circular(size.width * 0.2),
+        Radius.circular(size.width * 0.22),
       );
       canvas
         ..save()
         ..clipRRect(rrect);
       inBox(() => _background(canvas, origin, box, size));
       inBox(() => _foreground(canvas));
-      canvas
-        ..restore()
-        ..drawRRect(
-          rrect.deflate(size.width * 0.012),
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = size.width * 0.024
-            ..color = Paw.ink,
-        );
+      canvas.restore();
     case AppIconLayer.square:
       inBox(() => _background(canvas, origin, box, size));
       inBox(() => _foreground(canvas));
@@ -94,7 +85,7 @@ void paintAppIcon(Canvas canvas, Size size, {required AppIconLayer layer}) {
   }
 }
 
-/// Content-box coordinates of the canvas edges, so the sky and hill run
+/// Content-box coordinates of the canvas edges, so the background runs
 /// edge to edge whatever the mapping.
 Rect _canvasInBox(Offset origin, double box, Size size) {
   final k = 100 / box;
@@ -106,191 +97,173 @@ Rect _canvasInBox(Offset origin, double box, Size size) {
   );
 }
 
+const _top = Color(0xFFFFB066);
+const _bottom = Color(0xFFF26B1D);
+
+/// Bomb centre and radius in the content box.
+const _c = Offset(47, 56);
+const _r = 30.0;
+
 void _background(Canvas canvas, Offset origin, double box, Size size) {
   final all = _canvasInBox(origin, box, size);
-  canvas.drawRect(
-    all,
-    Paint()
-      ..shader = Gradient.linear(Offset(0, all.top), Offset(0, all.bottom), [
-        Paw.skyTop,
-        Paw.skyBottom,
-      ]),
-  );
-
-  // Soft sun glow, top left.
-  canvas.drawCircle(
-    const Offset(18, 16),
-    30,
-    Paint()
-      ..shader = Gradient.radial(const Offset(18, 16), 30, [
-        const Color(0x66FFF6E6),
-        const Color(0x00FFF6E6),
-      ]),
-  );
-
-  // Two cream clouds with ink outlines.
-  for (final (c, s) in [
-    (const Offset(24, 30), 1.0),
-    (const Offset(82, 52), 0.7),
-  ]) {
-    final cloud = Path()
-      ..addOval(
-        Rect.fromCircle(center: c + Offset(-7 * s, 2 * s), radius: 5 * s),
-      )
-      ..addOval(Rect.fromCircle(center: c + Offset(0, -1 * s), radius: 7 * s))
-      ..addOval(
-        Rect.fromCircle(center: c + Offset(8 * s, 2 * s), radius: 5 * s),
-      )
-      ..addRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromLTRB(c.dx - 12 * s, c.dy, c.dx + 13 * s, c.dy + 7 * s),
-          Radius.circular(3.5 * s),
-        ),
-      );
-    final merged = Path.combine(PathOperation.union, cloud, Path());
-    canvas
-      ..drawPath(merged, Paint()..color = const Color(0xFFFFFFFF))
-      ..drawPath(
-        merged,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.6
-          ..color = Paw.ink.withValues(alpha: 0.35),
-      );
-  }
-
-  // Back hill, then the front hill the pet stands on.
-  final back = Path()
-    ..moveTo(all.left, 74)
-    ..quadraticBezierTo(70, 56, all.right, 70)
-    ..lineTo(all.right, all.bottom)
-    ..lineTo(all.left, all.bottom)
-    ..close();
-  canvas.drawPath(back, Paint()..color = Paw.hillLight);
-
-  final front = Path()
-    ..moveTo(all.left, 82)
-    ..quadraticBezierTo(38, 68, all.right, 84)
-    ..lineTo(all.right, all.bottom)
-    ..lineTo(all.left, all.bottom)
-    ..close();
   canvas
-    ..drawPath(front, Paint()..color = Paw.hill)
-    ..drawPath(
-      front,
+    ..drawRect(
+      all,
       Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 2.4
-        ..color = Paw.ink,
+        ..shader = Gradient.linear(all.topLeft, all.bottomRight, [
+          _top,
+          _bottom,
+        ]),
+    )
+    // A soft light from the top left.
+    ..drawCircle(
+      const Offset(22, 14),
+      70,
+      Paint()
+        ..shader = Gradient.radial(const Offset(22, 14), 70, [
+          const Color(0x55FFF6E6),
+          const Color(0x00FFF6E6),
+        ]),
     );
 }
 
 void _foreground(Canvas canvas, {bool mono = false}) {
-  // Ground shadow under the pet.
+  const white = Color(0xFFFFFFFF);
+
+  // Soft shadow under the bomb.
   if (!mono) {
     canvas.drawOval(
-      Rect.fromCenter(center: const Offset(36, 76.5), width: 40, height: 6),
-      Paint()..color = Paw.ink.withValues(alpha: 0.22),
+      Rect.fromCenter(
+        center: _c + const Offset(3, _r + 4),
+        width: _r * 1.7,
+        height: 7,
+      ),
+      Paint()
+        ..color = const Color(0x40A83E00)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
     );
   }
 
-  // The pet, feet on the hill crest, about half the icon tall.
-  const scale = 52 / AnimalArt.height;
+  // Cap: a short rounded block on the bomb's shoulder, tilted outwards.
   canvas
     ..save()
-    ..translate(36, 77)
-    ..scale(scale);
-  AnimalArt.draw(
-    canvas,
-    familyId: 'cat',
-    breedId: null,
-    teamArgb: Paw.orange.toARGB32(),
-    pose: AnimalPose.idle,
-  );
-  canvas.restore();
+    ..translate(_c.dx + 21.5, _c.dy - 21.5)
+    ..rotate(math.pi / 4)
+    ..drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(center: Offset.zero, width: 14, height: 11),
+        const Radius.circular(3),
+      ),
+      Paint()..color = mono ? white : const Color(0xFF4A3B2E),
+    )
+    ..restore();
 
-  // Dashed shot arc from above the pet's head to the bomb.
-  final arc = Path()
-    ..moveTo(52, 32)
-    ..quadraticBezierTo(64, 8, 76, 22);
-  final dash = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 3
-    ..strokeCap = StrokeCap.round
-    ..color = mono ? const Color(0xFFFFFFFF) : Paw.cream;
-  final outline = Paint()
-    ..style = PaintingStyle.stroke
-    ..strokeWidth = 5.4
-    ..strokeCap = StrokeCap.round
-    ..color = Paw.ink;
-  for (final metric in arc.computeMetrics()) {
-    for (var d = 0.0; d < metric.length - 4; d += 7) {
-      final seg = metric.extractPath(d, math.min(d + 3.2, metric.length));
-      if (!mono) canvas.drawPath(seg, outline);
-      canvas.drawPath(seg, dash);
-    }
-  }
-
-  // The bomb: an ink ball with a highlight, a cream band, and a fuse spark.
-  const c = Offset(79, 28);
-  canvas
-    ..drawCircle(c, 8.5, Paint()..color = Paw.ink)
-    ..drawCircle(
-      c,
-      7,
-      Paint()
-        ..shader = Gradient.radial(c + const Offset(-2.5, -2.5), 9, [
-          const Color(0xFF6A5A4C),
-          const Color(0xFF2B2118),
-        ]),
-    );
-  if (!mono) {
-    canvas.drawCircle(
-      c + const Offset(-2.6, -2.8),
-      1.8,
-      Paint()..color = const Color(0xCCFFF6E6),
-    );
-  }
-  // Cap and fuse.
-  canvas.drawRRect(
-    RRect.fromRectAndRadius(
-      Rect.fromCenter(center: c + const Offset(3.6, -6.6), width: 5, height: 4),
-      const Radius.circular(1),
-    ),
-    Paint()..color = Paw.ink,
-  );
+  // Fuse: from the cap up towards the spark, a gentle S.
   final fuse = Path()
-    ..moveTo(c.dx + 4.4, c.dy - 8.4)
-    ..quadraticBezierTo(c.dx + 6.5, c.dy - 12, c.dx + 9.5, c.dy - 11);
+    ..moveTo(_c.dx + 25, _c.dy - 25)
+    ..cubicTo(78, 26, 70, 18, 78, 13);
   canvas.drawPath(
     fuse,
     Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6
+      ..strokeWidth = 3.6
       ..strokeCap = StrokeCap.round
-      ..color = Paw.ink,
+      ..color = mono ? white : Paw.cream,
   );
-  // Spark: a small yellow-orange star.
-  final spark = Path();
-  const sc = Offset(89.5, 16.5);
-  for (var i = 0; i < 10; i++) {
-    final r = i.isEven ? 4.6 : 1.9;
-    final a = -math.pi / 2 + i * math.pi / 5;
-    final p = sc + Offset(math.cos(a) * r, math.sin(a) * r);
-    i == 0 ? spark.moveTo(p.dx, p.dy) : spark.lineTo(p.dx, p.dy);
-  }
-  spark.close();
-  canvas
-    ..drawPath(
-      spark,
-      Paint()..color = mono ? const Color(0xFFFFFFFF) : Paw.yellow,
-    )
-    ..drawPath(
-      spark,
+
+  // The bomb body.
+  if (mono) {
+    canvas.drawCircle(_c, _r, Paint()..color = white);
+  } else {
+    canvas.drawCircle(
+      _c,
+      _r,
+      Paint()
+        ..shader = Gradient.radial(_c + const Offset(-10, -12), _r * 1.5, [
+          const Color(0xFF55463A),
+          Paw.ink,
+        ]),
+    );
+    // Rim light along the top left.
+    canvas.drawArc(
+      Rect.fromCircle(center: _c, radius: _r - 4.5),
+      math.pi * 1.05,
+      math.pi * 0.42,
+      false,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.2
-        ..strokeJoin = StrokeJoin.round
-        ..color = mono ? const Color(0xFFFFFFFF) : Paw.orangeDeep,
+        ..strokeWidth = 3.2
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0x66FFF6E6),
     );
+  }
+
+  // Paw print on the bomb's face (cut out of the silhouette when mono).
+  final paw = Paint()..color = mono ? white : Paw.cream;
+  // Mono draws inside the colour-filter layer, so this cuts the bomb.
+  if (mono) paw.blendMode = BlendMode.dstOut;
+  final pad = Path()
+    ..moveTo(_c.dx, _c.dy + 1)
+    ..cubicTo(
+      _c.dx + 8,
+      _c.dy + 1,
+      _c.dx + 13,
+      _c.dy + 9,
+      _c.dx + 13,
+      _c.dy + 13,
+    )
+    ..cubicTo(_c.dx + 13, _c.dy + 18, _c.dx + 8, _c.dy + 19, _c.dx, _c.dy + 17)
+    ..cubicTo(
+      _c.dx - 8,
+      _c.dy + 19,
+      _c.dx - 13,
+      _c.dy + 18,
+      _c.dx - 13,
+      _c.dy + 13,
+    )
+    ..cubicTo(_c.dx - 13, _c.dy + 9, _c.dx - 8, _c.dy + 1, _c.dx, _c.dy + 1)
+    ..close();
+  canvas.drawPath(pad, paw);
+  for (final (dx, dy, rx, ry) in const [
+    (-14.0, -2.0, 4.2, 5.2),
+    (-5.5, -9.5, 4.4, 5.6),
+    (5.5, -9.5, 4.4, 5.6),
+    (14.0, -2.0, 4.2, 5.2),
+  ]) {
+    canvas.drawOval(
+      Rect.fromCenter(
+        center: _c + Offset(dx, dy),
+        width: rx * 2,
+        height: ry * 2,
+      ),
+      paw,
+    );
+  }
+
+  // Spark at the end of the fuse: a glow, then a four-point star.
+  const sc = Offset(79, 12.5);
+  if (!mono) {
+    canvas.drawCircle(
+      sc,
+      11,
+      Paint()
+        ..shader = Gradient.radial(sc, 11, [
+          const Color(0xAAFFF3B0),
+          const Color(0x00FFF3B0),
+        ]),
+    );
+  }
+  final star = Path();
+  for (var i = 0; i < 8; i++) {
+    final r = i.isEven ? 8.0 : 2.4;
+    final a = -math.pi / 2 + i * math.pi / 4;
+    final p = sc + Offset(math.cos(a) * r, math.sin(a) * r);
+    i == 0 ? star.moveTo(p.dx, p.dy) : star.lineTo(p.dx, p.dy);
+  }
+  star.close();
+  canvas.drawPath(
+    star,
+    Paint()..color = mono ? white : const Color(0xFFFFF3B0),
+  );
+  if (!mono) canvas.drawCircle(sc, 2.2, Paint()..color = white);
 }

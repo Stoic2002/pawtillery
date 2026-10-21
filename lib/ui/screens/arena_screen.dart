@@ -59,7 +59,7 @@ enum _GestureMode { none, aim, camera }
 /// What stopped a Wi-Fi match.
 enum _NetStop { desync, playerLeft, hostLost }
 
-class _ArenaScreenState extends State<ArenaScreen> {
+class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
   // The seed is the only randomness outside the sim; it is logged so any
   // match can be replayed while debugging.
   late final int _seed =
@@ -92,6 +92,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     debugPrint('Pawtillery match seed: $_seed');
     final net = widget.net;
     if (net != null) {
@@ -282,6 +283,14 @@ class _ArenaScreenState extends State<ArenaScreen> {
     });
   }
 
+  /// Leaving the app (home button, a call) mid-match opens the pause
+  /// menu, so the turn clock doesn't run on as soon as the player is back.
+  /// A Wi-Fi match keeps going for the other phones either way.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.hidden && widget.net == null) _pause();
+  }
+
   Future<void> _pause() async {
     final game = _game;
     if (game == null || _paused || _finished) return;
@@ -388,6 +397,7 @@ class _ArenaScreenState extends State<ArenaScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     widget.net?.detachMatch();
     _waitTimer?.cancel();
     _waitingFor.dispose();

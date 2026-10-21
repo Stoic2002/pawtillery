@@ -162,6 +162,9 @@ class SimWorld implements SimContext {
   int _tick = 0;
   int get tick => _tick;
 
+  /// Tick of the latest damage or death, so settling can hold on it.
+  int _lastHitTick = -1;
+
   int _wind = 0;
   @override
   int get wind => _wind;
@@ -1023,6 +1026,7 @@ class SimWorld implements SimContext {
     }
     if (dealt <= 0) return;
     u.hp -= dealt;
+    _lastHitTick = _tick;
     _events.add(UnitDamaged(u.id, dealt, cause, sourceUnitId: sourceId));
   }
 
@@ -1207,6 +1211,7 @@ class SimWorld implements SimContext {
       ..vx = 0
       ..vy = 0
       ..dashRemaining = 0;
+    _lastHitTick = _tick;
     _events.add(UnitDied(u.id, cause));
   }
 
@@ -1268,7 +1273,13 @@ class SimWorld implements SimContext {
           _setPhase(TurnPhase.settling);
         }
       case TurnPhase.settling:
-        if (_isAtRest || turn.phaseTicks >= t.settleTimeoutTicks) {
+        final atRest = _isAtRest;
+        // Knocked-out pets fall once the dust settles, while the camera is
+        // still on them, rather than under the next turn's banner.
+        if (atRest) _killKnockedOut();
+        final held = _lastHitTick >= 0 &&
+            _tick - _lastHitTick < t.hitHoldTicks;
+        if ((atRest && !held) || turn.phaseTicks >= t.settleTimeoutTicks) {
           _finishTurn();
         }
       case TurnPhase.matchOver:
@@ -1295,9 +1306,7 @@ class SimWorld implements SimContext {
     _aircraft.clear();
     _strikes.clear();
     if (_suddenDeath) _maybeRaiseWater();
-    for (final u in _units) {
-      if (u.alive && u.hp <= 0) _kill(u, DeathCause.hp);
-    }
+    _killKnockedOut();
     final teamsAlive = <int>{
       for (final u in _units)
         if (u.alive) u.team,
@@ -1311,6 +1320,12 @@ class SimWorld implements SimContext {
       return;
     }
     _beginTurn();
+  }
+
+  void _killKnockedOut() {
+    for (final u in _units) {
+      if (u.alive && u.hp <= 0) _kill(u, DeathCause.hp);
+    }
   }
 
   void _beginTurn() {
@@ -1383,7 +1398,8 @@ class SimWorld implements SimContext {
       ..add(turn.winnerTeam ?? -1)
       ..add(_waterLevel)
       ..add(_suddenDeath ? 1 : 0)
-      ..add(_turnsSinceRise);
+      ..add(_turnsSinceRise)
+      ..add(_lastHitTick);
     for (final c in turn.cursors) {
       h.add(c);
     }

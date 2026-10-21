@@ -467,6 +467,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuAbout => 'About';
 
   @override
+  String get menuQuit => 'Quit game';
+
+  @override
+  String get quitAppTitle => 'Quit Pawtillery?';
+
+  @override
+  String get quitAppBody => 'Your pets will be waiting for the next match.';
+
+  @override
   String get teamPurple => 'Purple Team';
 
   @override

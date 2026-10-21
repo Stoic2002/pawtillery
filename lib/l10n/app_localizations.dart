@@ -962,6 +962,24 @@ abstract class AppLocalizations {
   /// **'About'**
   String get menuAbout;
 
+  /// Main menu button that closes the app (Android).
+  ///
+  /// In en, this message translates to:
+  /// **'Quit game'**
+  String get menuQuit;
+
+  /// Title of the confirmation shown before the app closes.
+  ///
+  /// In en, this message translates to:
+  /// **'Quit Pawtillery?'**
+  String get quitAppTitle;
+
+  /// Body of the confirmation shown before the app closes.
+  ///
+  /// In en, this message translates to:
+  /// **'Your pets will be waiting for the next match.'**
+  String get quitAppBody;
+
   /// Default name of a purple team.
   ///
   /// In en, this message translates to:

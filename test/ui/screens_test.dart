@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pawtillery/app/app.dart';
 import 'package:pawtillery/app/app_services.dart';
@@ -69,6 +70,34 @@ void main() {
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();
     expect(find.text('Privacy policy'), findsNothing);
+  });
+
+  testWidgets('back on the main menu asks before quitting', (tester) async {
+    await _landscape(tester);
+    final settings = await _settings();
+    final quits = <String>[];
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform, (call) async {
+      if (call.method == 'SystemNavigator.pop') quits.add(call.method);
+      return null;
+    });
+    addTearDown(() => tester.binding.defaultBinaryMessenger
+        .setMockMethodCallHandler(SystemChannels.platform, null));
+    await tester.pumpWidget(
+        PawtilleryApp(locale: const Locale('en'), settings: settings));
+    await tester.pumpAndSettle();
+
+    await _back(tester);
+    expect(find.text('Quit Pawtillery?'), findsOneWidget);
+    await tester.tap(find.text('Cancel'));
+    await tester.pumpAndSettle();
+    expect(find.text('Play'), findsOneWidget);
+    expect(quits, isEmpty);
+
+    await _back(tester);
+    await tester.tap(find.text('Quit'));
+    await tester.pumpAndSettle();
+    expect(quits, ['SystemNavigator.pop']);
   });
 
   testWidgets('setup: team count, Random, and the setup is saved on start',

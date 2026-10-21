@@ -162,6 +162,33 @@ void main() {
     });
   });
 
+  group('after a hit', () {
+    test('the next turn waits a moment so everyone sees the damage', () {
+      final w = _world(twoByTwo);
+      _toAction(w);
+      var lastHit = -1;
+      var next = w.step(const [_fireDown]);
+      final turn = w.turn.turnNumber;
+      while (w.turn.turnNumber == turn) {
+        if (next.whereType<UnitDamaged>().isNotEmpty) lastHit = w.tick;
+        next = w.step(const []);
+      }
+      expect(lastHit, greaterThan(0));
+      expect(w.tick - lastHit,
+          greaterThanOrEqualTo(_timings.hitHoldTicks));
+    });
+
+    test('a knocked-out pet falls before the next turn starts', () {
+      final w = _world([(0, 200, 400), (0, 1600, 400), (1, 1200, 400)]);
+      w.units[0].hp = 1;
+      _toAction(w);
+      w.step(const [_fireDown]);
+      _runUntil(w, () => !w.units[0].alive);
+      expect(w.turn.phase, TurnPhase.settling,
+          reason: 'still on the shot, not the next banner');
+    });
+  });
+
   group('match end', () {
     test('drowning kills at once and the last team standing wins', () {
       // Team 1's unit starts above a pit and falls into the water.
@@ -291,4 +318,7 @@ int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 // satellite and missile (2504866130 → 973916818), the starter map objects
 // (→ 2080593234), then dig mode and the sticky bomb (→ 3568307282). Same
 // play each time: the previous layout still gives the previous pin.
-const _pinnedScriptHash = 3568307282;
+// Re-pinned 2026-10-21 (→ 264497019): turns now hold for 2 s after the
+// last hit, knocked-out pets fall during that hold, and the storm cloud
+// and satellite take longer to arrive, so the play itself changed.
+const _pinnedScriptHash = 264497019;

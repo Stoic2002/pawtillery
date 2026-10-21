@@ -222,8 +222,8 @@ class ParticleSystem extends Component {
   void orbital(double x, double y, {double? top}) {
     top ??= math.min(-300.0, y - 1600);
     _streaks
-      ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 0.75, 0x887FD3FF, 30))
-      ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 0.55, 0xFFF4FBFF, 10));
+      ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 1.1, 0x887FD3FF, 30))
+      ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 0.8, 0xFFF4FBFF, 10));
     _spawn(
       x: x, y: y, life: 0.35, size: 18, grow: 160,
       argb: 0xFFE6F7FF, kind: _glow,
@@ -266,7 +266,9 @@ class ParticleSystem extends Component {
       points.add(ui.Offset(x + _rand(-22, 22) * (1 - t), from + h * t));
     }
     points.add(ui.Offset(x, y));
-    _streaks.add(_Streak(points, 0.5, 0xFFFFF2A8, 6));
+    _streaks
+      ..add(_Streak(points, 0.7, 0x66FFF2A8, 16))
+      ..add(_Streak(points, 0.7, 0xFFFFF2A8, 6));
     _spawn(
       x: x, y: y, life: 0.25, size: 14, grow: 120,
       argb: 0xFFFFF6C8, kind: _glow,

@@ -405,7 +405,10 @@ void main() {
 // satellite and missile (4107600983 → 1977243991), the starter map objects
 // (→ 3580160855), then dig mode and the sticky bomb (→ 2358037495). Same
 // play each time: the previous layout still gives the previous pin.
-const _pinnedWeaponsHash = 2358037495;
+// Re-pinned 2026-10-21 (→ 3954486270): turns now hold for 2 s after the
+// last hit, knocked-out pets fall during that hold, and the storm cloud
+// and satellite take longer to arrive, so the play itself changed.
+const _pinnedWeaponsHash = 3954486270;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

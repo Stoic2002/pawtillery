@@ -26,12 +26,17 @@ class TurnTimings {
         MatchDefaults.retreatSeconds * MatchDefaults.ticksPerSecond,
     this.settleTimeoutTicks =
         MatchDefaults.settleTimeoutSeconds * MatchDefaults.ticksPerSecond,
+    this.hitHoldTicks = MatchDefaults.hitHoldTicks,
   });
 
   final int bannerTicks;
   final int turnTicks;
   final int retreatTicks;
   final int settleTimeoutTicks;
+
+  /// Settling waits this long after the turn's last hit, even when
+  /// everything is already at rest.
+  final int hitHoldTicks;
 }
 
 /// Turn state machine. Holds no units itself: [SimWorld] drives it and

@@ -124,6 +124,7 @@ class PawtilleryGame extends FlameGame {
   late final ArenaCamera _camera;
   late final MapObjectsComponent _objects;
   late final DamageNumbersComponent _damage;
+  late final AirSupportComponent _airSupport;
 
   // State the Flutter HUD listens to.
   final hud = ValueNotifier<HudState?>(null);
@@ -197,7 +198,11 @@ class PawtilleryGame extends FlameGame {
       ),
       _objects = MapObjectsComponent(sim),
       ProjectilesComponent(sim),
-      AirSupportComponent(sim, teamColors: teamColors),
+      _airSupport = AirSupportComponent(
+        sim,
+        teamColors: teamColors,
+        viewHeight: () => camera.viewport.virtualSize.y / _camera.zoom,
+      ),
       WaterBackComponent(
           map: map, worldSize: worldSize, level: () => sim.waterLevel),
       WaterComponent(
@@ -437,15 +442,12 @@ class PawtilleryGame extends FlameGame {
       final b = sim.aircraft.first;
       _camera.follow(Vector2(b.x, b.y));
     } else if (sim.pendingStrikes.isNotEmpty) {
-      // Watch the satellite or storm cloud take position over its column,
-      // with the marked spot low in the view so the hit itself is seen.
+      // Stay on the marked spot, a little low in the view: the satellite
+      // or storm cloud comes in over it near the top of the view, so its
+      // arrival, the strike and who it hits are all seen.
       final s = sim.pendingStrikes.first;
       final viewHeight = camera.viewport.virtualSize.y / _camera.zoom;
-      _camera.follow(Vector2(
-        AirSupportComponent.strikeSourceX(sim, s),
-        math.max(AirSupportComponent.strikeSourceY(s),
-            s.y - viewHeight * 0.25),
-      ));
+      _camera.follow(Vector2(s.x.toDouble(), s.y - viewHeight * 0.15));
     } else if (sim.tick >= _impactHoldUntil) {
       _keepActiveUnitInView();
     }
@@ -546,13 +548,18 @@ class PawtilleryGame extends FlameGame {
           _aimGuide.invalidate();
           impact = Vector2(x1, y1);
         case LightningStruck(:final x, :final y):
-          particles.bolt(x.toDouble(), y.toDouble(),
-              top: AirSupportComponent.cloudY + 18);
+          final cloudY =
+              _airSupport.sourceYFor(lightning: true, targetY: y.toDouble());
+          particles.bolt(x.toDouble(), y.toDouble(), top: cloudY + 18);
+          _airSupport.strikeLanded(
+              lightning: true, x: x.toDouble(), y: cloudY);
           impact = Vector2(x.toDouble(), y.toDouble());
         case SatelliteStruck(:final x, :final y, :final radius, :final targetY):
           _terrain.carveLine(x.toDouble(), 0, x.toDouble(), y.toDouble(), radius);
-          particles.orbital(x.toDouble(), y.toDouble(),
-              top: AirSupportComponent.satelliteY + 12);
+          final satY = _airSupport.sourceYFor(
+              lightning: false, targetY: targetY.toDouble());
+          particles.orbital(x.toDouble(), y.toDouble(), top: satY + 12);
+          _airSupport.strikeLanded(lightning: false, x: x.toDouble(), y: satY);
           _aimGuide.invalidate();
           impact = Vector2(x.toDouble(), targetY.toDouble());
         case UnitDamaged(:final unitId, :final amount):
@@ -611,7 +618,7 @@ class PawtilleryGame extends FlameGame {
 
   /// Ticks the camera stays on a strike before following the active unit
   /// again.
-  static const int _impactHoldTicks = 60;
+  static const int _impactHoldTicks = MatchDefaults.hitHoldTicks;
   int _impactHoldUntil = 0;
 
   /// Strikes without a projectile to follow (laser, lightning, satellite)
