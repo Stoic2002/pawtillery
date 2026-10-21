@@ -660,6 +660,12 @@ class AppLocalizationsId extends AppLocalizations {
   String get settingsHaptics => 'Getaran';
 
   @override
+  String get settingsMusicOn => 'Musik';
+
+  @override
+  String get settingsShowFps => 'Tampilkan FPS';
+
+  @override
   String get settingsAimGuide => 'Tampilkan garis bidikan';
 
   @override

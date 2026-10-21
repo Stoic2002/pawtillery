@@ -54,6 +54,15 @@ class SettingsScreen extends StatelessWidget {
                                 ),
                               ),
                               _Row(
+                                icon: Icons.library_music_rounded,
+                                label: l10n.settingsMusicOn,
+                                child: PawSwitch(
+                                  value: settings.musicOn,
+                                  label: l10n.settingsMusicOn,
+                                  onChanged: (v) => settings.musicOn = v,
+                                ),
+                              ),
+                              _Row(
                                 icon: Icons.music_note_rounded,
                                 label: l10n.settingsMusic,
                                 child: _Volume(
@@ -87,6 +96,15 @@ class SettingsScreen extends StatelessWidget {
                                   value: settings.showAimGuide,
                                   label: l10n.settingsAimGuide,
                                   onChanged: (v) => settings.showAimGuide = v,
+                                ),
+                              ),
+                              _Row(
+                                icon: Icons.speed_rounded,
+                                label: l10n.settingsShowFps,
+                                child: PawSwitch(
+                                  value: settings.showFps,
+                                  label: l10n.settingsShowFps,
+                                  onChanged: (v) => settings.showFps = v,
                                 ),
                               ),
                               _Row(

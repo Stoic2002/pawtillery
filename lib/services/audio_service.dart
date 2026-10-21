@@ -13,8 +13,9 @@ enum Music { menu, match }
 /// files: missing sounds are silent, so assets can be added later by just
 /// dropping files into `assets/audio/` (see the README there).
 class AudioService {
-  AudioService._(this._settings, this._files) {
-    _settings.addListener(_applyMusicVolume);
+  AudioService._(this._settings, this._files)
+    : _musicOn = _settings.musicOn {
+    _settings.addListener(_onSettingsChanged);
   }
 
   /// Finds which audio files are bundled.
@@ -50,6 +51,9 @@ class AudioService {
   final Stopwatch _clock = Stopwatch()..start();
   Music? _music;
   bool _bgmPlaying = false;
+
+  /// Settings' music switch as last applied.
+  bool _musicOn;
 
   static bool _isAudio(String f) => _extensions.any((e) => f.endsWith('.$e'));
 
@@ -124,18 +128,21 @@ class AudioService {
     }
   }
 
+  /// Switches to [music]; remembered but silent while music is off.
   Future<void> playMusic(Music music) async {
     if (_music == music) return;
     _music = music;
-    final file = _file('music_${music.name}');
+    await _startMusic();
+  }
+
+  Future<void> _startMusic() async {
+    final music = _music;
+    final file = music == null ? null : _file('music_${music.name}');
     try {
       // Only touch the player when there is something to stop or play,
       // so a build without music never talks to the audio plugin.
-      if (_bgmPlaying) {
-        await FlameAudio.bgm.stop();
-        _bgmPlaying = false;
-      }
-      if (file != null) {
+      await _stopMusic();
+      if (file != null && _settings.musicOn) {
         await FlameAudio.bgm.play(file, volume: _settings.musicVolume);
         _bgmPlaying = true;
       }
@@ -144,7 +151,22 @@ class AudioService {
     }
   }
 
-  void _applyMusicVolume() {
+  Future<void> _stopMusic() async {
+    if (!_bgmPlaying) return;
+    _bgmPlaying = false;
+    await FlameAudio.bgm.stop();
+  }
+
+  /// Applies the music switch and volume from Settings.
+  void _onSettingsChanged() {
+    final on = _settings.musicOn;
+    if (on != _musicOn) {
+      _musicOn = on;
+      (on ? _startMusic() : _stopMusic()).catchError(
+        (Object e) => debugPrint('Music failed: $e'),
+      );
+      return;
+    }
     if (!_bgmPlaying) return;
     FlameAudio.bgm.audioPlayer.setVolume(_settings.musicVolume).ignore();
   }
@@ -165,7 +187,7 @@ class AudioService {
       };
 
   void dispose() {
-    _settings.removeListener(_applyMusicVolume);
+    _settings.removeListener(_onSettingsChanged);
     for (final v in _voices.values) {
       for (final p in v.players) {
         p.dispose().ignore();

@@ -20,6 +20,8 @@ class SettingsStore extends ChangeNotifier {
   static const _kSfx = 'sfxVolume';
   static const _kHaptics = 'haptics';
   static const _kAimGuide = 'showAimGuide';
+  static const _kMusicOn = 'musicOn';
+  static const _kShowFps = 'showFps';
   static const _kTutorialDone = 'tutorialDone';
   static const _kMatch = 'lastMatchConfig';
   static const _kPlayerName = 'playerName';
@@ -39,6 +41,14 @@ class SettingsStore extends ChangeNotifier {
 
   bool get haptics => _prefs.getBool(_kHaptics) ?? true;
   set haptics(bool v) => _set(() => _prefs.setBool(_kHaptics, v));
+
+  /// Background music on or off (its volume is kept either way).
+  bool get musicOn => _prefs.getBool(_kMusicOn) ?? true;
+  set musicOn(bool v) => _set(() => _prefs.setBool(_kMusicOn, v));
+
+  /// Frame rate readout during a match.
+  bool get showFps => _prefs.getBool(_kShowFps) ?? false;
+  set showFps(bool v) => _set(() => _prefs.setBool(_kShowFps, v));
 
   bool get showAimGuide => _prefs.getBool(_kAimGuide) ?? true;
   set showAimGuide(bool v) => _set(() => _prefs.setBool(_kAimGuide, v));

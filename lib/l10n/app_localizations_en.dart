@@ -660,6 +660,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsHaptics => 'Vibration';
 
   @override
+  String get settingsMusicOn => 'Music';
+
+  @override
+  String get settingsShowFps => 'Show FPS';
+
+  @override
   String get settingsAimGuide => 'Show aim guide';
 
   @override

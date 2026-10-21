@@ -410,7 +410,8 @@ class PawtilleryGame extends FlameGame {
   @override
   void update(double dt) {
     super.update(dt);
-    if (kDebugMode || kProfileMode) _measureFrame(dt);
+    // Cheap enough to always run; the HUD shows it when Settings asks.
+    _measureFrame(dt);
     _accumulator += dt;
     var steps = 0;
     var slots = 0;

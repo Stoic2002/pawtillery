@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/app_services.dart';
 import '../../app/paw_palette.dart';
 import '../../config/controls.dart';
 import '../../config/teams.dart';
@@ -505,6 +506,7 @@ class _TopCentre extends StatelessWidget {
   final PawtilleryGame game;
   final Color teamColor;
   final TeamSymbol symbol;
+
   /// A how-to-aim hint under the clock (target weapons).
   final String? hint;
 
@@ -678,6 +680,7 @@ class _TopRight extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final settings = AppServices.of(context).settings;
     final wind = hud.wind;
     final strong = wind.abs() >= 7;
     Widget note(String text) => Container(
@@ -779,14 +782,24 @@ class _TopRight extends StatelessWidget {
             ),
           ],
         ),
+        // Frame rate: when Settings asks for it, and always in debug and
+        // profile builds.
+        ListenableBuilder(
+          listenable: settings,
+          builder: (context, _) =>
+              !(settings.showFps || kDebugMode || kProfileMode)
+              ? const SizedBox.shrink()
+              : ValueListenableBuilder<FrameStats?>(
+                  valueListenable: game.frameStats,
+                  builder: (context, f, _) => f == null
+                      ? const SizedBox.shrink()
+                      : note(
+                          l10n.debugFps(f.fps, f.worstMs.toStringAsFixed(1)),
+                        ),
+                ),
+        ),
         if (kDebugMode || kProfileMode) ...[
           note(l10n.debugSeed(seed)),
-          ValueListenableBuilder<FrameStats?>(
-            valueListenable: game.frameStats,
-            builder: (context, f, _) => f == null
-                ? const SizedBox.shrink()
-                : note(l10n.debugFps(f.fps, f.worstMs.toStringAsFixed(1))),
-          ),
           ValueListenableBuilder<ExplosionTiming?>(
             valueListenable: game.explosionTiming,
             builder: (context, t, _) => t == null

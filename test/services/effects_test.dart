@@ -56,6 +56,23 @@ void main() {
       }
       await audio.playMusic(Music.menu);
     });
+
+    test('music and FPS switches are saved, music on by default', () async {
+      SharedPreferences.setMockInitialValues({});
+      final settings = await SettingsStore.load();
+      final audio = AudioService.silent(settings);
+      expect(settings.musicOn, isTrue);
+      expect(settings.showFps, isFalse);
+      settings
+        ..musicOn = false
+        ..showFps = true;
+      await audio.playMusic(Music.match);
+      settings.musicOn = true;
+      final reloaded = await SettingsStore.load();
+      expect(reloaded.musicOn, isTrue);
+      expect(reloaded.showFps, isTrue);
+      audio.dispose();
+    });
   });
 
   group('particles', () {

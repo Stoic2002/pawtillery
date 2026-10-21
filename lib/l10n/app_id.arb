@@ -204,6 +204,8 @@
   "settingsMusic": "Volume musik",
   "settingsSfx": "Volume efek suara",
   "settingsHaptics": "Getaran",
+  "settingsMusicOn": "Musik",
+  "settingsShowFps": "Tampilkan FPS",
   "settingsAimGuide": "Tampilkan garis bidikan",
   "settingsTutorial": "Tampilkan tutorial lagi",
   "settingsTutorialReset": "Tutorial akan muncul di pertandingan berikutnya.",

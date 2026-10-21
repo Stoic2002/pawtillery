@@ -1322,6 +1322,18 @@ abstract class AppLocalizations {
   /// **'Vibration'**
   String get settingsHaptics;
 
+  /// Settings label: turns background music on or off.
+  ///
+  /// In en, this message translates to:
+  /// **'Music'**
+  String get settingsMusicOn;
+
+  /// Settings label: shows the frame rate during a match.
+  ///
+  /// In en, this message translates to:
+  /// **'Show FPS'**
+  String get settingsShowFps;
+
   /// Settings label.
   ///
   /// In en, this message translates to:
