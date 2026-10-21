@@ -16,6 +16,7 @@ class HudState {
     required this.winnerTeam,
     this.suddenDeath = false,
     this.frozenSkip = false,
+    this.shotgunLeft = 0,
   });
 
   final TurnPhase phase;
@@ -36,6 +37,9 @@ class HudState {
   /// The active pet is frozen: this turn is skipped.
   final bool frozenSkip;
 
+  /// Shotgun pulls still to take this turn.
+  final int shotgunLeft;
+
   bool get canMove =>
       phase == TurnPhase.action || phase == TurnPhase.retreat;
   bool get isOver => phase == TurnPhase.matchOver;
@@ -51,12 +55,13 @@ class HudState {
       listEquals(other.teamMaxHp, teamMaxHp) &&
       other.suddenDeath == suddenDeath &&
       other.frozenSkip == frozenSkip &&
+      other.shotgunLeft == shotgunLeft &&
       other.winnerTeam == winnerTeam;
 
   @override
   int get hashCode => Object.hash(phase, activeTeam, clockSeconds, wind,
       Object.hashAll(teamHp), Object.hashAll(teamMaxHp), winnerTeam,
-      suddenDeath, frozenSkip);
+      suddenDeath, frozenSkip, shotgunLeft);
 }
 
 /// The player's current weapon and aim. [active] = ready to fire: the

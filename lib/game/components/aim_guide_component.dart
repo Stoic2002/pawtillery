@@ -185,12 +185,17 @@ class AimGuideComponent extends Component {
     // The aim circle: a dashed ring around the unit, as in the prototype.
     canvas.drawPath(_dashedRing.shift(center), _dash..strokeWidth = 1.4);
     final delivery = weapon.delivery;
-    if (delivery is Beam && showPath()) {
-      // Laser: a faint red line over the part of the beam the guide shows.
+    if ((delivery is Beam || delivery is Shotgun) && showPath()) {
+      // Laser and shotgun: a faint red line over the part of the shot the
+      // guide shows.
+      final length = switch (delivery) {
+        Beam(:final length) || Shotgun(range: final length) => length,
+        _ => 0,
+      };
       final start = center + dir * (unit.stats.hitRadius + 2);
       canvas.drawLine(
         start,
-        start + dir * (delivery.length * ControlsConfig.aimGuideFraction * 2),
+        start + dir * (length * ControlsConfig.aimGuideFraction * 2),
         _beam,
       );
     } else if (delivery is Grapple) {

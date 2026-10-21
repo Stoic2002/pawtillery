@@ -147,6 +147,9 @@ class Unit {
   double grappleY = 0;
   bool get isGrappling => grappleTicks > 0;
 
+  /// Gelembung Perisai: the next hit is taken by the bubble.
+  bool shielded = false;
+
   /// Ice Bomb: own turns still to sit out frozen.
   int frozenTurns = 0;
   bool get frozen => frozenTurns > 0;

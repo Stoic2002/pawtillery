@@ -10,6 +10,7 @@ import '../config/weapons.dart';
 import 'air_support.dart';
 import 'damage.dart';
 import 'events.dart';
+import 'fire_patch.dart';
 import 'inputs.dart';
 import 'map_object.dart';
 import 'match_setup.dart';
@@ -18,7 +19,6 @@ import 'physics.dart';
 import 'projectile.dart';
 import 'rng.dart';
 import 'spawn.dart';
-import 'fire_patch.dart';
 import 'terrain_mask.dart';
 import 'trig.dart';
 import 'turn_manager.dart';
@@ -195,6 +195,10 @@ class SimWorld implements SimContext {
   /// Units burnt this turn (fire hurts each at most once a turn).
   final Set<int> _burnt = {};
 
+  /// Shotgun pulls left this turn after the first (0 = none started).
+  int _shotgunLeft = 0;
+  int get shotgunShotsLeft => _shotgunLeft;
+
   /// This turn's unit was frozen, so the turn was skipped.
   bool _frozenSkip = false;
   bool get frozenSkip => _frozenSkip;
@@ -303,6 +307,8 @@ class SimWorld implements SimContext {
 
   /// Whether [unit] may use [weapon] right now (ignoring the turn phase).
   bool canUse(Unit unit, WeaponDef weapon) {
+    // Mid-shotgun: only its second pull.
+    if (_shotgunLeft > 0) return weapon.delivery is Shotgun;
     if (!loadout.enabled(weapon)) return false;
     if (weapon.isSignature) {
       return weapon.familyId == unit.familyId && !unit.signatureUsed;
@@ -419,6 +425,10 @@ class SimWorld implements SimContext {
     }
     final dir = _horizontalDir(unit, input.angleDeg);
 
+    if (weapon.delivery case final Shotgun spec) {
+      _shotgun(unit, weapon, spec, input.angleDeg);
+      return;
+    }
     if (weapon.delivery case Grapple(:final length)) {
       _grapple(unit, weapon, input.angleDeg, length);
       return;
@@ -452,8 +462,11 @@ class SimWorld implements SimContext {
         _callAirRaid(unit, raid, tx!, ty!);
       case final MeteorShower shower:
         _meteorShower(unit, shower, tx!, ty!);
-      case Grapple():
+      case Grapple() || Shotgun():
         break; // Handled above.
+      case ShieldUp():
+        unit.shielded = true;
+        _events.add(ShieldRaised(unit.id));
       case OrbitalStrike(:final delayTicks) ||
           Lightning(:final delayTicks) when delayTicks > 0:
         _strikes.add(PendingStrike(
@@ -623,6 +636,80 @@ class SimWorld implements SimContext {
       y = ny;
     }
     return (x, y, false);
+  }
+
+  /// Where a shotgun shot from [unit] at [angleDeg] stops: on the first
+  /// pet, ground, object or mine within [range] px (that thing returned),
+  /// or at the end of its range, the map edge or the water.
+  static (double, double, Object?) shotgunReach(SimWorld w, Unit unit,
+      int angleDeg, int range) {
+    final (x0, y0) = launchOrigin(unit, angleDeg);
+    final dx = SimTrig.cosDeg(angleDeg);
+    final dy = -SimTrig.sinDeg(angleDeg);
+    var x = x0;
+    var y = y0;
+    for (var d = 0; d <= range; d++) {
+      final nx = x0 + dx * d;
+      final ny = y0 + dy * d;
+      if (nx < 0 || nx >= w.terrain.width || ny >= w.waterLevel) break;
+      x = nx;
+      y = ny;
+      for (final u in w._units) {
+        if (!u.alive || u.id == unit.id) continue;
+        final ux = u.centerX - nx;
+        final uy = u.centerY - ny;
+        final r = u.stats.hitRadius;
+        if (ux * ux + uy * uy <= r * r) return (nx, ny, u);
+      }
+      for (final o in w._objects) {
+        const r = ObjectConfig.size / 2;
+        final ox = o.x - nx;
+        final oy = o.centerY - ny;
+        if (ox * ox + oy * oy <= r * r) return (nx, ny, o);
+      }
+      for (final m in w._mines) {
+        final mx = m.x - nx;
+        final my = m.centerY - ny;
+        if (mx * mx + my * my <= 25) return (nx, ny, m);
+      }
+      if (w.terrain.isSolid(nx.floor(), ny.floor())) return (nx, ny, w.terrain);
+    }
+    return (x, y, null);
+  }
+
+  /// One shotgun pull. The first uses up the weapon and leaves the turn
+  /// in the action phase for the rest; the last moves on to the retreat.
+  void _shotgun(Unit unit, WeaponDef weapon, Shotgun spec, int angleDeg) {
+    if (_shotgunLeft == 0) {
+      if (_ammo[unit.team][weapon.id] case final int left) {
+        _ammo[unit.team][weapon.id] = left - 1;
+      }
+      _shotgunLeft = spec.shots;
+      _events.add(WeaponUsed(unit.id, weapon.id));
+    }
+    _shotgunLeft--;
+    unit.facing = SimTrig.cosDeg(angleDeg) >= 0 ? 1 : -1;
+    final (x0, y0) = launchOrigin(unit, angleDeg);
+    final (x, y, hit) = shotgunReach(this, unit, angleDeg, spec.range);
+    _events.add(ShotgunFired(unit.id, x0, y0, x, y));
+    switch (hit) {
+      case final Unit u:
+        strikeUnit(u, weapon.maxDamage, SimTrig.cosDeg(angleDeg),
+            -SimTrig.sinDeg(angleDeg), weapon.knockbackScale,
+            sourceId: unit.id);
+      case final MapObject o:
+        _hitObject(o);
+      case final Mine m:
+        m.countdown = min(m.countdown ?? 1, 1);
+      case TerrainMask():
+        carveTunnel(x.round(), y.round(), spec.carveRadius);
+      default:
+        break;
+    }
+    if (_shotgunLeft == 0) {
+      turn.hasFired = true;
+      _setPhase(TurnPhase.retreat);
+    }
   }
 
   /// Tali Pengait: a hooked shot reels the unit in (see [_stepGrapple]);
@@ -1111,7 +1198,10 @@ class SimWorld implements SimContext {
       final dy = u.centerY - y;
       final r = spec.radius + u.stats.hitRadius;
       if (dx * dx + dy * dy > r * r) continue;
-      _damage(u, weapon.maxDamage, DamageCause.impact, sourceId: sourceId);
+      if (!_damage(u, weapon.maxDamage, DamageCause.impact,
+          sourceId: sourceId)) {
+        continue;
+      }
       if (!u.frozen) _events.add(UnitFrozen(u.id));
       u.frozenTurns = 1;
     }
@@ -1153,7 +1243,10 @@ class SimWorld implements SimContext {
         final r = u.stats.hitRadius + FireConfig.reach;
         if (dx * dx + dy * dy > r * r) continue;
         _burnt.add(u.id);
-        _damage(u, FireConfig.damage, DamageCause.fire, sourceId: f.ownerId);
+        if (!_damage(u, FireConfig.damage, DamageCause.fire,
+                sourceId: f.ownerId)) {
+          break;
+        }
         if (u.frozen) {
           u.frozenTurns = 0;
           _events.add(UnitThawed(u.id, skippedTurn: false));
@@ -1174,8 +1267,9 @@ class SimWorld implements SimContext {
   void strikeUnit(
       Unit unit, int damage, double dirX, double dirY, double knockbackScale,
       {int? sourceId}) {
-    _damage(unit, damage, DamageCause.impact, sourceId: sourceId);
-    _knockback(unit, damage, dirX, dirY, knockbackScale);
+    if (_damage(unit, damage, DamageCause.impact, sourceId: sourceId)) {
+      _knockback(unit, damage, dirX, dirY, knockbackScale);
+    }
   }
 
   @override
@@ -1242,7 +1336,7 @@ class SimWorld implements SimContext {
         distance: edge < 0 ? 0 : edge,
       );
       if (damage == 0) continue;
-      _damage(u, damage, cause, sourceId: sourceId);
+      if (!_damage(u, damage, cause, sourceId: sourceId)) continue;
       _knockback(u, damage, dist > 0 ? dx / dist : 0.0,
           dist > 0 ? dy / dist : -1.0, weapon.knockbackScale);
     }
@@ -1343,7 +1437,18 @@ class SimWorld implements SimContext {
 
   /// Applies [amount] of damage, with the unit's damage-taken modifier for
   /// explosions and its lethal save (Kucing) if it has one left.
-  void _damage(Unit u, int amount, DamageCause cause, {int? sourceId}) {
+  ///
+  /// A shield takes the hit instead (not a fall or the water): returns
+  /// false then, so the caller skips knockback and other effects.
+  bool _damage(Unit u, int amount, DamageCause cause, {int? sourceId}) {
+    if (u.shielded &&
+        cause != DamageCause.fall &&
+        cause != DamageCause.water) {
+      u.shielded = false;
+      _lastHitTick = _tick;
+      _events.add(ShieldPopped(u.id, blocked: true));
+      return false;
+    }
     var dealt = amount;
     if (cause == DamageCause.explosion) {
       dealt = (amount * u.stats.explosionDamageScale).round();
@@ -1354,10 +1459,11 @@ class SimWorld implements SimContext {
       u.lethalSavesLeft--;
       _events.add(UnitSaved(u.id, SaveKind.lethal));
     }
-    if (dealt <= 0) return;
+    if (dealt <= 0) return true;
     u.hp -= dealt;
     _lastHitTick = _tick;
     _events.add(UnitDamaged(u.id, dealt, cause, sourceUnitId: sourceId));
+    return true;
   }
 
   void _knockback(
@@ -1687,6 +1793,7 @@ class SimWorld implements SimContext {
   void _beginTurn() {
     _burnt.clear();
     _frozenSkip = false;
+    _shotgunLeft = 0;
     turn.startNextTurn([
       for (var team = 0; team < teamCount; team++)
         [
@@ -1695,6 +1802,12 @@ class SimWorld implements SimContext {
         ],
     ]);
     _wind = rng.nextIntInRange(PhysicsConfig.windMin, PhysicsConfig.windMax);
+    // A shield lasts until its pet's own next turn.
+    final active = _units[turn.activeUnitId];
+    if (active.shielded) {
+      active.shielded = false;
+      _events.add(ShieldPopped(active.id, blocked: false));
+    }
     _events
       ..add(TurnStarted(team: turn.activeTeam, unitId: turn.activeUnitId))
       ..add(const PhaseChanged(TurnPhase.turnStart));
@@ -1759,7 +1872,8 @@ class SimWorld implements SimContext {
       ..add(_turnsSinceRise)
       ..add(_lastHitTick)
       ..add(_nextFireId)
-      ..add(_frozenSkip ? 1 : 0);
+      ..add(_frozenSkip ? 1 : 0)
+      ..add(_shotgunLeft);
     for (final f in _fires) {
       h
         ..add(f.id)
@@ -1797,6 +1911,7 @@ class SimWorld implements SimContext {
         ..addDouble(u.digLeft)
         ..add(u.grappleTicks)
         ..add(u.frozenTurns)
+        ..add(u.shielded ? 1 : 0)
         ..addDouble(u.grappleX)
         ..addDouble(u.grappleY)
         ..addDouble(u.x)

@@ -210,6 +210,27 @@ class ParticleSystem extends Component {
     }
   }
 
+  /// Shotgun: a muzzle flash, a quick tracer and sparks and grit where the
+  /// shot stops.
+  void tracer(double x0, double y0, double x1, double y1) {
+    _streaks.add(
+        _Streak([ui.Offset(x0, y0), ui.Offset(x1, y1)], 0.15, 0xFFFFC23A, 1.4));
+    _spawn(
+      x: x0, y: y0, life: 0.1, size: 7, grow: 50,
+      argb: 0xFFFFE08A, kind: _glow,
+    );
+    for (var i = 0; i < 9; i++) {
+      final a = _rand(0, math.pi * 2);
+      final speed = _rand(60, 180);
+      _spawn(
+        x: x1, y: y1,
+        vx: math.cos(a) * speed, vy: math.sin(a) * speed - 50,
+        life: _rand(0.15, 0.35), size: _rand(1, 2), gravity: 500,
+        argb: i.isEven ? 0xFFFFD27A : 0xFFB9AFA4, kind: _glow,
+      );
+    }
+  }
+
   /// Dust kicked up by a landing or by digging.
   void dust(double x, double y, {required double strength}) {
     final n = (strength * 8).round().clamp(2, 14);

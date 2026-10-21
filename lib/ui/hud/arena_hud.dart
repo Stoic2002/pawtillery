@@ -61,6 +61,8 @@ class ArenaHud extends StatelessWidget {
             final targeting = acting && weapon.aim == AimMode.target;
             final hint = targeting
                 ? AppLocalizations.of(context).hudTapTarget
+                : hud.shotgunLeft > 0 && acting
+                ? AppLocalizations.of(context).hudShotgunMore
                 : null;
             final aiming =
                 acting &&
@@ -953,7 +955,10 @@ class _Actions extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           _FireButton(
-            label: weapon.delivery is Launch || weapon.delivery is Beam
+            label:
+                weapon.delivery is Launch ||
+                    weapon.delivery is Beam ||
+                    weapon.delivery is Shotgun
                 ? l10n.hudFire
                 : l10n.hudUse,
             onPressed: ready ? game.fire : null,

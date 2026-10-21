@@ -135,6 +135,27 @@ final class Grapple extends Delivery {
   final double speed;
 }
 
+/// Raises a bubble around the unit that takes the next hit in its place
+/// (not falls or water). It lasts until the unit's own next turn.
+final class ShieldUp extends Delivery {
+  const ShieldUp();
+}
+
+/// A shotgun: [shots] trigger pulls a turn, each re-aimed. A pull hits
+/// the first pet, ground or object along the aim within [range] px at
+/// once (no flight), knocks out a [carveRadius] chip of ground where it
+/// lands. The turn goes on to the retreat after the last pull.
+final class Shotgun extends Delivery {
+  const Shotgun({
+    required this.shots,
+    required this.range,
+    required this.carveRadius,
+  });
+  final int shots;
+  final int range;
+  final int carveRadius;
+}
+
 /// Puts this weapon down as a mine next to the unit.
 final class PlaceMine extends Delivery {
   const PlaceMine();
@@ -749,6 +770,28 @@ abstract final class Weapons {
     placeholderArgb: 0xFFE8743B,
   );
 
+  /// A bubble that takes the next hit for you.
+  static const shield = WeaponDef(
+    id: 'shield',
+    nameKey: 'weaponShield',
+    aim: AimMode.none,
+    delivery: ShieldUp(),
+    ammo: 2,
+    placeholderArgb: 0xFF7FD3FF,
+  );
+
+  /// Two straight, instant shots a turn; strong up close.
+  static const shotgun = WeaponDef(
+    id: 'shotgun',
+    nameKey: 'weaponShotgun',
+    aim: AimMode.direction,
+    delivery: Shotgun(shots: 2, range: 380, carveRadius: 6),
+    maxDamage: 20,
+    knockbackScale: 1.3,
+    ammo: 2,
+    placeholderArgb: 0xFF5C4033,
+  );
+
   /// Bursts into burning patches that hurt for a few turns.
   static const napalm = WeaponDef(
     id: 'napalm',
@@ -1141,6 +1184,7 @@ abstract final class Weapons {
     cluster,
     firecracker,
     twinSling,
+    shotgun,
     seedSpitter,
     laserPointer,
     thunderCloud,
@@ -1157,6 +1201,7 @@ abstract final class Weapons {
     mine,
     digClaws,
     grapple,
+    shield,
     teleport,
     swap,
     skip,

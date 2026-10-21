@@ -2473,6 +2473,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Frozen! Turn skipped'**
   String get hudFrozenSkip;
+
+  /// Weapon: a bubble that takes the next hit.
+  ///
+  /// In en, this message translates to:
+  /// **'Shield Bubble'**
+  String get weaponShield;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'A bubble that takes the next hit for you (not falls or water). It lasts until your next turn.'**
+  String get weaponShieldDesc;
+
+  /// Weapon: two straight instant shots a turn.
+  ///
+  /// In en, this message translates to:
+  /// **'Shotgun'**
+  String get weaponShotgun;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Two shots a turn, aim each one. Hits the first thing in line straight away, no wind.'**
+  String get weaponShotgunDesc;
+
+  /// Arena hint after the shotgun's first shot.
+  ///
+  /// In en, this message translates to:
+  /// **'One more shot: aim and fire'**
+  String get hudShotgunMore;
 }
 
 class _AppLocalizationsDelegate

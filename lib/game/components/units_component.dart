@@ -133,6 +133,7 @@ class UnitsComponent extends Component {
       );
       canvas.restore();
       if (u.frozen) _iceBlock(canvas, u, scale);
+      if (u.shielded) _bubble(canvas, u, scale);
 
       final top = u.y - AnimalArt.height * scale - 3;
       final tagTop = _drawTag(canvas, u, top);
@@ -171,6 +172,28 @@ class UnitsComponent extends Component {
           ui.Offset(block.left + 13, block.top + 5),
           _iceGlint);
   }
+
+  /// A shield: a soap-bubble dome around the pet, its rim shimmering.
+  void _bubble(ui.Canvas canvas, Unit u, double scale) {
+    final r = AnimalArt.height * scale * 0.62 + 4;
+    final c = ui.Offset(u.centerX, u.y - r + 3);
+    final shimmer = 0.5 + 0.5 * math.sin(_time * 3 + u.id);
+    canvas
+      ..drawCircle(c, r, _bubbleFill)
+      ..drawCircle(
+          c,
+          r,
+          _bubbleRim
+            ..color = ui.Color.lerp(const ui.Color(0xCC9FE3FF),
+                const ui.Color(0xCCE3C6FF), shimmer)!)
+      ..drawArc(ui.Rect.fromCircle(center: c, radius: r - 4), math.pi * 1.1,
+          math.pi * 0.35, false, _iceGlint);
+  }
+
+  final ui.Paint _bubbleFill = ui.Paint()..color = const ui.Color(0x409FE3FF);
+  final ui.Paint _bubbleRim = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeWidth = 2.6;
 
   final ui.Paint _iceEdge = ui.Paint()
     ..style = ui.PaintingStyle.stroke

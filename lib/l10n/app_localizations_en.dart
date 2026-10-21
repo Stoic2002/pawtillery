@@ -1281,4 +1281,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hudFrozenSkip => 'Frozen! Turn skipped';
+
+  @override
+  String get weaponShield => 'Shield Bubble';
+
+  @override
+  String get weaponShieldDesc =>
+      'A bubble that takes the next hit for you (not falls or water). It lasts until your next turn.';
+
+  @override
+  String get weaponShotgun => 'Shotgun';
+
+  @override
+  String get weaponShotgunDesc =>
+      'Two shots a turn, aim each one. Hits the first thing in line straight away, no wind.';
+
+  @override
+  String get hudShotgunMore => 'One more shot: aim and fire';
 }

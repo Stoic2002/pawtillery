@@ -324,4 +324,5 @@ int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 // Then (→ 9395643) the hash also covers the grappling hook; same play.
 // Then (→ 1282318523) it also covers fire, frozen pets and the satellite's
 // beam count; same play.
-const _pinnedScriptHash = 1282318523;
+// Then (→ 2120106523) it also covers shields and shotgun pulls; same play.
+const _pinnedScriptHash = 2120106523;

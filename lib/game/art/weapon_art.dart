@@ -1016,6 +1016,10 @@ abstract final class WeaponArt {
         }
       case 'iceBomb':
         big(() => _iceBall(c), 1.9);
+      case 'shotgun':
+        _shotgunGun(c);
+      case 'shield':
+        _shieldBubble(c);
       case 'grapple':
         final rope = ui.Path()
           ..moveTo(-13, 13)
@@ -1284,6 +1288,77 @@ abstract final class WeaponArt {
       final d = ui.Offset(math.cos(a) * 1.8, math.sin(a) * 1.8);
       c.drawLine(const ui.Offset(3, 3) - d, const ui.Offset(3, 3) + d, flake);
     }
+  }
+
+  /// A double-barrelled shotgun (icon, 32 px box) pointing right, with a
+  /// wooden stock and a muzzle flash.
+  static void _shotgunGun(ui.Canvas c) {
+    c
+      ..save()
+      ..rotate(-0.3);
+    const wood = 0xFF8A5A34;
+    const steel = 0xFF5C6266;
+    final stock = ui.Path()
+      ..moveTo(-15, -1)
+      ..lineTo(-4, -2.5)
+      ..lineTo(-2, 2.5)
+      ..lineTo(-6, 3)
+      ..lineTo(-14, 6.5)
+      ..quadraticBezierTo(-16.5, 6, -16, 2)
+      ..close();
+    _shaded(c, stock, wood);
+    for (final y in [-3.6, -1.2]) {
+      final barrel = ui.RRect.fromRectAndRadius(
+          ui.Rect.fromLTWH(-4, y, 19, 2.6), const ui.Radius.circular(1));
+      c
+        ..drawRRect(barrel, PaintKit.lit(barrel.outerRect, steel, light: 0.5))
+        ..drawRRect(barrel, PaintKit.edge(steel, 0.5));
+    }
+    final grip = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(1, 1.2, 8, 3), const ui.Radius.circular(1.2));
+    c
+      ..drawRRect(grip, PaintKit.lit(grip.outerRect, wood))
+      ..drawCircle(const ui.Offset(18, -2.3), 3.2, PaintKit.solid(0xCCFFB04A))
+      ..drawCircle(const ui.Offset(18, -2.3), 1.6, PaintKit.solid(0xFFFFF2B0))
+      ..restore();
+  }
+
+  /// A shield bubble (icon): a translucent sphere with a rainbow-tinted
+  /// rim, a shine, and a small shield crest inside.
+  static void _shieldBubble(ui.Canvas c) {
+    const center = ui.Offset(0, 1);
+    final rect = ui.Rect.fromCircle(center: center, radius: 13);
+    c
+      ..drawCircle(
+          center,
+          13,
+          ui.Paint()
+            ..shader = ui.Gradient.radial(center + const ui.Offset(-4, -5), 16,
+                const [ui.Color(0x55E6F9FF), ui.Color(0x449FE3FF), ui.Color(0x88B79CFF)],
+                const [0, 0.7, 1]))
+      ..drawOval(
+          rect,
+          ui.Paint()
+            ..style = ui.PaintingStyle.stroke
+            ..strokeWidth = 1.6
+            ..color = const ui.Color(0xDD9FE3FF));
+    final crest = ui.Path()
+      ..moveTo(0, -5)
+      ..lineTo(6, -3)
+      ..quadraticBezierTo(6, 4, 0, 8)
+      ..quadraticBezierTo(-6, 4, -6, -3)
+      ..close();
+    _shaded(c, crest, 0xFF4C8FD6);
+    c
+      ..drawLine(const ui.Offset(0, -3), const ui.Offset(0, 6),
+          PaintKit.solid(0x99FFFFFF)..strokeWidth = 1.2)
+      ..drawArc(ui.Rect.fromCircle(center: center, radius: 9.5), math.pi * 1.1,
+          math.pi * 0.35, false,
+          ui.Paint()
+            ..style = ui.PaintingStyle.stroke
+            ..strokeWidth = 2
+            ..strokeCap = ui.StrokeCap.round
+            ..color = const ui.Color(0xEEFFFFFF));
   }
 
   /// See [grappleHook].

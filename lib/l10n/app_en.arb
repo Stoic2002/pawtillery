@@ -1490,5 +1490,25 @@
   "hudFrozenSkip": "Frozen! Turn skipped",
   "@hudFrozenSkip": {
     "description": "Arena: the active pet is frozen by an ice bomb and sits this turn out."
+  },
+  "weaponShield": "Shield Bubble",
+  "@weaponShield": {
+    "description": "Weapon: a bubble that takes the next hit."
+  },
+  "weaponShieldDesc": "A bubble that takes the next hit for you (not falls or water). It lasts until your next turn.",
+  "@weaponShieldDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponShotgun": "Shotgun",
+  "@weaponShotgun": {
+    "description": "Weapon: two straight instant shots a turn."
+  },
+  "weaponShotgunDesc": "Two shots a turn, aim each one. Hits the first thing in line straight away, no wind.",
+  "@weaponShotgunDesc": {
+    "description": "Weapon menu description."
+  },
+  "hudShotgunMore": "One more shot: aim and fire",
+  "@hudShotgunMore": {
+    "description": "Arena hint after the shotgun's first shot."
   }
 }

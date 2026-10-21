@@ -631,6 +631,17 @@ class PawtilleryGame extends FlameGame {
           _firePos[patchId] = Vector2(x.toDouble(), y.toDouble());
         case UnitFrozen():
           break;
+        case ShieldRaised(:final unitId):
+          final u = sim.units[unitId];
+          particles.sparkle(u.centerX, u.centerY, argb: 0xFF9FE3FF);
+        case ShieldPopped(:final unitId, :final blocked):
+          final u = sim.units[unitId];
+          particles
+            ..ring(u.centerX, u.centerY, 26)
+            ..sparkle(u.centerX, u.centerY,
+                argb: blocked ? 0xFFE6F9FF : 0xFF9FE3FF);
+        case ShotgunFired(:final x0, :final y0, :final x1, :final y1):
+          particles.tracer(x0, y0, x1, y1);
         case UnitTeleported(:final unitId):
           final u = sim.units[unitId];
           particles.sparkle(u.centerX, u.centerY, argb: 0xFFB98CFF);
@@ -698,6 +709,7 @@ class PawtilleryGame extends FlameGame {
       teamMaxHp: sim.teamMaxHp(),
       suddenDeath: sim.suddenDeath,
       frozenSkip: sim.frozenSkip,
+      shotgunLeft: sim.shotgunShotsLeft,
       winnerTeam:
           sim.turn.phase == TurnPhase.matchOver ? sim.turn.winnerTeam : null,
     );

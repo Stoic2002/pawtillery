@@ -396,5 +396,10 @@
   "weaponNapalmDesc": "Pecah jadi beberapa titik api yang menyala selama 4 giliran. Pet yang menyentuh api kehilangan 8 HP tiap giliran.",
   "weaponIceBomb": "Bom Es",
   "weaponIceBombDesc": "Membekukan semua pet di area ledakan: giliran berikutnya mereka terlewat. Api mencairkan es, dan dinginnya memadamkan api.",
-  "hudFrozenSkip": "Beku! Giliran terlewat"
+  "hudFrozenSkip": "Beku! Giliran terlewat",
+  "weaponShield": "Gelembung Perisai",
+  "weaponShieldDesc": "Gelembung yang menahan satu serangan berikutnya (bukan jatuh atau air). Bertahan sampai giliranmu berikutnya.",
+  "weaponShotgun": "Shotgun",
+  "weaponShotgunDesc": "Dua tembakan per giliran, bidik masing-masing. Langsung mengenai benda pertama di garis tembak, tanpa angin.",
+  "hudShotgunMore": "Satu tembakan lagi: bidik dan tembak"
 }

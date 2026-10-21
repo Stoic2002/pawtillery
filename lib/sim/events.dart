@@ -157,6 +157,31 @@ final class UnitThawed extends SimEvent {
   final bool skippedTurn;
 }
 
+/// [unitId] raised a shield bubble.
+final class ShieldRaised extends SimEvent {
+  const ShieldRaised(this.unitId);
+  final int unitId;
+}
+
+/// [unitId]'s shield popped: it took a hit ([blocked]) or ran out when
+/// the unit's next turn began.
+final class ShieldPopped extends SimEvent {
+  const ShieldPopped(this.unitId, {required this.blocked});
+  final int unitId;
+  final bool blocked;
+}
+
+/// [unitId] fired the shotgun from ([x0], [y0]); the shot stopped at
+/// ([x1], [y1]) on whatever it hit, or at the end of its range.
+final class ShotgunFired extends SimEvent {
+  const ShotgunFired(this.unitId, this.x0, this.y0, this.x1, this.y1);
+  final int unitId;
+  final double x0;
+  final double y0;
+  final double x1;
+  final double y1;
+}
+
 /// Lightning struck down column [x] from the sky to [y], where it blasts
 /// (an [ExplosionEvent] follows).
 final class LightningStruck extends SimEvent {

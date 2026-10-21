@@ -175,6 +175,9 @@ class AudioService {
   static Sfx? sfxFor(SimEvent event) => switch (event) {
         WeaponUsed(weaponId: 'laserPointer') => Sfx.laser,
         WeaponUsed(weaponId: 'grapple') => null,
+        WeaponUsed(weaponId: 'shotgun') => null,
+        ShotgunFired() => Sfx.fire,
+        ShieldPopped(blocked: true) => Sfx.hit,
         GrappleFired() => Sfx.jump,
         IceBurst() => Sfx.hit,
         WeaponUsed() => Sfx.fire,

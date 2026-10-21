@@ -1284,4 +1284,21 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get hudFrozenSkip => 'Beku! Giliran terlewat';
+
+  @override
+  String get weaponShield => 'Gelembung Perisai';
+
+  @override
+  String get weaponShieldDesc =>
+      'Gelembung yang menahan satu serangan berikutnya (bukan jatuh atau air). Bertahan sampai giliranmu berikutnya.';
+
+  @override
+  String get weaponShotgun => 'Shotgun';
+
+  @override
+  String get weaponShotgunDesc =>
+      'Dua tembakan per giliran, bidik masing-masing. Langsung mengenai benda pertama di garis tembak, tanpa angin.';
+
+  @override
+  String get hudShotgunMore => 'Satu tembakan lagi: bidik dan tembak';
 }

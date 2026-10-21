@@ -411,7 +411,8 @@ void main() {
 // Then (→ 2942344318) the hash also covers the grappling hook; same play.
 // Then (→ 2295581662) it also covers fire, frozen pets and the satellite's
 // beam count; same play.
-const _pinnedWeaponsHash = 2295581662;
+// Then (→ 4258472990) it also covers shields and shotgun pulls; same play.
+const _pinnedWeaponsHash = 4258472990;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

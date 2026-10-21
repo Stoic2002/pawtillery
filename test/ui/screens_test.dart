@@ -187,8 +187,8 @@ void main() {
     await tester.pumpAndSettle();
     // Everything added after the original eight: 8 pet-themed weapons, the
     // 3 military ones, the 4 unique ones, Meteor Shower, the Grappling
-    // Hook, Napalm and the Ice Bomb.
-    expect(find.text('Off'), findsNWidgets(19));
+    // Hook, Napalm, the Ice Bomb, the Shotgun and the Shield Bubble.
+    expect(find.text('Off'), findsNWidgets(21));
   });
 
   testWidgets('setup: a unit opens the unit editor', (tester) async {
