@@ -60,6 +60,11 @@ void main() {
       expect(AudioService.sfxFor(const ShieldPopped(0, blocked: true)),
           Sfx.shieldPop);
       expect(AudioService.sfxFor(const UnitHealed(0, 25)), Sfx.heal);
+      expect(AudioService.sfxFor(const FireStarted(0, 0, 0)), Sfx.ignite);
+      expect(AudioService.sfxFor(const GrappleFired(0, 0, 0, 1, 1, true)),
+          Sfx.grapple);
+      expect(AudioService.sfxFor(const WeaponUsed(0, 'meteorShower')),
+          Sfx.meteor);
       expect(AudioService.sfxFor(const CrateCollected(0, health: true, hp: 25)),
           Sfx.heal);
       // Their WeaponUsed stays quiet so the sound doesn't double up.

@@ -27,6 +27,9 @@ are Ogg Vorbis, which Android loops without a gap.
 | `sfx_shieldUp` | A Shield Bubble goes up |
 | `sfx_shieldPop` | A Shield Bubble pops (blocks a hit or runs out) |
 | `sfx_heal` | A First-Aid Kit or health crate heals |
+| `sfx_ignite` | Napalm sets the ground on fire |
+| `sfx_grapple` | The Grappling Hook is shot (rope and hook) |
+| `sfx_meteor` | Meteor Shower is called (the meteors falling) |
 | `music_menu` | Menus (loops; C major, 100 BPM, 16 bars) |
 | `music_match` | During a match (loops; D minor, 120 BPM, 16 bars) |
 

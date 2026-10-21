@@ -22,6 +22,9 @@ enum Sfx {
   shieldUp,
   shieldPop,
   heal,
+  ignite,
+  grapple,
+  meteor,
 }
 
 enum Music { menu, match }
@@ -198,7 +201,9 @@ class AudioService {
         ShotgunFired() => Sfx.shotgun,
         ShieldRaised() => Sfx.shieldUp,
         ShieldPopped() => Sfx.shieldPop,
-        GrappleFired() => Sfx.jump,
+        GrappleFired() => Sfx.grapple,
+        FireStarted() => Sfx.ignite,
+        WeaponUsed(weaponId: 'meteorShower') => Sfx.meteor,
         IceBurst() => Sfx.freeze,
         GasReleased() => Sfx.gas,
         NukeDetonated() => Sfx.nuke,

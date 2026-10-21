@@ -35,6 +35,9 @@ void main() {
     'sfx_shieldUp': (shieldUp, 0.2),
     'sfx_shieldPop': (shieldPop, 0.24),
     'sfx_heal': (heal, 0.2),
+    'sfx_ignite': (ignite, 0.3),
+    'sfx_grapple': (grapple, 0.22),
+    'sfx_meteor': (meteor, 0.24),
   };
   for (final MapEntry(:key, value: (make, level)) in sfx.entries) {
     _reseed();
@@ -540,6 +543,73 @@ Buf heal() {
       gain: 0.6,
     );
   }
+  return b;
+}
+
+/// Napalm catching: a breathy "fwoosh" that swells and opens up, with a
+/// few crackles of flame.
+Buf ignite() {
+  final b = Buf(0.9);
+  final whoosh = OnePole(400);
+  voice(b, 0, 0.85, (t) {
+    whoosh.cutoff = 300 + 2200 * math.min(1.0, t / 0.18);
+    final a =
+        math.min(1.0, t / 0.12) * math.exp(-math.max(0.0, t - 0.12) / 0.25);
+    return whoosh.lp(noise()) * a * 1.6;
+  });
+  final crackle = math.Random(5);
+  for (var i = 0; i < 14; i++) {
+    final at = 0.1 + crackle.nextDouble() * 0.6;
+    final hpf = OnePole(2000);
+    voice(b, at, 0.01, (t) => hpf.hp(noise()) * env(t, 0.0005, 0.003) * 0.3);
+  }
+  return b;
+}
+
+/// A grappling hook: a quick rising whip of the rope flying out, then a
+/// metallic "tink" as the hook bites.
+Buf grapple() {
+  final b = Buf(0.5);
+  final air = OnePole(1500);
+  voice(b, 0, 0.22, (t) {
+    air.cutoff = 900 + 5000 * t / 0.22;
+    return air.hp(noise()) * math.sin(math.pi * t / 0.22) * 0.9;
+  });
+  final o = Osc();
+  voice(
+    b,
+    0,
+    0.2,
+    (t) => o.tri(sweep(400, 1300, t / 0.2)) * env(t, 0.01, 0.08) * 0.35,
+  );
+  final tink = Osc(), tink2 = Osc();
+  voice(
+    b,
+    0.2,
+    0.28,
+    (t) =>
+        tink.sine(2350) * env(t, 0.0005, 0.05) * 0.45 +
+        tink2.sine(2350 * 2.4) * env(t, 0.0005, 0.02) * 0.2,
+  );
+  return b;
+}
+
+/// Meteors coming in: a long falling whistle with a rushing roar growing
+/// under it.
+Buf meteor() {
+  final b = Buf(1.6);
+  final o = Osc();
+  voice(b, 0, 1.55, (t) {
+    final f = sweep(2100, 600, t / 1.55);
+    final a = math.min(1.0, t / 0.3) * math.min(1.0, (1.55 - t) / 0.1);
+    return o.sine(f * (1 + 0.006 * math.sin(2 * math.pi * 11 * t))) * a * 0.35;
+  });
+  final roar = OnePole(700);
+  voice(b, 0, 1.55, (t) {
+    final a =
+        math.pow(t / 1.55, 2).toDouble() * math.min(1.0, (1.55 - t) / 0.08);
+    return roar.lp(noise()) * a * 1.3;
+  });
   return b;
 }
 
