@@ -1454,5 +1454,21 @@
   "weaponSwapDesc": "Tap any pet: you trade places with it.",
   "@weaponSwapDesc": {
     "description": "Weapon menu description."
+  },
+  "weaponMeteorShower": "Meteor Shower",
+  "@weaponMeteorShower": {
+    "description": "Weapon: burning meteors rain down around a spot."
+  },
+  "weaponMeteorShowerDesc": "Tap a spot: six burning meteors rain down around it, one after another, slanting with the wind.",
+  "@weaponMeteorShowerDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponGrapple": "Grappling Hook",
+  "@weaponGrapple": {
+    "description": "Weapon: a hook on a rope that pulls the pet to the ground it catches."
+  },
+  "weaponGrappleDesc": "Aim and shoot the hook: if it catches the ground you're reeled up to it, then you can still fire. A miss costs nothing.",
+  "@weaponGrappleDesc": {
+    "description": "Weapon menu description."
   }
 }

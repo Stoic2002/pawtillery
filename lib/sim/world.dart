@@ -309,7 +309,11 @@ class SimWorld implements SimContext {
       },
       BuildWall(:final width, :final height) =>
         _wallFits(_wallRect(x, y, width, height)),
-      AirStrike() || Lightning() || AirRaid() || OrbitalStrike() =>
+      AirStrike() ||
+      Lightning() ||
+      AirRaid() ||
+      OrbitalStrike() ||
+      MeteorShower() =>
         x >= 0 && x < terrain.width,
       _ => true,
     };
@@ -350,7 +354,7 @@ class SimWorld implements SimContext {
     final unit = activeUnit;
     if (unit == null || !unit.alive) return 0;
     var walkDir = 0;
-    final busy = unit.isDashing || unit.isDigging;
+    final busy = unit.isDashing || unit.isDigging || unit.isGrappling;
     for (final input in inputs) {
       switch (input) {
         case Walk(:final direction):
@@ -358,7 +362,7 @@ class SimWorld implements SimContext {
         case Jump(:final kind):
           if (turn.allowsMovement && !busy) _jump(unit, kind);
         case Fire():
-          if (turn.allowsFire) _fire(unit, input);
+          if (turn.allowsFire && !busy) _fire(unit, input);
         case Dig(:final angleDeg):
           if (unit.isDigging) _dig(unit, angleDeg);
         case StopDigging():
@@ -401,6 +405,10 @@ class SimWorld implements SimContext {
     }
     final dir = _horizontalDir(unit, input.angleDeg);
 
+    if (weapon.delivery case Grapple(:final length)) {
+      _grapple(unit, weapon, input.angleDeg, length);
+      return;
+    }
     switch (weapon.delivery) {
       case Launch(:final shots, :final spreadDeg)
           when spreadDeg > 0 && shots > 1:
@@ -428,6 +436,10 @@ class SimWorld implements SimContext {
         }
       case final AirRaid raid:
         _callAirRaid(unit, raid, tx!, ty!);
+      case final MeteorShower shower:
+        _meteorShower(unit, shower, tx!, ty!);
+      case Grapple():
+        break; // Handled above.
       case OrbitalStrike(:final delayTicks) ||
           Lightning(:final delayTicks) when delayTicks > 0:
         _strikes.add(PendingStrike(
@@ -540,6 +552,151 @@ class SimWorld implements SimContext {
     // Digging keeps the action phase (and its clock) until it ends.
     if (weapon.delivery is DigMode) return;
     _setPhase(weapon.endsTurn ? TurnPhase.settling : TurnPhase.retreat);
+  }
+
+  /// Hujan Meteor: every meteor is in the air at once, stacked high above
+  /// the map, so they land one after another. Each falls at a slant with
+  /// the wind, aimed to reach the marked height at its landing column.
+  void _meteorShower(Unit unit, MeteorShower spec, int tx, int ty) {
+    final child = Weapons.byId(spec.childId);
+    final g = PhysicsConfig.gravity * child.gravityScale;
+    final windDir = _wind >= 0 ? 1 : -1;
+    final vx = spec.speed * 0.45;
+    for (var i = 0; i < spec.count; i++) {
+      final landX = (tx + rng.nextIntInRange(-spec.spread, spec.spread))
+          .clamp(4, terrain.width - 5);
+      final y0 = -80.0 - i * spec.gap;
+      final vy = spec.speed;
+      final t = (-vy + sqrt(vy * vy + 2 * g * (ty - y0))) / g;
+      var dir = windDir;
+      var x0 = landX - dir * vx * t;
+      // Coming in from off the map: from the other side instead.
+      if (x0 < 1 || x0 > terrain.width - 2) {
+        dir = -dir;
+        x0 = landX - dir * vx * t;
+      }
+      spawnProjectile(Projectile(
+        id: nextProjectileId(),
+        ownerId: unit.id,
+        weapon: child,
+        x: x0.clamp(1.0, terrain.width - 2.0),
+        y: y0,
+        vx: dir * vx,
+        vy: vy,
+      ));
+    }
+  }
+
+  /// Where a grappling hook shot from [unit] at [angleDeg] ends: the first
+  /// ground pixel within [length] px (hooked), or where it gives out at
+  /// [length], the map edge or the water. Shared with the aim guide.
+  static (double, double, bool) grappleReach(TerrainMask terrain,
+      int waterLevel, Unit unit, int angleDeg, int length) {
+    final (x0, y0) = launchOrigin(unit, angleDeg);
+    final dx = SimTrig.cosDeg(angleDeg);
+    final dy = -SimTrig.sinDeg(angleDeg);
+    var x = x0;
+    var y = y0;
+    for (var d = 0; d <= length; d++) {
+      final nx = x0 + dx * d;
+      final ny = y0 + dy * d;
+      if (nx < 0 || nx >= terrain.width || ny >= waterLevel) break;
+      if (terrain.isSolid(nx.floor(), ny.floor())) return (nx, ny, true);
+      x = nx;
+      y = ny;
+    }
+    return (x, y, false);
+  }
+
+  /// Tali Pengait: a hooked shot reels the unit in (see [_stepGrapple]);
+  /// only then is a hook used up. Either way the turn goes on.
+  void _grapple(Unit unit, WeaponDef weapon, int angleDeg, int length) {
+    final (x0, y0) = launchOrigin(unit, angleDeg);
+    final (x, y, hooked) =
+        grappleReach(terrain, waterLevel, unit, angleDeg, length);
+    unit.facing = SimTrig.cosDeg(angleDeg) >= 0 ? 1 : -1;
+    _events.add(GrappleFired(unit.id, x0, y0, x, y, hooked));
+    if (!hooked) return;
+    unit
+      ..grappleTicks = GrappleConfig.maxReelTicks
+      ..grappleX = x
+      ..grappleY = y
+      ..grounded = false
+      ..gliding = false
+      ..vx = 0
+      ..vy = 0;
+    if (_ammo[unit.team][weapon.id] case final int left) {
+      _ammo[unit.team][weapon.id] = left - 1;
+    }
+    _events.add(WeaponUsed(unit.id, weapon.id));
+  }
+
+  /// One tick of being reeled in: the body moves straight at the anchor
+  /// (no gravity) until it is there, the ground is in the way, or time is
+  /// up. Then it lets go and falls from where it is.
+  void _stepGrapple(Unit u) {
+    final spec = Weapons.grapple.delivery as Grapple;
+    var move = spec.speed * PhysicsConfig.dt;
+    var done = --u.grappleTicks <= 0;
+    final h = u.stats.bodyHeight;
+    while (!done && move > 0) {
+      final dx = u.grappleX - u.centerX;
+      final dy = u.grappleY - u.centerY;
+      final dist = sqrt(dx * dx + dy * dy);
+      if (dist <= u.stats.hitRadius + 1) {
+        done = true;
+        break;
+      }
+      final s = min(1.0, move);
+      move -= s;
+      final nx = u.x + dx / dist * s;
+      final ny = u.y + dy / dist * s;
+      if (nx < 1 ||
+          nx >= terrain.width - 1 ||
+          !UnitPhysics.bodyFree(terrain, nx.floor(), ny.floor(), h)) {
+        done = true;
+        break;
+      }
+      u
+        ..x = nx
+        ..y = ny;
+    }
+    if (done) {
+      u
+        ..grappleTicks = 0
+        ..peakY = u.y;
+      if (!_pullUpOnto(u)) UnitPhysics.launch(u, 0, 0);
+    }
+  }
+
+  /// At the end of a reel-in close to the hook: if the hook is in the lip
+  /// of a ledge (ground with room for the body on top within a pull-up),
+  /// climb onto it. Hooking the top of the ground lands there too.
+  bool _pullUpOnto(Unit u) {
+    final ax = u.grappleX.floor();
+    final ay = u.grappleY.floor();
+    final h = u.stats.bodyHeight;
+    final dx = u.grappleX - u.centerX;
+    final dy = u.grappleY - u.centerY;
+    final reach = u.stats.hitRadius + h;
+    if (dx * dx + dy * dy > reach * reach) return false;
+    for (var foot = ay; foot >= ay - h - GrappleConfig.pullUp; foot--) {
+      if (!terrain.isSolid(ax, foot)) return false;
+      if (!terrain.isSolid(ax, foot - 1) &&
+          UnitPhysics.bodyFree(terrain, ax, foot, h)) {
+        u
+          ..x = ax.toDouble()
+          ..y = foot.toDouble()
+          ..vx = 0
+          ..vy = 0
+          ..grounded = true
+          ..gliding = false
+          ..peakY = foot.toDouble()
+          ..airJumpsLeft = u.stats.airJumps;
+        return true;
+      }
+    }
+    return false;
   }
 
   /// One tick of tunnelling towards [angleDeg]: carves ahead of the body
@@ -1100,6 +1257,8 @@ class SimWorld implements SimContext {
         }
       } else if (u.isDashing) {
         _stepDash(u);
+      } else if (u.isGrappling) {
+        _stepGrapple(u);
       } else {
         if (walkDir != 0 && u == active) {
           UnitPhysics.walk(u, walkDir, terrain);
@@ -1294,7 +1453,12 @@ class SimWorld implements SimContext {
       _aircraft.isEmpty &&
       _strikes.isEmpty &&
       _units.every(
-          (u) => !u.alive || (u.grounded && !u.isDashing && !u.isDigging)) &&
+          (u) =>
+              !u.alive ||
+              (u.grounded &&
+                  !u.isDashing &&
+                  !u.isDigging &&
+                  !u.isGrappling)) &&
       _mines.every((m) => m.grounded && m.countdown == null) &&
       _objects.every((o) => o.grounded && o.fuse == null);
 
@@ -1425,6 +1589,9 @@ class SimWorld implements SimContext {
         ..addDouble(u.dashRemaining)
         ..add(u.digTicks)
         ..addDouble(u.digLeft)
+        ..add(u.grappleTicks)
+        ..addDouble(u.grappleX)
+        ..addDouble(u.grappleY)
         ..addDouble(u.x)
         ..addDouble(u.y)
         ..addDouble(u.vx)

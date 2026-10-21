@@ -106,6 +106,20 @@ final class BeamFired extends SimEvent {
   final int radius;
 }
 
+/// [unitId] shot its grappling hook from ([x0], [y0]) to ([x1], [y1]);
+/// [hooked] when it caught the ground there (and the unit is being reeled
+/// in), otherwise it fell short.
+final class GrappleFired extends SimEvent {
+  const GrappleFired(
+      this.unitId, this.x0, this.y0, this.x1, this.y1, this.hooked);
+  final int unitId;
+  final double x0;
+  final double y0;
+  final double x1;
+  final double y1;
+  final bool hooked;
+}
+
 /// Lightning struck down column [x] from the sky to [y], where it blasts
 /// (an [ExplosionEvent] follows).
 final class LightningStruck extends SimEvent {

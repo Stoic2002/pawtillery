@@ -144,7 +144,12 @@ class AimGuideComponent extends Component {
   /// spot is not allowed) and a centre dot; a dashed drop line for things
   /// that come from the sky.
   void _targetMarker(
-      ui.Canvas canvas, WeaponDef weapon, AimState a, int tx, int ty) {
+    ui.Canvas canvas,
+    WeaponDef weapon,
+    AimState a,
+    int tx,
+    int ty,
+  ) {
     final c = ui.Offset(tx.toDouble(), ty.toDouble());
     _cross.color = const ui.Color(0xFF2B2118);
     canvas
@@ -173,7 +178,6 @@ class AimGuideComponent extends Component {
 
   /// The slingshot's dashed ring, aim line or path, and the readout.
   void _aimRing(ui.Canvas canvas, Unit unit, WeaponDef weapon, AimState a) {
-
     final rad = a.angle * math.pi / 180;
     final dir = ui.Offset(math.cos(rad), -math.sin(rad));
     final center = ui.Offset(unit.centerX, unit.centerY);
@@ -189,6 +193,42 @@ class AimGuideComponent extends Component {
         start + dir * (delivery.length * ControlsConfig.aimGuideFraction * 2),
         _beam,
       );
+    } else if (delivery is Grapple) {
+      // Grappling hook: the rope's full reach, and where it would catch.
+      final (x, y, hooked) = SimWorld.grappleReach(
+        sim.terrain,
+        sim.waterLevel,
+        unit,
+        a.angle,
+        delivery.length,
+      );
+      final start = center + dir * (unit.stats.hitRadius + 2);
+      final end = ui.Offset(x, y);
+      final length = (end - start).distance;
+      for (var d = 0.0; d < length; d += 10) {
+        canvas.drawLine(
+          start + dir * d,
+          start + dir * math.min(d + 5, length),
+          _line,
+        );
+      }
+      if (hooked) {
+        canvas
+          ..drawCircle(end, 7, _dot)
+          ..drawCircle(end, 7, _dotEdge);
+      } else {
+        canvas
+          ..drawLine(
+            end + const ui.Offset(-5, -5),
+            end + const ui.Offset(5, 5),
+            _beam,
+          )
+          ..drawLine(
+            end + const ui.Offset(-5, 5),
+            end + const ui.Offset(5, -5),
+            _beam,
+          );
+      }
     } else if (weapon.aim == AimMode.direction) {
       final start = center + dir * (unit.stats.hitRadius + 6);
       canvas.drawLine(start, start + dir * 40, _line);

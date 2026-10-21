@@ -54,6 +54,11 @@ abstract final class WeaponArt {
   static void stormCloud(ui.Canvas canvas) =>
       canvas.drawPicture(_cached('storm', _storm));
 
+  /// A three-pronged grappling hook about 16 px long, its points facing
+  /// right (+x), the rope tied on at the origin.
+  static void grappleHook(ui.Canvas canvas) =>
+      canvas.drawPicture(_cached('hook', _hook));
+
   /// A mine lying on the ground (origin = resting point).
   static void mine(ui.Canvas canvas, {required bool small}) =>
       canvas.drawPicture(_cached('mine:$small', (c) {
@@ -119,6 +124,8 @@ abstract final class WeaponArt {
         _clayLump(c);
       case 'bomberBomb':
         _aerialBomb(c);
+      case 'meteor':
+        _meteorRock(c, 9);
       default:
         _rock(c, 5, 0xFF9E9A94);
     }
@@ -971,6 +978,49 @@ abstract final class WeaponArt {
         big(() => _clayLump(c), 1.9);
       case 'swap':
         _swapArrows(c);
+      case 'meteorShower':
+        // One big meteor coming in low right, two small ones behind it.
+        const rocks = [(9.0, -9.0, 0.5, 12.0), (-9.0, -2.0, 0.55, 12.0), (3.0, 6.0, 1.0, 26.0)];
+        for (final (x, y, s, tail) in rocks) {
+          c
+            ..save()
+            ..translate(x, y)
+            ..scale(s);
+          _meteorTail(c, tail / s);
+          c.restore();
+        }
+        for (final (x, y, s, _) in rocks) {
+          c
+            ..save()
+            ..translate(x, y)
+            ..scale(s);
+          _meteorRock(c, 7);
+          c.restore();
+        }
+      case 'grapple':
+        final rope = ui.Path()
+          ..moveTo(-13, 13)
+          ..quadraticBezierTo(-10, 2, -2, 2)
+          ..quadraticBezierTo(2, 2, 3, -3);
+        c
+          ..drawPath(
+              rope,
+              PaintKit.solid(0xFF6B4A2E)
+                ..style = ui.PaintingStyle.stroke
+                ..strokeWidth = 3.2
+                ..strokeCap = ui.StrokeCap.round)
+          ..drawPath(
+              rope,
+              PaintKit.solid(0xFFC9A66B)
+                ..style = ui.PaintingStyle.stroke
+                ..strokeWidth = 1.8
+                ..strokeCap = ui.StrokeCap.round)
+          ..save()
+          ..translate(2, -2)
+          ..rotate(-0.8)
+          ..scale(1.4);
+        _hook(c);
+        c.restore();
       case 'homingMissile':
         _crosshair(c, const ui.Offset(8, -8), 6);
         big(() {
@@ -1096,6 +1146,82 @@ abstract final class WeaponArt {
       ..drawOval(const ui.Rect.fromLTWH(0.5, -3.2, 3.6, 6.4),
           PaintKit.solid(0xFF2E4A1E))
       ..restore();
+  }
+
+  /// A burning space rock of radius [r]: a dark crust split by glowing
+  /// orange cracks, in a faint heat haze.
+  static void _meteorRock(ui.Canvas c, double r) {
+    c.drawCircle(ui.Offset.zero, r * 1.35, PaintKit.solid(0x33FFB04A));
+    _rock(c, r, 0xFF4A3530);
+    final crack = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = r * 0.15
+      ..strokeCap = ui.StrokeCap.round
+      ..strokeJoin = ui.StrokeJoin.round
+      ..color = const ui.Color(0xFFFF9A3A);
+    final path = ui.Path()
+      ..moveTo(-r * 0.55, -r * 0.2)
+      ..lineTo(-r * 0.1, r * 0.1)
+      ..lineTo(r * 0.5, -r * 0.25)
+      ..moveTo(-r * 0.1, r * 0.1)
+      ..lineTo(r * 0.05, r * 0.5);
+    c
+      ..drawPath(path, crack)
+      ..drawPath(
+          path,
+          crack
+            ..strokeWidth = r * 0.06
+            ..color = const ui.Color(0xFFFFE08A));
+  }
+
+  /// A fiery tail [length] px long trailing up and to the left of a
+  /// meteor at the origin (icons only; in flight the renderer draws it).
+  static void _meteorTail(ui.Canvas c, double length) {
+    final tail = ui.Path()
+      ..moveTo(-4, 4)
+      ..quadraticBezierTo(-length * 0.6, -length * 0.5, -length * 0.75, -length * 0.75)
+      ..quadraticBezierTo(-length * 0.45, -length * 0.65, 4, -4)
+      ..close();
+    c
+      ..drawPath(tail, PaintKit.solid(0xAAFF8A2A))
+      ..drawPath(
+          ui.Path()
+            ..moveTo(-2, 2)
+            ..quadraticBezierTo(-length * 0.4, -length * 0.35, -length * 0.5, -length * 0.5)
+            ..quadraticBezierTo(-length * 0.3, -length * 0.42, 2, -2)
+            ..close(),
+          PaintKit.solid(0xDDFFE08A));
+  }
+
+  /// See [grappleHook].
+  static void _hook(ui.Canvas c) {
+    const steel = 0xFF9AA3A8;
+    final shank = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-1, -1.4, 11, 2.8), const ui.Radius.circular(1.4));
+    c
+      ..drawCircle(ui.Offset.zero, 2.4, PaintKit.edge(0xFF5C6266, 1.4))
+      ..drawRRect(shank, PaintKit.lit(shank.outerRect, steel))
+      ..drawRRect(shank, PaintKit.edge(0xFF5C6266, 0.6));
+    final prong = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 2.2
+      ..strokeCap = ui.StrokeCap.round
+      ..color = const ui.Color(0xFF7D868B);
+    for (final s in [-1.0, 1.0]) {
+      c.drawPath(
+          ui.Path()
+            ..moveTo(9, 0)
+            ..quadraticBezierTo(13, s * 1, 13, s * 5)
+            ..quadraticBezierTo(12.5, s * 7, 9.5, s * 6.5),
+          prong);
+    }
+    c.drawLine(const ui.Offset(9, 0), const ui.Offset(15, 0), prong);
+    final tip = ui.Path()
+      ..moveTo(15, -2)
+      ..lineTo(18, 0)
+      ..lineTo(15, 2)
+      ..close();
+    c.drawPath(tip, PaintKit.solid(0xFFB8C0C4));
   }
 
   /// A paw with three long claws and dug-up earth.

@@ -387,5 +387,9 @@
   "weaponClay": "Tanah Liat",
   "weaponClayDesc": "Membuat gundukan tanah di tempat mendarat: jembatan, tembok, atau mengurung lawan.",
   "weaponSwap": "Tukar Tempat",
-  "weaponSwapDesc": "Ketuk peliharaan mana saja: kalian bertukar tempat."
+  "weaponSwapDesc": "Ketuk peliharaan mana saja: kalian bertukar tempat.",
+  "weaponMeteorShower": "Hujan Meteor",
+  "weaponMeteorShowerDesc": "Ketuk satu titik: enam meteor membara berjatuhan di sekitarnya satu per satu, miring terbawa angin.",
+  "weaponGrapple": "Tali Pengait",
+  "weaponGrappleDesc": "Bidik dan tembakkan kait: kalau menancap di tanah, kamu ditarik ke sana, lalu masih bisa menembak. Meleset tidak mengurangi jatah."
 }

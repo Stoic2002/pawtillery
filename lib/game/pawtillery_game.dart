@@ -18,6 +18,7 @@ import '../sim/inputs.dart';
 import '../sim/physics.dart';
 import '../sim/match_setup.dart';
 import '../sim/turn_manager.dart';
+import '../sim/unit.dart';
 import '../sim/world.dart';
 import 'camera/arena_camera.dart';
 import 'components/aim_guide_component.dart';
@@ -25,6 +26,7 @@ import 'components/air_support_component.dart';
 import 'components/backdrop_components.dart';
 import 'components/damage_numbers_component.dart';
 import 'components/decor_component.dart';
+import 'components/grapple_component.dart';
 import 'components/map_objects_component.dart';
 import 'components/projectiles_component.dart';
 import 'components/scenery_component.dart';
@@ -125,6 +127,7 @@ class PawtilleryGame extends FlameGame {
   late final MapObjectsComponent _objects;
   late final DamageNumbersComponent _damage;
   late final AirSupportComponent _airSupport;
+  late final GrappleComponent _grapple;
 
   // State the Flutter HUD listens to.
   final hud = ValueNotifier<HudState?>(null);
@@ -197,6 +200,7 @@ class PawtilleryGame extends FlameGame {
         unitNames: unitNames,
       ),
       _objects = MapObjectsComponent(sim),
+      _grapple = GrappleComponent(sim),
       ProjectilesComponent(sim),
       _airSupport = AirSupportComponent(
         sim,
@@ -246,7 +250,10 @@ class PawtilleryGame extends FlameGame {
 
   // ------------------------------------------------------------ weapons
 
-  bool get canAim => sim.turn.allowsFire && hasControl;
+  bool get canAim =>
+      sim.turn.allowsFire &&
+      hasControl &&
+      !(sim.activeUnit?.isGrappling ?? false);
 
   /// This phone controls the active team (always, in a hotseat match).
   bool get hasControl => lockstep?.isMyTurn ?? true;
@@ -344,6 +351,15 @@ class PawtilleryGame extends FlameGame {
   }
 
   /// New turn: restore the team's last weapon if it can still be used.
+  /// The rock, or if it is switched off or used up, the first weapon still
+  /// usable.
+  WeaponDef _fallbackWeapon(Unit unit) => sim.canUse(unit, Weapons.rock)
+      ? Weapons.rock
+      : Weapons.shared.firstWhere(
+          (w) => sim.canUse(unit, w) && w.id != Weapons.grapple.id,
+          orElse: () => Weapons.skip,
+        );
+
   void _onTurnStarted() {
     _walkDir = 0;
     _digAngle = null;
@@ -353,11 +369,8 @@ class PawtilleryGame extends FlameGame {
       final last = _weaponByTeam[unit.team];
       if (last != null && sim.canUse(unit, Weapons.byId(last))) {
         id = last;
-      } else if (!sim.canUse(unit, Weapons.rock)) {
-        // Rock switched off or used up: the first weapon still usable.
-        id = Weapons.shared
-            .firstWhere((w) => sim.canUse(unit, w), orElse: () => Weapons.skip)
-            .id;
+      } else {
+        id = _fallbackWeapon(unit).id;
       }
     }
     aim.value = AimState(
@@ -570,6 +583,17 @@ class PawtilleryGame extends FlameGame {
           _aimGuide.invalidate();
         case TurnStarted():
           _onTurnStarted();
+        case GrappleFired(:final x0, :final y0, :final x1, :final y1,
+              :final hooked):
+          if (!hooked) _grapple.missed(x0, y0, x1, y1);
+        case WeaponUsed(:final weaponId) when weaponId == Weapons.grapple.id:
+          // Out of hooks: pick something to shoot with for the rest of the
+          // turn.
+          final unit = sim.activeUnit;
+          if (unit != null && !sim.canUse(unit, Weapons.grapple)) {
+            aim.value = aim.value.copyWith(
+                weaponId: _fallbackWeapon(unit).id, active: false);
+          }
         case UnitLanded(:final unitId, :final fallDistance):
           if (fallDistance > 30) {
             final u = sim.units[unitId];

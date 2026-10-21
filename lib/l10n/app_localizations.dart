@@ -2419,6 +2419,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tap any pet: you trade places with it.'**
   String get weaponSwapDesc;
+
+  /// Weapon: burning meteors rain down around a spot.
+  ///
+  /// In en, this message translates to:
+  /// **'Meteor Shower'**
+  String get weaponMeteorShower;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a spot: six burning meteors rain down around it, one after another, slanting with the wind.'**
+  String get weaponMeteorShowerDesc;
+
+  /// Weapon: a hook on a rope that pulls the pet to the ground it catches.
+  ///
+  /// In en, this message translates to:
+  /// **'Grappling Hook'**
+  String get weaponGrapple;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Aim and shoot the hook: if it catches the ground you\'re reeled up to it, then you can still fire. A miss costs nothing.'**
+  String get weaponGrappleDesc;
 }
 
 class _AppLocalizationsDelegate

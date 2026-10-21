@@ -408,7 +408,8 @@ void main() {
 // Re-pinned 2026-10-21 (→ 3954486270): turns now hold for 2 s after the
 // last hit, knocked-out pets fall during that hold, and the storm cloud
 // and satellite take longer to arrive, so the play itself changed.
-const _pinnedWeaponsHash = 3954486270;
+// Then (→ 2942344318) the hash also covers the grappling hook; same play.
+const _pinnedWeaponsHash = 2942344318;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

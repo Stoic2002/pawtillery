@@ -1253,4 +1253,18 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get weaponSwapDesc =>
       'Ketuk peliharaan mana saja: kalian bertukar tempat.';
+
+  @override
+  String get weaponMeteorShower => 'Hujan Meteor';
+
+  @override
+  String get weaponMeteorShowerDesc =>
+      'Ketuk satu titik: enam meteor membara berjatuhan di sekitarnya satu per satu, miring terbawa angin.';
+
+  @override
+  String get weaponGrapple => 'Tali Pengait';
+
+  @override
+  String get weaponGrappleDesc =>
+      'Bidik dan tembakkan kait: kalau menancap di tanah, kamu ditarik ke sana, lalu masih bisa menembak. Meleset tidak mengurangi jatah.';
 }

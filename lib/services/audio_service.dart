@@ -174,6 +174,8 @@ class AudioService {
   /// Which sound a sim event makes, if any.
   static Sfx? sfxFor(SimEvent event) => switch (event) {
         WeaponUsed(weaponId: 'laserPointer') => Sfx.laser,
+        WeaponUsed(weaponId: 'grapple') => null,
+        GrappleFired() => Sfx.jump,
         WeaponUsed() => Sfx.fire,
         LightningStruck() => Sfx.thunder,
         SatelliteStruck() => Sfx.laser,

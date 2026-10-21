@@ -321,4 +321,5 @@ int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 // Re-pinned 2026-10-21 (→ 264497019): turns now hold for 2 s after the
 // last hit, knocked-out pets fall during that hold, and the storm cloud
 // and satellite take longer to arrive, so the play itself changed.
-const _pinnedScriptHash = 264497019;
+// Then (→ 9395643) the hash also covers the grappling hook; same play.
+const _pinnedScriptHash = 9395643;

@@ -1250,4 +1250,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weaponSwapDesc => 'Tap any pet: you trade places with it.';
+
+  @override
+  String get weaponMeteorShower => 'Meteor Shower';
+
+  @override
+  String get weaponMeteorShowerDesc =>
+      'Tap a spot: six burning meteors rain down around it, one after another, slanting with the wind.';
+
+  @override
+  String get weaponGrapple => 'Grappling Hook';
+
+  @override
+  String get weaponGrappleDesc =>
+      'Aim and shoot the hook: if it catches the ground you\'re reeled up to it, then you can still fire. A miss costs nothing.';
 }

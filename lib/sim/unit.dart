@@ -141,6 +141,12 @@ class Unit {
   double digLeft = 0;
   bool get isDigging => digTicks > 0;
 
+  /// Grappling hook: ticks left of being reeled in to the anchor.
+  int grappleTicks = 0;
+  double grappleX = 0;
+  double grappleY = 0;
+  bool get isGrappling => grappleTicks > 0;
+
   double get centerX => x.floorToDouble() + 0.5;
   double get centerY => y - stats.bodyHeight / 2;
 }

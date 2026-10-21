@@ -40,6 +40,7 @@ class ProjectilesComponent extends Component {
         _drawVortex(canvas, p, flight);
         continue;
       }
+      if (p.weapon.id == Weapons.meteor.id) _meteorTail(canvas, p);
       final along = WeaponArt.pointsAlongFlight(p.weapon.id);
       // Carrots and rockets point along their flight; everything else
       // tumbles.
@@ -68,6 +69,29 @@ class ProjectilesComponent extends Component {
       }
     }
     _drawMines(canvas);
+  }
+
+  /// A meteor's flaming tail streaming back along its fall, flickering.
+  void _meteorTail(ui.Canvas canvas, Projectile p) {
+    final speed = math.sqrt(p.vx * p.vx + p.vy * p.vy);
+    if (speed < 1) return;
+    final bx = -p.vx / speed;
+    final by = -p.vy / speed;
+    final flicker = 0.85 + 0.15 * math.sin(_time * 40 + p.id);
+    for (final (len, width, argb) in const [
+      (70.0, 11.0, 0x66FF6A1A),
+      (48.0, 7.5, 0xAAFF9A3A),
+      (26.0, 4.5, 0xEEFFE08A),
+    ]) {
+      final l = len * flicker;
+      final tail = ui.Path()
+        ..moveTo(p.x - by * width, p.y + bx * width)
+        ..lineTo(p.x + bx * l, p.y + by * l)
+        ..lineTo(p.x + by * width, p.y - bx * width)
+        ..close();
+      _light.color = ui.Color(argb);
+      canvas.drawPath(tail, _light);
+    }
   }
 
   /// The black hole at work: a dark core, a swirl of violet arms turning
@@ -100,8 +124,16 @@ class ProjectilesComponent extends Component {
     }
     final core = 9 + 4 * math.sin(_time * 12) * t;
     canvas
-      ..drawCircle(ui.Offset.zero, core + 4, _light..color = const ui.Color(0x88B98CFF))
-      ..drawCircle(ui.Offset.zero, core, _light..color = const ui.Color(0xFF0B0612))
+      ..drawCircle(
+        ui.Offset.zero,
+        core + 4,
+        _light..color = const ui.Color(0x88B98CFF),
+      )
+      ..drawCircle(
+        ui.Offset.zero,
+        core,
+        _light..color = const ui.Color(0xFF0B0612),
+      )
       ..restore();
   }
 
@@ -119,7 +151,9 @@ class ProjectilesComponent extends Component {
     canvas.drawPath(flame, _light);
     _light.color = const ui.Color(0xEEFFE08A);
     canvas.drawOval(
-        ui.Rect.fromLTWH(-8 - len * 0.45, -1.2, len * 0.45, 2.4), _light);
+      ui.Rect.fromLTWH(-8 - len * 0.45, -1.2, len * 0.45, 2.4),
+      _light,
+    );
   }
 
   /// The lit fuse on a firecracker blinks faster as it runs out.
@@ -142,7 +176,11 @@ class ProjectilesComponent extends Component {
       ..drawRRect(
         ui.RRect.fromRectAndRadius(
           ui.Rect.fromLTWH(
-              f > 0 ? c.dx + r * 0.6 : c.dx - r * 1.6, c.dy - r * 0.1, r, r * 0.45),
+            f > 0 ? c.dx + r * 0.6 : c.dx - r * 1.6,
+            c.dy - r * 0.1,
+            r,
+            r * 0.45,
+          ),
           ui.Radius.circular(r * 0.2),
         ),
         _orange,
@@ -167,8 +205,7 @@ class ProjectilesComponent extends Component {
       final rate = m.countdown != null ? 14.0 : 2.0;
       if (armed && (_time * rate).floor().isEven) {
         _light.color = const ui.Color(0xFFFF1744);
-        canvas.drawCircle(
-            ui.Offset(m.x, m.y - (small ? 7 : 9.5)), 1.8, _light);
+        canvas.drawCircle(ui.Offset(m.x, m.y - (small ? 7 : 9.5)), 1.8, _light);
       }
     }
   }

@@ -86,6 +86,37 @@ final class OrbitalStrike extends Delivery {
   final int carveRadius;
 }
 
+/// [count] [childId] meteors rain down around the chosen spot (landing
+/// within [spread] px of it) from high above, falling at a slant with the
+/// wind at [speed] px/s. They start [gap] px of height apart, so they land
+/// one after another.
+final class MeteorShower extends Delivery {
+  const MeteorShower({
+    required this.childId,
+    required this.count,
+    required this.spread,
+    required this.speed,
+    required this.gap,
+  });
+  final String childId;
+  final int count;
+  final int spread;
+  final double speed;
+  final double gap;
+}
+
+/// A hook shot straight along the aim, up to [length] px. If it catches
+/// the ground, the unit is reeled in to it at [speed] px/s and lets go
+/// there. A free move: the turn and its shot go on, and a miss costs
+/// nothing.
+final class Grapple extends Delivery {
+  const Grapple({required this.length, required this.speed});
+  final int length;
+
+  /// px/s.
+  final double speed;
+}
+
 /// Puts this weapon down as a mine next to the unit.
 final class PlaceMine extends Delivery {
   const PlaceMine();
@@ -411,6 +442,16 @@ abstract final class MineConfig {
   static const int triggerDelayTicks = 30;
 }
 
+/// Tali Pengait.
+abstract final class GrappleConfig {
+  /// Longest a unit is reeled in before it lets go anyway (2 s).
+  static const int maxReelTicks = 2 * 60;
+
+  /// How far above the hook (px, beyond a body height) a unit can still
+  /// pull itself up onto a ledge.
+  static const int pullUp = 14;
+}
+
 /// Player-chosen fuse range (Granat Pantul).
 abstract final class FuseConfig {
   static const int minSeconds = 1;
@@ -635,6 +676,33 @@ abstract final class Weapons {
     knockbackScale: 0.7,
     ammo: 1,
     placeholderArgb: 0xFF7FD3FF,
+  );
+
+  /// Tap a spot: a shower of burning meteors rains down around it.
+  static const meteorShower = WeaponDef(
+    id: 'meteorShower',
+    nameKey: 'weaponMeteorShower',
+    aim: AimMode.target,
+    delivery: MeteorShower(
+      childId: 'meteor',
+      count: 6,
+      spread: 100,
+      speed: 240,
+      gap: 110,
+    ),
+    ammo: 1,
+    placeholderArgb: 0xFFE8743B,
+  );
+
+  /// Hook the ground and get reeled to it, then still take your shot.
+  static const grapple = WeaponDef(
+    id: 'grapple',
+    nameKey: 'weaponGrapple',
+    aim: AimMode.direction,
+    delivery: Grapple(length: 320, speed: 480),
+    knockbackScale: 0,
+    ammo: 3,
+    placeholderArgb: 0xFF8D6E63,
   );
 
   /// Tap a target: a fighter jet streaks in and fires a missile that
@@ -942,6 +1010,19 @@ abstract final class Weapons {
     placeholderArgb: 0xFF9AA3A8,
   );
 
+  /// One meteor of the shower: a burning rock, not pushed by the wind.
+  static const meteor = WeaponDef(
+    id: 'meteor',
+    nameKey: 'weaponMeteorShower',
+    aim: AimMode.none,
+    delivery: Launch(),
+    flight: Ballistic(),
+    maxDamage: 24,
+    radius: 30,
+    hidden: true,
+    placeholderArgb: 0xFFB5562A,
+  );
+
   /// A starter fuel barrel blowing up (map objects).
   static const barrel = WeaponDef(
     id: 'barrel',
@@ -983,12 +1064,14 @@ abstract final class Weapons {
     flowerpotRain,
     bomber,
     satellite,
+    meteorShower,
     blackHole,
     stickyBomb,
     clay,
     punch,
     mine,
     digClaws,
+    grapple,
     teleport,
     swap,
     skip,
@@ -1017,6 +1100,7 @@ abstract final class Weapons {
     seedMine,
     bomberBomb,
     missile,
+    meteor,
     barrel,
   ];
 
