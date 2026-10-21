@@ -2443,6 +2443,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Aim and shoot the hook: if it catches the ground you\'re reeled up to it, then you can still fire. A miss costs nothing.'**
   String get weaponGrappleDesc;
+
+  /// Weapon: a firebomb that leaves burning ground.
+  ///
+  /// In en, this message translates to:
+  /// **'Napalm'**
+  String get weaponNapalm;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Bursts into patches of fire that burn for 4 turns. Any pet touching the fire loses 8 HP each turn.'**
+  String get weaponNapalmDesc;
+
+  /// Weapon: freezes pets so they miss a turn.
+  ///
+  /// In en, this message translates to:
+  /// **'Ice Bomb'**
+  String get weaponIceBomb;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Freezes every pet in the burst: they miss their next turn. Fire thaws them and the cold puts fire out.'**
+  String get weaponIceBombDesc;
+
+  /// Arena: the active pet is frozen by an ice bomb and sits this turn out.
+  ///
+  /// In en, this message translates to:
+  /// **'Frozen! Turn skipped'**
+  String get hudFrozenSkip;
 }
 
 class _AppLocalizationsDelegate

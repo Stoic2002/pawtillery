@@ -176,6 +176,7 @@ class AudioService {
         WeaponUsed(weaponId: 'laserPointer') => Sfx.laser,
         WeaponUsed(weaponId: 'grapple') => null,
         GrappleFired() => Sfx.jump,
+        IceBurst() => Sfx.hit,
         WeaponUsed() => Sfx.fire,
         LightningStruck() => Sfx.thunder,
         SatelliteStruck() => Sfx.laser,

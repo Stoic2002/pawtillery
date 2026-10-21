@@ -391,5 +391,10 @@
   "weaponMeteorShower": "Hujan Meteor",
   "weaponMeteorShowerDesc": "Ketuk satu titik: enam meteor membara berjatuhan di sekitarnya satu per satu, miring terbawa angin.",
   "weaponGrapple": "Tali Pengait",
-  "weaponGrappleDesc": "Bidik dan tembakkan kait: kalau menancap di tanah, kamu ditarik ke sana, lalu masih bisa menembak. Meleset tidak mengurangi jatah."
+  "weaponGrappleDesc": "Bidik dan tembakkan kait: kalau menancap di tanah, kamu ditarik ke sana, lalu masih bisa menembak. Meleset tidak mengurangi jatah.",
+  "weaponNapalm": "Napalm",
+  "weaponNapalmDesc": "Pecah jadi beberapa titik api yang menyala selama 4 giliran. Pet yang menyentuh api kehilangan 8 HP tiap giliran.",
+  "weaponIceBomb": "Bom Es",
+  "weaponIceBombDesc": "Membekukan semua pet di area ledakan: giliran berikutnya mereka terlewat. Api mencairkan es, dan dinginnya memadamkan api.",
+  "hudFrozenSkip": "Beku! Giliran terlewat"
 }

@@ -46,6 +46,7 @@ enum DamageCause {
   impact,
   fall,
   water,
+  fire,
 }
 
 final class UnitDamaged extends SimEvent {
@@ -118,6 +119,42 @@ final class GrappleFired extends SimEvent {
   final double x1;
   final double y1;
   final bool hooked;
+}
+
+/// Napalm set a patch of fire [patchId] burning at ([x], [y]).
+final class FireStarted extends SimEvent {
+  const FireStarted(this.patchId, this.x, this.y);
+  final int patchId;
+  final int x;
+  final int y;
+}
+
+/// Patch [patchId] went out (burnt out, frozen or drowned).
+final class FireOut extends SimEvent {
+  const FireOut(this.patchId);
+  final int patchId;
+}
+
+/// An ice bomb burst at ([x], [y]), freezing pets within [radius].
+final class IceBurst extends SimEvent {
+  const IceBurst(this.x, this.y, this.radius);
+  final double x;
+  final double y;
+  final int radius;
+}
+
+/// [unitId] was frozen; its next turn will be skipped.
+final class UnitFrozen extends SimEvent {
+  const UnitFrozen(this.unitId);
+  final int unitId;
+}
+
+/// [unitId] thawed: by fire, or by sitting out its frozen turn
+/// ([skippedTurn]).
+final class UnitThawed extends SimEvent {
+  const UnitThawed(this.unitId, {required this.skippedTurn});
+  final int unitId;
+  final bool skippedTurn;
 }
 
 /// Lightning struck down column [x] from the sky to [y], where it blasts

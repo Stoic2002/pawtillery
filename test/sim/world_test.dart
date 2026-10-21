@@ -322,4 +322,6 @@ int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 // last hit, knocked-out pets fall during that hold, and the storm cloud
 // and satellite take longer to arrive, so the play itself changed.
 // Then (→ 9395643) the hash also covers the grappling hook; same play.
-const _pinnedScriptHash = 9395643;
+// Then (→ 1282318523) it also covers fire, frozen pets and the satellite's
+// beam count; same play.
+const _pinnedScriptHash = 1282318523;

@@ -24,6 +24,12 @@ void applyImpact(ImpactSpec spec, Projectile p, SimContext ctx) {
           vy: vy,
         ));
       });
+    case Ignite():
+      ctx
+        ..explode(p.x, p.y, p.weapon, sourceId: p.ownerId)
+        ..ignite(p.freeX, p.freeY, spec, sourceId: p.ownerId);
+    case Freeze():
+      ctx.freeze(p.freeX, p.freeY, p.weapon, spec, sourceId: p.ownerId);
     case AddGround(:final radius):
       ctx.addGround(p.freeX.round(), p.freeY.round(), radius);
     case ScatterMines(:final mineId, :final count):

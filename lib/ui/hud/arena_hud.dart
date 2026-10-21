@@ -626,6 +626,25 @@ class _TopCentre extends StatelessWidget {
               ),
             ),
           ],
+          if (hud.frozenSkip && !hud.isOver) ...[
+            const SizedBox(height: 6),
+            pill(
+              fill: const Color(0xFFCFF2FF),
+              border: const Color(0xFF2F7FB5),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.ac_unit_rounded,
+                    size: 20,
+                    color: Color(0xFF2F7FB5),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(l10n.hudFrozenSkip, style: Paw.title(18, weight: 800)),
+                ],
+              ),
+            ),
+          ],
           if (retreat) ...[
             const SizedBox(height: 6),
             pill(

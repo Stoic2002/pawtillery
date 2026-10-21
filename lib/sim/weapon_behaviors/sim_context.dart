@@ -35,4 +35,11 @@ abstract interface class SimContext {
 
   void spawnMine(WeaponDef weapon, double x, double y, double vx, double vy,
       {int? ownerId});
+
+  /// Starts napalm fire around ([x], [y]) (see [Ignite]).
+  void ignite(double x, double y, Ignite spec, {int? sourceId});
+
+  /// An ice burst at ([x], [y]) with [weapon]'s damage (see [Freeze]).
+  void freeze(double x, double y, WeaponDef weapon, Freeze spec,
+      {int? sourceId});
 }

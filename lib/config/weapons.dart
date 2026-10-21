@@ -367,6 +367,22 @@ final class AddGround extends ImpactSpec {
   final int radius;
 }
 
+/// A small blast, then [patches] patches of fire spread over [spread] px
+/// of the ground around the landing point. They burn for
+/// [FireConfig.turns] turns and hurt any pet touching them once a turn.
+final class Ignite extends ImpactSpec {
+  const Ignite({required this.patches, required this.spread});
+  final int patches;
+  final int spread;
+}
+
+/// A burst of cold: every pet within [radius] px takes the weapon's
+/// damage and is frozen, so its next turn is skipped. Puts out fire there.
+final class Freeze extends ImpactSpec {
+  const Freeze({required this.radius});
+  final int radius;
+}
+
 /// Scatters [count] [mineId] mines around the landing point.
 final class ScatterMines extends ImpactSpec {
   const ScatterMines({
@@ -468,6 +484,18 @@ abstract final class GrappleConfig {
   /// How far above the hook (px, beyond a body height) a unit can still
   /// pull itself up onto a ledge.
   static const int pullUp = 14;
+}
+
+/// Napalm fire on the ground.
+abstract final class FireConfig {
+  /// Turns (anyone's) a patch burns before it goes out.
+  static const int turns = 4;
+
+  /// Damage to a pet touching fire, at most once a turn.
+  static const int damage = 8;
+
+  /// A pet whose body comes this close (px) to a patch is touching it.
+  static const double reach = 8;
 }
 
 /// Player-chosen fuse range (Granat Pantul).
@@ -719,6 +747,34 @@ abstract final class Weapons {
     ),
     ammo: 1,
     placeholderArgb: 0xFFE8743B,
+  );
+
+  /// Bursts into burning patches that hurt for a few turns.
+  static const napalm = WeaponDef(
+    id: 'napalm',
+    nameKey: 'weaponNapalm',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Ballistic(onImpact: Ignite(patches: 5, spread: 96)),
+    affectedByWind: true,
+    maxDamage: 12,
+    radius: 22,
+    terrainDamage: false,
+    ammo: 1,
+    placeholderArgb: 0xFFFF6A1A,
+  );
+
+  /// Freezes every pet it catches: they miss their next turn.
+  static const iceBomb = WeaponDef(
+    id: 'iceBomb',
+    nameKey: 'weaponIceBomb',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Ballistic(onImpact: Freeze(radius: 55)),
+    affectedByWind: true,
+    maxDamage: 10,
+    ammo: 1,
+    placeholderArgb: 0xFF8FD8FF,
   );
 
   /// Hook the ground and get reeled to it, then still take your shot.
@@ -1094,6 +1150,8 @@ abstract final class Weapons {
     meteorShower,
     blackHole,
     stickyBomb,
+    napalm,
+    iceBomb,
     clay,
     punch,
     mine,

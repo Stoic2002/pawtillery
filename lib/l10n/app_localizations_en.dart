@@ -1264,4 +1264,21 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get weaponGrappleDesc =>
       'Aim and shoot the hook: if it catches the ground you\'re reeled up to it, then you can still fire. A miss costs nothing.';
+
+  @override
+  String get weaponNapalm => 'Napalm';
+
+  @override
+  String get weaponNapalmDesc =>
+      'Bursts into patches of fire that burn for 4 turns. Any pet touching the fire loses 8 HP each turn.';
+
+  @override
+  String get weaponIceBomb => 'Ice Bomb';
+
+  @override
+  String get weaponIceBombDesc =>
+      'Freezes every pet in the burst: they miss their next turn. Fire thaws them and the cold puts fire out.';
+
+  @override
+  String get hudFrozenSkip => 'Frozen! Turn skipped';
 }

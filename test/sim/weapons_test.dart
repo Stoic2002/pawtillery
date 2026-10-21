@@ -409,7 +409,9 @@ void main() {
 // last hit, knocked-out pets fall during that hold, and the storm cloud
 // and satellite take longer to arrive, so the play itself changed.
 // Then (→ 2942344318) the hash also covers the grappling hook; same play.
-const _pinnedWeaponsHash = 2942344318;
+// Then (→ 2295581662) it also covers fire, frozen pets and the satellite's
+// beam count; same play.
+const _pinnedWeaponsHash = 2295581662;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {
@@ -446,4 +448,9 @@ class _FakeContext implements SimContext {
   @override
   void spawnMine(WeaponDef w, double x, double y, double vx, double vy,
       {int? ownerId}) {}
+  @override
+  void ignite(double x, double y, Ignite spec, {int? sourceId}) {}
+  @override
+  void freeze(double x, double y, WeaponDef weapon, Freeze spec,
+      {int? sourceId}) {}
 }

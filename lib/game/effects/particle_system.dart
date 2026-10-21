@@ -187,6 +187,29 @@ class ParticleSystem extends Component {
       x: x, y: y, life: 0.3, size: radius * 0.2, grow: radius * 2.6,
       argb: 0xFFFFFFFF, kind: _ring);
 
+  /// Ice bomb: a cold flash, an icy ring the size of the burst and shards
+  /// of ice flying out.
+  void frost(double x, double y, double radius) {
+    _spawn(
+      x: x, y: y, life: 0.35, size: radius * 0.3, grow: radius * 2.2,
+      argb: 0xFFCFF2FF, kind: _ring,
+    );
+    _spawn(
+      x: x, y: y, life: 0.3, size: 14, grow: 120,
+      argb: 0xCCE6F9FF, kind: _glow,
+    );
+    for (var i = 0; i < 22; i++) {
+      final a = _rand(0, math.pi * 2);
+      final speed = _rand(80, 260);
+      _spawn(
+        x: x, y: y,
+        vx: math.cos(a) * speed, vy: math.sin(a) * speed - 40,
+        life: _rand(0.35, 0.7), size: _rand(1.6, 3.2), gravity: 380,
+        argb: i.isEven ? 0xFFE6F9FF : 0xFF8FD8FF, kind: _glow,
+      );
+    }
+  }
+
   /// Dust kicked up by a landing or by digging.
   void dust(double x, double y, {required double strength}) {
     final n = (strength * 8).round().clamp(2, 14);

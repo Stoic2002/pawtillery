@@ -132,6 +132,7 @@ class UnitsComponent extends Component {
         pose: pose,
       );
       canvas.restore();
+      if (u.frozen) _iceBlock(canvas, u, scale);
 
       final top = u.y - AnimalArt.height * scale - 3;
       final tagTop = _drawTag(canvas, u, top);
@@ -150,6 +151,35 @@ class UnitsComponent extends Component {
       }
     }
   }
+
+  /// A frozen pet: encased in a block of translucent ice with frosty
+  /// edges and a couple of glints.
+  void _iceBlock(ui.Canvas canvas, Unit u, double scale) {
+    final h = AnimalArt.height * scale + 6;
+    final w = u.stats.hitRadius * 2.6;
+    final block = ui.RRect.fromLTRBR(u.centerX - w / 2, u.y - h,
+        u.centerX + w / 2, u.y + 1, const ui.Radius.circular(6));
+    canvas
+      ..drawRRect(block, _fill..color = const ui.Color(0x99A6E2FF))
+      ..drawRRect(block, _iceEdge)
+      ..drawLine(
+          ui.Offset(block.left + 5, block.top + 6),
+          ui.Offset(block.left + 5, block.top + h * 0.45),
+          _iceGlint)
+      ..drawLine(
+          ui.Offset(block.left + 9, block.top + 5),
+          ui.Offset(block.left + 13, block.top + 5),
+          _iceGlint);
+  }
+
+  final ui.Paint _iceEdge = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeWidth = 2
+    ..color = const ui.Color(0xDDE6F9FF);
+  final ui.Paint _iceGlint = ui.Paint()
+    ..strokeWidth = 2
+    ..strokeCap = ui.StrokeCap.round
+    ..color = const ui.Color(0xEEFFFFFF);
 
   /// The name tag; returns its top edge (for the active arrow).
   double _drawTag(ui.Canvas canvas, Unit u, double bottom) {

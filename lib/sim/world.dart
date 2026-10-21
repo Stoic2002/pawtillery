@@ -18,6 +18,7 @@ import 'physics.dart';
 import 'projectile.dart';
 import 'rng.dart';
 import 'spawn.dart';
+import 'fire_patch.dart';
 import 'terrain_mask.dart';
 import 'trig.dart';
 import 'turn_manager.dart';
@@ -186,6 +187,18 @@ class SimWorld implements SimContext {
   late final List<MapObject> objects = UnmodifiableListView(_objects);
   int _nextObjectId = 0;
 
+  /// Napalm fire burning on the ground.
+  final List<FirePatch> _fires = [];
+  late final List<FirePatch> fires = UnmodifiableListView(_fires);
+  int _nextFireId = 0;
+
+  /// Units burnt this turn (fire hurts each at most once a turn).
+  final Set<int> _burnt = {};
+
+  /// This turn's unit was frozen, so the turn was skipped.
+  bool _frozenSkip = false;
+  bool get frozenSkip => _frozenSkip;
+
   /// Aircraft (and bird flocks) crossing the sky for air raids.
   final List<Aircraft> _aircraft = [];
   late final List<Aircraft> aircraft = UnmodifiableListView(_aircraft);
@@ -344,6 +357,7 @@ class SimWorld implements SimContext {
     _stepMines();
     _stepObjects();
     _stepUnits(walkDir);
+    _stepFires();
     _stepTurn();
     return List.of(_events);
   }
@@ -1056,6 +1070,100 @@ class SimWorld implements SimContext {
   }
 
   @override
+  void ignite(double x, double y, Ignite spec, {int? sourceId}) {
+    final cx = x.round();
+    for (var i = 0; i < spec.patches; i++) {
+      final offset = spec.patches == 1
+          ? 0
+          : (spec.spread * i) ~/ (spec.patches - 1) - spec.spread ~/ 2;
+      final px = cx + offset + rng.nextIntInRange(-4, 4);
+      if (px < 0 || px >= terrain.width) continue;
+      // The first ground below a point a little above the blast.
+      int? surface;
+      for (var py = max(0, y.round() - 30);
+          py < min(waterLevel, y.round() + 120);
+          py++) {
+        if (terrain.isSolid(px, py)) {
+          surface = py;
+          break;
+        }
+      }
+      if (surface == null) continue;
+      final patch = FirePatch(
+        id: _nextFireId++,
+        x: px,
+        y: surface,
+        turnsLeft: FireConfig.turns,
+        ownerId: sourceId,
+      );
+      _fires.add(patch);
+      _events.add(FireStarted(patch.id, px, surface));
+    }
+  }
+
+  @override
+  void freeze(double x, double y, WeaponDef weapon, Freeze spec,
+      {int? sourceId}) {
+    _events.add(IceBurst(x, y, spec.radius));
+    for (final u in _units) {
+      if (!u.alive) continue;
+      final dx = u.centerX - x;
+      final dy = u.centerY - y;
+      final r = spec.radius + u.stats.hitRadius;
+      if (dx * dx + dy * dy > r * r) continue;
+      _damage(u, weapon.maxDamage, DamageCause.impact, sourceId: sourceId);
+      if (!u.frozen) _events.add(UnitFrozen(u.id));
+      u.frozenTurns = 1;
+    }
+    for (var i = _fires.length - 1; i >= 0; i--) {
+      final f = _fires[i];
+      final dx = f.x - x;
+      final dy = f.y - y;
+      if (dx * dx + dy * dy <= spec.radius * spec.radius) {
+        _fires.removeAt(i);
+        _events.add(FireOut(f.id));
+      }
+    }
+  }
+
+  /// Fire settles onto the ground below it if that is blown away, goes out
+  /// in water, and burns any pet touching it once a turn.
+  void _stepFires() {
+    for (var i = _fires.length - 1; i >= 0; i--) {
+      final f = _fires[i];
+      for (var k = 0; k < 3 && !terrain.isSolid(f.x, f.y); k++) {
+        f.y++;
+      }
+      if (f.y >= waterLevel || f.y >= terrain.height) {
+        _fires.removeAt(i);
+        _events.add(FireOut(f.id));
+      }
+    }
+    final phase = turn.phase;
+    if (_fires.isEmpty ||
+        phase == TurnPhase.turnStart ||
+        phase == TurnPhase.matchOver) {
+      return;
+    }
+    for (final u in _units) {
+      if (!u.alive || _burnt.contains(u.id)) continue;
+      for (final f in _fires) {
+        final dx = u.centerX - f.x;
+        final dy = u.centerY - (f.y - 5);
+        final r = u.stats.hitRadius + FireConfig.reach;
+        if (dx * dx + dy * dy > r * r) continue;
+        _burnt.add(u.id);
+        _damage(u, FireConfig.damage, DamageCause.fire, sourceId: f.ownerId);
+        if (u.frozen) {
+          u.frozenTurns = 0;
+          _events.add(UnitThawed(u.id, skippedTurn: false));
+        }
+        break;
+      }
+    }
+  }
+
+  @override
   void explode(double x, double y, WeaponDef weapon, {int? sourceId}) =>
       _blast(x.round(), y.round(), weapon,
           cause: DamageCause.explosion,
@@ -1487,7 +1595,17 @@ class SimWorld implements SimContext {
 
     switch (turn.phase) {
       case TurnPhase.turnStart:
-        if (turn.phaseTicks >= t.bannerTicks) _setPhase(TurnPhase.action);
+        if (turn.phaseTicks >= t.bannerTicks) {
+          // A frozen pet sits its turn out and thaws.
+          if (active != null && active.alive && active.frozen) {
+            active.frozenTurns--;
+            _frozenSkip = true;
+            _events.add(UnitThawed(active.id, skippedTurn: true));
+            _setPhase(TurnPhase.settling);
+          } else {
+            _setPhase(TurnPhase.action);
+          }
+        }
       case TurnPhase.action:
         if (activeGone || turn.phaseTicks >= t.turnTicks) {
           _setPhase(TurnPhase.settling);
@@ -1501,8 +1619,10 @@ class SimWorld implements SimContext {
         // Knocked-out pets fall once the dust settles, while the camera is
         // still on them, rather than under the next turn's banner.
         if (atRest) _killKnockedOut();
-        final held = _lastHitTick >= 0 &&
-            _tick - _lastHitTick < t.hitHoldTicks;
+        final held = (_lastHitTick >= 0 &&
+                _tick - _lastHitTick < t.hitHoldTicks) ||
+            // Long enough to see the frozen pet sit its turn out.
+            (_frozenSkip && turn.phaseTicks < t.bannerTicks);
         if ((atRest && !held) || turn.phaseTicks >= t.settleTimeoutTicks) {
           _finishTurn();
         }
@@ -1536,6 +1656,13 @@ class SimWorld implements SimContext {
     _strikes.clear();
     if (_suddenDeath) _maybeRaiseWater();
     _killKnockedOut();
+    for (var i = _fires.length - 1; i >= 0; i--) {
+      final f = _fires[i];
+      if (--f.turnsLeft <= 0) {
+        _fires.removeAt(i);
+        _events.add(FireOut(f.id));
+      }
+    }
     final teamsAlive = <int>{
       for (final u in _units)
         if (u.alive) u.team,
@@ -1558,6 +1685,8 @@ class SimWorld implements SimContext {
   }
 
   void _beginTurn() {
+    _burnt.clear();
+    _frozenSkip = false;
     turn.startNextTurn([
       for (var team = 0; team < teamCount; team++)
         [
@@ -1628,7 +1757,19 @@ class SimWorld implements SimContext {
       ..add(_waterLevel)
       ..add(_suddenDeath ? 1 : 0)
       ..add(_turnsSinceRise)
-      ..add(_lastHitTick);
+      ..add(_lastHitTick)
+      ..add(_nextFireId)
+      ..add(_frozenSkip ? 1 : 0);
+    for (final f in _fires) {
+      h
+        ..add(f.id)
+        ..add(f.x)
+        ..add(f.y)
+        ..add(f.turnsLeft);
+    }
+    for (final id in _burnt.toList()..sort()) {
+      h.add(id);
+    }
     for (final c in turn.cursors) {
       h.add(c);
     }
@@ -1655,6 +1796,7 @@ class SimWorld implements SimContext {
         ..add(u.digTicks)
         ..addDouble(u.digLeft)
         ..add(u.grappleTicks)
+        ..add(u.frozenTurns)
         ..addDouble(u.grappleX)
         ..addDouble(u.grappleY)
         ..addDouble(u.x)

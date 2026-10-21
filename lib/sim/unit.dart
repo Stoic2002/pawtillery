@@ -147,6 +147,10 @@ class Unit {
   double grappleY = 0;
   bool get isGrappling => grappleTicks > 0;
 
+  /// Ice Bomb: own turns still to sit out frozen.
+  int frozenTurns = 0;
+  bool get frozen => frozenTurns > 0;
+
   double get centerX => x.floorToDouble() + 0.5;
   double get centerY => y - stats.bodyHeight / 2;
 }

@@ -1267,4 +1267,21 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get weaponGrappleDesc =>
       'Bidik dan tembakkan kait: kalau menancap di tanah, kamu ditarik ke sana, lalu masih bisa menembak. Meleset tidak mengurangi jatah.';
+
+  @override
+  String get weaponNapalm => 'Napalm';
+
+  @override
+  String get weaponNapalmDesc =>
+      'Pecah jadi beberapa titik api yang menyala selama 4 giliran. Pet yang menyentuh api kehilangan 8 HP tiap giliran.';
+
+  @override
+  String get weaponIceBomb => 'Bom Es';
+
+  @override
+  String get weaponIceBombDesc =>
+      'Membekukan semua pet di area ledakan: giliran berikutnya mereka terlewat. Api mencairkan es, dan dinginnya memadamkan api.';
+
+  @override
+  String get hudFrozenSkip => 'Beku! Giliran terlewat';
 }

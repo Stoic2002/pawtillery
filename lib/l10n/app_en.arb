@@ -1470,5 +1470,25 @@
   "weaponGrappleDesc": "Aim and shoot the hook: if it catches the ground you're reeled up to it, then you can still fire. A miss costs nothing.",
   "@weaponGrappleDesc": {
     "description": "Weapon menu description."
+  },
+  "weaponNapalm": "Napalm",
+  "@weaponNapalm": {
+    "description": "Weapon: a firebomb that leaves burning ground."
+  },
+  "weaponNapalmDesc": "Bursts into patches of fire that burn for 4 turns. Any pet touching the fire loses 8 HP each turn.",
+  "@weaponNapalmDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponIceBomb": "Ice Bomb",
+  "@weaponIceBomb": {
+    "description": "Weapon: freezes pets so they miss a turn."
+  },
+  "weaponIceBombDesc": "Freezes every pet in the burst: they miss their next turn. Fire thaws them and the cold puts fire out.",
+  "@weaponIceBombDesc": {
+    "description": "Weapon menu description."
+  },
+  "hudFrozenSkip": "Frozen! Turn skipped",
+  "@hudFrozenSkip": {
+    "description": "Arena: the active pet is frozen by an ice bomb and sits this turn out."
   }
 }

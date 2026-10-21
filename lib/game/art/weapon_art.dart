@@ -126,6 +126,10 @@ abstract final class WeaponArt {
         _aerialBomb(c);
       case 'meteor':
         _meteorRock(c, 9);
+      case 'napalm':
+        _napalmCan(c);
+      case 'iceBomb':
+        _iceBall(c);
       default:
         _rock(c, 5, 0xFF9E9A94);
     }
@@ -997,6 +1001,21 @@ abstract final class WeaponArt {
           _meteorRock(c, 7);
           c.restore();
         }
+      case 'napalm':
+        big(() {
+          c.rotate(-0.35);
+          _napalmCan(c);
+        }, 1.75);
+        for (final (x, s) in [(-9.0, 0.8), (-2.0, 1.0), (6.0, 0.75)]) {
+          c
+            ..save()
+            ..translate(x, 14)
+            ..scale(s);
+          _flameTongue(c);
+          c.restore();
+        }
+      case 'iceBomb':
+        big(() => _iceBall(c), 1.9);
       case 'grapple':
         final rope = ui.Path()
           ..moveTo(-13, 13)
@@ -1191,6 +1210,80 @@ abstract final class WeaponArt {
             ..quadraticBezierTo(-length * 0.3, -length * 0.42, 2, -2)
             ..close(),
           PaintKit.solid(0xDDFFE08A));
+  }
+
+  /// A napalm canister about 14 px long lying along x: a dented olive
+  /// can with a red band and a burning fuse cap.
+  static void _napalmCan(ui.Canvas c) {
+    const can = 0xFF6B7A3A;
+    final body = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-7, -4.2, 13, 8.4), const ui.Radius.circular(3));
+    c
+      ..drawRRect(body, PaintKit.lit(body.outerRect, can, light: 0.4))
+      ..drawRRect(body, PaintKit.edge(can, 0.7))
+      ..drawRect(const ui.Rect.fromLTWH(-2.5, -4.2, 2.6, 8.4),
+          PaintKit.solid(0xFFD8452B))
+      ..drawRRect(
+          ui.RRect.fromRectAndRadius(const ui.Rect.fromLTWH(5.5, -2.4, 3, 4.8),
+              const ui.Radius.circular(1)),
+          PaintKit.solid(0xFF3D4246))
+      ..drawCircle(const ui.Offset(10, 0), 2.6, PaintKit.solid(0xCCFF8A2A))
+      ..drawCircle(const ui.Offset(10, 0), 1.3, PaintKit.solid(0xFFFFE08A));
+  }
+
+  /// A small flame (icons), base at the origin, about 10 px tall.
+  static void _flameTongue(ui.Canvas c) {
+    for (final (h, w, argb) in const [
+      (11.0, 4.2, 0xFFFF6A1A),
+      (7.0, 2.6, 0xFFFFC23A),
+      (3.5, 1.4, 0xFFFFF2B0),
+    ]) {
+      c.drawPath(
+          ui.Path()
+            ..moveTo(-w, 0)
+            ..quadraticBezierTo(-w * 1.1, -h * 0.55, 0.6, -h)
+            ..quadraticBezierTo(w * 1.1, -h * 0.55, w, 0)
+            ..close(),
+          PaintKit.solid(argb));
+    }
+  }
+
+  /// The ice bomb, about 13 px across: a frosted pale-blue ball with
+  /// crystal facets, a steel cap and a frost glint.
+  static void _iceBall(ui.Canvas c) {
+    const ice = 0xFF8FD8FF;
+    final rect = ui.Rect.fromCircle(center: const ui.Offset(0, 1), radius: 6.2);
+    c
+      ..drawOval(rect, PaintKit.lit(rect, ice, light: 0.55))
+      ..drawOval(rect, PaintKit.edge(ice, 0.8));
+    final facet = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 0.8
+      ..color = const ui.Color(0xCCFFFFFF);
+    c
+      ..drawPath(
+          ui.Path()
+            ..moveTo(-4, -1)
+            ..lineTo(0, 2)
+            ..lineTo(4, -1.5)
+            ..moveTo(0, 2)
+            ..lineTo(0.5, 6),
+          facet)
+      ..drawRRect(
+          ui.RRect.fromRectAndRadius(const ui.Rect.fromLTWH(-2.2, -7.4, 4.4, 2.8),
+              const ui.Radius.circular(1)),
+          PaintKit.solid(0xFF7D868B))
+      ..drawCircle(const ui.Offset(-2.4, -1.8), 1.3, PaintKit.solid(0xEEFFFFFF));
+    // A small snowflake glint.
+    final flake = ui.Paint()
+      ..strokeWidth = 0.7
+      ..strokeCap = ui.StrokeCap.round
+      ..color = const ui.Color(0xFFFFFFFF);
+    for (var i = 0; i < 3; i++) {
+      final a = i * math.pi / 3;
+      final d = ui.Offset(math.cos(a) * 1.8, math.sin(a) * 1.8);
+      c.drawLine(const ui.Offset(3, 3) - d, const ui.Offset(3, 3) + d, flake);
+    }
   }
 
   /// See [grappleHook].

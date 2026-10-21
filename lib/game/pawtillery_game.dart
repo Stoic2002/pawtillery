@@ -26,6 +26,7 @@ import 'components/air_support_component.dart';
 import 'components/backdrop_components.dart';
 import 'components/damage_numbers_component.dart';
 import 'components/decor_component.dart';
+import 'components/fire_component.dart';
 import 'components/grapple_component.dart';
 import 'components/map_objects_component.dart';
 import 'components/projectiles_component.dart';
@@ -129,6 +130,9 @@ class PawtilleryGame extends FlameGame {
   late final AirSupportComponent _airSupport;
   late final GrappleComponent _grapple;
 
+  /// Where each burning patch is, for the puff when it goes out.
+  final Map<int, Vector2> _firePos = {};
+
   // State the Flutter HUD listens to.
   final hud = ValueNotifier<HudState?>(null);
   final aim = ValueNotifier<AimState>(AimState(
@@ -201,6 +205,7 @@ class PawtilleryGame extends FlameGame {
       ),
       _objects = MapObjectsComponent(sim),
       _grapple = GrappleComponent(sim),
+      FireComponent(sim),
       ProjectilesComponent(sim),
       _airSupport = AirSupportComponent(
         sim,
@@ -611,6 +616,21 @@ class PawtilleryGame extends FlameGame {
             when cause == DeathCause.water:
           particles.splash(sim.units[unitId].centerX, sim.waterLevel.toDouble(),
               waterArgb: map.waterArgb);
+        case IceBurst(:final x, :final y, :final radius):
+          particles.frost(x, y, radius.toDouble());
+          impact = Vector2(x, y);
+        case UnitThawed(:final unitId):
+          final u = sim.units[unitId];
+          particles.sparkle(u.centerX, u.centerY, argb: 0xFFCFF2FF);
+        case FireOut(:final patchId):
+          // Gone from the sim already; a puff where the flames were is
+          // drawn from the last frame's position.
+          final at = _firePos.remove(patchId);
+          if (at != null) particles.dust(at.x, at.y, strength: 0.4);
+        case FireStarted(:final patchId, :final x, :final y):
+          _firePos[patchId] = Vector2(x.toDouble(), y.toDouble());
+        case UnitFrozen():
+          break;
         case UnitTeleported(:final unitId):
           final u = sim.units[unitId];
           particles.sparkle(u.centerX, u.centerY, argb: 0xFFB98CFF);
@@ -677,6 +697,7 @@ class PawtilleryGame extends FlameGame {
       teamHp: sim.teamHp(),
       teamMaxHp: sim.teamMaxHp(),
       suddenDeath: sim.suddenDeath,
+      frozenSkip: sim.frozenSkip,
       winnerTeam:
           sim.turn.phase == TurnPhase.matchOver ? sim.turn.winnerTeam : null,
     );
