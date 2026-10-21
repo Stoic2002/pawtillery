@@ -59,6 +59,7 @@ class PendingStrike {
     required this.weapon,
     required this.firedTick,
     this.fromDir = -1,
+    this.shot = 0,
   });
 
   final int dueTick;
@@ -70,4 +71,18 @@ class PendingStrike {
   /// When it was called (drawing: how far the satellite or cloud has come).
   final int firedTick;
   final int fromDir;
+
+  /// Satellite: how many of its beams have fired.
+  final int shot;
+
+  PendingStrike nextShot(int dueTick) => PendingStrike(
+        dueTick: dueTick,
+        x: x,
+        y: y,
+        ownerId: ownerId,
+        weapon: weapon,
+        firedTick: firedTick,
+        fromDir: fromDir,
+        shot: shot + 1,
+      );
 }

@@ -165,7 +165,7 @@ void main() {
     final particles = ParticleSystem()
       ..beam(40, 150, 360, 110)
       ..bolt(520, 170)
-      ..orbital(720, 190)
+      ..orbital(660, 20, 720, 190)
       ..update(0.05);
     final recorder = ui.PictureRecorder();
     final canvas = ui.Canvas(recorder)

@@ -55,7 +55,7 @@ void main() {
   });
 
   group('Serangan Satelit', () {
-    test('marks the column, then burns it to the water after the delay', () {
+    test('marks the spot, then fires three slanted beams in turn', () {
       final w = world([UnitPlacement(0, 200, 400), UnitPlacement(1, 900, 400)]);
       toAction(w);
       final fired = w.step(const [
@@ -64,22 +64,40 @@ void main() {
       expect(fired.whereType<WeaponUsed>(), isNotEmpty);
       expect(w.pendingStrikes.single.x, 905);
       final firedAt = w.tick;
+      final spec = Weapons.satellite.delivery as OrbitalStrike;
 
       final events = <SimEvent>[];
+      final beamTicks = <int>[];
       while (w.pendingStrikes.isNotEmpty) {
-        events.addAll(w.step(const []));
+        final e = w.step(const []);
+        if (e.whereType<SatelliteStruck>().isNotEmpty) beamTicks.add(w.tick);
+        events.addAll(e);
       }
-      final delay = (Weapons.satellite.delivery as OrbitalStrike).delayTicks;
-      expect(w.tick - firedAt, delay);
-      final strike = events.whereType<SatelliteStruck>().single;
-      expect(strike.x, 905);
-      expect(strike.y, 560, reason: 'down to the water');
+      expect(beamTicks, [
+        for (var i = 0; i < spec.beams; i++)
+          firedAt + spec.delayTicks + i * spec.intervalTicks,
+      ]);
+      final beams = events.whereType<SatelliteStruck>().toList();
+      expect(beams.last.last, isTrue);
+      for (final b in beams) {
+        expect(b.x1, isNot(closeTo(b.x0, 20)), reason: 'slanted, not straight');
+        expect(b.y1, lessThan(400 + spec.depth + 2),
+            reason: 'only a short way into the ground');
+      }
+      // The middle beam lands on the pet; the others beside it miss.
       expect(damageTo(events, 1).single.amount, Weapons.satellite.maxDamage);
       expect(damageTo(events, 0), isEmpty);
-      // A shaft through the ground, which is untouched beside it.
-      expect(w.terrain.isSolid(905, 450), isFalse);
-      expect(w.terrain.isSolid(905, 540), isFalse);
-      expect(w.terrain.isSolid(1100, 450), isTrue);
+      // Shallow channels: the ground deep below is untouched.
+      expect(w.terrain.isSolid(905, 500), isTrue);
+    });
+
+    test('a pet standing between beams can take more than one', () {
+      final w = world([UnitPlacement(0, 200, 400), UnitPlacement(1, 900, 400)]);
+      final e = fireAndSettle(
+        w,
+        const Fire(weaponId: 'satellite', targetX: 918, targetY: 395),
+      );
+      expect(damageTo(e, 1).length, inInclusiveRange(1, 2));
     });
 
     test('it does not spare the shooter', () {

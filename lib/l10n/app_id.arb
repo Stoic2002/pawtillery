@@ -372,7 +372,7 @@
   "weaponSatellite": "Serangan Satelit",
   "weaponHomingMissile": "Rudal Pemburu",
   "weaponBomberDesc": "Pesawat terbang melintas dan menjatuhkan lima bom di titik yang kamu pilih.",
-  "weaponSatelliteDesc": "Menandai satu titik, lalu laser dari orbit membakar lurus ke bawah menembus semuanya.",
+  "weaponSatelliteDesc": "Menandai satu titik, lalu satelit menembakkan tiga laser miring di sekitarnya satu per satu. Lasernya hanya membakar sedikit ke dalam tanah.",
   "weaponHomingMissileDesc": "Ketuk target: jet tempur datang dan menembakkan rudal yang mengejar titik itu sampai bahan bakarnya habis.",
   "setupMapObjects": "Objek di peta",
   "setupObjectsFew": "Sedikit",

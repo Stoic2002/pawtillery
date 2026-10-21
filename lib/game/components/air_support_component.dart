@@ -42,10 +42,11 @@ class AirSupportComponent extends Component {
         : math.max(satelliteY, targetY - vh * 0.56);
   }
 
-  double strikeSourceY(PendingStrike s) => sourceYFor(
-    lightning: s.weapon.delivery is Lightning,
-    targetY: s.y.toDouble(),
-  );
+  /// Where the storm cloud sits, or the satellite parks to fire (the
+  /// sim's own firing point, so its beams leave from it).
+  double strikeSourceY(PendingStrike s) => s.weapon.delivery is Lightning
+      ? sourceYFor(lightning: true, targetY: s.y.toDouble())
+      : SimWorld.satelliteAim(s).$1.$2;
 
   /// Ticks the satellite or cloud spends arriving; then it charges.
   static const int _arriveTicks = 72;
@@ -73,7 +74,10 @@ class AirSupportComponent extends Component {
   /// Where the satellite or storm cloud of [s] is now (also followed by
   /// the camera).
   static double strikeSourceX(SimWorld sim, PendingStrike s) =>
-      s.x + s.fromDir * _arriveDistance * (1 - _arrival(sim, s));
+      (s.weapon.delivery is Lightning
+          ? s.x.toDouble()
+          : SimWorld.satelliteAim(s).$1.$1) +
+      s.fromDir * _arriveDistance * (1 - _arrival(sim, s));
 
   final ui.Paint _sight = ui.Paint()..strokeWidth = 2;
   final ui.Paint _ring = ui.Paint()
@@ -151,7 +155,7 @@ class AirSupportComponent extends Component {
     final blink = (_time * (left < 40 ? 16 : 6)).floor().isEven;
     _sight.color = ui.Color(blink ? 0xCCE5484D : 0x66E5484D);
     final arrived = _arrival(sim, s) >= 1;
-    if (arrived) {
+    if (arrived && s.weapon.delivery is Lightning) {
       canvas.drawLine(ui.Offset(x, strikeSourceY(s)), ui.Offset(x, y), _sight);
     }
     canvas
@@ -159,9 +163,10 @@ class AirSupportComponent extends Component {
       ..drawCircle(ui.Offset(x, y), 3, _ring);
   }
 
-  /// The satellite glides in, unfolds and turns to its column, then its
-  /// dish charges (a cold glow that grows) while a red targeting laser
-  /// finds the spot, flickering at first and then locking on.
+  /// The satellite glides in to park off to one side, then its dish
+  /// charges (a cold glow that grows) while red targeting lasers find the
+  /// spots its beams will slant down to, flickering at first and then
+  /// locking on. Each goes out as its beam fires.
   void _drawSatellite(ui.Canvas canvas, PendingStrike s) {
     final x = strikeSourceX(sim, s);
     final sy = strikeSourceY(s);
@@ -172,19 +177,16 @@ class AirSupportComponent extends Component {
       final on = lock >= 1 || (_time * (6 + 18 * lock)).floor().isEven;
       if (on) {
         _laser
-          ..strokeWidth = 1 + 1.5 * lock
-          ..color = ui.Color.fromARGB((120 + 120 * lock).round(), 255, 70, 70);
-        canvas.drawLine(
-          ui.Offset(x, sy + 12 + bob),
-          ui.Offset(s.x.toDouble(), s.y.toDouble()),
-          _laser,
-        );
+          ..strokeWidth = 1 + 1.2 * lock
+          ..color = ui.Color.fromARGB((110 + 120 * lock).round(), 255, 70, 70);
         _glow.color = ui.Color.fromARGB((160 * lock).round(), 255, 90, 90);
-        canvas.drawCircle(
-          ui.Offset(s.x.toDouble(), s.y.toDouble()),
-          3 + 5 * lock,
-          _glow,
-        );
+        final aims = SimWorld.satelliteAim(s).$2;
+        for (var i = s.shot; i < aims.length; i++) {
+          final aim = ui.Offset(aims[i].$1, aims[i].$2);
+          canvas
+            ..drawLine(ui.Offset(x, sy + 12 + bob), aim, _laser)
+            ..drawCircle(aim, 2 + 4 * lock, _glow);
+        }
       }
     }
     canvas

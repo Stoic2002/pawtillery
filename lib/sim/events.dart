@@ -128,15 +128,18 @@ final class LightningStruck extends SimEvent {
   final int y;
 }
 
-/// The satellite's beam burnt down column [x] from the sky to [y]; the
-/// ground within [radius] of it is gone (the mask is already carved).
-/// [targetY] is the spot the player marked in that column.
+/// One of the satellite's lasers burnt from ([x0], [y0]) (the satellite)
+/// to ([x1], [y1]); the ground within [radius] of it is gone (the mask is
+/// already carved). [last] for the final beam of the strike.
 final class SatelliteStruck extends SimEvent {
-  const SatelliteStruck(this.x, this.y, this.radius, {required this.targetY});
-  final int x;
-  final int y;
+  const SatelliteStruck(this.x0, this.y0, this.x1, this.y1, this.radius,
+      {required this.last});
+  final double x0;
+  final double y0;
+  final double x1;
+  final double y1;
   final int radius;
-  final int targetY;
+  final bool last;
 }
 
 /// A bomber dropped a bomb at ([x], [y]).

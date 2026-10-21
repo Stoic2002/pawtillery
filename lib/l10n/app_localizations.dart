@@ -2327,7 +2327,7 @@ abstract class AppLocalizations {
   /// Weapon menu description.
   ///
   /// In en, this message translates to:
-  /// **'Marks a spot, then a laser from orbit burns straight down through everything.'**
+  /// **'Marks a spot, then a satellite fires three slanted lasers around it, one after another. They only burn a short way into the ground.'**
   String get weaponSatelliteDesc;
 
   /// Weapon menu description.

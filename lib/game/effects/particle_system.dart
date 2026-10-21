@@ -217,22 +217,22 @@ class ParticleSystem extends Component {
     }
   }
 
-  /// Satellite strike: a thick cold-white beam from far above down to
-  /// ([x], [y]), a flash where it ends and sparks along the shaft.
-  void orbital(double x, double y, {double? top}) {
-    top ??= math.min(-300.0, y - 1600);
+  /// Satellite laser: a cold-white beam from ([x0], [y0]) down to ([x],
+  /// [y]), a flash where it ends and sparks along it.
+  void orbital(double x0, double y0, double x, double y) {
     _streaks
-      ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 1.1, 0x887FD3FF, 30))
-      ..add(_Streak([ui.Offset(x, top), ui.Offset(x, y)], 0.8, 0xFFF4FBFF, 10));
+      ..add(_Streak([ui.Offset(x0, y0), ui.Offset(x, y)], 0.6, 0x887FD3FF, 11))
+      ..add(_Streak([ui.Offset(x0, y0), ui.Offset(x, y)], 0.45, 0xFFF4FBFF, 3.5));
     _spawn(
-      x: x, y: y, life: 0.35, size: 18, grow: 160,
+      x: x, y: y, life: 0.3, size: 12, grow: 110,
       argb: 0xFFE6F7FF, kind: _glow,
     );
-    for (var i = 0; i < 18; i++) {
+    for (var i = 0; i < 10; i++) {
       final a = _rand(0, math.pi * 2);
       final speed = _rand(40, 200);
+      final t = _rand(0.55, 1);
       _spawn(
-        x: x + _rand(-8, 8), y: _rand(math.max(0, y - 500), y),
+        x: x0 + (x - x0) * t, y: y0 + (y - y0) * t,
         vx: math.cos(a) * speed, vy: math.sin(a) * speed,
         life: _rand(0.25, 0.6), size: 1.8, gravity: 250,
         argb: 0xFFBDE9FF, kind: _glow,

@@ -1391,7 +1391,7 @@
   "@weaponBomberDesc": {
     "description": "Weapon menu description."
   },
-  "weaponSatelliteDesc": "Marks a spot, then a laser from orbit burns straight down through everything.",
+  "weaponSatelliteDesc": "Marks a spot, then a satellite fires three slanted lasers around it, one after another. They only burn a short way into the ground.",
   "@weaponSatelliteDesc": {
     "description": "Weapon menu description."
   },

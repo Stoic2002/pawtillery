@@ -1,5 +1,5 @@
 import 'dart:collection';
-import 'dart:math' show min, sqrt;
+import 'dart:math' show max, min, sqrt;
 import 'dart:typed_data';
 
 import '../config/map_objects.dart';
@@ -449,8 +449,11 @@ class SimWorld implements SimContext {
           ownerId: unit.id,
           weapon: weapon,
           firedTick: _tick,
-          // The cloud rides in on the wind.
-          fromDir: _wind >= 0 ? -1 : 1,
+          // The cloud rides in on the wind; the satellite parks on the
+          // side towards the middle of the map, so its beams start on it.
+          fromDir: weapon.delivery is OrbitalStrike
+              ? (tx < terrain.width / 2 ? 1 : -1)
+              : (_wind >= 0 ? -1 : 1),
         ));
       case PlaceMine():
         unit.facing = dir;
@@ -510,8 +513,8 @@ class SimWorld implements SimContext {
       case Lightning():
         _lightning(unit.id, weapon, tx!);
       case OrbitalStrike():
-        _orbital(PendingStrike(
-            dueTick: _tick, x: tx!, y: ty!, ownerId: unit.id,
+        _strikes.add(PendingStrike(
+            dueTick: _tick + 1, x: tx!, y: ty!, ownerId: unit.id,
             weapon: weapon, firedTick: _tick));
       case DropCharge():
         final f = unit.facing;
@@ -847,43 +850,105 @@ class SimWorld implements SimContext {
       final strike = _strikes[i];
       if (strike.dueTick > _tick) continue;
       _strikes.removeAt(i);
-      if (strike.weapon.delivery is Lightning) {
-        _lightning(strike.ownerId, strike.weapon, strike.x);
-      } else {
+      if (strike.weapon.delivery case final OrbitalStrike spec) {
         _orbital(strike);
+        if (strike.shot + 1 < spec.beams) {
+          _strikes.add(strike.nextShot(_tick + spec.intervalTicks));
+        }
+      } else {
+        _lightning(strike.ownerId, strike.weapon, strike.x);
       }
     }
   }
 
-  /// Satelit: burns column [PendingStrike.x] from the top of the map to the
-  /// water, carving a shaft and hitting every unit within the beam's reach
-  /// once (pushed sideways, away from the beam), and setting off mines in
+  /// Where the satellite of [strike] parks to fire, and where each of its
+  /// beams is aimed (they go on past it). Shared with the drawing.
+  static ((double, double), List<(double, double)>) satelliteAim(
+      PendingStrike strike) {
+    final spec = strike.weapon.delivery as OrbitalStrike;
+    final origin = (
+      (strike.x + strike.fromDir * spec.offset).toDouble(),
+      max(satelliteParkY, strike.y - spec.height).toDouble(),
+    );
+    // The far beam first, sweeping back towards the satellite.
+    final aims = [
+      for (var i = 0; i < spec.beams; i++)
+        (
+          strike.x +
+              strike.fromDir * spec.spread * (i - (spec.beams - 1) / 2),
+          strike.y.toDouble(),
+        ),
+    ];
+    return (origin, aims);
+  }
+
+  /// Highest a satellite parks (world y).
+  static const double satelliteParkY = 40;
+
+  /// Satelit: fires beam [PendingStrike.shot] from the satellite through
+  /// its aim point. It burns a channel only [OrbitalStrike.depth] px past
+  /// the first ground or pet it meets, hits every unit within reach of its
+  /// line once (pushed along the beam), and sets off mines and objects on
   /// it.
   void _orbital(PendingStrike strike) {
     final weapon = strike.weapon;
-    final carve = (weapon.delivery as OrbitalStrike).carveRadius;
-    final x = strike.x;
-    final bottom = min(waterLevel, terrain.height);
-    for (var y = 0; y < bottom; y += 4) {
-      terrain.carveCircle(x, y, carve);
-    }
-    for (final u in _units) {
-      if (!u.alive || u.centerY > bottom + u.stats.hitRadius) continue;
-      final dx = u.centerX - x;
-      if (dx.abs() > weapon.radius + u.stats.hitRadius) continue;
-      strikeUnit(u, weapon.maxDamage, dx >= 0 ? 1.0 : -1.0, 0,
-          weapon.knockbackScale,
-          sourceId: strike.ownerId);
-    }
-    for (final m in _mines) {
-      if ((m.x - x).abs() <= weapon.radius) {
-        m.countdown = min(m.countdown ?? 1, 1);
+    final spec = weapon.delivery as OrbitalStrike;
+    final ((ox, oy), aims) = satelliteAim(strike);
+    final (ax, ay) = aims[strike.shot];
+    final len = sqrt((ax - ox) * (ax - ox) + (ay - oy) * (ay - oy));
+    final dx = (ax - ox) / len;
+    final dy = (ay - oy) / len;
+    var x = ox;
+    var y = oy;
+    var burnt = -1;
+    final hit = <int>{};
+    for (var d = 0; burnt < spec.depth; d++) {
+      final nx = ox + dx * d;
+      final ny = oy + dy * d;
+      if (nx < 0 || nx >= terrain.width || ny >= waterLevel ||
+          ny >= terrain.height) {
+        break;
+      }
+      x = nx;
+      y = ny;
+      if (burnt < 0 &&
+          (terrain.isSolid(nx.floor(), ny.floor()) ||
+              ProjectilePhysics.unitAt(nx, ny, _units) != null)) {
+        burnt = 0;
+      }
+      if (burnt >= 0) {
+        if (burnt % 3 == 0) {
+          terrain.carveCircle(nx.round(), ny.round(), spec.carveRadius);
+        }
+        burnt++;
+      }
+      for (final u in _units) {
+        if (!u.alive || hit.contains(u.id)) continue;
+        final ux = u.centerX - nx;
+        final uy = u.centerY - ny;
+        final r = weapon.radius + u.stats.hitRadius;
+        if (ux * ux + uy * uy <= r * r) {
+          hit.add(u.id);
+          strikeUnit(u, weapon.maxDamage, dx, dy, weapon.knockbackScale,
+              sourceId: strike.ownerId);
+        }
+      }
+      for (final m in _mines) {
+        final mx = m.x - nx;
+        final my = m.centerY - ny;
+        if (mx * mx + my * my <= weapon.radius * weapon.radius + 36) {
+          m.countdown = min(m.countdown ?? 1, 1);
+        }
+      }
+      for (final o in _objects) {
+        final px = o.x - nx;
+        final py = o.centerY - ny;
+        final r = ObjectConfig.size / 2 + weapon.radius;
+        if (px * px + py * py <= r * r) _hitObject(o);
       }
     }
-    for (final o in _objects) {
-      if ((o.x - x).abs() <= weapon.radius) _hitObject(o);
-    }
-    _events.add(SatelliteStruck(x, bottom, carve, targetY: strike.y));
+    _events.add(SatelliteStruck(ox, oy, x, y, spec.carveRadius,
+        last: strike.shot + 1 >= spec.beams));
   }
 
   /// Laser: walks the line 1 px at a time from the launch point, burning
@@ -1648,7 +1713,8 @@ class SimWorld implements SimContext {
     for (final s in _strikes) {
       h
         ..add(s.dueTick)
-        ..add(s.x);
+        ..add(s.x)
+        ..add(s.shot);
     }
     h.addBytes(terrain.data);
     return h.value;

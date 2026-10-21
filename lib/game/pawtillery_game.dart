@@ -460,7 +460,11 @@ class PawtilleryGame extends FlameGame {
       // arrival, the strike and who it hits are all seen.
       final s = sim.pendingStrikes.first;
       final viewHeight = camera.viewport.virtualSize.y / _camera.zoom;
-      _camera.follow(Vector2(s.x.toDouble(), s.y - viewHeight * 0.15));
+      // The satellite parks closer above its spot than the cloud.
+      final lift = s.weapon.delivery is OrbitalStrike
+          ? math.min(viewHeight * 0.15, 100.0)
+          : viewHeight * 0.15;
+      _camera.follow(Vector2(s.x.toDouble(), s.y - lift));
     } else if (sim.tick >= _impactHoldUntil) {
       _keepActiveUnitInView();
     }
@@ -567,14 +571,13 @@ class PawtilleryGame extends FlameGame {
           _airSupport.strikeLanded(
               lightning: true, x: x.toDouble(), y: cloudY);
           impact = Vector2(x.toDouble(), y.toDouble());
-        case SatelliteStruck(:final x, :final y, :final radius, :final targetY):
-          _terrain.carveLine(x.toDouble(), 0, x.toDouble(), y.toDouble(), radius);
-          final satY = _airSupport.sourceYFor(
-              lightning: false, targetY: targetY.toDouble());
-          particles.orbital(x.toDouble(), y.toDouble(), top: satY + 12);
-          _airSupport.strikeLanded(lightning: false, x: x.toDouble(), y: satY);
+        case SatelliteStruck(:final x0, :final y0, :final x1, :final y1,
+              :final radius, :final last):
+          _terrain.carveLine(x0, y0, x1, y1, radius);
+          particles.orbital(x0, y0 + 12, x1, y1);
+          if (last) _airSupport.strikeLanded(lightning: false, x: x0, y: y0);
           _aimGuide.invalidate();
-          impact = Vector2(x.toDouble(), targetY.toDouble());
+          impact = Vector2(x1, y1);
         case UnitDamaged(:final unitId, :final amount):
           _damage.show(unitId, amount);
           hit.add(unitId);

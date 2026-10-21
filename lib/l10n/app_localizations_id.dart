@@ -1202,7 +1202,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get weaponSatelliteDesc =>
-      'Menandai satu titik, lalu laser dari orbit membakar lurus ke bawah menembus semuanya.';
+      'Menandai satu titik, lalu satelit menembakkan tiga laser miring di sekitarnya satu per satu. Lasernya hanya membakar sedikit ke dalam tanah.';
 
   @override
   String get weaponHomingMissileDesc =>

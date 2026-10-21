@@ -77,13 +77,31 @@ final class AirRaid extends Delivery {
   final CraftKind craft;
 }
 
-/// The chosen column is marked, and after [delayTicks] a beam from orbit
-/// burns straight down it to the water: a [carveRadius] shaft through the
-/// ground, and every unit within reach of it hit once (the shooter too).
+/// The chosen spot is marked, and after [delayTicks] a satellite parked
+/// [height] px above it and [offset] px to the side fires [beams] slanted
+/// lasers, [intervalTicks] apart, fanned out to land [spread] px apart
+/// around the spot. Each burns a [carveRadius] channel only [depth] px
+/// past the first ground or pet it meets, and hits every unit within
+/// [WeaponDef.radius] of its line once (the shooter too).
 final class OrbitalStrike extends Delivery {
-  const OrbitalStrike({required this.delayTicks, required this.carveRadius});
+  const OrbitalStrike({
+    required this.delayTicks,
+    required this.carveRadius,
+    required this.beams,
+    required this.spread,
+    required this.height,
+    required this.offset,
+    required this.depth,
+    required this.intervalTicks,
+  });
   final int delayTicks;
   final int carveRadius;
+  final int beams;
+  final int spread;
+  final int height;
+  final int offset;
+  final int depth;
+  final int intervalTicks;
 }
 
 /// [count] [childId] meteors rain down around the chosen spot (landing
@@ -665,14 +683,23 @@ abstract final class Weapons {
     placeholderArgb: 0xFF5B6B4A,
   );
 
-  /// A satellite marks a column, then burns it from orbit.
+  /// A satellite marks a spot, then fires three slanted lasers at it.
   static const satellite = WeaponDef(
     id: 'satellite',
     nameKey: 'weaponSatellite',
     aim: AimMode.target,
-    delivery: OrbitalStrike(delayTicks: 165, carveRadius: 14),
-    maxDamage: 55,
-    radius: 22,
+    delivery: OrbitalStrike(
+      delayTicks: 165,
+      carveRadius: 7,
+      beams: 3,
+      spread: 36,
+      height: 220,
+      offset: 80,
+      depth: 50,
+      intervalTicks: 14,
+    ),
+    maxDamage: 25,
+    radius: 8,
     knockbackScale: 0.7,
     ammo: 1,
     placeholderArgb: 0xFF7FD3FF,

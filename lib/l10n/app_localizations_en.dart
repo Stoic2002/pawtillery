@@ -1200,7 +1200,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weaponSatelliteDesc =>
-      'Marks a spot, then a laser from orbit burns straight down through everything.';
+      'Marks a spot, then a satellite fires three slanted lasers around it, one after another. They only burn a short way into the ground.';
 
   @override
   String get weaponHomingMissileDesc =>
