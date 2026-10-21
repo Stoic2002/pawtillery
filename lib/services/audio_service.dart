@@ -5,7 +5,24 @@ import 'package:flutter/services.dart';
 import '../sim/events.dart';
 import 'settings_store.dart';
 
-enum Sfx { fire, explosion, jump, hit, death, turn, ui, laser, thunder }
+enum Sfx {
+  fire,
+  explosion,
+  jump,
+  hit,
+  death,
+  turn,
+  ui,
+  laser,
+  thunder,
+  shotgun,
+  nuke,
+  gas,
+  freeze,
+  shieldUp,
+  shieldPop,
+  heal,
+}
 
 enum Music { menu, match }
 
@@ -174,13 +191,18 @@ class AudioService {
   /// Which sound a sim event makes, if any.
   static Sfx? sfxFor(SimEvent event) => switch (event) {
         WeaponUsed(weaponId: 'laserPointer') => Sfx.laser,
-        WeaponUsed(weaponId: 'grapple') => null,
-        WeaponUsed(weaponId: 'shotgun') => null,
-        ShotgunFired() => Sfx.fire,
-        ShieldPopped(blocked: true) => Sfx.hit,
+        // These make their own sound when they take effect.
+        WeaponUsed(weaponId: 'grapple' || 'shotgun' || 'shield' ||
+            'firstAid') =>
+          null,
+        ShotgunFired() => Sfx.shotgun,
+        ShieldRaised() => Sfx.shieldUp,
+        ShieldPopped() => Sfx.shieldPop,
         GrappleFired() => Sfx.jump,
-        IceBurst() => Sfx.hit,
-        UnitHealed() => Sfx.turn,
+        IceBurst() => Sfx.freeze,
+        GasReleased() => Sfx.gas,
+        NukeDetonated() => Sfx.nuke,
+        UnitHealed() || CrateCollected(health: true) => Sfx.heal,
         WeaponUsed() => Sfx.fire,
         LightningStruck() => Sfx.thunder,
         SatelliteStruck() => Sfx.laser,

@@ -20,6 +20,13 @@ are Ogg Vorbis, which Android loops without a gap.
 | `sfx_ui` | A button is pressed |
 | `sfx_laser` | The Laser Pointer fires |
 | `sfx_thunder` | Thunder Cloud strikes (before its blast) |
+| `sfx_shotgun` | Each Shotgun shot (blast and pump) |
+| `sfx_nuke` | The Mini Nuke goes off (under the usual explosion) |
+| `sfx_gas` | Poison gas is released |
+| `sfx_freeze` | An Ice Bomb bursts |
+| `sfx_shieldUp` | A Shield Bubble goes up |
+| `sfx_shieldPop` | A Shield Bubble pops (blocks a hit or runs out) |
+| `sfx_heal` | A First-Aid Kit or health crate heals |
 | `music_menu` | Menus (loops; C major, 100 BPM, 16 bars) |
 | `music_match` | During a match (loops; D minor, 120 BPM, 16 bars) |
 

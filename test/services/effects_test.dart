@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pawtillery/game/effects/particle_system.dart';
 import 'package:pawtillery/services/audio_service.dart';
@@ -46,6 +48,31 @@ void main() {
           Sfx.laser);
       expect(AudioService.sfxFor(const LightningStruck(0, 0)), Sfx.thunder);
       expect(AudioService.sfxFor(const MinePlaced(0)), isNull);
+    });
+
+    test('the newer weapons have their own sounds, played once', () {
+      expect(AudioService.sfxFor(const ShotgunFired(0, 0, 0, 1, 1)),
+          Sfx.shotgun);
+      expect(AudioService.sfxFor(const NukeDetonated(0, 0, 85)), Sfx.nuke);
+      expect(AudioService.sfxFor(const GasReleased(0, 0, 0)), Sfx.gas);
+      expect(AudioService.sfxFor(const IceBurst(0, 0, 55)), Sfx.freeze);
+      expect(AudioService.sfxFor(const ShieldRaised(0)), Sfx.shieldUp);
+      expect(AudioService.sfxFor(const ShieldPopped(0, blocked: true)),
+          Sfx.shieldPop);
+      expect(AudioService.sfxFor(const UnitHealed(0, 25)), Sfx.heal);
+      expect(AudioService.sfxFor(const CrateCollected(0, health: true, hp: 25)),
+          Sfx.heal);
+      // Their WeaponUsed stays quiet so the sound doesn't double up.
+      for (final id in ['shotgun', 'shield', 'firstAid', 'grapple']) {
+        expect(AudioService.sfxFor(WeaponUsed(0, id)), isNull, reason: id);
+      }
+    });
+
+    test('every sound has its file', () {
+      for (final s in Sfx.values) {
+        expect(File('assets/audio/sfx_${s.name}.wav').existsSync(), isTrue,
+            reason: s.name);
+      }
     });
 
     test('works with no audio files at all', () async {

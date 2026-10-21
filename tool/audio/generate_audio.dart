@@ -1,5 +1,5 @@
 // Synthesizes every sound in assets/audio from code (no samples, no
-// third-party audio): the seven sound effects and the two music loops.
+// third-party audio): the sound effects and the two music loops.
 //   fvm dart run tool/audio/generate_audio.dart
 // Effects are written as 16-bit WAV (short, low latency); the music loops
 // are rendered to WAV in build/audio and encoded to Ogg with ffmpeg (see
@@ -28,6 +28,13 @@ void main() {
     'sfx_ui': (ui, 0.16),
     'sfx_laser': (laser, 0.22),
     'sfx_thunder': (thunder, 0.6),
+    'sfx_shotgun': (shotgun, 0.42),
+    'sfx_nuke': (nuke, 0.75),
+    'sfx_gas': (gas, 0.17),
+    'sfx_freeze': (freeze, 0.22),
+    'sfx_shieldUp': (shieldUp, 0.2),
+    'sfx_shieldPop': (shieldPop, 0.24),
+    'sfx_heal': (heal, 0.2),
   };
   for (final MapEntry(:key, value: (make, level)) in sfx.entries) {
     _reseed();
@@ -390,6 +397,149 @@ Buf thunder() {
     return roll.lp(noise()) * env(t, 0.02, 0.55) * swell * 2.2;
   });
   b.saturate(1.4);
+  return b;
+}
+
+/// A shotgun "BLAM-chk-chk": a hard bright crack over a low thump, then
+/// the pump racking.
+Buf shotgun() {
+  final b = Buf(0.7);
+  final crack = OnePole(2200);
+  voice(b, 0, 0.18, (t) => crack.hp(noise()) * env(t, 0.0005, 0.035) * 1.5);
+  final air = OnePole(1400);
+  voice(b, 0, 0.3, (t) => air.lp(noise()) * env(t, 0.002, 0.08) * 1.1);
+  final body = Osc();
+  voice(b, 0, 0.3, (t) {
+    final f = sweep(160, 48, math.min(1.0, t / 0.12));
+    return body.sine(f) * env(t, 0.002, 0.08) * 1.1;
+  });
+  // Pump: two short woody clicks.
+  for (final at in [0.36, 0.47]) {
+    final click = OnePole(1800);
+    final knock = Osc();
+    voice(
+      b,
+      at,
+      0.05,
+      (t) =>
+          click.hp(noise()) * env(t, 0.0005, 0.006) * 0.35 +
+          knock.sine(620) * env(t, 0.0005, 0.012) * 0.25,
+    );
+  }
+  b.saturate(1.5);
+  return b;
+}
+
+/// A mini nuke: a blinding crack, then a huge, slow sub boom and a long
+/// rolling rumble that swells and fades.
+Buf nuke() {
+  final b = Buf(3.2);
+  final snap = OnePole(3000);
+  voice(b, 0, 0.15, (t) => snap.hp(noise()) * env(t, 0.0005, 0.04) * 1.2);
+  final sub = Osc();
+  voice(b, 0, 2.6, (t) {
+    final f = sweep(80, 24, math.min(1.0, t / 1.4));
+    return sub.sine(f) * env(t, 0.01, 0.8) * 1.4;
+  });
+  final roll = OnePole(600);
+  voice(b, 0.02, 3.1, (t) {
+    final swell = 0.7 + 0.3 * math.sin(2 * math.pi * 1.7 * t);
+    roll.cutoff = 160 + 1800 * math.exp(-t / 0.3);
+    return roll.lp(noise()) * env(t, 0.04, 0.9) * swell * 2.4;
+  });
+  b.saturate(1.8);
+  return b;
+}
+
+/// Poison gas escaping: a little valve pop, then a long breathy hiss that
+/// wavers.
+Buf gas() {
+  final b = Buf(1.1);
+  final pop = Osc();
+  voice(
+    b,
+    0,
+    0.05,
+    (t) => pop.sine(sweep(500, 220, t / 0.05)) * env(t, 0.001, 0.015) * 0.6,
+  );
+  final hiss = OnePole(3500);
+  final soft = OnePole(9000);
+  voice(b, 0.02, 1.05, (t) {
+    final waver = 0.75 + 0.25 * math.sin(2 * math.pi * 7 * t);
+    final a = math.min(1.0, t / 0.06) * math.exp(-t / 0.45);
+    return soft.lp(hiss.hp(noise())) * a * waver;
+  });
+  return b;
+}
+
+/// Freezing: a sharp ice crack, then glassy tinkles falling away.
+Buf freeze() {
+  final b = Buf(1.0);
+  final crack = OnePole(3500);
+  voice(b, 0, 0.08, (t) => crack.hp(noise()) * env(t, 0.0003, 0.012) * 1.1);
+  const notes = [96, 93, 91, 88, 86];
+  for (final (i, midi) in notes.indexed) {
+    final o = Osc(), o2 = Osc();
+    final f = hz(midi);
+    voice(
+      b,
+      0.03 + i * 0.07,
+      0.6,
+      (t) =>
+          (o.sine(f) * env(t, 0.001, 0.12) +
+              o2.sine(f * 2.76) * env(t, 0.001, 0.04) * 0.4) *
+          (1 - i * 0.12),
+      gain: 0.45,
+    );
+  }
+  return b;
+}
+
+/// A shield going up: a soft rising "bwoop" with a shimmer.
+Buf shieldUp() {
+  final b = Buf(0.5);
+  final o = Osc(), shimmer = Osc();
+  voice(b, 0, 0.5, (t) {
+    final f =
+        sweep(280, 720, math.min(1.0, t / 0.22)) *
+        (1 + 0.02 * math.sin(2 * math.pi * 9 * t));
+    final a = math.min(1.0, t / 0.03) * math.exp(-t / 0.18);
+    return o.tri(f) * a * 0.7 + shimmer.sine(f * 3) * a * 0.15;
+  });
+  return b;
+}
+
+/// A shield bursting like a soap bubble: a quick bright pop.
+Buf shieldPop() {
+  final b = Buf(0.25);
+  final o = Osc();
+  voice(
+    b,
+    0,
+    0.12,
+    (t) => o.sine(sweep(1100, 320, t / 0.12)) * env(t, 0.0008, 0.035),
+  );
+  final click = OnePole(4000);
+  voice(b, 0, 0.03, (t) => click.hp(noise()) * env(t, 0.0003, 0.005) * 0.6);
+  return b;
+}
+
+/// Healing: a sparkly rising arpeggio.
+Buf heal() {
+  final b = Buf(1.0);
+  for (final (i, midi) in const [72, 76, 79, 84].indexed) {
+    final o1 = Osc(), o2 = Osc();
+    final f = hz(midi);
+    voice(
+      b,
+      i * 0.08,
+      0.7,
+      (t) =>
+          o1.sine(f) * env(t, 0.002, 0.22) +
+          o2.sine(f * 2) * env(t, 0.002, 0.07) * 0.3,
+      gain: 0.6,
+    );
+  }
   return b;
 }
 
