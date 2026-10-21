@@ -1301,4 +1301,18 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get hudShotgunMore => 'Satu tembakan lagi: bidik dan tembak';
+
+  @override
+  String get weaponPoisonGas => 'Gas Beracun';
+
+  @override
+  String get weaponPoisonGasDesc =>
+      'Melepaskan awan gas yang terbawa angin selama 3 giliran. Pet di dalamnya teracun: kehilangan 5 HP di awal tiap gilirannya (tidak sampai HP terakhir) sampai disembuhkan.';
+
+  @override
+  String get weaponFirstAid => 'Kotak P3K';
+
+  @override
+  String get weaponFirstAidDesc =>
+      'Memulihkan 25 HP dan menyembuhkan racun. Menghabiskan giliranmu.';
 }

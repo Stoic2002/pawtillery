@@ -1298,4 +1298,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hudShotgunMore => 'One more shot: aim and fire';
+
+  @override
+  String get weaponPoisonGas => 'Poison Gas';
+
+  @override
+  String get weaponPoisonGasDesc =>
+      'Releases a cloud of gas that drifts with the wind for 3 turns. Pets inside are poisoned: they lose 5 HP at the start of each turn (never the last HP) until healed.';
+
+  @override
+  String get weaponFirstAid => 'First-Aid Kit';
+
+  @override
+  String get weaponFirstAidDesc =>
+      'Heals 25 HP and cures poison. Uses up your turn.';
 }

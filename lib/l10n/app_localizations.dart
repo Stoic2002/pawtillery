@@ -2503,6 +2503,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'One more shot: aim and fire'**
   String get hudShotgunMore;
+
+  /// Weapon: a canister that releases a drifting cloud of poison gas.
+  ///
+  /// In en, this message translates to:
+  /// **'Poison Gas'**
+  String get weaponPoisonGas;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Releases a cloud of gas that drifts with the wind for 3 turns. Pets inside are poisoned: they lose 5 HP at the start of each turn (never the last HP) until healed.'**
+  String get weaponPoisonGasDesc;
+
+  /// Weapon: heals the pet and cures poison.
+  ///
+  /// In en, this message translates to:
+  /// **'First-Aid Kit'**
+  String get weaponFirstAid;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Heals 25 HP and cures poison. Uses up your turn.'**
+  String get weaponFirstAidDesc;
 }
 
 class _AppLocalizationsDelegate

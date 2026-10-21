@@ -134,6 +134,7 @@ class UnitsComponent extends Component {
       canvas.restore();
       if (u.frozen) _iceBlock(canvas, u, scale);
       if (u.shielded) _bubble(canvas, u, scale);
+      if (u.poisoned) _poisonBubbles(canvas, u, scale);
 
       final top = u.y - AnimalArt.height * scale - 3;
       final tagTop = _drawTag(canvas, u, top);
@@ -188,6 +189,31 @@ class UnitsComponent extends Component {
                 const ui.Color(0xCCE3C6FF), shimmer)!)
       ..drawArc(ui.Rect.fromCircle(center: c, radius: r - 4), math.pi * 1.1,
           math.pi * 0.35, false, _iceGlint);
+  }
+
+  /// Poisoned: small green bubbles rising off the pet and a green skull
+  /// badge by its head.
+  void _poisonBubbles(ui.Canvas canvas, Unit u, double scale) {
+    final top = u.y - AnimalArt.height * scale;
+    for (var i = 0; i < 3; i++) {
+      final t = (_time * 0.8 + i / 3 + u.id * 0.13) % 1;
+      canvas.drawCircle(
+          ui.Offset(u.centerX + (i - 1) * 6 + math.sin(t * 6 + i) * 2,
+              top + 6 - t * 16),
+          1.6 + i * 0.4,
+          _fill
+            ..color = ui.Color.fromARGB((200 * (1 - t)).round(), 150, 214, 90));
+    }
+    final b = ui.Offset(u.centerX + u.stats.hitRadius + 2, top + 4);
+    canvas
+      ..drawCircle(b, 5.5, _fill..color = const ui.Color(0xFF4E8F2A))
+      ..drawCircle(b + const ui.Offset(0, -0.6), 3.2,
+          _fill..color = const ui.Color(0xFFF2FFE6))
+      ..drawRect(ui.Rect.fromCenter(center: b + const ui.Offset(0, 2.6), width: 3.4, height: 1.8),
+          _fill..color = const ui.Color(0xFFF2FFE6))
+      ..drawCircle(b + const ui.Offset(-1.2, -0.8), 0.9,
+          _fill..color = const ui.Color(0xFF2B2118))
+      ..drawCircle(b + const ui.Offset(1.2, -0.8), 0.9, _fill);
   }
 
   final ui.Paint _bubbleFill = ui.Paint()..color = const ui.Color(0x409FE3FF);

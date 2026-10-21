@@ -128,6 +128,8 @@ abstract final class WeaponArt {
         _meteorRock(c, 9);
       case 'napalm':
         _napalmCan(c);
+      case 'poisonGas':
+        _gasCan(c);
       case 'iceBomb':
         _iceBall(c);
       default:
@@ -1018,6 +1020,18 @@ abstract final class WeaponArt {
         big(() => _iceBall(c), 1.9);
       case 'shotgun':
         _shotgunGun(c);
+      case 'poisonGas':
+        for (final (x, y, r) in [(-6.0, -8.0, 7.0), (5.0, -10.0, 6.0), (0.0, -4.0, 8.0)]) {
+          c.drawCircle(ui.Offset(x, y), r, PaintKit.solid(0x777BC74D));
+        }
+        big(() {
+          c
+            ..translate(0, 4)
+            ..rotate(-0.4);
+          _gasCan(c);
+        }, 1.6);
+      case 'firstAid':
+        _firstAidKit(c);
       case 'shield':
         _shieldBubble(c);
       case 'grapple':
@@ -1359,6 +1373,46 @@ abstract final class WeaponArt {
             ..strokeWidth = 2
             ..strokeCap = ui.StrokeCap.round
             ..color = const ui.Color(0xEEFFFFFF));
+  }
+
+  /// A gas canister about 14 px long lying along x: a green bottle with a
+  /// skull label and a valve wisping gas.
+  static void _gasCan(ui.Canvas c) {
+    const body = 0xFF5E9E3A;
+    final can = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-7, -4.4, 12, 8.8), const ui.Radius.circular(4));
+    c
+      ..drawRRect(can, PaintKit.lit(can.outerRect, body, light: 0.45))
+      ..drawRRect(can, PaintKit.edge(body, 0.7))
+      ..drawRRect(
+          ui.RRect.fromRectAndRadius(const ui.Rect.fromLTWH(5, -1.8, 3.2, 3.6),
+              const ui.Radius.circular(0.8)),
+          PaintKit.solid(0xFF3D4246))
+      ..drawCircle(const ui.Offset(-1.2, -0.6), 2.4, PaintKit.solid(0xFFF2FFE6))
+      ..drawRect(const ui.Rect.fromLTWH(-2.3, 1.2, 2.2, 1.4),
+          PaintKit.solid(0xFFF2FFE6))
+      ..drawCircle(const ui.Offset(-2, -0.9), 0.6, PaintKit.solid(0xFF2B2118))
+      ..drawCircle(const ui.Offset(-0.4, -0.9), 0.6, PaintKit.solid(0xFF2B2118))
+      ..drawCircle(const ui.Offset(10, -1), 2, PaintKit.solid(0x887BC74D));
+  }
+
+  /// A first-aid kit (icon): a white case with a red cross and a handle.
+  static void _firstAidKit(ui.Canvas c) {
+    final handle = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-5, -12, 10, 6), const ui.Radius.circular(3));
+    c.drawRRect(
+        handle,
+        ui.Paint()
+          ..style = ui.PaintingStyle.stroke
+          ..strokeWidth = 2.2
+          ..color = const ui.Color(0xFF7D868B));
+    final box = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(-13, -8, 26, 20), const ui.Radius.circular(4));
+    c
+      ..drawRRect(box, PaintKit.lit(box.outerRect, 0xFFF4F1EA, light: 0.3))
+      ..drawRRect(box, PaintKit.edge(0xFFB8B2A6, 0.9))
+      ..drawRect(const ui.Rect.fromLTWH(-2.6, -4.5, 5.2, 13), PaintKit.solid(0xFFE5484D))
+      ..drawRect(const ui.Rect.fromLTWH(-6.5, -0.6, 13, 5.2), PaintKit.solid(0xFFE5484D));
   }
 
   /// See [grappleHook].

@@ -1510,5 +1510,21 @@
   "hudShotgunMore": "One more shot: aim and fire",
   "@hudShotgunMore": {
     "description": "Arena hint after the shotgun's first shot."
+  },
+  "weaponPoisonGas": "Poison Gas",
+  "@weaponPoisonGas": {
+    "description": "Weapon: a canister that releases a drifting cloud of poison gas."
+  },
+  "weaponPoisonGasDesc": "Releases a cloud of gas that drifts with the wind for 3 turns. Pets inside are poisoned: they lose 5 HP at the start of each turn (never the last HP) until healed.",
+  "@weaponPoisonGasDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponFirstAid": "First-Aid Kit",
+  "@weaponFirstAid": {
+    "description": "Weapon: heals the pet and cures poison."
+  },
+  "weaponFirstAidDesc": "Heals 25 HP and cures poison. Uses up your turn.",
+  "@weaponFirstAidDesc": {
+    "description": "Weapon menu description."
   }
 }

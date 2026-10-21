@@ -150,6 +150,9 @@ class Unit {
   /// Gelembung Perisai: the next hit is taken by the bubble.
   bool shielded = false;
 
+  /// Poison gas: loses HP at the start of each own turn until cured.
+  bool poisoned = false;
+
   /// Ice Bomb: own turns still to sit out frozen.
   int frozenTurns = 0;
   bool get frozen => frozenTurns > 0;

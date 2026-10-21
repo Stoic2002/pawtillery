@@ -16,6 +16,7 @@ import 'map_object.dart';
 import 'match_setup.dart';
 import 'mine.dart';
 import 'physics.dart';
+import 'poison_cloud.dart';
 import 'projectile.dart';
 import 'rng.dart';
 import 'spawn.dart';
@@ -192,6 +193,11 @@ class SimWorld implements SimContext {
   late final List<FirePatch> fires = UnmodifiableListView(_fires);
   int _nextFireId = 0;
 
+  /// Poison gas hanging about.
+  final List<PoisonCloud> _clouds = [];
+  late final List<PoisonCloud> clouds = UnmodifiableListView(_clouds);
+  int _nextCloudId = 0;
+
   /// Units burnt this turn (fire hurts each at most once a turn).
   final Set<int> _burnt = {};
 
@@ -364,6 +370,7 @@ class SimWorld implements SimContext {
     _stepObjects();
     _stepUnits(walkDir);
     _stepFires();
+    _stepGas();
     _stepTurn();
     return List.of(_events);
   }
@@ -467,6 +474,14 @@ class SimWorld implements SimContext {
       case ShieldUp():
         unit.shielded = true;
         _events.add(ShieldRaised(unit.id));
+      case Heal(:final amount):
+        final before = unit.hp;
+        unit
+          ..hp = min(unit.stats.maxHp, unit.hp + amount)
+          ..poisoned = false;
+        // Held on like a hit, so the heal is seen before the next turn.
+        _lastHitTick = _tick;
+        _events.add(UnitHealed(unit.id, unit.hp - before));
       case OrbitalStrike(:final delayTicks) ||
           Lightning(:final delayTicks) when delayTicks > 0:
         _strikes.add(PendingStrike(
@@ -1189,9 +1204,54 @@ class SimWorld implements SimContext {
   }
 
   @override
+  void releaseGas(double x, double y, GasCloud spec, {int? sourceId}) {
+    final cloud = PoisonCloud(
+      id: _nextCloudId++,
+      x: x,
+      y: y - spec.radius * 0.4,
+      radius: spec.radius,
+      turnsLeft: GasConfig.turns,
+      ownerId: sourceId,
+    );
+    _clouds.add(cloud);
+    _events.add(GasReleased(cloud.id, cloud.x, cloud.y));
+  }
+
+  /// Gas drifts with the wind (staying over the map) and poisons any pet
+  /// inside it; a shield keeps it out once.
+  void _stepGas() {
+    if (_clouds.isEmpty || turn.phase == TurnPhase.matchOver) return;
+    for (final c in _clouds) {
+      c.x = (c.x + _wind * GasConfig.driftPerWind * PhysicsConfig.dt)
+          .clamp(0.0, terrain.width - 1.0);
+    }
+    for (final u in _units) {
+      if (!u.alive || u.poisoned) continue;
+      for (final c in _clouds) {
+        final dx = u.centerX - c.x;
+        final dy = u.centerY - c.y;
+        final r = c.radius + u.stats.hitRadius * 0.5;
+        if (dx * dx + dy * dy > r * r) continue;
+        if (_damage(u, 0, DamageCause.poison, sourceId: c.ownerId)) {
+          u.poisoned = true;
+          _events.add(UnitPoisoned(u.id));
+        }
+        break;
+      }
+    }
+  }
+
+  @override
   void freeze(double x, double y, WeaponDef weapon, Freeze spec,
       {int? sourceId}) {
     _events.add(IceBurst(x, y, spec.radius));
+    // The cold freezes gas out of the air.
+    _clouds.removeWhere((c) {
+      final dx = c.x - x;
+      final dy = c.y - y;
+      final r = spec.radius + c.radius * 0.5;
+      return dx * dx + dy * dy <= r * r;
+    });
     for (final u in _units) {
       if (!u.alive) continue;
       final dx = u.centerX - x;
@@ -1417,7 +1477,9 @@ class SimWorld implements SimContext {
   void _collect(Unit u, MapObject crate) {
     if (crate.kind == ObjectKind.healthCrate) {
       final before = u.hp;
-      u.hp = min(u.stats.maxHp, u.hp + ObjectConfig.healthAmount);
+      u
+        ..hp = min(u.stats.maxHp, u.hp + ObjectConfig.healthAmount)
+        ..poisoned = false;
       _events.add(CrateCollected(u.id, health: true, hp: u.hp - before));
       return;
     }
@@ -1762,6 +1824,7 @@ class SimWorld implements SimContext {
     _strikes.clear();
     if (_suddenDeath) _maybeRaiseWater();
     _killKnockedOut();
+    _clouds.removeWhere((c) => --c.turnsLeft <= 0);
     for (var i = _fires.length - 1; i >= 0; i--) {
       final f = _fires[i];
       if (--f.turnsLeft <= 0) {
@@ -1807,6 +1870,11 @@ class SimWorld implements SimContext {
     if (active.shielded) {
       active.shielded = false;
       _events.add(ShieldPopped(active.id, blocked: false));
+    }
+    // Poison bites at the start of the pet's turn, never taking its last
+    // HP.
+    if (active.alive && active.poisoned && active.hp > 1) {
+      _damage(active, min(GasConfig.damage, active.hp - 1), DamageCause.poison);
     }
     _events
       ..add(TurnStarted(team: turn.activeTeam, unitId: turn.activeUnitId))
@@ -1873,7 +1941,14 @@ class SimWorld implements SimContext {
       ..add(_lastHitTick)
       ..add(_nextFireId)
       ..add(_frozenSkip ? 1 : 0)
-      ..add(_shotgunLeft);
+      ..add(_shotgunLeft)
+      ..add(_nextCloudId);
+    for (final c in _clouds) {
+      h
+        ..add(c.id)
+        ..addDouble(c.x)
+        ..add(c.turnsLeft);
+    }
     for (final f in _fires) {
       h
         ..add(f.id)
@@ -1912,6 +1987,7 @@ class SimWorld implements SimContext {
         ..add(u.grappleTicks)
         ..add(u.frozenTurns)
         ..add(u.shielded ? 1 : 0)
+        ..add(u.poisoned ? 1 : 0)
         ..addDouble(u.grappleX)
         ..addDouble(u.grappleY)
         ..addDouble(u.x)

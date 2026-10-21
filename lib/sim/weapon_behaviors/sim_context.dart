@@ -39,6 +39,9 @@ abstract interface class SimContext {
   /// Starts napalm fire around ([x], [y]) (see [Ignite]).
   void ignite(double x, double y, Ignite spec, {int? sourceId});
 
+  /// Releases poison gas at ([x], [y]) (see [GasCloud]).
+  void releaseGas(double x, double y, GasCloud spec, {int? sourceId});
+
   /// An ice burst at ([x], [y]) with [weapon]'s damage (see [Freeze]).
   void freeze(double x, double y, WeaponDef weapon, Freeze spec,
       {int? sourceId});

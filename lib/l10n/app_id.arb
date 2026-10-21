@@ -401,5 +401,9 @@
   "weaponShieldDesc": "Gelembung yang menahan satu serangan berikutnya (bukan jatuh atau air). Bertahan sampai giliranmu berikutnya.",
   "weaponShotgun": "Shotgun",
   "weaponShotgunDesc": "Dua tembakan per giliran, bidik masing-masing. Langsung mengenai benda pertama di garis tembak, tanpa angin.",
-  "hudShotgunMore": "Satu tembakan lagi: bidik dan tembak"
+  "hudShotgunMore": "Satu tembakan lagi: bidik dan tembak",
+  "weaponPoisonGas": "Gas Beracun",
+  "weaponPoisonGasDesc": "Melepaskan awan gas yang terbawa angin selama 3 giliran. Pet di dalamnya teracun: kehilangan 5 HP di awal tiap gilirannya (tidak sampai HP terakhir) sampai disembuhkan.",
+  "weaponFirstAid": "Kotak P3K",
+  "weaponFirstAidDesc": "Memulihkan 25 HP dan menyembuhkan racun. Menghabiskan giliranmu."
 }

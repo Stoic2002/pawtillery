@@ -156,6 +156,13 @@ final class Shotgun extends Delivery {
   final int carveRadius;
 }
 
+/// Heals the unit by [amount] (up to its maximum) and cures poison. Ends
+/// the turn.
+final class Heal extends Delivery {
+  const Heal({required this.amount});
+  final int amount;
+}
+
 /// Puts this weapon down as a mine next to the unit.
 final class PlaceMine extends Delivery {
   const PlaceMine();
@@ -404,6 +411,14 @@ final class Freeze extends ImpactSpec {
   final int radius;
 }
 
+/// Releases a cloud of poison gas [radius] px across where it lands. It
+/// drifts with the wind for [GasConfig.turns] turns; a pet inside it is
+/// poisoned (see [GasConfig]).
+final class GasCloud extends ImpactSpec {
+  const GasCloud({required this.radius});
+  final int radius;
+}
+
 /// Scatters [count] [mineId] mines around the landing point.
 final class ScatterMines extends ImpactSpec {
   const ScatterMines({
@@ -517,6 +532,19 @@ abstract final class FireConfig {
 
   /// A pet whose body comes this close (px) to a patch is touching it.
   static const double reach = 8;
+}
+
+/// Poison gas.
+abstract final class GasConfig {
+  /// Turns (anyone's) a cloud hangs about.
+  static const int turns = 3;
+
+  /// How fast a cloud drifts per point of wind, px/s.
+  static const double driftPerWind = 2.5;
+
+  /// HP a poisoned pet loses at the start of each of its turns. Poison
+  /// never takes the last HP.
+  static const int damage = 5;
 }
 
 /// Player-chosen fuse range (Granat Pantul).
@@ -805,6 +833,29 @@ abstract final class Weapons {
     terrainDamage: false,
     ammo: 1,
     placeholderArgb: 0xFFFF6A1A,
+  );
+
+  /// A canister of poison gas: a drifting cloud that poisons pets.
+  static const poisonGas = WeaponDef(
+    id: 'poisonGas',
+    nameKey: 'weaponPoisonGas',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Ballistic(onImpact: GasCloud(radius: 52)),
+    affectedByWind: true,
+    ammo: 1,
+    placeholderArgb: 0xFF7BC74D,
+  );
+
+  /// First-aid kit: heal 25 HP and cure poison, ending the turn.
+  static const firstAid = WeaponDef(
+    id: 'firstAid',
+    nameKey: 'weaponFirstAid',
+    aim: AimMode.none,
+    delivery: Heal(amount: 25),
+    endsTurn: true,
+    ammo: 1,
+    placeholderArgb: 0xFFE5484D,
   );
 
   /// Freezes every pet it catches: they miss their next turn.
@@ -1195,6 +1246,7 @@ abstract final class Weapons {
     blackHole,
     stickyBomb,
     napalm,
+    poisonGas,
     iceBomb,
     clay,
     punch,
@@ -1202,6 +1254,7 @@ abstract final class Weapons {
     digClaws,
     grapple,
     shield,
+    firstAid,
     teleport,
     swap,
     skip,

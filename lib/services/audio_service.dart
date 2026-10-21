@@ -180,6 +180,7 @@ class AudioService {
         ShieldPopped(blocked: true) => Sfx.hit,
         GrappleFired() => Sfx.jump,
         IceBurst() => Sfx.hit,
+        UnitHealed() => Sfx.turn,
         WeaponUsed() => Sfx.fire,
         LightningStruck() => Sfx.thunder,
         SatelliteStruck() => Sfx.laser,

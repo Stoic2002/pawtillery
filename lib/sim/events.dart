@@ -47,6 +47,7 @@ enum DamageCause {
   fall,
   water,
   fire,
+  poison,
 }
 
 final class UnitDamaged extends SimEvent {
@@ -180,6 +181,27 @@ final class ShotgunFired extends SimEvent {
   final double y0;
   final double x1;
   final double y1;
+}
+
+/// Gas cloud [cloudId] was released at ([x], [y]).
+final class GasReleased extends SimEvent {
+  const GasReleased(this.cloudId, this.x, this.y);
+  final int cloudId;
+  final double x;
+  final double y;
+}
+
+/// [unitId] breathed poison gas and is poisoned.
+final class UnitPoisoned extends SimEvent {
+  const UnitPoisoned(this.unitId);
+  final int unitId;
+}
+
+/// [unitId] healed [amount] HP (first-aid kit), poison cured.
+final class UnitHealed extends SimEvent {
+  const UnitHealed(this.unitId, this.amount);
+  final int unitId;
+  final int amount;
 }
 
 /// Lightning struck down column [x] from the sky to [y], where it blasts

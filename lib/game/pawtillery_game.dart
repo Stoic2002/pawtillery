@@ -27,6 +27,7 @@ import 'components/backdrop_components.dart';
 import 'components/damage_numbers_component.dart';
 import 'components/decor_component.dart';
 import 'components/fire_component.dart';
+import 'components/gas_component.dart';
 import 'components/grapple_component.dart';
 import 'components/map_objects_component.dart';
 import 'components/projectiles_component.dart';
@@ -206,6 +207,7 @@ class PawtilleryGame extends FlameGame {
       _objects = MapObjectsComponent(sim),
       _grapple = GrappleComponent(sim),
       FireComponent(sim),
+      GasComponent(sim),
       ProjectilesComponent(sim),
       _airSupport = AirSupportComponent(
         sim,
@@ -631,6 +633,16 @@ class PawtilleryGame extends FlameGame {
           _firePos[patchId] = Vector2(x.toDouble(), y.toDouble());
         case UnitFrozen():
           break;
+        case GasReleased(:final x, :final y):
+          particles.sparkle(x, y, argb: 0xFF9BE070);
+          impact = Vector2(x, y);
+        case UnitPoisoned(:final unitId):
+          final u = sim.units[unitId];
+          particles.sparkle(u.centerX, u.centerY, argb: 0xFF9BE070);
+        case UnitHealed(:final unitId, :final amount):
+          final u = sim.units[unitId];
+          _objects.popup(u.centerX, u.y, hp: amount);
+          particles.sparkle(u.centerX, u.centerY, argb: 0xFF3CCB6C);
         case ShieldRaised(:final unitId):
           final u = sim.units[unitId];
           particles.sparkle(u.centerX, u.centerY, argb: 0xFF9FE3FF);
