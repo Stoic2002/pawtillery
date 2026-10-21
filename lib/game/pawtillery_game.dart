@@ -633,6 +633,8 @@ class PawtilleryGame extends FlameGame {
           _firePos[patchId] = Vector2(x.toDouble(), y.toDouble());
         case UnitFrozen():
           break;
+        case NukeDetonated(:final x, :final y, :final radius):
+          particles.mushroom(x, y, radius.toDouble());
         case GasReleased(:final x, :final y):
           particles.sparkle(x, y, argb: 0xFF9BE070);
           impact = Vector2(x, y);

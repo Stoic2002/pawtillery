@@ -31,8 +31,11 @@ class GasComponent extends Component {
           c.y + math.sin(a) * d * 0.6,
         );
         final pr = r * (0.42 + 0.12 * math.sin(_time * 1.3 + i));
+        // Fallout glows a sicklier yellow-green than plain gas.
         _puff.shader = ui.Gradient.radial(center, pr, [
-          ui.Color.fromARGB((120 * strength).round(), 150, 214, 90),
+          c.fallout
+              ? ui.Color.fromARGB((120 * strength).round(), 205, 225, 70)
+              : ui.Color.fromARGB((120 * strength).round(), 150, 214, 90),
           ui.Color.fromARGB(0, 120, 190, 70),
         ]);
         canvas.drawCircle(center, pr, _puff);

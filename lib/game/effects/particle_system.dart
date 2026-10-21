@@ -231,6 +231,50 @@ class ParticleSystem extends Component {
     }
   }
 
+  /// Mini nuke: a blinding flash, a shock ring, and a mushroom cloud: a
+  /// fiery stem that rises and a billowing cap that spreads at its top,
+  /// both turning to smoke.
+  void mushroom(double x, double y, double radius) {
+    _spawn(
+      x: x, y: y, life: 0.35, size: radius * 0.8, grow: radius * 4,
+      argb: 0xFFFFFFF6, kind: _glow,
+    );
+    _spawn(
+      x: x, y: y, life: 0.6, size: radius * 0.4, grow: radius * 4.5,
+      argb: 0xFFFFF2C8, kind: _ring,
+    );
+    // Stem: a column, its puffs rising at different speeds.
+    for (var i = 0; i < 16; i++) {
+      _spawn(
+        x: x + _rand(-radius, radius) * 0.1,
+        y: y - _rand(0, radius * 0.3),
+        vx: _rand(-6, 6),
+        vy: -(25 + 11.0 * i),
+        life: _rand(1.6, 2.4),
+        size: radius * _rand(0.1, 0.14),
+        grow: radius * 0.08,
+        argb: i % 3 == 0 ? 0xFFFFFFFF : 0xC0766A60,
+        kind: i % 3 == 0 ? _fire : _smoke,
+      );
+    }
+    // Cap: puffs thrown up fast that slow and spread into a dome.
+    for (var i = 0; i < 18; i++) {
+      final spread = _rand(-1, 1);
+      _spawn(
+        x: x + spread * 10,
+        y: y - radius * 0.3,
+        vx: spread * 55,
+        vy: -_rand(205, 240),
+        life: _rand(2.2, 3.2),
+        size: radius * _rand(0.16, 0.22),
+        grow: radius * _rand(0.12, 0.2),
+        gravity: 110,
+        argb: i.isEven ? 0xFFFFFFFF : 0xD0857868,
+        kind: i.isEven ? _fire : _smoke,
+      );
+    }
+  }
+
   /// Dust kicked up by a landing or by digging.
   void dust(double x, double y, {required double strength}) {
     final n = (strength * 8).round().clamp(2, 14);

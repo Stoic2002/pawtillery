@@ -419,6 +419,13 @@ final class GasCloud extends ImpactSpec {
   final int radius;
 }
 
+/// A mini nuke: the weapon's (big) blast, a mushroom cloud, and fallout:
+/// a poison cloud [falloutRadius] px across left where it went off.
+final class Nuke extends ImpactSpec {
+  const Nuke({required this.falloutRadius});
+  final int falloutRadius;
+}
+
 /// Scatters [count] [mineId] mines around the landing point.
 final class ScatterMines extends ImpactSpec {
   const ScatterMines({
@@ -847,6 +854,39 @@ abstract final class Weapons {
     placeholderArgb: 0xFF7BC74D,
   );
 
+  /// A bomber drops three gas canisters across the chosen spot.
+  static const gasRaid = WeaponDef(
+    id: 'gasRaid',
+    nameKey: 'weaponGasRaid',
+    aim: AimMode.target,
+    delivery: AirRaid(
+      childId: 'gasBomb',
+      count: 3,
+      spacing: 80,
+      speed: 300,
+      altitude: 40,
+      leadIn: 520,
+    ),
+    ammo: 1,
+    placeholderArgb: 0xFF7BC74D,
+  );
+
+  /// A small nuclear bomb: a huge blast and a fallout cloud.
+  static const miniNuke = WeaponDef(
+    id: 'miniNuke',
+    nameKey: 'weaponMiniNuke',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Ballistic(onImpact: Nuke(falloutRadius: 70)),
+    affectedByWind: true,
+    maxDamage: 60,
+    radius: 85,
+    knockbackScale: 1.4,
+    launchSpeedScale: 0.85,
+    ammo: 1,
+    placeholderArgb: 0xFFF5B700,
+  );
+
   /// First-aid kit: heal 25 HP and cure poison, ending the turn.
   static const firstAid = WeaponDef(
     id: 'firstAid',
@@ -1212,6 +1252,18 @@ abstract final class Weapons {
     placeholderArgb: 0xFFC0392B,
   );
 
+  /// One canister of the gas bomber: releases a poison cloud where it
+  /// lands.
+  static const gasBomb = WeaponDef(
+    id: 'gasBomb',
+    nameKey: 'weaponGasRaid',
+    aim: AimMode.none,
+    delivery: Launch(),
+    flight: Ballistic(onImpact: GasCloud(radius: 42)),
+    hidden: true,
+    placeholderArgb: 0xFF7BC74D,
+  );
+
   /// One bomb of the bomber's carpet: heavy, not pushed by the wind.
   static const bomberBomb = WeaponDef(
     id: 'bomberBomb',
@@ -1241,6 +1293,7 @@ abstract final class Weapons {
     thunderCloud,
     flowerpotRain,
     bomber,
+    gasRaid,
     satellite,
     meteorShower,
     blackHole,
@@ -1248,6 +1301,7 @@ abstract final class Weapons {
     napalm,
     poisonGas,
     iceBomb,
+    miniNuke,
     clay,
     punch,
     mine,
@@ -1282,6 +1336,7 @@ abstract final class Weapons {
     flowerpot,
     seedMine,
     bomberBomb,
+    gasBomb,
     missile,
     meteor,
     barrel,

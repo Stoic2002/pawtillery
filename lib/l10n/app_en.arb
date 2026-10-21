@@ -1526,5 +1526,21 @@
   "weaponFirstAidDesc": "Heals 25 HP and cures poison. Uses up your turn.",
   "@weaponFirstAidDesc": {
     "description": "Weapon menu description."
+  },
+  "weaponGasRaid": "Gas Bomber",
+  "@weaponGasRaid": {
+    "description": "Weapon: a plane drops poison gas canisters."
+  },
+  "weaponGasRaidDesc": "A bomber flies over and drops three gas canisters across the spot you pick. Each leaves a poison cloud.",
+  "@weaponGasRaidDesc": {
+    "description": "Weapon menu description."
+  },
+  "weaponMiniNuke": "Mini Nuke",
+  "@weaponMiniNuke": {
+    "description": "Weapon: a small nuclear bomb."
+  },
+  "weaponMiniNukeDesc": "Heavy and slow, but the blast is huge. Leaves a fallout cloud that poisons pets for 3 turns.",
+  "@weaponMiniNukeDesc": {
+    "description": "Weapon menu description."
   }
 }

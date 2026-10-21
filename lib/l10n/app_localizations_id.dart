@@ -1315,4 +1315,18 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get weaponFirstAidDesc =>
       'Memulihkan 25 HP dan menyembuhkan racun. Menghabiskan giliranmu.';
+
+  @override
+  String get weaponGasRaid => 'Pesawat Gas';
+
+  @override
+  String get weaponGasRaidDesc =>
+      'Pesawat terbang melintas dan menjatuhkan tiga tabung gas di sekitar titik yang kamu pilih. Tiap tabung meninggalkan awan beracun.';
+
+  @override
+  String get weaponMiniNuke => 'Nuklir Mini';
+
+  @override
+  String get weaponMiniNukeDesc =>
+      'Berat dan lambat, tapi ledakannya sangat besar. Meninggalkan awan radiasi yang meracuni pet selama 3 giliran.';
 }

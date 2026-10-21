@@ -1204,14 +1204,26 @@ class SimWorld implements SimContext {
   }
 
   @override
-  void releaseGas(double x, double y, GasCloud spec, {int? sourceId}) {
+  void nuke(double x, double y, WeaponDef weapon, Nuke spec, {int? sourceId}) {
+    _events.add(NukeDetonated(x, y, weapon.radius));
+    explode(x, y, weapon, sourceId: sourceId);
+    _releaseGas(x, y, spec.falloutRadius, sourceId: sourceId, fallout: true);
+  }
+
+  @override
+  void releaseGas(double x, double y, GasCloud spec, {int? sourceId}) =>
+      _releaseGas(x, y, spec.radius, sourceId: sourceId);
+
+  void _releaseGas(double x, double y, int radius,
+      {int? sourceId, bool fallout = false}) {
     final cloud = PoisonCloud(
       id: _nextCloudId++,
       x: x,
-      y: y - spec.radius * 0.4,
-      radius: spec.radius,
+      y: y - radius * 0.4,
+      radius: radius,
       turnsLeft: GasConfig.turns,
       ownerId: sourceId,
+      fallout: fallout,
     );
     _clouds.add(cloud);
     _events.add(GasReleased(cloud.id, cloud.x, cloud.y));

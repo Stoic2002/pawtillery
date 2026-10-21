@@ -413,7 +413,8 @@ void main() {
 // beam count; same play.
 // Then (→ 4258472990) it also covers shields and shotgun pulls; same play.
 // Then (→ 1362962014) it also covers poison gas and poisoned pets; same play.
-const _pinnedWeaponsHash = 1362962014;
+// Then (→ 1693201566) the ammo of two new weapons; same play.
+const _pinnedWeaponsHash = 1693201566;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {
@@ -457,4 +458,7 @@ class _FakeContext implements SimContext {
       {int? sourceId}) {}
   @override
   void releaseGas(double x, double y, GasCloud spec, {int? sourceId}) {}
+  @override
+  void nuke(double x, double y, WeaponDef weapon, Nuke spec,
+      {int? sourceId}) {}
 }

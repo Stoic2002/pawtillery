@@ -188,8 +188,8 @@ void main() {
     // Everything added after the original eight: 8 pet-themed weapons, the
     // 3 military ones, the 4 unique ones, Meteor Shower, the Grappling
     // Hook, Napalm, the Ice Bomb, the Shotgun, the Shield Bubble, Poison
-    // Gas and the First-Aid Kit.
-    expect(find.text('Off'), findsNWidgets(23));
+    // Gas, the First-Aid Kit, the Gas Bomber and the Mini Nuke.
+    expect(find.text('Off'), findsNWidgets(25));
   });
 
   testWidgets('setup: a unit opens the unit editor', (tester) async {

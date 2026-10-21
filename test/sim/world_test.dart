@@ -326,4 +326,5 @@ int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 // beam count; same play.
 // Then (→ 2120106523) it also covers shields and shotgun pulls; same play.
 // Then (→ 607334203) it also covers poison gas and poisoned pets; same play.
-const _pinnedScriptHash = 607334203;
+// Then (→ 4033724603) the ammo of two new weapons; same play.
+const _pinnedScriptHash = 4033724603;

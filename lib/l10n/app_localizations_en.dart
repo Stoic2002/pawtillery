@@ -1312,4 +1312,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get weaponFirstAidDesc =>
       'Heals 25 HP and cures poison. Uses up your turn.';
+
+  @override
+  String get weaponGasRaid => 'Gas Bomber';
+
+  @override
+  String get weaponGasRaidDesc =>
+      'A bomber flies over and drops three gas canisters across the spot you pick. Each leaves a poison cloud.';
+
+  @override
+  String get weaponMiniNuke => 'Mini Nuke';
+
+  @override
+  String get weaponMiniNukeDesc =>
+      'Heavy and slow, but the blast is huge. Leaves a fallout cloud that poisons pets for 3 turns.';
 }

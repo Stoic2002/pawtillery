@@ -2527,6 +2527,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Heals 25 HP and cures poison. Uses up your turn.'**
   String get weaponFirstAidDesc;
+
+  /// Weapon: a plane drops poison gas canisters.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Bomber'**
+  String get weaponGasRaid;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'A bomber flies over and drops three gas canisters across the spot you pick. Each leaves a poison cloud.'**
+  String get weaponGasRaidDesc;
+
+  /// Weapon: a small nuclear bomb.
+  ///
+  /// In en, this message translates to:
+  /// **'Mini Nuke'**
+  String get weaponMiniNuke;
+
+  /// Weapon menu description.
+  ///
+  /// In en, this message translates to:
+  /// **'Heavy and slow, but the blast is huge. Leaves a fallout cloud that poisons pets for 3 turns.'**
+  String get weaponMiniNukeDesc;
 }
 
 class _AppLocalizationsDelegate

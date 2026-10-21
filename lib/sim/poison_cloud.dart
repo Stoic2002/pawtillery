@@ -8,6 +8,7 @@ class PoisonCloud {
     required this.radius,
     required this.turnsLeft,
     this.ownerId,
+    this.fallout = false,
   });
 
   final int id;
@@ -16,4 +17,7 @@ class PoisonCloud {
   final int radius;
   int turnsLeft;
   final int? ownerId;
+
+  /// Left by a mini nuke (drawing only).
+  final bool fallout;
 }

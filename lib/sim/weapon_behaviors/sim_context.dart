@@ -42,6 +42,9 @@ abstract interface class SimContext {
   /// Releases poison gas at ([x], [y]) (see [GasCloud]).
   void releaseGas(double x, double y, GasCloud spec, {int? sourceId});
 
+  /// A mini nuke going off at ([x], [y]) (see [Nuke]).
+  void nuke(double x, double y, WeaponDef weapon, Nuke spec, {int? sourceId});
+
   /// An ice burst at ([x], [y]) with [weapon]'s damage (see [Freeze]).
   void freeze(double x, double y, WeaponDef weapon, Freeze spec,
       {int? sourceId});

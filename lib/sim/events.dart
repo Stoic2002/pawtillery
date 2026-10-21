@@ -191,6 +191,15 @@ final class GasReleased extends SimEvent {
   final double y;
 }
 
+/// A mini nuke went off at ([x], [y]) with a [radius] blast (the
+/// explosion and fallout events follow).
+final class NukeDetonated extends SimEvent {
+  const NukeDetonated(this.x, this.y, this.radius);
+  final double x;
+  final double y;
+  final int radius;
+}
+
 /// [unitId] breathed poison gas and is poisoned.
 final class UnitPoisoned extends SimEvent {
   const UnitPoisoned(this.unitId);

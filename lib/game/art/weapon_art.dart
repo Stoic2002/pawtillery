@@ -128,8 +128,10 @@ abstract final class WeaponArt {
         _meteorRock(c, 9);
       case 'napalm':
         _napalmCan(c);
-      case 'poisonGas':
+      case 'poisonGas' || 'gasBomb':
         _gasCan(c);
+      case 'miniNuke':
+        _nukeBomb(c);
       case 'iceBomb':
         _iceBall(c);
       default:
@@ -140,7 +142,7 @@ abstract final class WeaponArt {
   /// Weapons drawn pointing along their flight (the renderer rotates them
   /// to the velocity instead of tumbling them), with a motor flame.
   static bool pointsAlongFlight(String id) =>
-      hasMotor(id) || id == 'bomberBomb';
+      hasMotor(id) || id == 'bomberBomb' || id == 'gasBomb';
 
   /// Rockets: drawn with a motor flame behind them.
   static bool hasMotor(String id) =>
@@ -1032,6 +1034,27 @@ abstract final class WeaponArt {
         }, 1.6);
       case 'firstAid':
         _firstAidKit(c);
+      case 'miniNuke':
+        big(() => _nukeBomb(c), 1.55);
+      case 'gasRaid':
+        for (final (x, y, r) in [(-6.0, 10.0, 6.0), (6.0, 11.0, 5.0), (0.0, 7.0, 6.5)]) {
+          c.drawCircle(ui.Offset(x, y), r, PaintKit.solid(0x887BC74D));
+        }
+        for (final (x, y) in [(-6.0, 3.0), (5.0, 4.0)]) {
+          c
+            ..save()
+            ..translate(x, y)
+            ..rotate(1.3)
+            ..scale(0.6);
+          _gasCan(c);
+          c.restore();
+        }
+        c
+          ..save()
+          ..translate(1, -8)
+          ..scale(0.33);
+        _plane(c);
+        c.restore();
       case 'shield':
         _shieldBubble(c);
       case 'grapple':
@@ -1394,6 +1417,38 @@ abstract final class WeaponArt {
       ..drawCircle(const ui.Offset(-2, -0.9), 0.6, PaintKit.solid(0xFF2B2118))
       ..drawCircle(const ui.Offset(-0.4, -0.9), 0.6, PaintKit.solid(0xFF2B2118))
       ..drawCircle(const ui.Offset(10, -1), 2, PaintKit.solid(0x887BC74D));
+  }
+
+  /// A mini nuke about 18 px long lying along x: a fat yellow bomb with a
+  /// black-and-yellow radiation trefoil and stubby tail fins.
+  static void _nukeBomb(ui.Canvas c) {
+    const body = 0xFFF5B700;
+    for (final s in [-1.0, 1.0]) {
+      final fin = ui.Path()
+        ..moveTo(-6, s * 2.5)
+        ..lineTo(-11, s * 6.5)
+        ..lineTo(-11.5, s * 2)
+        ..close();
+      _shaded(c, fin, 0xFF4A4F55);
+    }
+    final shell = ui.Rect.fromCenter(
+        center: const ui.Offset(1, 0), width: 17, height: 11);
+    c
+      ..drawOval(shell, PaintKit.lit(shell, body, light: 0.45))
+      ..drawOval(shell, PaintKit.edge(body, 0.8))
+      ..drawCircle(const ui.Offset(1.5, 0), 3.8, PaintKit.solid(0xFF2B2118));
+    for (var i = 0; i < 3; i++) {
+      final a = -math.pi / 2 + i * 2 * math.pi / 3;
+      c.drawArc(
+          ui.Rect.fromCircle(center: const ui.Offset(1.5, 0), radius: 2.6),
+          a - 0.45,
+          0.9,
+          true,
+          PaintKit.solid(body));
+    }
+    c
+      ..drawCircle(const ui.Offset(1.5, 0), 0.9, PaintKit.solid(0xFF2B2118))
+      ..drawCircle(const ui.Offset(-2.5, -3), 1.4, PaintKit.solid(0x88FFFFFF));
   }
 
   /// A first-aid kit (icon): a white case with a red cross and a handle.

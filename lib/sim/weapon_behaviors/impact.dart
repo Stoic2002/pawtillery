@@ -30,6 +30,8 @@ void applyImpact(ImpactSpec spec, Projectile p, SimContext ctx) {
         ..ignite(p.freeX, p.freeY, spec, sourceId: p.ownerId);
     case GasCloud():
       ctx.releaseGas(p.freeX, p.freeY, spec, sourceId: p.ownerId);
+    case Nuke():
+      ctx.nuke(p.x, p.y, p.weapon, spec, sourceId: p.ownerId);
     case Freeze():
       ctx.freeze(p.freeX, p.freeY, p.weapon, spec, sourceId: p.ownerId);
     case AddGround(:final radius):

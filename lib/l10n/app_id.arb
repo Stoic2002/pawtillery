@@ -405,5 +405,9 @@
   "weaponPoisonGas": "Gas Beracun",
   "weaponPoisonGasDesc": "Melepaskan awan gas yang terbawa angin selama 3 giliran. Pet di dalamnya teracun: kehilangan 5 HP di awal tiap gilirannya (tidak sampai HP terakhir) sampai disembuhkan.",
   "weaponFirstAid": "Kotak P3K",
-  "weaponFirstAidDesc": "Memulihkan 25 HP dan menyembuhkan racun. Menghabiskan giliranmu."
+  "weaponFirstAidDesc": "Memulihkan 25 HP dan menyembuhkan racun. Menghabiskan giliranmu.",
+  "weaponGasRaid": "Pesawat Gas",
+  "weaponGasRaidDesc": "Pesawat terbang melintas dan menjatuhkan tiga tabung gas di sekitar titik yang kamu pilih. Tiap tabung meninggalkan awan beracun.",
+  "weaponMiniNuke": "Nuklir Mini",
+  "weaponMiniNukeDesc": "Berat dan lambat, tapi ledakannya sangat besar. Meninggalkan awan radiasi yang meracuni pet selama 3 giliran."
 }
