@@ -1219,7 +1219,7 @@ class SimWorld implements SimContext {
     final cloud = PoisonCloud(
       id: _nextCloudId++,
       x: x,
-      y: y - radius * 0.4,
+      y: y - radius * 0.3,
       radius: radius,
       turnsLeft: GasConfig.turns,
       ownerId: sourceId,

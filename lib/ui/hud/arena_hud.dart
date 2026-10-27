@@ -135,6 +135,9 @@ class ArenaHud extends StatelessWidget {
                                     game: game,
                                     aim: aim,
                                     weapon: weapon,
+                                    onOpenWeapons: () => tutorial?.complete(
+                                      TutorialStep.weapons,
+                                    ),
                                   )
                                 : _Actions(
                                     game: game,
@@ -906,11 +909,6 @@ class _Actions extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final unit = game.sim.activeUnit;
-    final ammo = unit == null
-        ? null
-        : weapon.isSignature
-        ? (game.sim.canUse(unit, weapon) ? 1 : 0)
-        : game.sim.ammoLeft(unit.team, weapon);
     final ready = acting && (aim.active || weapon.aim == AimMode.none);
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -944,15 +942,7 @@ class _Actions extends StatelessWidget {
         ),
         if (acting) ...[
           const SizedBox(width: 12),
-          _WeaponButton(
-            weapon: weapon,
-            ammo: ammo == null ? l10n.hudAmmoUnlimited : '$ammo',
-            tooltip: l10n.hudWeapons,
-            onPressed: () {
-              onOpenWeapons();
-              showWeaponMenu(context, game);
-            },
-          ),
+          _WeaponButton(game: game, weapon: weapon, onOpen: onOpenWeapons),
           const SizedBox(width: 12),
           _FireButton(
             label:
@@ -969,28 +959,43 @@ class _Actions extends StatelessWidget {
   }
 }
 
+/// The current weapon with its ammo; opens the weapon menu.
 class _WeaponButton extends StatelessWidget {
   const _WeaponButton({
+    required this.game,
     required this.weapon,
-    required this.ammo,
-    required this.tooltip,
-    required this.onPressed,
+    required this.onOpen,
   });
 
+  final PawtilleryGame game;
   final WeaponDef weapon;
-  final String ammo;
-  final String tooltip;
-  final VoidCallback onPressed;
+  final VoidCallback onOpen;
 
   @override
-  Widget build(BuildContext context) => Tooltip(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final tooltip = l10n.hudWeapons;
+    final unit = game.sim.activeUnit;
+    final left = unit == null
+        ? null
+        : weapon.isSignature
+        ? (game.sim.canUse(unit, weapon) ? 1 : 0)
+        : game.sim.ammoLeft(unit.team, weapon);
+    final ammo = left == null ? l10n.hudAmmoUnlimited : '$left';
+    return _button(context, tooltip, ammo);
+  }
+
+  Widget _button(BuildContext context, String tooltip, String ammo) => Tooltip(
     message: tooltip,
     child: Semantics(
       button: true,
       label: tooltip,
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: onPressed,
+        onTap: () {
+          onOpen();
+          showWeaponMenu(context, game);
+        },
         child: SizedBox(
           width: 64,
           height: 68,
@@ -1112,17 +1117,20 @@ class _FireButtonState extends State<_FireButton> {
   }
 }
 
-/// Target weapons: Cancel and Confirm instead of the usual buttons.
+/// Target weapons: Cancel (back to the previous weapon), the weapon
+/// button and Confirm instead of the usual buttons.
 class _TargetActions extends StatelessWidget {
   const _TargetActions({
     required this.game,
     required this.aim,
     required this.weapon,
+    required this.onOpenWeapons,
   });
 
   final PawtilleryGame game;
   final AimState aim;
   final WeaponDef weapon;
+  final VoidCallback onOpenWeapons;
 
   @override
   Widget build(BuildContext context) {
@@ -1137,6 +1145,8 @@ class _TargetActions extends StatelessWidget {
           borderWidth: 3,
           onPressed: game.cancelAim,
         ),
+        const SizedBox(width: 12),
+        _WeaponButton(game: game, weapon: weapon, onOpen: onOpenWeapons),
         const SizedBox(width: 12),
         PawButton(
           label: l10n.hudConfirm,

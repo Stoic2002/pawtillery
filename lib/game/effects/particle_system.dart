@@ -23,6 +23,7 @@ class ParticleSystem extends Component {
     _size = Float32List(capacity);
     _grow = Float32List(capacity);
     _gravity = Float32List(capacity);
+    _drag = Float32List(capacity);
     _color = Uint32List(capacity);
     _kind = Uint8List(capacity);
   }
@@ -46,7 +47,8 @@ class ParticleSystem extends Component {
   /// Smoke puff: soft, with a lighter top.
   static const _smoke = 6;
 
-  late final Float32List _x, _y, _vx, _vy, _age, _life, _size, _grow, _gravity;
+  late final Float32List _x, _y, _vx, _vy, _age, _life, _size, _grow, _gravity,
+      _drag;
   late final Uint32List _color;
   late final Uint8List _kind;
   int _count = 0;
@@ -68,6 +70,8 @@ class ParticleSystem extends Component {
     required double size,
     double grow = 0,
     double gravity = 0,
+    double drag = 0,
+    double delay = 0,
     required int argb,
     int kind = _dot,
   }) {
@@ -77,20 +81,24 @@ class ParticleSystem extends Component {
     _y[i] = y;
     _vx[i] = vx;
     _vy[i] = vy;
-    _age[i] = 0;
+    // A delayed particle waits (unseen, still) with a negative age.
+    _age[i] = -delay;
     _life[i] = life;
     _size[i] = size;
     _grow[i] = grow;
     _gravity[i] = gravity;
+    _drag[i] = drag;
     _color[i] = argb;
     _kind[i] = kind;
   }
 
   double _rand(double min, double max) => min + _rng.nextDouble() * (max - min);
 
-  /// Blast (docs/art_style_guide.md, Effects): a white flash, a rolling
-  /// fireball, embers, chunks in the colours of what was hit ([debris],
-  /// at least one), sparks, and a smoke column that lingers. Scales with
+  /// Blast (docs/art_style_guide.md, Effects): a white flash and a faint
+  /// shock ring, a fireball that bursts out and then billows up as the air
+  /// brakes it, chunks in the colours of what was hit ([debris], at least
+  /// one), a dust skirt blown along the ground, embers, sparks, and dark
+  /// soot that rolls up out of the dying fireball and lingers. Scales with
   /// the radius.
   void explosion(
     double x,
@@ -100,84 +108,179 @@ class ParticleSystem extends Component {
   }) {
     final scale = radius / 40;
     _spawn(
-      x: x, y: y, life: 0.18, size: radius * 0.7, grow: radius * 3,
+      x: x, y: y, life: 0.14, size: radius * 0.8, grow: radius * 3.2,
       argb: 0xFFFFFFF0, kind: _glow,
     );
-    // Fireball: overlapping puffs that billow out and up.
-    final puffs = (6 + radius / 6).round().clamp(6, 16);
+    _spawn(
+      x: x, y: y, life: 0.32, size: radius * 0.4, grow: radius * 4.2,
+      argb: 0x88FFFFFF, kind: _ring,
+    );
+    // Fireball: puffs thrown out fast, braked by drag, rising as they burn.
+    final puffs = (8 + radius / 4).round().clamp(8, 26);
     for (var i = 0; i < puffs; i++) {
+      final a = _rand(0, math.pi * 2);
+      final d = _rand(0, radius * 0.35);
+      final speed = _rand(70, 220) * scale.clamp(0.7, 1.6);
+      _spawn(
+        x: x + math.cos(a) * d,
+        y: y + math.sin(a) * d * 0.8,
+        vx: math.cos(a) * speed,
+        vy: math.sin(a) * speed * 0.8 - _rand(10, 40) * scale,
+        life: _rand(0.45, 0.85),
+        size: radius * _rand(0.24, 0.4),
+        grow: radius * _rand(0.45, 0.85),
+        gravity: -70,
+        drag: 4.5,
+        argb: 0xFFFFFFFF,
+        kind: _fire,
+      );
+    }
+    // Soot rolls up out of the fireball as it dies.
+    final soot = (radius / 4).round().clamp(6, 22);
+    for (var i = 0; i < soot; i++) {
       final a = _rand(0, math.pi * 2);
       final d = _rand(0, radius * 0.55);
       _spawn(
         x: x + math.cos(a) * d,
-        y: y + math.sin(a) * d * 0.8,
-        vx: math.cos(a) * _rand(20, 70) * scale,
-        vy: math.sin(a) * _rand(20, 60) * scale - _rand(20, 60),
-        life: _rand(0.35, 0.6),
-        size: radius * _rand(0.28, 0.45),
-        grow: radius * _rand(0.6, 1.1),
-        argb: 0xFFFFFFFF,
-        kind: _fire,
+        y: y + math.sin(a) * d * 0.6 - radius * 0.15,
+        vx: math.cos(a) * _rand(10, 40) * scale,
+        vy: -_rand(10, 40),
+        life: _rand(2.2, 4.2),
+        size: radius * _rand(0.2, 0.32),
+        grow: radius * _rand(0.28, 0.5),
+        gravity: -35,
+        drag: 1.4,
+        delay: _rand(0.12, 0.4),
+        argb: switch (i % 3) {
+          0 => 0xC8302A27,
+          1 => 0xB848403B,
+          _ => 0xA0675E57,
+        },
+        kind: _smoke,
+      );
+    }
+    // A dust skirt blown out along the ground.
+    final skirt = (radius / 7).round().clamp(4, 12);
+    for (var i = 0; i < skirt; i++) {
+      final side = i.isEven ? 1.0 : -1.0;
+      _spawn(
+        x: x + side * _rand(0, radius * 0.4),
+        y: y + radius * _rand(0.15, 0.45),
+        vx: side * _rand(120, 280) * scale.clamp(0.7, 1.6),
+        vy: -_rand(5, 35),
+        life: _rand(0.9, 1.6),
+        size: radius * _rand(0.1, 0.18),
+        grow: radius * _rand(0.25, 0.4),
+        drag: 3,
+        argb: _dustTint(debris[i % debris.length]),
+        kind: _smoke,
       );
     }
     // Chunks of whatever was hit.
     final chunks = (radius * 0.55).round().clamp(8, 44);
     for (var i = 0; i < chunks; i++) {
       final a = _rand(-math.pi * 0.95, -math.pi * 0.05);
-      final speed = _rand(140, 460) * scale.clamp(0.7, 1.6);
+      final speed = _rand(140, 480) * scale.clamp(0.7, 1.6);
       _spawn(
         x: x + _rand(-radius, radius) * 0.3,
         y: y + _rand(-radius, radius) * 0.3,
         vx: math.cos(a) * speed,
         vy: math.sin(a) * speed,
-        life: _rand(0.7, 1.3),
-        size: _rand(1.8, 4.2),
+        life: _rand(0.8, 1.5),
+        size: _rand(1.6, 4.4),
         gravity: 950,
+        drag: 0.35,
         argb: debris[i % debris.length],
         kind: _chunk,
       );
     }
-    // Embers drift up and fade.
-    final embers = (radius * 0.4).round().clamp(6, 24);
+    // Embers float up, flicker and fade.
+    final embers = (radius * 0.45).round().clamp(6, 28);
     for (var i = 0; i < embers; i++) {
       final a = _rand(-math.pi * 0.9, -math.pi * 0.1);
-      final speed = _rand(80, 300) * scale.clamp(0.7, 1.5);
+      final speed = _rand(80, 320) * scale.clamp(0.7, 1.5);
       _spawn(
         x: x + _rand(-radius, radius) * 0.3,
         y: y + _rand(-radius, radius) * 0.3,
         vx: math.cos(a) * speed,
         vy: math.sin(a) * speed,
-        life: _rand(0.6, 1.4),
-        size: _rand(1, 2.2),
-        gravity: 120,
+        life: _rand(0.8, 1.8),
+        size: _rand(0.9, 2.1),
+        gravity: 60,
+        drag: 1.6,
         argb: i.isEven ? 0xFFFFD25A : 0xFFFF8A2A,
         kind: _glow,
       );
     }
     // Sparks.
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 12; i++) {
       final a = _rand(0, math.pi * 2);
-      final speed = _rand(240, 560);
+      final speed = _rand(260, 600);
       _spawn(
         x: x, y: y,
         vx: math.cos(a) * speed, vy: math.sin(a) * speed,
-        life: _rand(0.12, 0.3), size: 1.8, gravity: 300,
+        life: _rand(0.12, 0.32), size: 1.6, gravity: 400, drag: 1.5,
         argb: 0xFFFFF0B0, kind: _glow,
       );
     }
-    // A smoke column that rises and lingers after the fire.
-    final smoke = (radius / 6).round().clamp(4, 14);
-    for (var i = 0; i < smoke; i++) {
+  }
+
+  /// Dust in the colour of the ground, lightened and see-through.
+  int _dustTint(int argb) {
+    final c = ui.Color.lerp(ui.Color(argb | 0xFF000000),
+        const ui.Color(0xFFD8CCBE), 0.5)!;
+    return (c.toARGB32() & 0x00FFFFFF) | 0x90000000;
+  }
+
+  /// Napalm catching on the ground: a small flare of flame and embers.
+  void ignite(double x, double y) {
+    for (var i = 0; i < 4; i++) {
       _spawn(
-        x: x + _rand(-radius, radius) * 0.35,
-        y: y + _rand(-radius, radius) * 0.2,
-        vx: _rand(-14, 14),
-        vy: _rand(-55, -18),
-        life: _rand(1.8, 3.4),
-        size: radius * _rand(0.2, 0.32),
-        grow: radius * _rand(0.25, 0.45),
-        argb: i.isEven ? 0xB0584C46 : 0xA0787068,
+        x: x + _rand(-5, 5), y: y - _rand(0, 4),
+        vx: _rand(-25, 25), vy: -_rand(30, 80),
+        life: _rand(0.35, 0.55), size: _rand(4, 7), grow: _rand(8, 16),
+        gravity: -60, drag: 3,
+        argb: 0xFFFFFFFF, kind: _fire,
+      );
+    }
+    for (var i = 0; i < 5; i++) {
+      _spawn(
+        x: x + _rand(-6, 6), y: y,
+        vx: _rand(-50, 50), vy: -_rand(60, 160),
+        life: _rand(0.5, 1.1), size: _rand(0.8, 1.6), gravity: 80, drag: 1.5,
+        argb: i.isEven ? 0xFFFFD25A : 0xFFFF8A2A, kind: _glow,
+      );
+    }
+  }
+
+  /// A gas canister bursting: a hiss of green puffs that rush out to the
+  /// cloud's [radius] and slow down, and a spray of droplets.
+  void gasBurst(double x, double y, double radius, {bool fallout = false}) {
+    final n = (radius / 6).round().clamp(8, 20);
+    for (var i = 0; i < n; i++) {
+      final a = _rand(0, math.pi * 2);
+      final speed = _rand(0.8, 1.6) * radius * 2.2;
+      _spawn(
+        x: x, y: y,
+        vx: math.cos(a) * speed, vy: math.sin(a) * speed * 0.6 - 20,
+        life: _rand(0.8, 1.4),
+        size: radius * _rand(0.12, 0.2),
+        grow: radius * _rand(0.3, 0.5),
+        drag: 3.2,
+        argb: fallout
+            ? (i.isEven ? 0x90CDE146 : 0x80A9B23C)
+            : (i.isEven ? 0x9096D65A : 0x80719F45),
         kind: _smoke,
+      );
+    }
+    for (var i = 0; i < 12; i++) {
+      final a = _rand(-math.pi, 0);
+      final speed = _rand(80, 220);
+      _spawn(
+        x: x, y: y,
+        vx: math.cos(a) * speed, vy: math.sin(a) * speed,
+        life: _rand(0.4, 0.8), size: _rand(1.2, 2.2), gravity: 500, drag: 1,
+        argb: fallout ? 0xFFDDE878 : 0xFFB6EB86, kind: _glow,
       );
     }
   }
@@ -389,10 +492,23 @@ class ParticleSystem extends Component {
     _streaks.removeWhere((st) => st.age >= st.life);
     var i = 0;
     while (i < _count) {
+      if (_age[i] < 0) {
+        _age[i] += dt;
+        i++;
+        continue;
+      }
       _age[i] += dt;
       if (_age[i] >= _life[i]) {
         _swapOut(i);
         continue;
+      }
+      // Air drag: fast puffs brake hard, so a fireball bursts out and then
+      // billows instead of flying apart.
+      final drag = _drag[i];
+      if (drag > 0) {
+        final k = math.exp(-drag * dt);
+        _vx[i] *= k;
+        _vy[i] *= k;
       }
       _vy[i] += _gravity[i] * dt;
       _x[i] += _vx[i] * dt;
@@ -414,6 +530,7 @@ class ParticleSystem extends Component {
     _size[i] = _size[last];
     _grow[i] = _grow[last];
     _gravity[i] = _gravity[last];
+    _drag[i] = _drag[last];
     _color[i] = _color[last];
     _kind[i] = _kind[last];
   }
@@ -471,6 +588,7 @@ class ParticleSystem extends Component {
     // Normal pass (smoke, chunks, dust, drops), then additive (fire, glow).
     for (final additive in const [false, true]) {
       for (var i = 0; i < _count; i++) {
+        if (_age[i] < 0) continue;
         final kind = _kind[i];
         final glows = kind == _fire || kind == _glow;
         if (glows != additive) continue;
@@ -479,8 +597,16 @@ class ParticleSystem extends Component {
         final c = ui.Offset(_x[i], _y[i]);
         switch (kind) {
           case _fire:
-            _add.color = _fireColor(t).withValues(alpha: (1 - t * t) * 0.95);
-            canvas.drawCircle(c, _size[i], _add);
+            // A soft orange halo, then a hotter, brighter core. Only the
+            // core is added on top, so a bright sky doesn't wash the
+            // fireball out to white.
+            final a = 1 - t * t;
+            _fill.color = _fireColor(0.3 + t * 0.7).withValues(alpha: a * 0.3);
+            canvas.drawCircle(c, _size[i] * 1.25, _fill);
+            _fill.color = _fireColor(0.15 + t * 0.85).withValues(alpha: a * 0.9);
+            canvas.drawCircle(c, _size[i], _fill);
+            _add.color = _fireColor(t * 0.6).withValues(alpha: a * a * 0.45);
+            canvas.drawCircle(c, _size[i] * 0.5, _add);
           case _glow:
             final argb = _color[i];
             _add.color = ui.Color(argb).withValues(
@@ -495,7 +621,12 @@ class ParticleSystem extends Component {
           case _smoke:
             // Fades in quickly, out slowly.
             final a = (t < 0.1 ? t / 0.1 : fade) * ((_color[i] >>> 24) / 255);
-            _fill.color = ui.Color(_color[i]).withValues(alpha: a);
+            // Soot thins to a lighter grey as it rises and spreads.
+            _fill.color = ui.Color.lerp(
+              ui.Color(_color[i]),
+              const ui.Color(0xFF9A948E),
+              t * 0.55,
+            )!.withValues(alpha: a);
             canvas.drawCircle(c, _size[i], _fill);
             _fill.color = const ui.Color(0xFFFFFFFF).withValues(alpha: a * 0.18);
             canvas.drawCircle(

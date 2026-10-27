@@ -152,6 +152,9 @@ class PawtilleryGame extends FlameGame {
   /// Each team keeps its last chosen weapon between turns.
   final Map<int, String> _weaponByTeam = {};
 
+  /// The weapon held before a target weapon was picked, for Cancel.
+  String? _beforeTarget;
+
   final List<SimInput> _pendingInputs = [];
   int _walkDir = 0;
 
@@ -292,6 +295,9 @@ class PawtilleryGame extends FlameGame {
     final w = Weapons.byId(weaponId);
     final unit = sim.activeUnit;
     if (unit == null || !sim.canUse(unit, w)) return;
+    if (w.aim == AimMode.target && weapon.aim != AimMode.target) {
+      _beforeTarget = weapon.id;
+    }
     _weaponByTeam[unit.team] = weaponId;
     aim.value = AimState(
       weaponId: weaponId,
@@ -337,9 +343,27 @@ class PawtilleryGame extends FlameGame {
         .withTarget(x, y, valid: sim.isValidTarget(unit, weapon, x, y));
   }
 
-  void cancelAim() => aim.value = aim.value
-      .withTarget(null, null, valid: false)
-      .copyWith(active: weapon.aim == AimMode.none && canAim);
+  /// Cancel drops the aim. A target weapon is also put away, back to the
+  /// weapon held before it (or the turn's fallback), so the usual buttons
+  /// and the weapon menu come back instead of staying in target mode.
+  void cancelAim() {
+    final unit = sim.activeUnit;
+    if (weapon.aim == AimMode.target && unit != null) {
+      final before = _beforeTarget == null ? null : Weapons.byId(_beforeTarget!);
+      final back = before != null &&
+              before.aim != AimMode.target &&
+              sim.canUse(unit, before)
+          ? before
+          : _fallbackWeapon(unit);
+      if (back.aim != AimMode.target) {
+        selectWeapon(back.id);
+        return;
+      }
+    }
+    aim.value = aim.value
+        .withTarget(null, null, valid: false)
+        .copyWith(active: weapon.aim == AimMode.none && canAim);
+  }
 
   void fire() {
     final a = aim.value;
@@ -370,6 +394,7 @@ class PawtilleryGame extends FlameGame {
   void _onTurnStarted() {
     _walkDir = 0;
     _digAngle = null;
+    _beforeTarget = null;
     final unit = sim.activeUnit;
     var id = Weapons.rock.id;
     if (unit != null) {
@@ -631,12 +656,15 @@ class PawtilleryGame extends FlameGame {
           if (at != null) particles.dust(at.x, at.y, strength: 0.4);
         case FireStarted(:final patchId, :final x, :final y):
           _firePos[patchId] = Vector2(x.toDouble(), y.toDouble());
+          particles.ignite(x.toDouble(), y.toDouble());
         case UnitFrozen():
           break;
         case NukeDetonated(:final x, :final y, :final radius):
           particles.mushroom(x, y, radius.toDouble());
-        case GasReleased(:final x, :final y):
-          particles.sparkle(x, y, argb: 0xFF9BE070);
+        case GasReleased(:final cloudId, :final x, :final y):
+          final cloud = sim.clouds.where((c) => c.id == cloudId).firstOrNull;
+          particles.gasBurst(x, y, (cloud?.radius ?? 60).toDouble(),
+              fallout: cloud?.fallout ?? false);
           impact = Vector2(x, y);
         case UnitPoisoned(:final unitId):
           final u = sim.units[unitId];
