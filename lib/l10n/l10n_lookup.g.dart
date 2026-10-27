@@ -176,7 +176,6 @@ extension L10nByKey on AppLocalizations {
         'menuHowToPlay' => menuHowToPlay,
         'menuPlay' => menuPlay,
         'menuPlayWifi' => menuPlayWifi,
-        'menuQuit' => menuQuit,
         'menuSettings' => menuSettings,
         'menuSubtitle' => menuSubtitle,
         'netBackToLobby' => netBackToLobby,

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -149,15 +148,6 @@ class MainMenuScreen extends StatelessWidget {
                               tooltip: l10n.menuAbout,
                               onPressed: () => showAbout(context),
                             ),
-                            // iOS apps don't quit themselves.
-                            if (_canQuit) ...[
-                              const SizedBox(width: 10),
-                              PawCircleButton(
-                                icon: Icons.power_settings_new_rounded,
-                                tooltip: l10n.menuQuit,
-                                onPressed: () => confirmQuitApp(context),
-                              ),
-                            ],
                           ],
                         ),
                       ),
@@ -172,8 +162,6 @@ class MainMenuScreen extends StatelessWidget {
     );
   }
 }
-
-bool get _canQuit => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
 /// "Quit Pawtillery?" — closes the app only on a yes.
 Future<void> confirmQuitApp(BuildContext context) async {

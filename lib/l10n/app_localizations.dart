@@ -962,12 +962,6 @@ abstract class AppLocalizations {
   /// **'About'**
   String get menuAbout;
 
-  /// Main menu button that closes the app (Android).
-  ///
-  /// In en, this message translates to:
-  /// **'Quit game'**
-  String get menuQuit;
-
   /// Title of the confirmation shown before the app closes.
   ///
   /// In en, this message translates to:

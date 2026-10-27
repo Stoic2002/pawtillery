@@ -467,9 +467,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get menuAbout => 'Tentang';
 
   @override
-  String get menuQuit => 'Keluar game';
-
-  @override
   String get quitAppTitle => 'Keluar dari Pawtillery?';
 
   @override

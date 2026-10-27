@@ -634,10 +634,6 @@
   "@menuAbout": {
     "description": "Main menu button."
   },
-  "menuQuit": "Quit game",
-  "@menuQuit": {
-    "description": "Main menu button that closes the app (Android)."
-  },
   "quitAppTitle": "Quit Pawtillery?",
   "@quitAppTitle": {
     "description": "Title of the confirmation shown before the app closes."
