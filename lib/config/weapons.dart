@@ -510,6 +510,24 @@ class WeaponDef {
   final int placeholderArgb;
 }
 
+/// Weapon menu tabs.
+enum WeaponGroup {
+  /// Thrown and fired from the unit.
+  thrown,
+
+  /// Called in from the sky.
+  sky,
+
+  /// Fire, gas, frost, mines and ground.
+  effects,
+
+  /// Short range and straight lines.
+  close,
+
+  /// Moving, defending, healing.
+  tools,
+}
+
 /// Mine behaviour shared by every mine-type weapon.
 abstract final class MineConfig {
   /// A unit's body centre this close sets a mine off.
@@ -1341,6 +1359,55 @@ abstract final class Weapons {
     meteor,
     barrel,
   ];
+
+  /// Weapon menu tab of every weapon in the menu (signatures included).
+  static const Map<String, WeaponGroup> groups = {
+    'rock': WeaponGroup.thrown,
+    'bottleRocket': WeaponGroup.thrown,
+    'snifferRocket': WeaponGroup.thrown,
+    'grenade': WeaponGroup.thrown,
+    'cluster': WeaponGroup.thrown,
+    'twinSling': WeaponGroup.thrown,
+    'stickyBomb': WeaponGroup.thrown,
+    'miniNuke': WeaponGroup.thrown,
+    'hairball': WeaponGroup.thrown,
+    'boneBoomerang': WeaponGroup.thrown,
+    'drillCarrot': WeaponGroup.thrown,
+    'coconut': WeaponGroup.thrown,
+    'boomDuck': WeaponGroup.thrown,
+    'homingMissile': WeaponGroup.sky,
+    'thunderCloud': WeaponGroup.sky,
+    'flowerpotRain': WeaponGroup.sky,
+    'bomber': WeaponGroup.sky,
+    'gasRaid': WeaponGroup.sky,
+    'satellite': WeaponGroup.sky,
+    'meteorShower': WeaponGroup.sky,
+    'eggStrike': WeaponGroup.sky,
+    'napalm': WeaponGroup.effects,
+    'poisonGas': WeaponGroup.effects,
+    'iceBomb': WeaponGroup.effects,
+    'clay': WeaponGroup.effects,
+    'mine': WeaponGroup.effects,
+    'seedMines': WeaponGroup.effects,
+    'blackHole': WeaponGroup.effects,
+    'firecracker': WeaponGroup.effects,
+    'shotgun': WeaponGroup.close,
+    'laserPointer': WeaponGroup.close,
+    'punch': WeaponGroup.close,
+    'startleCrow': WeaponGroup.close,
+    'headbutt': WeaponGroup.close,
+    'seedSpitter': WeaponGroup.close,
+    'digClaws': WeaponGroup.tools,
+    'grapple': WeaponGroup.tools,
+    'shield': WeaponGroup.tools,
+    'firstAid': WeaponGroup.tools,
+    'teleport': WeaponGroup.tools,
+    'swap': WeaponGroup.tools,
+    'fortress': WeaponGroup.tools,
+    'skip': WeaponGroup.tools,
+  };
+
+  static WeaponGroup groupOf(WeaponDef w) => groups[w.id] ?? WeaponGroup.tools;
 
   static final Map<String, WeaponDef> _byId = {for (final w in all) w.id: w};
 

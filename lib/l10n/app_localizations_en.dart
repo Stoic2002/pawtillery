@@ -424,6 +424,21 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hudWeapons => 'Weapons';
 
   @override
+  String get weaponGroupThrown => 'Throw';
+
+  @override
+  String get weaponGroupSky => 'Sky';
+
+  @override
+  String get weaponGroupEffects => 'Effects';
+
+  @override
+  String get weaponGroupClose => 'Close';
+
+  @override
+  String get weaponGroupTools => 'Tools';
+
+  @override
   String get hudSignature => 'Signature';
 
   @override

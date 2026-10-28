@@ -424,6 +424,21 @@ class AppLocalizationsId extends AppLocalizations {
   String get hudWeapons => 'Senjata';
 
   @override
+  String get weaponGroupThrown => 'Lempar';
+
+  @override
+  String get weaponGroupSky => 'Udara';
+
+  @override
+  String get weaponGroupEffects => 'Efek';
+
+  @override
+  String get weaponGroupClose => 'Dekat';
+
+  @override
+  String get weaponGroupTools => 'Alat';
+
+  @override
   String get hudSignature => 'Khas';
 
   @override

@@ -884,6 +884,36 @@ abstract class AppLocalizations {
   /// **'Weapons'**
   String get hudWeapons;
 
+  /// Weapon menu tab: thrown and fired weapons.
+  ///
+  /// In en, this message translates to:
+  /// **'Throw'**
+  String get weaponGroupThrown;
+
+  /// Weapon menu tab: weapons called in from the sky.
+  ///
+  /// In en, this message translates to:
+  /// **'Sky'**
+  String get weaponGroupSky;
+
+  /// Weapon menu tab: fire, gas, frost, mines and ground.
+  ///
+  /// In en, this message translates to:
+  /// **'Effects'**
+  String get weaponGroupEffects;
+
+  /// Weapon menu tab: short-range and straight-line weapons.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get weaponGroupClose;
+
+  /// Weapon menu tab: moving, defending and healing.
+  ///
+  /// In en, this message translates to:
+  /// **'Tools'**
+  String get weaponGroupTools;
+
   /// Badge on a family signature weapon.
   ///
   /// In en, this message translates to:

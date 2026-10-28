@@ -32,6 +32,15 @@ void main() {
     });
   }
 
+  test('every weapon in the menu has a menu tab, hidden ones none', () {
+    for (final w in [...Weapons.shared, ...Weapons.signatures]) {
+      expect(Weapons.groups, contains(w.id), reason: w.id);
+    }
+    for (final w in Weapons.all.where((w) => w.hidden)) {
+      expect(Weapons.groups, isNot(contains(w.id)), reason: w.id);
+    }
+  });
+
   test('every family has at least 4 breeds, and breeds are unique', () {
     for (final f in Families.all) {
       expect(Breeds.ofFamily(f.id).length, greaterThanOrEqualTo(4),

@@ -855,3 +855,16 @@ played alone on one phone (and playtested without a second person).
   without wind, no blast on its own teammate, same seed same plan, Easy
   keeps to unlimited weapons, walks when out of reach, and CPU against
   CPU matches on Backyard and Ruins end with a result.
+
+## Weapon menu tabs (2026-10-28)
+
+With over forty weapons in one grid the menu needed scrolling and
+searching. It now has five tabs (`WeaponGroup`, `Weapons.groups` in
+`lib/config/weapons.dart`): Throw, Sky, Effects (fire, gas, frost,
+mines, ground, black hole, firecracker), Close (shotgun, laser, punch,
+seed spitter and the close-range signatures) and Tools (movement,
+shield, first aid, skip). Each signature weapon sits in the tab that
+fits it. The menu opens on the tab of the weapon in hand, and a tab
+holds at most nine weapons so it fits without scrolling; if a loadout
+ever overflows, part of the next row peeks out to show it scrolls. A
+test checks every menu weapon has a tab.

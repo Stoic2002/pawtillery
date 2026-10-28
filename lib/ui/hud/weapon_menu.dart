@@ -13,9 +13,10 @@ import '../../services/audio_service.dart';
 import '../widgets/paw/paw_widgets.dart';
 
 /// Weapon menu (PRD: Menu senjata; redesign prototype): a cream panel over
-/// the right of the arena with a 3-column grid of weapon tiles (picture,
-/// name, ammo badge, a star on the family's signature weapon), and a
-/// footer that explains the selected weapon or sets its fuse.
+/// the right of the arena with tabs per [WeaponGroup] (opening on the
+/// held weapon's), a 3-column grid of weapon tiles (picture, name, ammo
+/// badge, a star on the family's signature weapon), and a footer that
+/// explains the selected weapon or sets its fuse.
 Future<void> showWeaponMenu(BuildContext context, PawtilleryGame game) {
   final l10n = AppLocalizations.of(context);
   return showGeneralDialog<void>(
@@ -49,9 +50,27 @@ Future<void> showWeaponMenu(BuildContext context, PawtilleryGame game) {
   );
 }
 
-class _WeaponPanel extends StatelessWidget {
+class _WeaponPanel extends StatefulWidget {
   const _WeaponPanel({required this.game});
   final PawtilleryGame game;
+
+  @override
+  State<_WeaponPanel> createState() => _WeaponPanelState();
+}
+
+class _WeaponPanelState extends State<_WeaponPanel> {
+  PawtilleryGame get game => widget.game;
+
+  late WeaponGroup _group = Weapons.groupOf(game.weapon);
+
+  static String _groupLabel(AppLocalizations l10n, WeaponGroup g) =>
+      switch (g) {
+        WeaponGroup.thrown => l10n.weaponGroupThrown,
+        WeaponGroup.sky => l10n.weaponGroupSky,
+        WeaponGroup.effects => l10n.weaponGroupEffects,
+        WeaponGroup.close => l10n.weaponGroupClose,
+        WeaponGroup.tools => l10n.weaponGroupTools,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +87,18 @@ class _WeaponPanel extends StatelessWidget {
       valueListenable: game.aim,
       builder: (context, aim, _) {
         final current = Weapons.byId(aim.weaponId);
-        final choices = game.weaponChoices();
+        final all = game.weaponChoices();
+        final groups = [
+          for (final g in WeaponGroup.values)
+            if (all.any((c) => Weapons.groupOf(c.weapon) == g)) g,
+        ];
+        final group = groups.contains(_group) || groups.isEmpty
+            ? _group
+            : groups.first;
+        final choices = [
+          for (final c in all)
+            if (Weapons.groupOf(c.weapon) == group) c,
+        ];
         return PawCard(
           padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
           child: Column(
@@ -98,15 +128,36 @@ class _WeaponPanel extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 6),
+              if (groups.length > 1)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: PawPillToggle<WeaponGroup>(
+                    values: groups,
+                    selected: group,
+                    label: (g) => _groupLabel(l10n, g),
+                    onSelect: (g) {
+                      AppServices.of(context).audio.play(Sfx.ui);
+                      setState(() => _group = g);
+                    },
+                  ),
+                ),
+              const SizedBox(height: 4),
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, box) {
                     const cols = 3;
                     final rows = (choices.length / cols).ceil();
                     final tileW = (box.maxWidth - (cols - 1) * 10) / cols;
-                    final tileH = ((box.maxHeight - 6 - (rows - 1) * 10) / rows)
-                        .clamp(48.0, 70.0);
+                    final fit = (box.maxHeight - 6 - (rows - 1) * 10) / rows;
+                    // Too many to fit: let part of the next row peek out,
+                    // so it is clear the grid scrolls.
+                    final tileH = fit >= 48
+                        ? fit.clamp(48.0, 70.0)
+                        : ((box.maxHeight - 6 - 3 * 10) / 3.45).clamp(
+                            40.0,
+                            70.0,
+                          );
                     return SingleChildScrollView(
                       padding: const EdgeInsets.only(top: 8),
                       child: Wrap(

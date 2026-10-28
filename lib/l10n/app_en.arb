@@ -572,6 +572,26 @@
   "@hudWeapons": {
     "description": "Weapon menu title and button label."
   },
+  "weaponGroupThrown": "Throw",
+  "@weaponGroupThrown": {
+    "description": "Weapon menu tab: thrown and fired weapons."
+  },
+  "weaponGroupSky": "Sky",
+  "@weaponGroupSky": {
+    "description": "Weapon menu tab: weapons called in from the sky."
+  },
+  "weaponGroupEffects": "Effects",
+  "@weaponGroupEffects": {
+    "description": "Weapon menu tab: fire, gas, frost, mines and ground."
+  },
+  "weaponGroupClose": "Close",
+  "@weaponGroupClose": {
+    "description": "Weapon menu tab: short-range and straight-line weapons."
+  },
+  "weaponGroupTools": "Tools",
+  "@weaponGroupTools": {
+    "description": "Weapon menu tab: moving, defending and healing."
+  },
   "hudSignature": "Signature",
   "@hudSignature": {
     "description": "Badge on a family signature weapon."
