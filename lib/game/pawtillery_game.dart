@@ -197,8 +197,12 @@ class PawtilleryGame extends FlameGame {
     lockstep?.attach(sim);
 
     final worldSize = Vector2(mask.width.toDouble(), mask.height.toDouble());
-    _terrain =
-        TerrainComponent(mask: mask, map: map, materials: mapData.materials);
+    _terrain = TerrainComponent(
+      mask: mask,
+      map: map,
+      materials: mapData.materials,
+      visible: () => visibleWorld,
+    );
     _aimGuide = AimGuideComponent(
       sim: sim,
       aim: () => aim.value,
@@ -214,7 +218,12 @@ class PawtilleryGame extends FlameGame {
         cameraPosition: () => camera.viewfinder.position,
       ),
       _terrain,
-      DecorComponent(mask: mask, map: map, materials: mapData.materials),
+      DecorComponent(
+        mask: mask,
+        map: map,
+        materials: mapData.materials,
+        visible: () => visibleWorld,
+      ),
       UnitsComponent(
         sim,
         teamColors: teamColors,
@@ -441,6 +450,10 @@ class PawtilleryGame extends FlameGame {
   void panCamera(Vector2 screenDelta) => _camera.panByScreen(screenDelta);
 
   double get cameraZoom => _camera.zoom;
+
+  /// The world on screen with a margin: components skip drawing outside
+  /// it.
+  Rect get visibleWorld => camera.visibleWorldRect.inflate(64);
 
   void zoomCamera(Vector2 screenFocal, double zoom) =>
       _camera.zoomAt(screenFocal, zoom);

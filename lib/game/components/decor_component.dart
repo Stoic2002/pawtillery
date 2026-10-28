@@ -25,12 +25,29 @@ class _Decor {
 /// Each sits on a small contact shadow and takes the map's ambient light,
 /// so it belongs to the painted ground. A piece disappears for good once
 /// the ground under it is blown away. Purely visual.
+///
+/// Drawing cost: the still pieces are recorded once per [_chunk] px of map
+/// into a picture (re-recorded only when one of them goes), only the
+/// swaying tufts are drawn every frame, and only what is on screen. The
+/// ambient light is a colour filter on each paint, not a screen-sized
+/// layer.
 class DecorComponent extends Component {
-  DecorComponent({required this.mask, required this.map, this.materials})
-    : super(priority: 3);
+  DecorComponent({
+    required this.mask,
+    required this.map,
+    this.materials,
+    this.visible,
+  }) : super(priority: 3);
 
   final TerrainMask mask;
   final MapDef map;
+
+  /// The part of the world on screen; null draws everything.
+  final ui.Rect Function()? visible;
+
+  static const int _chunk = 512;
+  final Map<int, ui.Picture> _pictures = {};
+  final Set<int> _dirty = {};
 
   /// Per-pixel [TerrainMaterial] index, if the map encodes materials.
   final Uint8List? materials;
@@ -99,35 +116,70 @@ class DecorComponent extends Component {
   void update(double dt) {
     _time += dt;
     // Drop decorations whose ground is gone.
-    _items.removeWhere((d) => !mask.isSolid(d.x, d.y + 1));
+    _items.removeWhere((d) {
+      if (mask.isSolid(d.x, d.y + 1)) return false;
+      if (d.kind != _Kind.tuft) _dirty.add(d.x ~/ _chunk);
+      return true;
+    });
   }
 
-  late final ui.Paint _ambient = ui.Paint()
-    ..colorFilter = ui.ColorFilter.mode(
-      ui.Color(map.ambientArgb),
-      ui.BlendMode.modulate,
-    );
-  final ui.Paint _contact = ui.Paint()..color = const ui.Color(0x55000000);
+  late final ui.ColorFilter _ambient = ui.ColorFilter.mode(
+    ui.Color(map.ambientArgb),
+    ui.BlendMode.modulate,
+  );
+
+  /// [p] in the map's ambient light.
+  ui.Paint _lit(ui.Paint p) => p..colorFilter = _ambient;
+
+  late final ui.Paint _contact = _lit(
+    ui.Paint()..color = const ui.Color(0x55000000),
+  );
 
   @override
   void render(ui.Canvas canvas) {
-    canvas.saveLayer(null, _ambient);
-    for (final d in _items) {
-      // Sunk a pixel into the ground, on a small contact shadow.
-      final o = ui.Offset(d.x.toDouble(), d.y.toDouble() + 1.5);
-      if (d.kind != _Kind.tuft) {
-        canvas.drawOval(
-          ui.Rect.fromCenter(
-            center: o + const ui.Offset(0, -0.5),
-            width: 9,
-            height: 2.6,
-          ),
-          _contact,
-        );
+    final view = visible?.call();
+    final last = (mask.width - 1) ~/ _chunk;
+    final from = view == null ? 0 : (view.left ~/ _chunk).clamp(0, last);
+    final to = view == null ? last : (view.right ~/ _chunk).clamp(0, last);
+    for (var c = from; c <= to; c++) {
+      var picture = _pictures[c];
+      final stale = _dirty.remove(c);
+      if (picture == null || stale) {
+        picture?.dispose();
+        picture = _pictures[c] = _record(c);
       }
+      canvas.drawPicture(picture);
+    }
+    for (final d in _items) {
+      if (d.kind != _Kind.tuft) continue;
+      final o = _base(d);
+      if (view != null && !view.contains(o)) continue;
+      _tuft(canvas, o, d.seed);
+    }
+  }
+
+  /// Sunk a pixel into the ground.
+  static ui.Offset _base(_Decor d) =>
+      ui.Offset(d.x.toDouble(), d.y.toDouble() + 1.5);
+
+  /// The still pieces of map column [chunk], each on a contact shadow.
+  ui.Picture _record(int chunk) {
+    final recorder = ui.PictureRecorder();
+    final canvas = ui.Canvas(recorder);
+    for (final d in _items) {
+      if (d.kind == _Kind.tuft || d.x ~/ _chunk != chunk) continue;
+      final o = _base(d);
+      canvas.drawOval(
+        ui.Rect.fromCenter(
+          center: o + const ui.Offset(0, -0.5),
+          width: 9,
+          height: 2.6,
+        ),
+        _contact,
+      );
       switch (d.kind) {
         case _Kind.tuft:
-          _tuft(canvas, o, d.seed);
+          break;
         case _Kind.pebble:
           _pebble(canvas, o, d.seed);
         case _Kind.mushroom:
@@ -142,12 +194,23 @@ class DecorComponent extends Component {
           _rubble(canvas, o, d.seed);
       }
     }
-    canvas.restore();
+    return recorder.endRecording();
   }
 
-  late final ui.Paint _blade = ui.Paint()
-    ..strokeWidth = 1.4
-    ..strokeCap = ui.StrokeCap.round;
+  @override
+  void onRemove() {
+    for (final p in _pictures.values) {
+      p.dispose();
+    }
+    _pictures.clear();
+    super.onRemove();
+  }
+
+  late final ui.Paint _blade = _lit(
+    ui.Paint()
+      ..strokeWidth = 1.4
+      ..strokeCap = ui.StrokeCap.round,
+  );
 
   void _tuft(ui.Canvas c, ui.Offset o, int seed) {
     final sway = math.sin(_time * 1.6 + o.dx / 40) * 0.8;
@@ -170,12 +233,12 @@ class DecorComponent extends Component {
       width: w,
       height: w * 0.6,
     );
-    c.drawOval(rect, PaintKit.lit(rect, 0xFF9A938A, light: 0.35));
+    c.drawOval(rect, _lit(PaintKit.lit(rect, 0xFF9A938A, light: 0.35)));
   }
 
   void _mushroom(ui.Canvas c, ui.Offset o, int seed) {
     final stem = ui.Rect.fromLTWH(o.dx - 1, o.dy - 5, 2, 5);
-    c.drawRect(stem, ui.Paint()..color = const ui.Color(0xFFF2EAD8));
+    c.drawRect(stem, _lit(ui.Paint()..color = const ui.Color(0xFFF2EAD8)));
     final cap = ui.Rect.fromCenter(
       center: o + const ui.Offset(0, -5),
       width: 7,
@@ -186,15 +249,17 @@ class DecorComponent extends Component {
       math.pi,
       math.pi,
       true,
-      PaintKit.lit(cap, seed.isEven ? 0xFFC0392B : 0xFFB5895A),
+      _lit(PaintKit.lit(cap, seed.isEven ? 0xFFC0392B : 0xFFB5895A)),
     );
   }
 
-  final ui.Paint _ink = ui.Paint()
-    ..style = ui.PaintingStyle.stroke
-    ..strokeWidth = 0.9
-    ..strokeJoin = ui.StrokeJoin.round
-    ..color = const ui.Color(0xFF2A1A12);
+  late final ui.Paint _ink = _lit(
+    ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 0.9
+      ..strokeJoin = ui.StrokeJoin.round
+      ..color = const ui.Color(0xFF2A1A12),
+  );
 
   void _shell(ui.Canvas c, ui.Offset o, int seed) {
     final w = 5.0 + seed % 3;
@@ -205,7 +270,9 @@ class DecorComponent extends Component {
     c
       ..drawPath(
         fan,
-        ui.Paint()..color = ui.Color(seed.isEven ? 0xFFFFD8C8 : 0xFFFFF0D8),
+        _lit(
+          ui.Paint()..color = ui.Color(seed.isEven ? 0xFFFFD8C8 : 0xFFFFF0D8),
+        ),
       )
       ..drawPath(fan, _ink);
   }
@@ -223,16 +290,20 @@ class DecorComponent extends Component {
     c
       ..drawPath(
         star,
-        ui.Paint()..color = ui.Color(seed.isEven ? 0xFFFF7A4A : 0xFFFFA13A),
+        _lit(
+          ui.Paint()..color = ui.Color(seed.isEven ? 0xFFFF7A4A : 0xFFFFA13A),
+        ),
       )
       ..drawPath(star, _ink);
   }
 
   void _bones(ui.Canvas c, ui.Offset o, int seed) {
-    final bone = ui.Paint()
-      ..color = const ui.Color(0xFFE8E0C8)
-      ..strokeWidth = 1.6
-      ..strokeCap = ui.StrokeCap.round;
+    final bone = _lit(
+      ui.Paint()
+        ..color = const ui.Color(0xFFE8E0C8)
+        ..strokeWidth = 1.6
+        ..strokeCap = ui.StrokeCap.round,
+    );
     final tilt = (seed % 5 - 2) * 0.3;
     final d = ui.Offset(math.cos(tilt) * 4, math.sin(tilt) * 4);
     final mid = o + const ui.Offset(0, -1.2);
@@ -263,7 +334,9 @@ class DecorComponent extends Component {
             width: r.width,
             height: r.height,
           ),
-          ui.Paint()..color = ui.Color(colors[(seed + i) % colors.length]),
+          _lit(
+            ui.Paint()..color = ui.Color(colors[(seed + i) % colors.length]),
+          ),
         )
         ..restore();
     }

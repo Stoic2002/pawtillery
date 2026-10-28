@@ -16,12 +16,17 @@ class TerrainComponent extends PositionComponent {
     required this.mask,
     required this.map,
     this.materials,
+    this.visible,
   }) : super(size: Vector2(mask.width.toDouble(), mask.height.toDouble()));
 
   static const int chunkSize = 256;
 
   final TerrainMask mask;
   final MapDef map;
+
+  /// The part of the world on screen; chunks outside it are not drawn.
+  /// Null draws them all.
+  final ui.Rect Function()? visible;
 
   /// Per-pixel [TerrainMaterial] index (render only).
   final Uint8List? materials;
@@ -287,6 +292,7 @@ class TerrainComponent extends PositionComponent {
 
   @override
   void render(ui.Canvas canvas) {
+    final view = visible?.call();
     for (var row = 0; row < _rows; row++) {
       for (var col = 0; col < _cols; col++) {
         final image = _chunks[row * _cols + col];
@@ -294,15 +300,17 @@ class TerrainComponent extends PositionComponent {
         const g = gutter;
         final w = image.width - 2.0 * g;
         final h = image.height - 2.0 * g;
+        final dst = ui.Rect.fromLTWH(
+          (col * chunkSize).toDouble(),
+          (row * chunkSize).toDouble(),
+          w,
+          h,
+        );
+        if (view != null && !view.overlaps(dst)) continue;
         canvas.drawImageRect(
           image,
           ui.Rect.fromLTWH(g.toDouble(), g.toDouble(), w, h),
-          ui.Rect.fromLTWH(
-            (col * chunkSize).toDouble(),
-            (row * chunkSize).toDouble(),
-            w,
-            h,
-          ),
+          dst,
           _paint,
         );
       }

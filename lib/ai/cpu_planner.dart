@@ -25,7 +25,8 @@ class CpuPlan {
 /// Plans one shot for the active unit of [world], the way a player would:
 /// it tries aims with the real projectile physics and scores where each
 /// lands, and scores air support and beams at every enemy. Only reads the
-/// world. The search runs in small slices ([work]) so a frame never stalls.
+/// world. The search runs in slices of a couple of milliseconds ([work]) so
+/// a frame never stalls; how many slices it takes doesn't change the plan.
 ///
 /// Pure Dart like the sim, and seeded, so the same world and seed give the
 /// same plan.
@@ -64,17 +65,25 @@ class CpuPlanner {
     return best;
   }
 
-  /// Runs up to [flights] planned flights; returns whether planning is done.
-  bool work([int flights = CpuConfig.flightsPerTick]) {
-    for (var i = 0; i < flights && !_done; i++) {
+  final Stopwatch _clock = Stopwatch();
+
+  /// Searches for up to [budget] (one flight at least); returns whether
+  /// planning is done. A long flight on a wide map with many pets costs
+  /// far more than a short one, so the slice is measured in time.
+  bool work({Duration budget = CpuConfig.planBudget}) {
+    _clock
+      ..reset()
+      ..start();
+    final limit = budget.inMicroseconds;
+    do {
       if (!_steps.moveNext()) finish();
-    }
+    } while (!_done && _clock.elapsedMicroseconds < limit);
     return _done;
   }
 
   /// Plans to the end at once (tests and tools).
   CpuPlan? planNow() {
-    while (!work(1 << 20)) {}
+    while (!work(budget: const Duration(days: 1))) {}
     return _result;
   }
 
@@ -233,7 +242,10 @@ class CpuPlanner {
     );
     final wind = (world.wind * tuning.windSense).round();
     var o = FlightOutcome.flying;
-    for (var t = 0; t < CpuConfig.maxFlightTicks && o == FlightOutcome.flying;
+    for (var t = 0;
+        t < CpuConfig.maxFlightTicks &&
+            o == FlightOutcome.flying &&
+            p.y > -CpuConfig.maxFlightAbove;
         t++) {
       o = ProjectilePhysics.step(p, world.terrain,
           wind: wind, waterLevel: world.waterLevel, units: world.units);

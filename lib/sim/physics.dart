@@ -1,4 +1,4 @@
-import 'dart:math' show max, sqrt;
+import 'dart:math' show max, min, sqrt;
 
 import '../config/physics.dart';
 import '../config/weapons.dart';
@@ -90,6 +90,11 @@ abstract final class ProjectilePhysics {
     final x0 = p.x;
     final y0 = p.y;
     final samples = max(1, sqrt(dx * dx + dy * dy).ceil());
+    // Every sample lies in the segment's box: a unit whose hit circle is
+    // outside it can't be hit, and on most ticks of a flight none is near,
+    // so the per-sample unit check (the bulk of the cost) is skipped.
+    final near = _anyUnitNear(units, min(x0, x0 + dx), min(y0, y0 + dy),
+        max(x0, x0 + dx), max(y0, y0 + dy));
 
     for (var i = includeStart ? 0 : 1; i <= samples; i++) {
       final t = i / samples;
@@ -100,7 +105,7 @@ abstract final class ProjectilePhysics {
         hit = FlightOutcome.outOfBounds;
       } else if (sy >= waterLevel) {
         hit = FlightOutcome.water;
-      } else if (unitAt(sx, sy, units) != null) {
+      } else if (near && unitAt(sx, sy, units) != null) {
         hit = FlightOutcome.hitUnit;
       } else if (solidTerrain && terrain.isSolid(sx.floor(), sy.floor())) {
         hit = FlightOutcome.hitTerrain;
@@ -122,6 +127,21 @@ abstract final class ProjectilePhysics {
     return p.ageTicks >= PhysicsConfig.maxProjectileTicks
         ? FlightOutcome.expired
         : FlightOutcome.flying;
+  }
+
+  static bool _anyUnitNear(
+      List<Unit> units, double x0, double y0, double x1, double y1) {
+    for (final u in units) {
+      if (!u.alive) continue;
+      final r = u.stats.hitRadius;
+      if (u.centerX + r >= x0 &&
+          u.centerX - r <= x1 &&
+          u.centerY + r >= y0 &&
+          u.centerY - r <= y1) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// First living unit whose hit circle contains (x, y).

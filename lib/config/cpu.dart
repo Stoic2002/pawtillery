@@ -84,11 +84,14 @@ abstract final class CpuConfig {
   static const int verifyThrows = 8;
   static const double riskWeight = 0.5;
 
-  /// A planned flight is cut off after this long (most land far sooner).
-  static const int maxFlightTicks = 600;
+  /// A planned flight is cut off after this long, or once it is this far
+  /// above the map (most land far sooner; slow lobs make poor shots, and
+  /// near-weightless ones would fly on for ages).
+  static const int maxFlightTicks = 360;
+  static const double maxFlightAbove = 600;
 
-  /// Flights tried per sim tick while planning, so a frame never stalls.
-  static const int flightsPerTick = 60;
+  /// Time spent planning per sim tick, so a frame never stalls.
+  static const Duration planBudget = Duration(milliseconds: 2);
 
   /// Score: own and allied damage counts this much worse than enemy
   /// damage, and a knockout is worth this much extra.
