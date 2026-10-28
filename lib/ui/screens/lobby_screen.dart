@@ -45,6 +45,10 @@ class _LobbyScreenState extends State<LobbyScreen> {
   void initState() {
     super.initState();
     _session.addListener(_onSession);
+    // Rejoined after a restart: the match is already on.
+    if (_session.inMatch) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _onSession());
+    }
     if (_session.isHost) {
       localAddresses().then((a) {
         if (mounted) setState(() => _addresses = a);

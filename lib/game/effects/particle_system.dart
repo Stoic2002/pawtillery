@@ -61,6 +61,9 @@ class ParticleSystem extends Component {
     ..style = ui.PaintingStyle.stroke
     ..strokeWidth = 4;
 
+  /// No new particles while set (a rejoined phone fast-forwarding).
+  bool muted = false;
+
   void _spawn({
     required double x,
     required double y,
@@ -75,7 +78,7 @@ class ParticleSystem extends Component {
     required int argb,
     int kind = _dot,
   }) {
-    if (_count >= capacity) return;
+    if (muted || _count >= capacity) return;
     final i = _count++;
     _x[i] = x;
     _y[i] = y;

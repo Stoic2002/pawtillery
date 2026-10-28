@@ -16,9 +16,12 @@ import '../sim/inputs.dart';
 ///
 /// A guest that lost its connection mid-match comes back with [RejoinMsg]
 /// (its id, the key from its [WelcomeMsg] and how many ticks it has); the
-/// host answers [WelcomeMsg], [ResumeMsg] with its own count, the ticks
-/// the guest missed, and tells everyone [PlayerBackMsg]. A guest that has
-/// ticks the host never got (it was playing when it dropped) sends them.
+/// host answers [WelcomeMsg], the ticks the guest missed, then
+/// [ResumeMsg] with its own count, and tells everyone [PlayerBackMsg]. A
+/// guest that has ticks the host never got (it was playing when it
+/// dropped) sends them. After the app was closed, the guest rejoins
+/// `fresh` from the [RejoinTicket] it kept, and gets the [StartMsg] and
+/// every tick from the first.
 sealed class NetMessage {
   const NetMessage();
 
@@ -68,6 +71,7 @@ final class RejoinMsg extends NetMessage {
     required this.playerId,
     required this.key,
     required this.known,
+    this.fresh = false,
   });
 
   final int protocol;
@@ -75,6 +79,10 @@ final class RejoinMsg extends NetMessage {
   final int playerId;
   final int key;
   final int known;
+
+  /// The app was restarted: the guest has no match at all and needs the
+  /// [StartMsg] too, then every tick from the first.
+  final bool fresh;
 
   @override
   Map<String, Object?> toJson() => {
@@ -84,11 +92,61 @@ final class RejoinMsg extends NetMessage {
     'id': playerId,
     'key': key,
     'known': known,
+    if (fresh) 'fresh': true,
   };
 }
 
-/// Host → rejoining guest: the host has [known] ticks; the missing ones
-/// follow as [TicksMsg].
+/// What a guest keeps on the phone during a Wi-Fi match, to come back to
+/// it after the app was closed.
+class RejoinTicket {
+  const RejoinTicket({
+    required this.address,
+    required this.port,
+    required this.playerId,
+    required this.key,
+    required this.name,
+  });
+
+  final String address;
+  final int port;
+  final int playerId;
+  final int key;
+  final String name;
+
+  Map<String, Object?> toJson() => {
+    'address': address,
+    'port': port,
+    'id': playerId,
+    'key': key,
+    'name': name,
+  };
+
+  static RejoinTicket? fromJson(Object? json) {
+    if (json is! Map) return null;
+    final address = json['address'];
+    final port = json['port'];
+    final id = json['id'];
+    final key = json['key'];
+    final name = json['name'];
+    if (address is! String ||
+        port is! int ||
+        id is! int ||
+        key is! int ||
+        name is! String) {
+      return null;
+    }
+    return RejoinTicket(
+      address: address,
+      port: port,
+      playerId: id,
+      key: key,
+      name: name,
+    );
+  }
+}
+
+/// Host → rejoining guest, after the [TicksMsg] it was missing: the host
+/// has [known] ticks.
 final class ResumeMsg extends NetMessage {
   const ResumeMsg(this.known);
   final int known;
@@ -305,6 +363,7 @@ NetMessage? _decode(Map json) {
         playerId: json['id'] as int,
         key: json['key'] as int,
         known: json['known'] as int,
+        fresh: json['fresh'] == true,
       );
     case 'resume':
       return ResumeMsg(json['known'] as int);

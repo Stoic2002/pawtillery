@@ -1269,6 +1269,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get netHostLost => 'Lost the connection to the host.';
 
   @override
+  String get rejoinTitle => 'Match still running';
+
+  @override
+  String get rejoinBody =>
+      'You left a Wi-Fi match that may still be going. Go back to it?';
+
+  @override
+  String get rejoinOk => 'Go back';
+
+  @override
+  String get rejoinForget => 'Forget it';
+
+  @override
+  String get rejoinFailed => 'That match is no longer waiting for you.';
+
+  @override
+  String get rejoinCatchingUp => 'Catching up…';
+
+  @override
   String get netReconnectingTitle => 'Connection lost';
 
   @override

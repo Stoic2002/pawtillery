@@ -87,6 +87,9 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
   /// more than a moment.
   final _waitingFor = ValueNotifier<String?>(null);
 
+  /// Replaying the match so far after rejoining.
+  final _catchingUp = ValueNotifier<bool>(false);
+
   _GestureMode _mode = _GestureMode.none;
   Offset _aimStart = Offset.zero;
   AimState? _aimBefore;
@@ -114,6 +117,10 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
         },
       );
       net.attachMatch(_onNetMessage);
+      // Back after the app was closed: every tick so far is in now.
+      if (net case GuestSession(rejoinedFresh: true)) {
+        _lockstep!.resumeOwnTurn();
+      }
       _waitTimer = Timer.periodic(
         const Duration(milliseconds: 250),
         (_) => _checkWaiting(),
@@ -196,6 +203,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
       name = _playerName(lock.activeOwner);
     }
     _waitingFor.value = name;
+    _catchingUp.value = game != null && game.isLoaded && game.catchingUp;
   }
 
   String? _otherTurnLabel(PawtilleryGame game) {
@@ -493,6 +501,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
     widget.net?.detachMatch();
     _waitTimer?.cancel();
     _waitingFor.dispose();
+    _catchingUp.dispose();
     _tutorial?.dispose();
     _game?.hud.removeListener(_onHudChanged);
     _audio?.playMusic(Music.menu).ignore();
@@ -548,6 +557,18 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
                           AppLocalizations.of(context).netWaiting(name),
                         ),
                       ),
+              ),
+            if (_lockstep != null)
+              ValueListenableBuilder<bool>(
+                valueListenable: _catchingUp,
+                builder: (context, on, _) => on && _netStop == null
+                    ? Align(
+                        alignment: const Alignment(0, -0.45),
+                        child: _NetPill(
+                          AppLocalizations.of(context).rejoinCatchingUp,
+                        ),
+                      )
+                    : const SizedBox.shrink(),
               ),
             if (_netStop case final stop?) _netStopCard(context, stop),
           ],

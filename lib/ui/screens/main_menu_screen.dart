@@ -45,142 +45,189 @@ class MainMenuScreen extends StatelessWidget {
       ).push(MaterialPageRoute<void>(builder: (_) => screen));
     }
 
-    return PopScope(
-      canPop: false,
-      // The back gesture here would close the app: ask first.
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) confirmQuitApp(context);
-      },
-      child: Scaffold(
-        body: PawBackdrop(
-          hills: PawHills.menu,
-          child: LayoutBuilder(
-            builder: (context, box) => Stack(
-              children: [
-                for (final (family, team, x, lift, size, flip) in _gang)
-                  Positioned(
-                    left: box.maxWidth * x - size / 2,
-                    bottom: box.maxHeight * lift - 8,
-                    child: PetFigure(
-                      familyId: family,
-                      breedId: Breeds.ofFamily(family).first.id,
-                      teamArgb: Teams.styles[team].colorArgb,
-                      size: size,
-                      flip: flip,
+    return _RejoinOffer(
+      child: PopScope(
+        canPop: false,
+        // The back gesture here would close the app: ask first.
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) confirmQuitApp(context);
+        },
+        child: Scaffold(
+          body: PawBackdrop(
+            hills: PawHills.menu,
+            child: LayoutBuilder(
+              builder: (context, box) => Stack(
+                children: [
+                  for (final (family, team, x, lift, size, flip) in _gang)
+                    Positioned(
+                      left: box.maxWidth * x - size / 2,
+                      bottom: box.maxHeight * lift - 8,
+                      child: PetFigure(
+                        familyId: family,
+                        breedId: Breeds.ofFamily(family).first.id,
+                        teamArgb: Teams.styles[team].colorArgb,
+                        size: size,
+                        flip: flip,
+                      ),
                     ),
-                  ),
-                SafeArea(
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        left: 24,
-                        top: 24,
-                        width: box.maxWidth * 0.55,
-                        child: Center(
-                          child: FittedBox(
-                            child: PawLogo(title: l10n.appTitle, size: 68),
+                  SafeArea(
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          left: 24,
+                          top: 24,
+                          width: box.maxWidth * 0.55,
+                          child: Center(
+                            child: FittedBox(
+                              child: PawLogo(title: l10n.appTitle, size: 68),
+                            ),
                           ),
                         ),
-                      ),
-                      Positioned(
-                        right: 24,
-                        top: 0,
-                        bottom: 24,
-                        width: (box.maxWidth * 0.36).clamp(220, 340),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            PawButton(
-                              label: l10n.menuPlay,
-                              icon: Icons.play_arrow_rounded,
-                              fill: Paw.orange,
-                              height: 68,
-                              fontSize: 30,
-                              display: true,
-                              borderWidth: 3,
-                              radius: 16,
-                              onPressed: () => open(const SetupScreen()),
-                            ),
-                            // No sockets on the web.
-                            if (lanSupported) ...[
-                              const SizedBox(height: 14),
+                        Positioned(
+                          right: 24,
+                          top: 0,
+                          bottom: 24,
+                          width: (box.maxWidth * 0.36).clamp(220, 340),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
                               PawButton(
-                                label: l10n.menuPlayWifi,
-                                icon: Icons.wifi_rounded,
-                                fill: Paw.green,
+                                label: l10n.menuPlay,
+                                icon: Icons.play_arrow_rounded,
+                                fill: Paw.orange,
+                                height: 68,
+                                fontSize: 30,
+                                display: true,
                                 borderWidth: 3,
-                                onPressed: () => open(const LanScreen()),
+                                radius: 16,
+                                onPressed: () => open(const SetupScreen()),
                               ),
-                            ],
-                            const SizedBox(height: 14),
-                            PawButton(
-                              label: l10n.menuHowToPlay,
-                              icon: Icons.menu_book_rounded,
-                              borderWidth: 3,
-                              onPressed: () => open(const HowToPlayScreen()),
-                            ),
-                            const SizedBox(height: 14),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: PawButton(
-                                    label: l10n.menuHistory,
-                                    icon: Icons.history_rounded,
-                                    borderWidth: 3,
-                                    padding: 10,
-                                    onPressed: () =>
-                                        open(const HistoryScreen()),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: PawButton(
-                                    label: l10n.menuSettings,
-                                    icon: Icons.settings_rounded,
-                                    borderWidth: 3,
-                                    padding: 10,
-                                    onPressed: () =>
-                                        open(const SettingsScreen()),
-                                  ),
+                              // No sockets on the web.
+                              if (lanSupported) ...[
+                                const SizedBox(height: 14),
+                                PawButton(
+                                  label: l10n.menuPlayWifi,
+                                  icon: Icons.wifi_rounded,
+                                  fill: Paw.green,
+                                  borderWidth: 3,
+                                  onPressed: () => open(const LanScreen()),
                                 ),
                               ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      Positioned(
-                        right: 24,
-                        bottom: 12,
-                        child: Row(
-                          children: [
-                            Text(
-                              'v${AppInfo.version}',
-                              style: Paw.text(
-                                12,
-                                weight: 700,
-                                color: Paw.muted,
+                              const SizedBox(height: 14),
+                              PawButton(
+                                label: l10n.menuHowToPlay,
+                                icon: Icons.menu_book_rounded,
+                                borderWidth: 3,
+                                onPressed: () => open(const HowToPlayScreen()),
                               ),
-                            ),
-                            const SizedBox(width: 10),
-                            PawCircleButton(
-                              icon: Icons.info_rounded,
-                              tooltip: l10n.menuAbout,
-                              onPressed: () => showAbout(context),
-                            ),
-                          ],
+                              const SizedBox(height: 14),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: PawButton(
+                                      label: l10n.menuHistory,
+                                      icon: Icons.history_rounded,
+                                      borderWidth: 3,
+                                      padding: 10,
+                                      onPressed: () =>
+                                          open(const HistoryScreen()),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: PawButton(
+                                      label: l10n.menuSettings,
+                                      icon: Icons.settings_rounded,
+                                      borderWidth: 3,
+                                      padding: 10,
+                                      onPressed: () =>
+                                          open(const SettingsScreen()),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        Positioned(
+                          right: 24,
+                          bottom: 12,
+                          child: Row(
+                            children: [
+                              Text(
+                                'v${AppInfo.version}',
+                                style: Paw.text(
+                                  12,
+                                  weight: 700,
+                                  color: Paw.muted,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              PawCircleButton(
+                                icon: Icons.info_rounded,
+                                tooltip: l10n.menuAbout,
+                                onPressed: () => showAbout(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
+}
+
+/// Once per launch: if the app was closed during a Wi-Fi match this phone
+/// was a guest in, offer to go back to it.
+class _RejoinOffer extends StatefulWidget {
+  const _RejoinOffer({required this.child});
+  final Widget child;
+
+  @override
+  State<_RejoinOffer> createState() => _RejoinOfferState();
+}
+
+class _RejoinOfferState extends State<_RejoinOffer> {
+  @override
+  void initState() {
+    super.initState();
+    if (!lanSupported) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _offer());
+  }
+
+  Future<void> _offer() async {
+    if (!mounted) return;
+    final settings = AppServices.of(context).settings;
+    final ticket = settings.rejoinTicket;
+    if (ticket == null) return;
+    final l10n = AppLocalizations.of(context);
+    final back = await showPawConfirm(
+      context: context,
+      title: l10n.rejoinTitle,
+      body: l10n.rejoinBody,
+      ok: l10n.rejoinOk,
+      cancel: l10n.rejoinForget,
+    );
+    if (!mounted) return;
+    if (!back) {
+      settings.rejoinTicket = null;
+      return;
+    }
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute<void>(builder: (_) => LanScreen(rejoin: ticket)));
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// "Quit Pawtillery?" — closes the app only on a yes.

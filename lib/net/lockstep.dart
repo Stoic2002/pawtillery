@@ -55,6 +55,10 @@ class Lockstep {
   bool _handOver = true;
   bool _producing = false;
 
+  /// Tick this phone may take its own turn back from without a hand-over
+  /// (see [resumeOwnTurn]); null otherwise.
+  int? _resumeAt;
+
   /// Stops stepping (a player left, desync). Frames keep arriving.
   bool paused = false;
 
@@ -76,6 +80,13 @@ class Lockstep {
   /// Frames received but not yet stepped.
   int get buffered => _known - sim.tick;
 
+  /// This phone came back after its app was closed, maybe in the middle of
+  /// its own turn: nobody will hand that turn over, since the phone that
+  /// was playing it is gone. Once it has stepped every tick known now, if
+  /// the turn is still its own it carries on producing. (No frames of that
+  /// old app can still be on their way: it is gone.)
+  void resumeOwnTurn() => _resumeAt = _known;
+
   /// Frames from the producing phone (relayed by the host).
   void receive(TicksMsg message) {
     // TCP keeps order and there is one producer at a time, so anything
@@ -96,6 +107,11 @@ class Lockstep {
     if (isOver) return false;
     // Only once every known tick is stepped: a phone catching up (after
     // rejoining) must not take an old turn of its own for a new one.
+    final resume = _resumeAt;
+    if (resume != null && sim.tick >= resume) {
+      _resumeAt = null;
+      if (sim.tick == _known && isMyTurn) _handOver = true;
+    }
     if (!_producing && _handOver && isMyTurn && sim.tick >= _known) {
       _producing = true;
       _handOver = false;

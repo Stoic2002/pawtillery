@@ -9,6 +9,7 @@ import 'package:pawtillery/config/cpu.dart';
 import 'package:pawtillery/config/weapons.dart';
 import 'package:pawtillery/l10n/app_localizations.dart';
 import 'package:pawtillery/net/link.dart';
+import 'package:pawtillery/net/protocol.dart' show RejoinTicket;
 import 'package:pawtillery/net/session.dart';
 import 'package:pawtillery/services/audio_service.dart';
 import 'package:pawtillery/services/settings_store.dart';
@@ -75,6 +76,27 @@ void main() {
     await tester.tap(find.text('Close'));
     await tester.pumpAndSettle();
     expect(find.text('Privacy policy'), findsNothing);
+  });
+
+  testWidgets('after a restart mid Wi-Fi match, the menu offers to go back',
+      (tester) async {
+    await _landscape(tester);
+    final settings = await _settings();
+    settings.rejoinTicket = const RejoinTicket(
+      address: '192.168.1.5',
+      port: 47821,
+      playerId: 1,
+      key: 42,
+      name: 'Ana',
+    );
+    await tester.pumpWidget(
+        PawtilleryApp(locale: const Locale('en'), settings: settings));
+    await tester.pumpAndSettle();
+    expect(find.text('Match still running'), findsOneWidget);
+    await tester.tap(find.text('Forget it'));
+    await tester.pumpAndSettle();
+    expect(settings.rejoinTicket, isNull);
+    expect(find.text('Play'), findsOneWidget);
   });
 
   testWidgets('back on the main menu asks before quitting', (tester) async {

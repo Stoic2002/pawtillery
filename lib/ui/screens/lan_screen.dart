@@ -21,7 +21,10 @@ import 'lobby_screen.dart';
 /// Play on Wi-Fi: pick a name, then host a room or join one heard on the
 /// network (or typed in by address, for networks that block broadcasts).
 class LanScreen extends StatefulWidget {
-  const LanScreen({super.key});
+  const LanScreen({super.key, this.rejoin});
+
+  /// Go straight back to this match (the app was closed during it).
+  final RejoinTicket? rejoin;
 
   @override
   State<LanScreen> createState() => _LanScreenState();
@@ -49,7 +52,58 @@ class _LanScreenState extends State<LanScreen> {
           (pool.isEmpty ? 'Player' : pool[Random().nextInt(pool.length)]),
     );
     WifiLock.acquire();
-    _listen();
+    if (widget.rejoin case final ticket?) {
+      _rejoin(ticket);
+    } else {
+      _listen();
+    }
+  }
+
+  /// Keeps (or drops, id -1) the ticket for coming back to a match on
+  /// [host]:[port] after the app was closed.
+  void Function(int, int) _keepTicket(String host, int port) {
+    final settings = AppServices.of(context).settings;
+    final name = _playerName;
+    return (id, key) => settings.rejoinTicket = id < 0
+        ? null
+        : RejoinTicket(
+            address: host,
+            port: port,
+            playerId: id,
+            key: key,
+            name: name,
+          );
+  }
+
+  Future<void> _rejoin(RejoinTicket ticket) async {
+    final settings = AppServices.of(context).settings;
+    final l10n = AppLocalizations.of(context);
+    setState(() => _busy = true);
+    GuestSession? session;
+    try {
+      final link = await connectLan(ticket.address, ticket.port);
+      session = await GuestSession.rejoin(
+        link,
+        playerId: ticket.playerId,
+        key: ticket.key,
+        redial: () => connectLan(ticket.address, ticket.port),
+        onTicket: _keepTicket(ticket.address, ticket.port),
+      );
+    } on Object catch (e) {
+      debugPrint('Could not rejoin ${ticket.address}:${ticket.port}: $e');
+    }
+    if (!mounted) {
+      await session?.leave();
+      return;
+    }
+    setState(() => _busy = false);
+    if (session == null) {
+      settings.rejoinTicket = null;
+      _say(l10n.rejoinFailed);
+      _listen();
+      return;
+    }
+    await _openLobby(session);
   }
 
   Future<void> _listen() async {
@@ -155,6 +209,7 @@ class _LanScreenState extends State<LanScreen> {
         name: _playerName,
         // Rejoins the match if the connection drops mid-match.
         redial: () => connectLan(host, port),
+        onTicket: _keepTicket(host, port),
       );
     } on JoinRejected catch (e) {
       error = switch (e.reason) {

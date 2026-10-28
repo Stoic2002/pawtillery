@@ -6,8 +6,9 @@ abstract final class NetConfig {
   /// 3 = jet missile, storm cloud delay, bird flock; 4 = map objects;
   /// 5 = dig mode, black hole, sticky bomb, clay, swap; 14 = random
   /// weapons rule; 15 = rejoining a match; 16 = pet gravity, gas damage,
-  /// rebalanced and reworked weapons, crumbling sudden death.
-  static const int protocolVersion = 16;
+  /// rebalanced and reworked weapons, crumbling sudden death; 17 =
+  /// rejoining after a restart.
+  static const int protocolVersion = 17;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;
@@ -47,6 +48,12 @@ abstract final class NetConfig {
 
   /// A phone with more inputs waiting than this steps faster to catch up.
   static const int catchUpTicks = 12;
+
+  /// With more than this waiting (a phone that rejoined after a restart
+  /// replays the whole match so far) it fast-forwards: as many ticks as
+  /// fit in [fastForwardBudget] each frame, without sound or particles.
+  static const int fastForwardTicks = 240;
+  static const Duration fastForwardBudget = Duration(milliseconds: 10);
 
   static const int maxNameLength = 16;
 }

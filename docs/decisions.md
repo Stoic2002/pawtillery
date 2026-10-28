@@ -1045,3 +1045,34 @@ After the developer's first look on a phone.
   plus 3 random ones, one more each round (up to 10). It ended the CPU
   test matches 20–34 turns after it started.
 - Pins changed (play changed on purpose); Wi-Fi protocol version 16.
+
+## Wi-Fi: rejoining after the app was closed (2026-10-29)
+
+The developer wanted a guest to come back even if its app was closed
+(swiped away, killed by the system) during a Wi-Fi match.
+
+- **Ticket:** when a match starts, the guest keeps a `RejoinTicket` with
+  the settings (host address and port, its player id, its key, its name).
+  It is dropped when the match ends, is called off, the guest leaves, or
+  the host is given up on.
+- **Offer:** on launch, if a ticket is there, the main menu asks "Match
+  still running — go back?". "Forget it" drops the ticket; "Go back" opens
+  the Wi-Fi screen, which rejoins (`GuestSession.rejoin`, a `RejoinMsg`
+  with `fresh`). If the host no longer waits for that player the ticket is
+  dropped with a short message.
+- **Host:** for a fresh rejoin it sends the `StartMsg`, then every tick of
+  the match so far, then `ResumeMsg` (missed ticks now always come before
+  the resume, so a guest has them the moment it is let in). The lobby
+  opens the arena at once.
+- **Catching up:** the arena replays the match with the same lockstep,
+  but while far behind (over 240 ticks) it fast-forwards — as many ticks as
+  fit in 10 ms a frame, without sound, particles, damage numbers or camera
+  jumps; the ground is still carved — and shows "Catching up…".
+- **Its own turn:** if the app was closed in the middle of its own turn,
+  no one will ever hand that turn over (the phone playing it is gone).
+  `Lockstep.resumeOwnTurn` lets the rejoined phone carry on from the last
+  known tick if the turn is still its own there; no frame of the old app
+  can still be on its way.
+- Tests: a guest killed mid-match (in its own turn) rejoins from its
+  ticket and both phones end on the same hash; a stale ticket is refused;
+  the menu offer. Protocol version 17. Not yet tried on two phones.

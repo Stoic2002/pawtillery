@@ -166,6 +166,63 @@ void main() {
     expectSame(phones);
   });
 
+  test('a guest whose app was closed rejoins from its ticket, replays the '
+      'match so far and ends it the same as the host', () async {
+    final config = MatchConfig.defaults(_names).withUnitsPerTeam(2, _names);
+    final host = HostSession(name: 'Host', config: config);
+    (int, int)? ticket;
+    void keep(int id, int key) => ticket = id < 0 ? null : (id, key);
+    final (a, b) = MemoryLink.pair();
+    host.addConnection(a);
+    // The first app is killed later and never gets to drop its ticket.
+    final first = await GuestSession.join(
+      b,
+      name: 'G',
+      onTicket: (id, key) {
+        if (id >= 0) keep(id, key);
+      },
+    );
+    await pump();
+    host.startMatch(random: Random(21));
+    await pump();
+    expect(ticket?.$1, first.myId);
+
+    final hostPhone = TestPhone(host, host.match!, lag: 0);
+    var guestPhone = TestPhone(first, first.match!, lag: 0);
+    final rng = Random(4);
+    for (var f = 0; f < 1500; f++) {
+      hostPhone.frame(rng);
+      guestPhone.frame(rng);
+      await pump();
+    }
+    // The app is closed: its connection drops and everything is gone but
+    // the ticket on the phone.
+    await a.close();
+    await pump();
+    expect(host.lobby.players, hasLength(2), reason: 'the slot waits');
+
+    final (c, d) = MemoryLink.pair();
+    host.addConnection(c);
+    final (id, key) = ticket!;
+    final back = await GuestSession.rejoin(d, playerId: id, key: key,
+        onTicket: keep);
+    expect(back.inMatch, isTrue);
+    expect(back.match!.seed, host.match!.seed);
+    guestPhone = TestPhone(back, back.match!, lag: 0);
+    await _playWithCuts([hostPhone, guestPhone], [c], const {});
+    expectSame([hostPhone, guestPhone]);
+  });
+
+  test('rejoining with a stale ticket is refused', () async {
+    final (host, _, _) = await _room(1);
+    final (c, d) = MemoryLink.pair();
+    host.addConnection(c);
+    await expectLater(
+      GuestSession.rejoin(d, playerId: 1, key: 99),
+      throwsA(isA<JoinRejected>()),
+    );
+  });
+
   test('a stranger, a wrong key or a finished match cannot rejoin', () async {
     final (host, guests, _) = await _room(1);
     host.startMatch();

@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app/match_config.dart';
 import '../app/match_history.dart';
+import '../net/protocol.dart' show RejoinTicket;
 
 /// Player settings and the last team setup, kept on the device
 /// (PRD: Settings tersimpan; konfigurasi tim terakhir disimpan lokal).
@@ -28,6 +29,7 @@ class SettingsStore extends ChangeNotifier {
   static const _kPlayerName = 'playerName';
   static const _kHistory = 'matchHistory';
   static const _kTotals = 'historyTotals';
+  static const _kRejoin = 'rejoinTicket';
 
   /// Matches kept in the history list; the totals count every match.
   static const historyLength = 50;
@@ -82,6 +84,22 @@ class SettingsStore extends ChangeNotifier {
 
   Future<void> saveMatch(MatchConfig config) =>
       _prefs.setString(_kMatch, jsonEncode(config.toJson()));
+
+  /// A Wi-Fi match this phone was in as a guest and has not seen end, to
+  /// come back to after the app was closed; null if none.
+  RejoinTicket? get rejoinTicket {
+    final raw = _prefs.getString(_kRejoin);
+    if (raw == null) return null;
+    try {
+      return RejoinTicket.fromJson(jsonDecode(raw));
+    } on FormatException {
+      return null;
+    }
+  }
+
+  set rejoinTicket(RejoinTicket? ticket) => _set(() => ticket == null
+      ? _prefs.remove(_kRejoin)
+      : _prefs.setString(_kRejoin, jsonEncode(ticket.toJson())));
 
   /// Finished matches, newest first (on this phone only).
   List<MatchRecord> get history {

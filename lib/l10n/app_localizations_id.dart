@@ -1270,6 +1270,25 @@ class AppLocalizationsId extends AppLocalizations {
   String get netHostLost => 'Koneksi ke host terputus.';
 
   @override
+  String get rejoinTitle => 'Pertandingan masih berjalan';
+
+  @override
+  String get rejoinBody =>
+      'Kamu keluar dari pertandingan Wi-Fi yang mungkin masih berjalan. Kembali ke sana?';
+
+  @override
+  String get rejoinOk => 'Kembali';
+
+  @override
+  String get rejoinForget => 'Lupakan';
+
+  @override
+  String get rejoinFailed => 'Pertandingan itu sudah tidak menunggumu.';
+
+  @override
+  String get rejoinCatchingUp => 'Menyusul…';
+
+  @override
   String get netReconnectingTitle => 'Koneksi terputus';
 
   @override

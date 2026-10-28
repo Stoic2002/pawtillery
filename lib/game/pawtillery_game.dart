@@ -506,7 +506,13 @@ class PawtilleryGame extends FlameGame {
         _stepSim();
         steps++;
       } else {
+        final fast = catchingUp;
         steps += _stepNet(lock);
+        // A fast-forward slice is the whole frame's work.
+        if (fast) {
+          _accumulator = 0;
+          break;
+        }
       }
       _accumulator -= MatchDefaults.tickSeconds;
       slots++;
@@ -601,14 +607,25 @@ class PawtilleryGame extends FlameGame {
     if (lock.produce(_held, _pendingInputs) || !lock.isMyTurn) {
       _pendingInputs.clear();
     }
+    // Far behind: replay as much as fits in a few milliseconds, quietly.
+    final fast = catchingUp;
+    particles.muted = fast;
+    final budget = NetConfig.fastForwardBudget.inMicroseconds;
+    final clock = Stopwatch()..start();
     var steps = 0;
-    while (steps < MatchDefaults.maxStepsPerFrame) {
+    while (fast || steps < MatchDefaults.maxStepsPerFrame) {
       if (_runStep(lock.step) == null) break;
       steps++;
       if (lock.buffered <= NetConfig.catchUpTicks) break;
+      if (fast && clock.elapsedMicroseconds >= budget) break;
     }
+    particles.muted = false;
     return steps;
   }
+
+  /// A Wi-Fi phone replaying a long way behind (after rejoining).
+  bool get catchingUp =>
+      (lockstep?.buffered ?? 0) > NetConfig.fastForwardTicks;
 
   /// Runs [step] and handles its events; returns them (null = no step).
   List<SimEvent>? _runStep(List<SimEvent>? Function() step) {
@@ -629,9 +646,10 @@ class PawtilleryGame extends FlameGame {
     // Where a beam, bolt or orbital strike landed this step, and who it hit.
     Vector2? impact;
     final hit = <int>[];
+    final quiet = particles.muted;
     for (final event in events) {
       stats.record(event);
-      onEvent?.call(event);
+      if (!quiet) onEvent?.call(event);
       switch (event) {
         case ExplosionEvent(:final x, :final y, :final radius, :final carved):
           exploded = true;
@@ -671,7 +689,7 @@ class PawtilleryGame extends FlameGame {
           _aimGuide.invalidate();
           impact = Vector2(x1, y1);
         case UnitDamaged(:final unitId, :final amount):
-          _damage.show(unitId, amount);
+          if (!quiet) _damage.show(unitId, amount);
           hit.add(unitId);
         case TerrainAdded(:final area):
           _terrain.rebuild(area);
@@ -773,7 +791,7 @@ class PawtilleryGame extends FlameGame {
           break;
       }
     }
-    if (impact != null) _showImpact(impact, hit);
+    if (impact != null && !quiet) _showImpact(impact, hit);
     return exploded;
   }
 

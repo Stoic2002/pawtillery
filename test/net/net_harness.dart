@@ -61,6 +61,8 @@ class TestPhone {
           break;
       }
     });
+    // Like the arena: the frames so far are in; maybe resume own turn.
+    if (session case GuestSession(rejoinedFresh: true)) lock.resumeOwnTurn();
   }
 
   final NetSession session;
@@ -85,8 +87,11 @@ class TestPhone {
     final turn = world.turn;
     if (lock.isMyTurn && turn.phase == TurnPhase.action && turn.allowsFire) {
       final me = world.activeUnit!;
-      final enemy = world.units.firstWhere((u) => u.alive && u.team != me.team);
-      final dir = enemy.centerX > me.centerX ? 1 : -1;
+      // The last enemy may be gone a moment before the match is over.
+      final enemy = world.units
+          .where((u) => u.alive && u.team != me.team)
+          .firstOrNull;
+      final dir = enemy == null || enemy.centerX > me.centerX ? 1 : -1;
       if (turn.phaseTicks < 25) {
         walk = dir;
         if (turn.phaseTicks == 10) queued.add(const Jump(JumpKind.forward));

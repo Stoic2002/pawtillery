@@ -237,12 +237,16 @@ class HostSession extends NetSession {
     }
     _away.remove(id);
     _guests[id] = link;
+    // After a restart the guest knows nothing of the match yet.
+    if (m.fresh) link.send(_match!);
     link
       ..send(WelcomeMsg(id, key: m.key))
-      ..send(LobbyMsg(_lobby))
-      ..send(ResumeMsg(_log.length));
-    // The guest may instead have ticks the host never got; it sends those.
-    _missingAfter(m.known).forEach(link.send);
+      ..send(LobbyMsg(_lobby));
+    // What it missed comes before the resume, so a guest back from a
+    // restart has the whole match so far the moment it is let in. The
+    // guest may instead have ticks the host never got; it sends those.
+    (m.fresh ? _logFrom(1) : _missingAfter(m.known)).forEach(link.send);
+    link.send(ResumeMsg(_log.length));
     for (final other in _away) {
       link.send(PlayerLeftMsg(other));
     }
@@ -419,7 +423,18 @@ class JoinRejected implements Exception {
 }
 
 class GuestSession extends NetSession {
-  GuestSession._(this._link, this._redial, this._appVersion, this._retry);
+  GuestSession._(
+    this._link,
+    this._redial,
+    this._appVersion,
+    this._retry,
+    this._onTicket,
+  );
+
+  /// Told this phone's player id and key when a match starts (keep them to
+  /// rejoin after a restart), and id -1 when it is over or left.
+  final void Function(int playerId, int key)? _onTicket;
+  void _dropTicket() => _onTicket?.call(-1, 0);
 
   NetLink _link;
   late int _myId;
@@ -437,6 +452,10 @@ class GuestSession extends NetSession {
 
   /// Lost the host mid-match and trying to rejoin.
   bool get reconnecting => _reconnecting;
+
+  /// Came back to the match after the app was closed ([rejoin]).
+  bool get rejoinedFresh => _rejoinedFresh;
+  bool _rejoinedFresh = false;
 
   final _joined = Completer<void>();
 
@@ -461,8 +480,10 @@ class GuestSession extends NetSession {
     String appVersion = AppInfo.version,
     Future<NetLink> Function()? redial,
     Duration rejoinRetry = NetConfig.rejoinRetry,
+    void Function(int playerId, int key)? onTicket,
   }) async {
-    final session = GuestSession._(link, redial, appVersion, rejoinRetry);
+    final session =
+        GuestSession._(link, redial, appVersion, rejoinRetry, onTicket);
     session._listen(link);
     link.send(
       HelloMsg(
@@ -478,6 +499,51 @@ class GuestSession extends NetSession {
       await link.close();
       rethrow;
     }
+    return session;
+  }
+
+  /// Comes back to a match after the app was closed: player [playerId]
+  /// with [key] (from the ticket kept when it started). On success the
+  /// match is set and every tick so far is on its way; throws
+  /// [JoinRejected] if the host no longer waits for this player.
+  static Future<GuestSession> rejoin(
+    NetLink link, {
+    required int playerId,
+    required int key,
+    String appVersion = AppInfo.version,
+    Future<NetLink> Function()? redial,
+    Duration rejoinRetry = NetConfig.rejoinRetry,
+    void Function(int playerId, int key)? onTicket,
+  }) async {
+    final session =
+        GuestSession._(link, redial, appVersion, rejoinRetry, onTicket)
+          .._myId = playerId
+          .._key = key;
+    final resumed = session._resumed = Completer<bool>();
+    // A refusal answers [resumed]; nobody waits on the first join here.
+    session._joined.future.ignore();
+    session._listen(link);
+    link.send(
+      RejoinMsg(
+        protocol: NetConfig.protocolVersion,
+        appVersion: appVersion,
+        playerId: playerId,
+        key: key,
+        known: 0,
+        fresh: true,
+      ),
+    );
+    final ok = await resumed.future.timeout(
+      NetConfig.connectTimeout,
+      onTimeout: () => false,
+    );
+    if (!ok || session._match == null) {
+      session._left = true;
+      await link.close();
+      throw const JoinRejected(RejectReason.started);
+    }
+    if (!session._joined.isCompleted) session._joined.complete();
+    session._rejoinedFresh = true;
     return session;
   }
 
@@ -507,6 +573,7 @@ class GuestSession extends NetSession {
         notifyListeners();
       case StartMsg():
         _beginMatch(m);
+        _onTicket?.call(_myId, _key);
       case TicksMsg():
         if (!_inMatch) return;
         _record(m);
@@ -517,6 +584,7 @@ class GuestSession extends NetSession {
         if (!_inMatch) return;
         _deliver(m);
         _inMatch = false;
+        _dropTicket();
         notifyListeners();
       case HelloMsg() || RejoinMsg() || HashMsg() || PingMsg():
         break;
@@ -539,6 +607,7 @@ class GuestSession extends NetSession {
 
   void _loseHost() {
     _hostLost = true;
+    _dropTicket();
     if (_inMatch) _deliver(const PlayerLeftMsg(0));
     notifyListeners();
   }
@@ -597,8 +666,15 @@ class GuestSession extends NetSession {
       _link.send(HashMsg(tick: tick, hash: hash));
 
   @override
+  void matchFinished() {
+    _dropTicket();
+    super.matchFinished();
+  }
+
+  @override
   Future<void> leave() async {
     _left = true;
+    _dropTicket();
     await _link.close();
   }
 }

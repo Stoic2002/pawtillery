@@ -1494,6 +1494,30 @@
   "@netHostLost": {
     "description": "A guest lost the host."
   },
+  "rejoinTitle": "Match still running",
+  "@rejoinTitle": {
+    "description": "Main menu dialog: the app was closed during a Wi-Fi match this phone was in."
+  },
+  "rejoinBody": "You left a Wi-Fi match that may still be going. Go back to it?",
+  "@rejoinBody": {
+    "description": "Main menu dialog text offering to rejoin the Wi-Fi match."
+  },
+  "rejoinOk": "Go back",
+  "@rejoinOk": {
+    "description": "Button: rejoin the Wi-Fi match."
+  },
+  "rejoinForget": "Forget it",
+  "@rejoinForget": {
+    "description": "Button: don't rejoin; the match is forgotten on this phone."
+  },
+  "rejoinFailed": "That match is no longer waiting for you.",
+  "@rejoinFailed": {
+    "description": "Rejoining failed: the host ended the match or is gone."
+  },
+  "rejoinCatchingUp": "Catching up…",
+  "@rejoinCatchingUp": {
+    "description": "Shown in the arena while a rejoined phone replays the match so far."
+  },
   "netReconnectingTitle": "Connection lost",
   "@netReconnectingTitle": {
     "description": "This phone lost the host mid-match and is trying to rejoin."

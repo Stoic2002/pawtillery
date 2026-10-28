@@ -2432,6 +2432,42 @@ abstract class AppLocalizations {
   /// **'Lost the connection to the host.'**
   String get netHostLost;
 
+  /// Main menu dialog: the app was closed during a Wi-Fi match this phone was in.
+  ///
+  /// In en, this message translates to:
+  /// **'Match still running'**
+  String get rejoinTitle;
+
+  /// Main menu dialog text offering to rejoin the Wi-Fi match.
+  ///
+  /// In en, this message translates to:
+  /// **'You left a Wi-Fi match that may still be going. Go back to it?'**
+  String get rejoinBody;
+
+  /// Button: rejoin the Wi-Fi match.
+  ///
+  /// In en, this message translates to:
+  /// **'Go back'**
+  String get rejoinOk;
+
+  /// Button: don't rejoin; the match is forgotten on this phone.
+  ///
+  /// In en, this message translates to:
+  /// **'Forget it'**
+  String get rejoinForget;
+
+  /// Rejoining failed: the host ended the match or is gone.
+  ///
+  /// In en, this message translates to:
+  /// **'That match is no longer waiting for you.'**
+  String get rejoinFailed;
+
+  /// Shown in the arena while a rejoined phone replays the match so far.
+  ///
+  /// In en, this message translates to:
+  /// **'Catching up…'**
+  String get rejoinCatchingUp;
+
   /// This phone lost the host mid-match and is trying to rejoin.
   ///
   /// In en, this message translates to:
