@@ -4,6 +4,7 @@ import '../../app/match_config.dart';
 import '../../app/paw_palette.dart';
 import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
+import '../../net/session.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/pet_figure.dart';
 import 'arena_screen.dart';
@@ -58,6 +59,7 @@ class ResultsScreen extends StatelessWidget {
     required this.result,
     required this.config,
     this.net = false,
+    this.host,
   });
 
   final MatchResult result;
@@ -66,6 +68,10 @@ class ResultsScreen extends StatelessWidget {
   /// A Wi-Fi match: the main button goes back to the room's lobby (the
   /// host starts the next one) and there is no team editing here.
   final bool net;
+
+  /// A Wi-Fi match on the host's phone: it can start the next match from
+  /// here, and every phone follows it into the arena.
+  final HostSession? host;
 
   @override
   Widget build(BuildContext context) {
@@ -276,10 +282,30 @@ class ResultsScreen extends StatelessWidget {
       ),
     );
 
+    final host = this.host;
+    void toLobby() => Navigator.of(
+      context,
+    ).popUntil(ModalRoute.withName(LobbyScreen.routeName));
     final buttons = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        PawButton(
+        if (host != null)
+          ListenableBuilder(
+            listenable: host,
+            builder: (context, _) => PawButton(
+              label: l10n.netRematch,
+              icon: Icons.replay_rounded,
+              fill: Paw.orange,
+              display: true,
+              fontSize: 22,
+              height: 56,
+              borderWidth: 3,
+              // The lobby takes every phone into the new match.
+              onPressed: host.canStart ? host.startMatch : null,
+            ),
+          )
+        else
+          PawButton(
           label: net ? l10n.netBackToLobby : l10n.resultPlayAgain,
           icon: net ? Icons.groups_rounded : Icons.replay_rounded,
           fill: Paw.orange,
@@ -288,9 +314,7 @@ class ResultsScreen extends StatelessWidget {
           height: 56,
           borderWidth: 3,
           onPressed: net
-              ? () => Navigator.of(
-                  context,
-                ).popUntil(ModalRoute.withName(LobbyScreen.routeName))
+              ? toLobby
               : () => Navigator.of(context).pushReplacement(
                   MaterialPageRoute<void>(
                     builder: (_) => ArenaScreen(config: config),
@@ -300,6 +324,18 @@ class ResultsScreen extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
+            if (host != null) ...[
+              Expanded(
+                child: PawButton(
+                  label: l10n.netBackToLobby,
+                  height: 48,
+                  fontSize: 14,
+                  expand: true,
+                  onPressed: toLobby,
+                ),
+              ),
+              const SizedBox(width: 10),
+            ],
             if (!net) ...[
               Expanded(
                 child: PawButton(

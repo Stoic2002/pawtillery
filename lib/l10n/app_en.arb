@@ -1456,6 +1456,10 @@
       }
     }
   },
+  "netRematch": "Play again",
+  "@netRematch": {
+    "description": "Results of a Wi-Fi match, host only: start the next match with the same setup and players."
+  },
   "netWaiting": "Waiting for {name}…",
   "@netWaiting": {
     "description": "The match is waiting for a player's phone.",

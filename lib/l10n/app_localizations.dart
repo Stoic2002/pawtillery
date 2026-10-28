@@ -2390,6 +2390,12 @@ abstract class AppLocalizations {
   /// **'{name}\'s turn'**
   String netTurnOf(String name);
 
+  /// Results of a Wi-Fi match, host only: start the next match with the same setup and players.
+  ///
+  /// In en, this message translates to:
+  /// **'Play again'**
+  String get netRematch;
+
   /// The match is waiting for a player's phone.
   ///
   /// In en, this message translates to:

@@ -294,6 +294,10 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
             result: result,
             config: widget.config,
             net: widget.net != null,
+            host: switch (widget.net) {
+              final HostSession host => host,
+              _ => null,
+            },
           ),
         ),
       );

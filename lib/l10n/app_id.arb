@@ -383,6 +383,7 @@
   "lobbyLeave": "Keluar",
   "setupDone": "Selesai",
   "netTurnOf": "Giliran {name}",
+  "netRematch": "Main lagi",
   "netWaiting": "Menunggu {name}…",
   "netPlayerLeft": "{name} terputus.",
   "netPausedHost": "Match dijeda. Kamu bisa mengakhirinya.",

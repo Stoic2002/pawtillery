@@ -8,6 +8,8 @@ import 'package:pawtillery/app/match_history.dart';
 import 'package:pawtillery/config/cpu.dart';
 import 'package:pawtillery/config/weapons.dart';
 import 'package:pawtillery/l10n/app_localizations.dart';
+import 'package:pawtillery/net/link.dart';
+import 'package:pawtillery/net/session.dart';
 import 'package:pawtillery/services/audio_service.dart';
 import 'package:pawtillery/services/settings_store.dart';
 import 'package:pawtillery/ui/hud/pause_dialog.dart';
@@ -326,6 +328,58 @@ void main() {
     await tester.pump();
     expect(settings.lastMatch(const [])!.cpuTeams().keys, [1]);
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Wi-Fi results: the host plays again, every phone follows',
+      (tester) async {
+    await _landscape(tester);
+    final settings = await _settings();
+    final config = MatchConfig.defaults(const ['Milo', 'Luna']);
+    final host = HostSession(name: 'Host', config: config);
+    late GuestSession guest;
+    await tester.runAsync(() async {
+      final (a, b) = MemoryLink.pair();
+      host.addConnection(a);
+      guest = await GuestSession.join(b, name: 'Ana');
+      await Future<void>.delayed(Duration.zero);
+      host.startMatch();
+      await Future<void>.delayed(Duration.zero);
+    });
+    final first = guest.match;
+    host.matchFinished();
+    guest.matchFinished();
+    expect(host.inMatch, isFalse);
+
+    const result = MatchResult(
+      winnerTeam: 0,
+      teamNames: ['Red Team', 'Blue Team'],
+      teamColors: [0xFFE53935, 0xFF1E88E5],
+      knockouts: [3, 0],
+      turns: 12,
+    );
+    await tester.pumpWidget(_wrap(
+      settings,
+      ResultsScreen(result: result, config: config, net: true, host: host),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Back to lobby'), findsOneWidget);
+    await tester.tap(find.text('Play again'));
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    expect(host.inMatch, isTrue);
+    expect(guest.match, isNot(same(first)));
+    expect(guest.match!.seed, host.match!.seed);
+
+    // A guest's results have no Play again: the host starts it.
+    await tester.pumpWidget(_wrap(
+      settings,
+      ResultsScreen(result: result, config: config, net: true),
+    ));
+    await tester.pumpAndSettle();
+    expect(find.text('Play again'), findsNothing);
+    await tester.runAsync(() async {
+      await guest.leave();
+      await host.leave();
+    });
   });
 
   testWidgets('every screen fits in Indonesian without overflow',

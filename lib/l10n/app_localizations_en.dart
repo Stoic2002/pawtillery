@@ -1237,6 +1237,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get netRematch => 'Play again';
+
+  @override
   String netWaiting(String name) {
     return 'Waiting for $name…';
   }

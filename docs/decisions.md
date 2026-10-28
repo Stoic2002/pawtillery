@@ -910,3 +910,11 @@ the other phones with it.
 - **CPU:** plans with the drawn weapon at every level (Easy too, though
   it normally skips limited weapons), with no ammo cost.
 - Matches with the rule are marked with a die in the history.
+
+## Wi-Fi: play again from the results (2026-10-28)
+
+The host's results screen now has "Play again": it starts the next match
+with the same setup, players and team owners at once. Every guest
+follows on its own, because the lobby (still under the results) opens
+the arena whenever the host starts a match. "Back to lobby" stays for
+changing the setup; guests' results are unchanged (the host decides).

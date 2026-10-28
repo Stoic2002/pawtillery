@@ -1240,6 +1240,9 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
+  String get netRematch => 'Main lagi';
+
+  @override
   String netWaiting(String name) {
     return 'Menunggu $name…';
   }
