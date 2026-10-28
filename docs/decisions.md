@@ -837,8 +837,9 @@ played alone on one phone (and playtested without a second person).
   (more for the last shot), so the rock stays the everyday weapon. A
   small bonus for landing near an enemy keeps it shooting the right way
   when nothing is in reach.
-- **A turn** (`CpuPlayer`): it plans during the turn banner, 60 flights
-  per tick so a frame never stalls. If the best plan is weak it walks up
+- **A turn** (`CpuPlayer`): it plans during the turn banner, about 2 ms
+  of search per tick so a frame never stalls (a long flight on a wide map
+  with many pets costs far more than a short one, so it is timed). If the best plan is weak it walks up
   to 1.5 s towards the nearest enemy (stopping before a drop of 60 px or
   water) and plans again. It then pauses, swings the aim into place over
   0.7 s (or shows the target marker) so players can see it coming, and
@@ -955,3 +956,49 @@ Now the slot waits and the phone comes back on its own.
   goes quiet so the host really misses the guest's ticks, three phones
   waiting for one, refused rejoins, and one over real sockets on
   localhost. Not yet tried on two phones.
+
+## Performance pass (2026-10-28)
+
+No phone was connected, so this pass measured what the Mac can measure
+(a throwaway benchmark: four teams of four Hard CPUs on Backyard and
+Shipwreck, every tick timed) and read the drawing code for costs that
+are known to hurt on phones. Profile-mode numbers from a real phone are
+still the real test.
+
+- **Decor** (tufts, pebbles, toadstools, shells, bones, rubble) drew
+  every piece on the whole map each frame, built a fresh gradient paint
+  for each pebble and cap, and wrapped it all in a screen-sized offscreen
+  layer for the ambient light. Now the still pieces are recorded into one
+  picture per 512 px of map (re-recorded only when a piece is blown
+  away), only the swaying tufts are drawn live, only what is on screen
+  is drawn, and the ambient light is a colour filter on each paint. The
+  gallery renders look the same.
+- **Terrain** chunks off screen are skipped (`PawtilleryGame.visibleWorld`,
+  the camera's view plus a 64 px margin).
+- **Projectile sweep** (`ProjectilePhysics.sweep`): it checked every unit
+  at every 1 px sample. It now first checks whether any unit's hit circle
+  touches the tick's segment box and skips the per-sample check if none
+  does (most ticks of a flight). Same results exactly; the pinned hashes
+  didn't change. This serves the sim and the CPU planner alike.
+- **CPU planning** was sliced by a count of flights per tick, but one
+  flight can cost a hundred times another (near-weightless shots skimming
+  a wide map with 16 pets). It is now sliced by time, about 2 ms a tick,
+  and a planned flight stops after 6 s or once 600 px above the map.
+  Before: single ticks of 40–240 ms while a CPU thought; after (debug
+  JIT on a Mac, after warm-up) 99 % of ticks take under 2.2 ms, sim and
+  planning together, with rare spikes that look like garbage collection.
+- The worst sim tick (a nuke carving the ground) measured 2–5 ms in the
+  same debug JIT setting; release builds run several times faster.
+
+## world.dart split into parts (2026-10-28)
+
+`lib/sim/world.dart` had grown past 2,100 lines. The private methods
+moved, unchanged, into part files as extensions on `SimWorld` (same
+library, so they still reach its private state): `world_weapons.dart`
+(what each weapon does, air support, strikes, grapple, dig, shotgun,
+the random-weapon draw), `world_impacts.dart` (blasts, damage,
+knockback, projectiles, mines, objects, unit movement and deaths,
+teleport and wall checks) and `world_hazards.dart` (gas and fire).
+`world.dart` keeps the state, setup, the step, the `SimContext`
+methods, the turn flow and the state hash (980 lines). The pinned hashes
+are unchanged.
