@@ -217,16 +217,19 @@ void main() {
         terrain: t,
         water: 990,
       );
+      // A little off vertical: straight down, the rabbit drops into its
+      // own hole and the drill meets it on the way.
       final e = fireAndSettle(w,
-          const Fire(weaponId: 'drillCarrot', angleDeg: 270, powerPercent: 30));
+          const Fire(weaponId: 'drillCarrot', angleDeg: 280, powerPercent: 30));
       final blast = explosions(e).single;
       expect(blast.radius, Weapons.drillCarrot.radius);
       expect(blast.y, inInclusiveRange(590, 620));
-      expect(t.isSolid(1000, 500), isFalse, reason: 'tunnel');
+      expect(t.isSolid(1018, 500), isFalse, reason: 'tunnel');
       expect(e.whereType<TerrainCarved>().length, greaterThan(5));
     });
 
-    test('Serangan Telur drops 5 eggs around the chosen column', () {
+    test('Serangan Telur drops 5 eggs around the chosen column; they '
+        'bounce before they burst', () {
       final w = world([
         UnitPlacement(0, 200, 400, familyId: 'bird'),
         UnitPlacement(1, 1800, 400),
@@ -236,8 +239,8 @@ void main() {
       final blasts = explosions(e).toList();
       expect(blasts, hasLength(5));
       for (final b in blasts) {
-        expect(b.x, inInclusiveRange(910, 1090));
-        expect(b.y, inInclusiveRange(398, 402));
+        expect(b.x, inInclusiveRange(880, 1120));
+        expect(b.y, inInclusiveRange(300, 402), reason: 'near the ground');
       }
     });
 
@@ -325,14 +328,14 @@ void main() {
       expect(w.units[0].x, lessThanOrEqualTo(350));
     });
 
-    test('Kelapa Jatuh: heavy, ignores wind, big blast', () {
+    test('Kelapa Jatuh: heavy, ignores wind, big blast, rolls on', () {
       final w = world([
         UnitPlacement(0, 200, 400, familyId: 'monkey'),
         UnitPlacement(1, 1800, 400),
       ]);
       final e = fireAndSettle(w,
           const Fire(weaponId: 'coconut', angleDeg: 60, powerPercent: 60));
-      expect(explosions(e).single.radius, 60);
+      expect(explosions(e).single.radius, Weapons.coconut.radius);
       final t = flatMap();
       double landX(WeaponDef weapon) {
         final path = ProjectilePhysics.predict(
@@ -414,7 +417,12 @@ void main() {
 // Then (→ 4258472990) it also covers shields and shotgun pulls; same play.
 // Then (→ 1362962014) it also covers poison gas and poisoned pets; same play.
 // Then (→ 1693201566) the ammo of two new weapons; same play.
-const _pinnedWeaponsHash = 1693201566;
+// Re-pinned 2026-10-29 (→ 2920681301): play changed on purpose. Pets have
+// their own, heavier gravity and walk slower; gas bites while a pet stays
+// in it; damage was rebalanced (lower, lightning most); the bottle rocket,
+// twin sling, coconut, flowerpots, meteors, eggs and hairball got their own
+// mechanics; sudden death crumbles the ground instead of raising water.
+const _pinnedWeaponsHash = 2920681301;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

@@ -700,7 +700,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get howWinBody =>
-      'The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, everyone drops to 1 HP and the water rises every round.';
+      'The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, the ground gives way after every round, in more places each time, until nobody has anywhere to stand.';
 
   @override
   String get settingsLanguage => 'Language';
@@ -984,7 +984,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weaponClusterDesc => 'Bursts into small bomblets.';
 
   @override
-  String get weaponTwinSlingDesc => 'Two quick stones in a row.';
+  String get weaponTwinSlingDesc =>
+      'Two quick stones that go straight through pets, hitting every one in line, and burst where they reach the ground.';
 
   @override
   String get weaponPunchDesc => 'Knock a neighbour away.';
@@ -1000,7 +1001,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weaponSkipDesc => 'Pass this turn.';
 
   @override
-  String get weaponHairballDesc => 'A hairball that splits into sticky clumps.';
+  String get weaponHairballDesc =>
+      'A hairball that bursts into sticky clumps: they cling to whatever they touch and pop 2 s later.';
 
   @override
   String get weaponBoneBoomerangDesc => 'Flies out and comes back.';
@@ -1009,7 +1011,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weaponDrillCarrotDesc => 'Digs a tunnel through the ground.';
 
   @override
-  String get weaponEggStrikeDesc => 'Eggs rain down on a spot you pick.';
+  String get weaponEggStrikeDesc =>
+      'A flock drops eggs across the spot; they bounce and scatter before they burst.';
 
   @override
   String get weaponSeedMinesDesc => 'Scatters small seed mines.';
@@ -1027,7 +1030,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weaponHeadbuttDesc => 'A strong charge that sends foes flying.';
 
   @override
-  String get weaponCoconutDesc => 'A coconut falls on a spot you pick.';
+  String get weaponCoconutDesc =>
+      'Heavy and wind-proof. Where it lands it rolls on, and bursts when it hits a pet or stops.';
 
   @override
   String get mapBackyard => 'Backyard';
@@ -1058,7 +1062,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weaponBottleRocketDesc =>
-      'Fast and flat. Still pushed by the wind.';
+      'Fast and flat, pushed by the wind. It glances off the ground up to twice before it goes off: shoot around cover.';
 
   @override
   String get weaponSnifferRocketDesc =>
@@ -1078,7 +1082,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weaponFirecrackerDesc => 'Set it down and run: a big bang in 4 s.';
 
   @override
-  String get weaponFlowerpotRainDesc => 'Flowerpots fall on a spot you pick.';
+  String get weaponFlowerpotRainDesc =>
+      'Five pots fall one after another on the very same spot, digging a deep hole.';
 
   @override
   String get weaponDigClawsDesc =>
@@ -1351,7 +1356,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weaponMeteorShowerDesc =>
-      'Tap a spot: six burning meteors rain down around it, one after another, slanting with the wind.';
+      'Tap a spot: six burning meteors rain down around it, one after another, slanting with the wind. Each leaves a small fire.';
 
   @override
   String get weaponGrapple => 'Grappling Hook';
@@ -1399,7 +1404,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weaponPoisonGasDesc =>
-      'Releases a cloud of gas that drifts with the wind for 3 turns. Pets inside are poisoned: they lose 5 HP at the start of each turn (never the last HP) until healed.';
+      'Releases a cloud of gas that drifts with the wind for 3 turns. Pets inside lose 3 HP every second they stay (up to 15 a turn) and are poisoned: 5 HP at the start of each of their turns until healed. Gas never takes the last HP.';
 
   @override
   String get weaponFirstAid => 'First-Aid Kit';

@@ -35,6 +35,12 @@ abstract final class MatchDefaults {
   /// null = sudden death off.
   static const suddenDeathOptions = <int?>[null, 10, 15];
 
-  /// Sudden death: how far the water rises at the end of every round, px.
-  static const int suddenDeathWaterRise = 20;
+  /// Sudden death: after every round the ground gives way in holes of
+  /// [crumbleRadius] px: one near every pet still standing (up to
+  /// [crumbleNearPet] px either side), plus [crumbleHolesFirst] anywhere
+  /// after the first round, one more each round up to [crumbleHolesMax].
+  static const int crumbleRadius = 44;
+  static const int crumbleHolesFirst = 3;
+  static const int crumbleHolesMax = 10;
+  static const int crumbleNearPet = 30;
 }

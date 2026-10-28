@@ -22,6 +22,7 @@ void applyImpact(ImpactSpec spec, Projectile p, SimContext ctx) {
           y: p.freeY - 2,
           vx: vx,
           vy: vy,
+          fuseTicks: child.fuseTicks,
         ));
       });
     case Ignite():

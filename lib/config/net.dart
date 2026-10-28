@@ -5,8 +5,9 @@ abstract final class NetConfig {
   /// are turned away in the lobby. 2 = bomber, satellite, homing missile;
   /// 3 = jet missile, storm cloud delay, bird flock; 4 = map objects;
   /// 5 = dig mode, black hole, sticky bomb, clay, swap; 14 = random
-  /// weapons rule; 15 = rejoining a match.
-  static const int protocolVersion = 15;
+  /// weapons rule; 15 = rejoining a match; 16 = pet gravity, gas damage,
+  /// rebalanced and reworked weapons, crumbling sudden death.
+  static const int protocolVersion = 16;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;

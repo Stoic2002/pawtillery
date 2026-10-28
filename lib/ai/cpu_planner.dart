@@ -198,7 +198,8 @@ class CpuPlanner {
           Nuke() => true,
           AddGround() || ScatterMines() => false,
         },
-        Sticky() => true,
+        // Goes through pets, but the first one is hit like a plain shot.
+        Sticky() || Pierce() => true,
         _ => false,
       };
 

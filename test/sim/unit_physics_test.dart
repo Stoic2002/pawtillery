@@ -27,7 +27,7 @@ void main() {
     fail('never landed');
   }
 
-  test('walks 60 px per second on flat ground', () {
+  test('walks walkSpeed px per second on flat ground', () {
     final t = flat();
     final u = unitAt(100, 300);
     walk(u, t, 1, 60);
@@ -36,7 +36,7 @@ void main() {
     expect(u.grounded, isTrue);
     expect(u.facing, 1);
     walk(u, t, -1, 30);
-    expect(u.x, 130);
+    expect(u.x, closeTo(100 + UnitConfig.walkSpeed / 2, 1));
     expect(u.facing, -1);
   });
 

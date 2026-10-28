@@ -27,18 +27,39 @@ extension _Hazards on SimWorld {
           .clamp(0.0, terrain.width - 1.0);
     }
     for (final u in _units) {
-      if (!u.alive || u.poisoned) continue;
+      if (!u.alive) continue;
+      PoisonCloud? inside;
       for (final c in _clouds) {
         final dx = u.centerX - c.x;
         final dy = u.centerY - c.y;
         final r = c.radius + u.stats.hitRadius * 0.5;
-        if (dx * dx + dy * dy > r * r) continue;
-        if (_damage(u, 0, DamageCause.poison, sourceId: c.ownerId)) {
+        if (dx * dx + dy * dy <= r * r) {
+          inside = c;
+          break;
+        }
+      }
+      if (inside == null) {
+        u.gasTicks = 0;
+        continue;
+      }
+      if (!u.poisoned) {
+        // A shield keeps the gas out once (and pops).
+        if (_damage(u, 0, DamageCause.poison, sourceId: inside.ownerId)) {
           u.poisoned = true;
           _events.add(UnitPoisoned(u.id));
         }
-        break;
+        continue;
       }
+      // While it stays inside, the gas keeps biting, a little at a time.
+      if (++u.gasTicks < GasConfig.insideIntervalTicks) continue;
+      u.gasTicks = 0;
+      final amount = min(
+        GasConfig.insideDamage,
+        min(u.hp - 1, GasConfig.insideMaxPerTurn - u.gasTakenThisTurn),
+      );
+      if (amount <= 0) continue;
+      u.gasTakenThisTurn += amount;
+      _damage(u, amount, DamageCause.poison, sourceId: inside.ownerId);
     }
   }
 

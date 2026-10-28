@@ -41,7 +41,8 @@ extension _Weapons on SimWorld {
         for (var i = 1; i < shots; i++) {
           _pendingShots.add((_tick + i * shotIntervalTicks, unit.id, input));
         }
-      case AirStrike(:final childId, :final count, :final spacing):
+      case AirStrike(:final childId, :final count, :final spacing,
+            :final stagger):
         final child = Weapons.byId(childId);
         for (var i = 0; i < count; i++) {
           spawnProjectile(Projectile(
@@ -49,9 +50,10 @@ extension _Weapons on SimWorld {
             ownerId: unit.id,
             weapon: child,
             x: tx! + (i * 2 - (count - 1)) * spacing / 2,
-            y: -40,
+            y: -40.0 - i * stagger,
             vx: 0,
             vy: 0,
+            fuseTicks: child.fuseTicks,
           ));
         }
       case final AirRaid raid:
@@ -476,6 +478,7 @@ extension _Weapons on SimWorld {
           y: y,
           vx: b.dir * b.speed,
           vy: 0,
+          fuseTicks: b.payload.fuseTicks,
         );
         if (b.payload.flight case Homing(chosenTarget: true)) {
           p

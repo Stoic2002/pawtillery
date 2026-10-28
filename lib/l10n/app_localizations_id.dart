@@ -702,7 +702,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get howWinBody =>
-      'Tim terakhir yang masih punya unit menang. Dua jari menggeser dan memperbesar kamera. Saat mati mendadak dimulai, semua unit tinggal 1 HP dan air naik setiap ronde.';
+      'Tim terakhir yang masih punya unit menang. Dua jari menggeser dan memperbesar kamera. Saat mati mendadak dimulai, tanah runtuh setiap ronde di makin banyak tempat, sampai tidak ada lagi tempat berpijak.';
 
   @override
   String get settingsLanguage => 'Bahasa';
@@ -987,7 +987,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get weaponClusterDesc => 'Pecah jadi bom-bom kecil.';
 
   @override
-  String get weaponTwinSlingDesc => 'Dua batu cepat berturut-turut.';
+  String get weaponTwinSlingDesc =>
+      'Dua batu cepat yang menembus peliharaan, mengenai semua yang sebaris, lalu pecah saat sampai di tanah.';
 
   @override
   String get weaponPunchDesc => 'Pukul tetangga sampai terpental.';
@@ -1003,7 +1004,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get weaponHairballDesc =>
-      'Bola bulu yang pecah jadi gumpalan lengket.';
+      'Bola bulu yang pecah jadi gumpalan lengket: menempel pada apa saja yang disentuh dan meletus 2 detik kemudian.';
 
   @override
   String get weaponBoneBoomerangDesc => 'Terbang keluar lalu kembali.';
@@ -1012,7 +1013,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get weaponDrillCarrotDesc => 'Menggali terowongan di tanah.';
 
   @override
-  String get weaponEggStrikeDesc => 'Hujan telur di titik yang kamu pilih.';
+  String get weaponEggStrikeDesc =>
+      'Sekawanan burung menjatuhkan telur di sekitar titik itu; telurnya memantul dan berhamburan sebelum pecah.';
 
   @override
   String get weaponSeedMinesDesc => 'Menebar ranjau biji kecil.';
@@ -1030,7 +1032,8 @@ class AppLocalizationsId extends AppLocalizations {
   String get weaponHeadbuttDesc => 'Seruduk kuat yang melempar musuh.';
 
   @override
-  String get weaponCoconutDesc => 'Kelapa jatuh di titik yang kamu pilih.';
+  String get weaponCoconutDesc =>
+      'Berat dan tidak terpengaruh angin. Setelah jatuh ia menggelinding, lalu pecah saat mengenai peliharaan atau berhenti.';
 
   @override
   String get mapBackyard => 'Halaman Belakang';
@@ -1061,7 +1064,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get weaponBottleRocketDesc =>
-      'Cepat dan lurus. Tetap terdorong angin.';
+      'Cepat dan lurus, terdorong angin. Memantul di tanah sampai dua kali sebelum meledak: tembak dari balik penghalang.';
 
   @override
   String get weaponSnifferRocketDesc =>
@@ -1083,7 +1086,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get weaponFlowerpotRainDesc =>
-      'Pot bunga berjatuhan di titik yang kamu pilih.';
+      'Lima pot jatuh bergantian tepat di titik yang sama, menggali lubang yang dalam.';
 
   @override
   String get weaponDigClawsDesc =>
@@ -1355,7 +1358,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get weaponMeteorShowerDesc =>
-      'Ketuk satu titik: enam meteor membara berjatuhan di sekitarnya satu per satu, miring terbawa angin.';
+      'Ketuk satu titik: enam meteor membara berjatuhan di sekitarnya satu per satu, miring terbawa angin. Tiap meteor meninggalkan api kecil.';
 
   @override
   String get weaponGrapple => 'Tali Pengait';
@@ -1403,7 +1406,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get weaponPoisonGasDesc =>
-      'Melepaskan awan gas yang terbawa angin selama 3 giliran. Pet di dalamnya teracun: kehilangan 5 HP di awal tiap gilirannya (tidak sampai HP terakhir) sampai disembuhkan.';
+      'Melepaskan awan gas yang terbawa angin selama 3 giliran. Pet di dalamnya kehilangan 3 HP tiap detik selama masih di dalam (maks. 15 per giliran) dan teracun: 5 HP di awal tiap gilirannya sampai disembuhkan. Gas tidak pernah mengambil HP terakhir.';
 
   @override
   String get weaponFirstAid => 'Kotak P3K';

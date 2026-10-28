@@ -177,7 +177,10 @@ class SimWorld implements SimContext {
   bool get suddenDeath => _suddenDeath;
 
   /// Turns played since the water last rose.
-  int _turnsSinceRise = 0;
+  int _turnsThisRound = 0;
+
+  /// Rounds of sudden death the ground has already crumbled.
+  int _crumbles = 0;
 
   int _tick = 0;
   int get tick => _tick;
@@ -712,7 +715,7 @@ class SimWorld implements SimContext {
     _pendingShots.clear();
     _aircraft.clear();
     _strikes.clear();
-    if (_suddenDeath) _maybeRaiseWater();
+    if (_suddenDeath) _maybeCrumble();
     _killKnockedOut();
     _clouds.removeWhere((c) => --c.turnsLeft <= 0);
     for (var i = _fires.length - 1; i >= 0; i--) {
@@ -747,6 +750,9 @@ class SimWorld implements SimContext {
     _burnt.clear();
     _frozenSkip = false;
     _shotgunLeft = 0;
+    for (final u in _units) {
+      u.gasTakenThisTurn = 0;
+    }
     turn.startNextTurn([
       for (var team = 0; team < teamCount; team++)
         [
@@ -777,29 +783,50 @@ class SimWorld implements SimContext {
   /// PRD: every unit drops to 1 HP, then the water rises each round.
   void _startSuddenDeath() {
     _suddenDeath = true;
-    _turnsSinceRise = 0;
-    for (final u in _units) {
-      if (u.alive && u.hp > 1) u.hp = 1;
-    }
+    _turnsThisRound = 0;
+    _crumbles = 0;
     _events.add(const SuddenDeathStarted());
   }
 
   /// A round is over once every team still in the game has had a turn;
-  /// then the water rises and drowns whoever it reaches.
-  void _maybeRaiseWater() {
-    _turnsSinceRise++;
-    final teamsAlive = {
+  /// then the ground gives way near every pet and in more places each
+  /// round, until there is nowhere left to stand.
+  void _maybeCrumble() {
+    _turnsThisRound++;
+    final living = [
       for (final u in _units)
-        if (u.alive) u.team,
-    }.length;
-    if (_turnsSinceRise < teamsAlive) return;
-    _turnsSinceRise = 0;
-    _waterLevel = (_waterLevel - MatchDefaults.suddenDeathWaterRise)
-        .clamp(0, terrain.height);
-    _events.add(WaterRose(_waterLevel));
-    for (final u in _units) {
-      if (u.alive) _checkBounds(u);
+        if (u.alive) u,
+    ];
+    final teamsAlive = {for (final u in living) u.team}.length;
+    if (_turnsThisRound < teamsAlive) return;
+    _turnsThisRound = 0;
+    final random = min(
+      MatchDefaults.crumbleHolesMax,
+      MatchDefaults.crumbleHolesFirst + _crumbles,
+    );
+    final holes = living.length + random;
+    _crumbles++;
+    const r = MatchDefaults.crumbleRadius;
+    for (var i = 0; i < holes; i++) {
+      final int x;
+      if (i < living.length) {
+        x = living[i].centerX.round() +
+            rng.nextIntInRange(
+              -MatchDefaults.crumbleNearPet,
+              MatchDefaults.crumbleNearPet,
+            );
+      } else {
+        x = rng.nextIntInRange(0, terrain.width - 1);
+      }
+      final cx = x.clamp(0, terrain.width - 1);
+      var top = 0;
+      while (top < _waterLevel && !terrain.isSolid(cx, top)) {
+        top++;
+      }
+      if (top >= _waterLevel) continue;
+      carveTunnel(cx, top + r ~/ 2, r);
     }
+    _events.add(GroundCrumbled(holes));
   }
 
   void _setPhase(TurnPhase phase) {
@@ -828,7 +855,8 @@ class SimWorld implements SimContext {
       ..add(turn.winnerTeam ?? -1)
       ..add(_waterLevel)
       ..add(_suddenDeath ? 1 : 0)
-      ..add(_turnsSinceRise)
+      ..add(_turnsThisRound)
+      ..add(_crumbles)
       ..add(_lastHitTick)
       ..add(_nextFireId)
       ..add(_frozenSkip ? 1 : 0)
@@ -883,6 +911,8 @@ class SimWorld implements SimContext {
         ..add(u.frozenTurns)
         ..add(u.shielded ? 1 : 0)
         ..add(u.poisoned ? 1 : 0)
+        ..add(u.gasTicks)
+        ..add(u.gasTakenThisTurn)
         ..addDouble(u.grappleX)
         ..addDouble(u.grappleY)
         ..addDouble(u.x)
@@ -907,7 +937,8 @@ class SimWorld implements SimContext {
         ..addDouble(p.traveled)
         ..addDouble(p.targetX ?? -1)
         ..addDouble(p.targetY ?? -1)
-        ..add(p.stuckTo ?? -2);
+        ..add(p.stuckTo ?? -2)
+        ..add(p.hitUnits.length);
     }
     h.add(_mines.length);
     for (final m in _mines) {

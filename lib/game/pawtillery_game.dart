@@ -768,7 +768,7 @@ class PawtilleryGame extends FlameGame {
               PhaseChanged() ||
               WeaponDrawn() ||
               SuddenDeathStarted() ||
-              WaterRose() ||
+              GroundCrumbled() ||
               MatchEnded():
           break;
       }

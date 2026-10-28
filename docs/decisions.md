@@ -1002,3 +1002,46 @@ teleport and wall checks) and `world_hazards.dart` (gas and fire).
 `world.dart` keeps the state, setup, the step, the `SimContext`
 methods, the turn flow and the state hash (980 lines). The pinned hashes
 are unchanged.
+
+## Playtest round 1: feel, balance, weapon variety, crumbling ground (2026-10-29)
+
+After the developer's first look on a phone.
+
+- **Falls:** pets shared the projectiles' gravity (500 px/s²) and fell
+  like balloons. They now have their own, `UnitConfig.gravity` 1100; the
+  jump velocities were raised so both jumps keep their height and length
+  (forward ≈ 58 px high, 152 px far; high ≈ 90 px), and a glide keeps its
+  old sideways speed (`glideSpeedX`). The walking duck hops as before.
+  Knockback arcs are shorter, so fewer pets end up in the water.
+- **Walking** 60 → 45 px/s.
+- **HUD** is laid out as before and drawn at 85 % (`ControlsConfig.hudScale`),
+  so every piece shrinks evenly and keeps its corner.
+- **Poison gas** now also bites while a pet stays in a cloud: 3 HP a
+  second, at most 15 a turn, never the last HP (plus the 5 HP at the start
+  of a poisoned pet's turn, as before). No hit sound for these bites.
+- **Damage** cut by about a quarter to a third so matches last longer
+  (rock 45 → 32, grenade 50 → 40, nuke 60 → 50, coconut 70 → 50, ...).
+  Lightning, which needs no aim and hits from the sky, the most: 45 → 26,
+  radius 34 → 28. Knockback scales with damage, so it shrank too. A CPU
+  Normal against Normal on the four maps went from 33–62 turns to 34–78.
+- **Weapons that played alike now differ:**
+  - Bottle rocket (`Ricochet`): glances off the ground up to twice, then
+    explodes; a pet is hit at once.
+  - Twin sling (`Pierce`): goes through pets (each takes a direct hit,
+    pushed along the flight) and bursts on the ground.
+  - Coconut (`Roll`): rolls on from where it lands (small bumps only),
+    bursting on a pet, when it stops, or after 3 s.
+  - Flowerpot rain: all five pots on one spot, one after another
+    (`AirStrike.stagger`), digging a deep hole; the bomber stays the wide
+    carpet.
+  - Meteors each leave a small fire; eggs bounce and scatter before they
+    burst (0.8 s fuse); hairball clumps stick to what they touch and pop
+    after 2 s. Payloads and split pieces now carry their weapon's fuse.
+  The CPU uses the piercing sling like a plain throw; it doesn't plan
+  with the ricochet or the roll yet.
+- **Sudden death** no longer drops everyone to 1 HP and raises the water
+  (too close to an existing game). After every round the ground gives
+  way (`GroundCrumbled`): one 44 px hole near every pet still standing
+  plus 3 random ones, one more each round (up to 10). It ended the CPU
+  test matches 20–34 turns after it started.
+- Pins changed (play changed on purpose); Wi-Fi protocol version 16.

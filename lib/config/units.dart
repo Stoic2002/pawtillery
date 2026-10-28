@@ -10,18 +10,24 @@ abstract final class UnitConfig {
   static const double hitRadius = 12;
 
   /// Walking speed, px/s.
-  static const double walkSpeed = 60;
+  static const double walkSpeed = 45;
+
+  /// Downward acceleration of pets (and walking weapons), px/s². Heavier
+  /// than projectiles' [PhysicsConfig.gravity] so falls and landings don't
+  /// float; the jump velocities below keep the jumps' height and length.
+  static const double gravity = 1100;
 
   /// Highest step climbed while walking; steeper counts as a wall.
   static const int maxClimb = 6;
 
   /// Velocities (px/s) for the two jumps. Horizontal is along facing.
   /// Peaks (v² / 2g): forward ≈ 58 px, high ≈ 90 px, both safely under the
-  /// fall-damage threshold so a plain jump never hurts.
-  static const double jumpForwardVx = 160;
-  static const double jumpForwardVy = 240;
-  static const double jumpHighVx = 40;
-  static const double jumpHighVy = 300;
+  /// fall-damage threshold so a plain jump never hurts. Reach (vx · 2vy/g):
+  /// forward ≈ 152 px, high ≈ 47 px.
+  static const double jumpForwardVx = 235;
+  static const double jumpForwardVy = 357;
+  static const double jumpHighVx = 58;
+  static const double jumpHighVy = 445;
 
   /// Fall damage: 1 HP per [fallDamagePxPerHp] px beyond [fallDamageThreshold],
   /// capped at [fallDamageMax].
@@ -39,6 +45,10 @@ abstract final class UnitConfig {
 
   /// Fall speed cap while gliding (Burung), px/s.
   static const double glideFallSpeed = 90;
+
+  /// Sideways speed cap while gliding, px/s: a glide covers the same ground
+  /// whatever the jump's take-off speed.
+  static const double glideSpeedX = 160;
 
   /// Spawn rules (PRD: Peta 1.0).
   static const int spawnMinDistance = 150;

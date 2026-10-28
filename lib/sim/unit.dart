@@ -36,7 +36,7 @@ class UnitStats {
     // (Kelinci) or extra jumps in mid-air (Ayam). Peak = v² / 2g.
     const basePeak = UnitConfig.jumpHighVy *
         UnitConfig.jumpHighVy /
-        (2 * PhysicsConfig.gravity);
+        (2 * UnitConfig.gravity);
     final highPeak = basePeak * p.highJumpHeightScale;
     final extraPeak = (highPeak - basePeak) + p.airJumps * highPeak;
     return UnitStats(
@@ -153,6 +153,11 @@ class Unit {
   /// Poison gas: loses HP at the start of each own turn until cured.
   bool poisoned = false;
 
+  /// Ticks spent inside a gas cloud since its last bite, and HP the gas
+  /// took this turn (see [GasConfig.insideMaxPerTurn]).
+  int gasTicks = 0;
+  int gasTakenThisTurn = 0;
+
   /// Ice Bomb: own turns still to sit out frozen.
   int frozenTurns = 0;
   bool get frozen => frozenTurns > 0;
@@ -262,7 +267,10 @@ abstract final class UnitPhysics {
     final h = u.stats.bodyHeight;
     final maxFall =
         u.gliding ? UnitConfig.glideFallSpeed : UnitConfig.maxFallSpeed;
-    u.vy = min(u.vy + PhysicsConfig.gravity * _dt, maxFall);
+    u.vy = min(u.vy + UnitConfig.gravity * _dt, maxFall);
+    if (u.gliding) {
+      u.vx = u.vx.clamp(-UnitConfig.glideSpeedX, UnitConfig.glideSpeedX);
+    }
 
     var dx = u.vx * _dt;
     while (dx != 0) {

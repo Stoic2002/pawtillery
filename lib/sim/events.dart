@@ -321,10 +321,12 @@ final class SuddenDeathStarted extends SimEvent {
 }
 
 /// The water rose (sudden death) to [level].
-final class WaterRose extends SimEvent {
-  const WaterRose(this.level);
-  final int level;
+/// Sudden death: the ground gave way in [holes] places this round.
+final class GroundCrumbled extends SimEvent {
+  const GroundCrumbled(this.holes);
+  final int holes;
 }
+
 
 /// [winnerTeam] is null for a draw.
 final class MatchEnded extends SimEvent {

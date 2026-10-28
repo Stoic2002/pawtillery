@@ -33,16 +33,20 @@ final class Launch extends Delivery {
   final int spreadDeg;
 }
 
-/// Drops [count] [childId] projectiles from above the chosen column.
+/// Drops [count] [childId] projectiles from above the chosen column,
+/// [spacing] px apart, each [stagger] px higher than the one before (so
+/// they land one after another).
 final class AirStrike extends Delivery {
   const AirStrike({
     required this.childId,
     required this.count,
     required this.spacing,
+    this.stagger = 0,
   });
   final String childId;
   final int count;
   final int spacing;
+  final int stagger;
 }
 
 /// What flies in for an [AirRaid] (drawing only).
@@ -361,6 +365,32 @@ final class Sticky extends FlightSpec {
   const Sticky();
 }
 
+/// Glances off the ground (or a wall) up to [bounces] times, keeping
+/// [keep] of its speed each time, and explodes on the next touch, or at
+/// once on a pet. Shots around cover.
+final class Ricochet extends FlightSpec {
+  const Ricochet({required this.bounces, this.keep = 0.8});
+  final int bounces;
+  final double keep;
+}
+
+/// Goes through pets: each one it meets takes the weapon's damage as a
+/// direct hit (pushed along the flight) and the shot flies on; it explodes
+/// where it meets the ground.
+final class Pierce extends FlightSpec {
+  const Pierce();
+}
+
+/// Lands, then rolls along the ground in the direction it was going at
+/// [speed] px/s, over bumps up to [climb] px but not up slopes. It
+/// explodes when it touches a pet, stops, or after [ticks].
+final class Roll extends FlightSpec {
+  const Roll({required this.speed, required this.climb, required this.ticks});
+  final double speed;
+  final int climb;
+  final int ticks;
+}
+
 // --------------------------------------------------------------- impact
 
 sealed class ImpactSpec {
@@ -570,6 +600,13 @@ abstract final class GasConfig {
   /// HP a poisoned pet loses at the start of each of its turns. Poison
   /// never takes the last HP.
   static const int damage = 5;
+
+  /// Standing in a cloud also hurts while there: [insideDamage] HP every
+  /// [insideIntervalTicks], at most [insideMaxPerTurn] per turn (anyone's),
+  /// never the last HP.
+  static const int insideDamage = 3;
+  static const int insideIntervalTicks = 60;
+  static const int insideMaxPerTurn = 15;
 }
 
 /// Player-chosen fuse range (Granat Pantul).
@@ -589,8 +626,8 @@ abstract final class Weapons {
     delivery: Launch(),
     flight: Ballistic(),
     affectedByWind: true,
-    maxDamage: 45,
-    radius: 40,
+    maxDamage: 32,
+    radius: 36,
     placeholderArgb: 0xFF5B5B66,
   );
 
@@ -601,7 +638,7 @@ abstract final class Weapons {
     delivery: Launch(),
     flight: Bouncy(restitution: 0.5),
     affectedByWind: true,
-    maxDamage: 50,
+    maxDamage: 40,
     radius: 45,
     fuseTicks: FuseConfig.defaultSeconds * 60,
     playerFuse: true,
@@ -618,7 +655,7 @@ abstract final class Weapons {
       onImpact: Split(childId: 'clusterBomblet', count: 5, explodeSelf: true),
     ),
     affectedByWind: true,
-    maxDamage: 30,
+    maxDamage: 22,
     radius: 35,
     ammo: 2,
     placeholderArgb: 0xFFC62828,
@@ -629,8 +666,8 @@ abstract final class Weapons {
     nameKey: 'weaponTwinSling',
     aim: AimMode.angleAndPower,
     delivery: Launch(shots: 2, shotIntervalTicks: 20),
-    flight: Ballistic(),
-    maxDamage: 20,
+    flight: Pierce(),
+    maxDamage: 16,
     radius: 15,
     gravityScale: 0.1,
     ammo: 3,
@@ -642,7 +679,7 @@ abstract final class Weapons {
     nameKey: 'weaponPunch',
     aim: AimMode.direction,
     delivery: AreaHit(reach: 16),
-    maxDamage: 30,
+    maxDamage: 24,
     radius: 20,
     knockbackScale: 3,
     terrainDamage: false,
@@ -654,7 +691,7 @@ abstract final class Weapons {
     nameKey: 'weaponMine',
     aim: AimMode.none,
     delivery: PlaceMine(),
-    maxDamage: 50,
+    maxDamage: 40,
     radius: 45,
     ammo: 2,
     placeholderArgb: 0xFF37474F,
@@ -678,9 +715,9 @@ abstract final class Weapons {
     nameKey: 'weaponBottleRocket',
     aim: AimMode.angleAndPower,
     delivery: Launch(),
-    flight: Ballistic(),
+    flight: Ricochet(bounces: 2),
     affectedByWind: true,
-    maxDamage: 45,
+    maxDamage: 34,
     radius: 42,
     gravityScale: 0.35,
     launchSpeedScale: 1.2,
@@ -697,7 +734,7 @@ abstract final class Weapons {
     delivery: Launch(),
     flight: Homing(delayTicks: 45, speed: 330, steer: 0.08),
     affectedByWind: true,
-    maxDamage: 40,
+    maxDamage: 30,
     radius: 40,
     ammo: 1,
     placeholderArgb: 0xFF8B5CF6,
@@ -709,7 +746,7 @@ abstract final class Weapons {
     nameKey: 'weaponLaserPointer',
     aim: AimMode.direction,
     delivery: Beam(length: 520, carveRadius: 5),
-    maxDamage: 28,
+    maxDamage: 22,
     knockbackScale: 0.6,
     ammo: 2,
     placeholderArgb: 0xFFE5484D,
@@ -721,8 +758,8 @@ abstract final class Weapons {
     nameKey: 'weaponThunderCloud',
     aim: AimMode.target,
     delivery: Lightning(delayTicks: 150),
-    maxDamage: 45,
-    radius: 34,
+    maxDamage: 26,
+    radius: 28,
     ammo: 1,
     placeholderArgb: 0xFFF5B700,
   );
@@ -734,7 +771,7 @@ abstract final class Weapons {
     aim: AimMode.angleAndPower,
     delivery: Launch(shots: 5, spreadDeg: 18),
     flight: Ballistic(),
-    maxDamage: 12,
+    maxDamage: 9,
     radius: 14,
     gravityScale: 0.25,
     launchSpeedScale: 1.1,
@@ -749,7 +786,7 @@ abstract final class Weapons {
     aim: AimMode.none,
     delivery: DropCharge(),
     flight: Bouncy(restitution: 0.25),
-    maxDamage: 70,
+    maxDamage: 55,
     radius: 65,
     fuseTicks: 4 * 60,
     ammo: 1,
@@ -761,7 +798,12 @@ abstract final class Weapons {
     id: 'flowerpotRain',
     nameKey: 'weaponFlowerpotRain',
     aim: AimMode.target,
-    delivery: AirStrike(childId: 'flowerpot', count: 5, spacing: 34),
+    delivery: AirStrike(
+      childId: 'flowerpot',
+      count: 5,
+      spacing: 4,
+      stagger: 70,
+    ),
     ammo: 1,
     placeholderArgb: 0xFFC0623A,
   );
@@ -800,7 +842,7 @@ abstract final class Weapons {
       depth: 50,
       intervalTicks: 14,
     ),
-    maxDamage: 25,
+    maxDamage: 18,
     radius: 8,
     knockbackScale: 0.7,
     ammo: 1,
@@ -839,7 +881,7 @@ abstract final class Weapons {
     nameKey: 'weaponShotgun',
     aim: AimMode.direction,
     delivery: Shotgun(shots: 2, range: 380, carveRadius: 6),
-    maxDamage: 20,
+    maxDamage: 15,
     knockbackScale: 1.3,
     ammo: 2,
     placeholderArgb: 0xFF5C4033,
@@ -897,7 +939,7 @@ abstract final class Weapons {
     delivery: Launch(),
     flight: Ballistic(onImpact: Nuke(falloutRadius: 110)),
     affectedByWind: true,
-    maxDamage: 60,
+    maxDamage: 50,
     radius: 85,
     knockbackScale: 1.4,
     launchSpeedScale: 0.85,
@@ -924,7 +966,7 @@ abstract final class Weapons {
     delivery: Launch(),
     flight: Ballistic(onImpact: Freeze(radius: 55)),
     affectedByWind: true,
-    maxDamage: 10,
+    maxDamage: 8,
     ammo: 1,
     placeholderArgb: 0xFF8FD8FF,
   );
@@ -984,7 +1026,7 @@ abstract final class Weapons {
     aim: AimMode.angleAndPower,
     delivery: Launch(),
     flight: Vortex(pullTicks: 2 * 60, pullRadius: 170, pullAccel: 1100),
-    maxDamage: 35,
+    maxDamage: 28,
     radius: 48,
     ammo: 1,
     placeholderArgb: 0xFF3B2A5C,
@@ -997,7 +1039,7 @@ abstract final class Weapons {
     aim: AimMode.angleAndPower,
     delivery: Launch(),
     flight: Sticky(),
-    maxDamage: 50,
+    maxDamage: 38,
     radius: 44,
     fuseTicks: 3 * 60,
     ammo: 2,
@@ -1057,7 +1099,7 @@ abstract final class Weapons {
     aim: AimMode.angleAndPower,
     delivery: Launch(),
     flight: Boomerang(speed: 500, minRange: 150, maxRange: 500),
-    maxDamage: 30,
+    maxDamage: 22,
     knockbackScale: 1.5,
     terrainDamage: false,
     placeholderArgb: 0xFFF5F5F5,
@@ -1071,7 +1113,7 @@ abstract final class Weapons {
     delivery: Launch(),
     flight: Drill(length: 200, speed: 300, tunnelRadius: 10),
     affectedByWind: true,
-    maxDamage: 25,
+    maxDamage: 22,
     radius: 25,
     placeholderArgb: 0xFFFF7043,
   );
@@ -1109,8 +1151,9 @@ abstract final class Weapons {
     nameKey: 'weaponBoomDuck',
     familyId: 'duck',
     aim: AimMode.direction,
-    delivery: SpawnWalker(walkSpeed: 90, bodyHeight: 14, hopVx: 100, hopVy: 220),
-    maxDamage: 40,
+    // Hops as high and far as before pets got heavier (UnitConfig.gravity).
+    delivery: SpawnWalker(walkSpeed: 90, bodyHeight: 14, hopVx: 148, hopVy: 326),
+    maxDamage: 32,
     radius: 40,
     fuseTicks: 5 * 60,
     placeholderArgb: 0xFFFFEB3B,
@@ -1122,7 +1165,7 @@ abstract final class Weapons {
     familyId: 'chicken',
     aim: AimMode.none,
     delivery: AreaHit(reach: 0),
-    maxDamage: 15,
+    maxDamage: 12,
     radius: 120,
     knockbackScale: 3,
     terrainDamage: false,
@@ -1144,7 +1187,7 @@ abstract final class Weapons {
     familyId: 'goat',
     aim: AimMode.direction,
     delivery: Dash(distance: 150, speed: 600, carveRadius: 12),
-    maxDamage: 35,
+    maxDamage: 28,
     knockbackScale: 3,
     placeholderArgb: 0xFF9E9E9E,
   );
@@ -1155,9 +1198,9 @@ abstract final class Weapons {
     familyId: 'monkey',
     aim: AimMode.angleAndPower,
     delivery: Launch(),
-    flight: Ballistic(),
-    maxDamage: 70,
-    radius: 60,
+    flight: Roll(speed: 130, climb: 2, ticks: 3 * 60),
+    maxDamage: 50,
+    radius: 52,
     gravityScale: 1.5,
     placeholderArgb: 0xFF6D4C41,
   );
@@ -1172,7 +1215,7 @@ abstract final class Weapons {
     delivery: Launch(),
     flight: Ballistic(),
     affectedByWind: true,
-    maxDamage: 15,
+    maxDamage: 10,
     radius: 20,
     placeholderArgb: 0xFFEF5350,
   );
@@ -1183,9 +1226,10 @@ abstract final class Weapons {
     hidden: true,
     aim: AimMode.none,
     delivery: Launch(),
-    flight: Ballistic(),
+    flight: Sticky(),
+    fuseTicks: 2 * 60,
     affectedByWind: true,
-    maxDamage: 20,
+    maxDamage: 15,
     radius: 25,
     placeholderArgb: 0xFFBCAAA4,
   );
@@ -1196,8 +1240,9 @@ abstract final class Weapons {
     hidden: true,
     aim: AimMode.none,
     delivery: Launch(),
-    flight: Ballistic(),
-    maxDamage: 25,
+    flight: Bouncy(restitution: 0.45),
+    fuseTicks: 80,
+    maxDamage: 18,
     radius: 30,
     placeholderArgb: 0xFFFFF9C4,
   );
@@ -1209,7 +1254,7 @@ abstract final class Weapons {
     aim: AimMode.none,
     delivery: Launch(),
     flight: Ballistic(),
-    maxDamage: 22,
+    maxDamage: 16,
     radius: 28,
     placeholderArgb: 0xFFC0623A,
   );
@@ -1220,7 +1265,7 @@ abstract final class Weapons {
     hidden: true,
     aim: AimMode.none,
     delivery: PlaceMine(),
-    maxDamage: 25,
+    maxDamage: 20,
     radius: 30,
     placeholderArgb: 0xFFD7B56D,
   );
@@ -1239,7 +1284,7 @@ abstract final class Weapons {
       chosenTarget: true,
       fuelTicks: 4 * 60,
     ),
-    maxDamage: 50,
+    maxDamage: 38,
     radius: 46,
     hidden: true,
     placeholderArgb: 0xFF9AA3A8,
@@ -1251,8 +1296,8 @@ abstract final class Weapons {
     nameKey: 'weaponMeteorShower',
     aim: AimMode.none,
     delivery: Launch(),
-    flight: Ballistic(),
-    maxDamage: 24,
+    flight: Ballistic(onImpact: Ignite(patches: 1, spread: 18)),
+    maxDamage: 16,
     radius: 30,
     hidden: true,
     placeholderArgb: 0xFFB5562A,
@@ -1264,7 +1309,7 @@ abstract final class Weapons {
     nameKey: 'weaponBarrel',
     aim: AimMode.none,
     delivery: Launch(),
-    maxDamage: 40,
+    maxDamage: 34,
     radius: 52,
     hidden: true,
     placeholderArgb: 0xFFC0392B,
@@ -1289,7 +1334,7 @@ abstract final class Weapons {
     aim: AimMode.none,
     delivery: Launch(),
     flight: Ballistic(),
-    maxDamage: 30,
+    maxDamage: 20,
     radius: 32,
     hidden: true,
     placeholderArgb: 0xFF4E5A3C,

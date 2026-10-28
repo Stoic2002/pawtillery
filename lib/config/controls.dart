@@ -1,5 +1,8 @@
 /// Touch controls tuning (PRD: Kontrol sentuh Android).
 abstract final class ControlsConfig {
+  /// The arena HUD is drawn at this share of its designed size.
+  static const double hudScale = 0.85;
+
   /// Share of the predicted path shown by the aim guide.
   static const double aimGuideFraction = 0.25;
   static const int angleStep = 1;

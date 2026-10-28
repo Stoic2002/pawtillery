@@ -24,17 +24,18 @@ SimWorld _match({int? suddenDeathAfterTicks, int ground = 400}) =>
     );
 
 void main() {
-  test('off by default: HP and water never change', () {
+  test('off by default: the ground and HP never change', () {
     final w = _match();
+    final ground = solidCount(w.terrain);
     for (var i = 0; i < 6; i++) {
       toNextTurn(w);
     }
     expect(w.suddenDeath, isFalse);
-    expect(w.waterLevel, 560);
+    expect(solidCount(w.terrain), ground);
     expect(w.units.every((u) => u.hp == 100), isTrue);
   });
 
-  test('starts with the first turn after the limit: everyone to 1 HP', () {
+  test('starts with the first turn after the limit; HP and water stay', () {
     final w = _match(suddenDeathAfterTicks: 1000);
     final events = <SimEvent>[];
     while (!w.suddenDeath) {
@@ -42,42 +43,47 @@ void main() {
     }
     expect(w.tick, greaterThanOrEqualTo(1000));
     expect(events.whereType<SuddenDeathStarted>(), hasLength(1));
-    expect(w.units.every((u) => u.hp == 1), isTrue);
+    expect(w.units.every((u) => u.hp == 100), isTrue);
+    expect(w.waterLevel, 560);
     expect(w.turn.phase, TurnPhase.turnStart);
   });
 
-  test('water rises 20 px after every full round', () {
+  test('the ground gives way after every round, in more places each time',
+      () {
     final w = _match(suddenDeathAfterTicks: 0);
     expect(w.suddenDeath, isTrue, reason: 'limit 0 = from the first turn');
-    final levels = <int>[];
+    final holes = <int>[];
+    var ground = solidCount(w.terrain);
     for (var turn = 0; turn < 6; turn++) {
-      levels.addAll(toNextTurn(w).whereType<WaterRose>().map((e) => e.level));
+      final e = toNextTurn(w);
+      final crumbled = e.whereType<GroundCrumbled>().toList();
+      if (crumbled.isNotEmpty) {
+        holes.add(crumbled.single.holes);
+        expect(solidCount(w.terrain), lessThan(ground));
+        ground = solidCount(w.terrain);
+      }
     }
-    // Two teams → a rise every second turn.
-    const rise = MatchDefaults.suddenDeathWaterRise;
-    expect(levels, [560 - rise, 560 - 2 * rise, 560 - 3 * rise]);
-    expect(w.waterLevel, 560 - 3 * rise);
+    // Two teams → a collapse every second turn: one hole near each of the
+    // three pets (while they stand) plus more random ones each round.
+    const first = MatchDefaults.crumbleHolesFirst;
+    expect(holes, hasLength(3));
+    for (var round = 0; round < 3; round++) {
+      final random = first + round;
+      // Pets that fell out don't get a hole of their own any more.
+      expect(holes[round], inInclusiveRange(random + 1, random + 3));
+    }
+    expect(holes.first, 3 + first);
   });
 
-  test('rising water drowns units and decides the match', () {
-    // Ground at y = 540: the water reaches unit centres after one rise.
-    final w = SimWorld.withUnits(
-      seed: 5,
-      terrain: flatMap(ground: 540),
-      waterLevel: 560,
-      teamCount: 2,
-      placements: const [
-        UnitPlacement(0, 300, 540),
-        UnitPlacement(1, 1300, 540),
-      ],
-      timings: testTimings,
-      suddenDeathAfterTicks: 0,
+  test('crumbling ground decides the match', () {
+    final w = _match(suddenDeathAfterTicks: 0);
+    final events = runUntil(
+      w,
+      () => w.turn.phase == TurnPhase.matchOver,
+      limit: 400000,
     );
-    final events = runUntil(w, () => w.turn.phase == TurnPhase.matchOver);
-    expect(events.whereType<UnitDied>().map((e) => e.cause).toSet(),
-        {DeathCause.water});
-    expect(events.whereType<MatchEnded>().single.winnerTeam, isNull,
-        reason: 'both drowned at the same rise: a draw');
+    expect(events.whereType<UnitDied>(), isNotEmpty);
+    expect(events.whereType<MatchEnded>(), hasLength(1));
   });
 
   test('damage is credited to the unit whose weapon caused it', () {

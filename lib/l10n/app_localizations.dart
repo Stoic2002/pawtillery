@@ -1391,7 +1391,7 @@ abstract class AppLocalizations {
   /// How-to-play text.
   ///
   /// In en, this message translates to:
-  /// **'The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, everyone drops to 1 HP and the water rises every round.'**
+  /// **'The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, the ground gives way after every round, in more places each time, until nobody has anywhere to stand.'**
   String get howWinBody;
 
   /// Settings label.
@@ -1925,7 +1925,7 @@ abstract class AppLocalizations {
   /// No description provided for @weaponTwinSlingDesc.
   ///
   /// In en, this message translates to:
-  /// **'Two quick stones in a row.'**
+  /// **'Two quick stones that go straight through pets, hitting every one in line, and burst where they reach the ground.'**
   String get weaponTwinSlingDesc;
 
   /// No description provided for @weaponPunchDesc.
@@ -1955,7 +1955,7 @@ abstract class AppLocalizations {
   /// No description provided for @weaponHairballDesc.
   ///
   /// In en, this message translates to:
-  /// **'A hairball that splits into sticky clumps.'**
+  /// **'A hairball that bursts into sticky clumps: they cling to whatever they touch and pop 2 s later.'**
   String get weaponHairballDesc;
 
   /// No description provided for @weaponBoneBoomerangDesc.
@@ -1973,7 +1973,7 @@ abstract class AppLocalizations {
   /// No description provided for @weaponEggStrikeDesc.
   ///
   /// In en, this message translates to:
-  /// **'Eggs rain down on a spot you pick.'**
+  /// **'A flock drops eggs across the spot; they bounce and scatter before they burst.'**
   String get weaponEggStrikeDesc;
 
   /// No description provided for @weaponSeedMinesDesc.
@@ -2009,7 +2009,7 @@ abstract class AppLocalizations {
   /// No description provided for @weaponCoconutDesc.
   ///
   /// In en, this message translates to:
-  /// **'A coconut falls on a spot you pick.'**
+  /// **'Heavy and wind-proof. Where it lands it rolls on, and bursts when it hits a pet or stops.'**
   String get weaponCoconutDesc;
 
   /// No description provided for @mapBackyard.
@@ -2069,7 +2069,7 @@ abstract class AppLocalizations {
   /// No description provided for @weaponBottleRocketDesc.
   ///
   /// In en, this message translates to:
-  /// **'Fast and flat. Still pushed by the wind.'**
+  /// **'Fast and flat, pushed by the wind. It glances off the ground up to twice before it goes off: shoot around cover.'**
   String get weaponBottleRocketDesc;
 
   /// No description provided for @weaponSnifferRocketDesc.
@@ -2105,7 +2105,7 @@ abstract class AppLocalizations {
   /// No description provided for @weaponFlowerpotRainDesc.
   ///
   /// In en, this message translates to:
-  /// **'Flowerpots fall on a spot you pick.'**
+  /// **'Five pots fall one after another on the very same spot, digging a deep hole.'**
   String get weaponFlowerpotRainDesc;
 
   /// No description provided for @weaponDigClawsDesc.
@@ -2591,7 +2591,7 @@ abstract class AppLocalizations {
   /// Weapon menu description.
   ///
   /// In en, this message translates to:
-  /// **'Tap a spot: six burning meteors rain down around it, one after another, slanting with the wind.'**
+  /// **'Tap a spot: six burning meteors rain down around it, one after another, slanting with the wind. Each leaves a small fire.'**
   String get weaponMeteorShowerDesc;
 
   /// Weapon: a hook on a rope that pulls the pet to the ground it catches.
@@ -2675,7 +2675,7 @@ abstract class AppLocalizations {
   /// Weapon menu description.
   ///
   /// In en, this message translates to:
-  /// **'Releases a cloud of gas that drifts with the wind for 3 turns. Pets inside are poisoned: they lose 5 HP at the start of each turn (never the last HP) until healed.'**
+  /// **'Releases a cloud of gas that drifts with the wind for 3 turns. Pets inside lose 3 HP every second they stay (up to 15 a turn) and are poisoned: 5 HP at the start of each of their turns until healed. Gas never takes the last HP.'**
   String get weaponPoisonGasDesc;
 
   /// Weapon: heals the pet and cures poison.

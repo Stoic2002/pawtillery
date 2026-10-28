@@ -6,6 +6,9 @@ import 'boomerang_behavior.dart';
 import 'bouncy_behavior.dart';
 import 'drill_behavior.dart';
 import 'homing_behavior.dart';
+import 'pierce_behavior.dart';
+import 'ricochet_behavior.dart';
+import 'roll_behavior.dart';
 import 'sim_context.dart';
 import 'sticky_behavior.dart';
 import 'vortex_behavior.dart';
@@ -35,6 +38,9 @@ abstract class FlightBehavior {
       final Homing spec => HomingBehavior(spec),
       final Vortex spec => VortexBehavior(spec),
       Sticky() => const StickyBehavior(),
+      final Ricochet spec => RicochetBehavior(spec),
+      final Pierce spec => PierceBehavior(spec),
+      final Roll spec => RollBehavior(spec),
       null => throw ArgumentError('${w.id} has no flight behaviour'),
     };
   }

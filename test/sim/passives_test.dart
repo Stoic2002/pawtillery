@@ -103,7 +103,7 @@ void main() {
       toAction(w);
       w.step(const [Jump(JumpKind.forward)]);
       var ticks = 0;
-      while (!w.units[0].grounded || ticks == 0) {
+      while ((!w.units[0].grounded || ticks == 0) && ticks < 3000) {
         w.step(const []);
         ticks++;
       }
@@ -191,7 +191,7 @@ void main() {
         UnitPlacement(1, 1900, 386),
       ], terrain: t);
       toAction(w);
-      for (var i = 0; i < 120; i++) {
+      for (var i = 0; i < 180; i++) {
         w.step(const [Walk(1)]);
       }
       return w.units[0].x;

@@ -51,6 +51,23 @@ class ArenaHud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Laid out on a larger canvas, then shrunk to fit: every piece is
+    // smaller by the same share and keeps its corner.
+    const scale = ControlsConfig.hudScale;
+    return LayoutBuilder(
+      builder: (context, box) => FittedBox(
+        fit: BoxFit.fill,
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: box.maxWidth / scale,
+          height: box.maxHeight / scale,
+          child: _hud(context),
+        ),
+      ),
+    );
+  }
+
+  Widget _hud(BuildContext context) {
     return ValueListenableBuilder<HudState?>(
       valueListenable: game.hud,
       builder: (context, hud, _) {

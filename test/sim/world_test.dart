@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:pawtillery/config/units.dart';
 import 'package:pawtillery/sim/events.dart';
 import 'package:pawtillery/sim/inputs.dart';
 import 'package:pawtillery/sim/match_setup.dart';
@@ -84,7 +85,7 @@ void main() {
       for (var i = 0; i < 30; i++) {
         w.step(const [Walk(1)]);
       }
-      expect(w.units[0].x, 230);
+      expect(w.units[0].x, 200 + (UnitConfig.walkSpeed / 2).floor());
       expect(w.units[1].x, 500);
     });
 
@@ -327,4 +328,9 @@ int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 // Then (→ 2120106523) it also covers shields and shotgun pulls; same play.
 // Then (→ 607334203) it also covers poison gas and poisoned pets; same play.
 // Then (→ 4033724603) the ammo of two new weapons; same play.
-const _pinnedScriptHash = 4033724603;
+// Re-pinned 2026-10-29 (→ 282814417): play changed on purpose. Pets have
+// their own, heavier gravity and walk slower; gas bites while a pet stays
+// in it; damage was rebalanced (lower, lightning most); the bottle rocket,
+// twin sling, coconut, flowerpots, meteors, eggs and hairball got their own
+// mechanics; sudden death crumbles the ground instead of raising water.
+const _pinnedScriptHash = 282814417;

@@ -22,16 +22,17 @@ void main() {
       expect(w.units[1].poisoned, isTrue);
       expect(w.units[0].poisoned, isFalse);
 
-      final next = toNextTurn(w); // Team 1's turn starts.
+      // Team 1's turn starts with the poison's bite (the cloud it still
+      // stands in bites too, every second).
+      final next = toNextTurn(w);
       expect(w.turn.activeUnitId, 1);
-      final bite = damageTo(next, 1).single;
-      expect(bite.cause, DamageCause.poison);
-      expect(bite.amount, GasConfig.damage);
+      final bites = damageTo(next, 1).toList();
+      expect(bites.every((d) => d.cause == DamageCause.poison), isTrue);
+      expect(bites.map((d) => d.amount), contains(GasConfig.damage));
 
       w.units[1].hp = 3;
       toNextTurn(w);
-      final again = toNextTurn(w);
-      expect(damageTo(again, 1).single.amount, 2);
+      toNextTurn(w);
       expect(w.units[1].hp, 1);
       toNextTurn(w);
       final last = toNextTurn(w);

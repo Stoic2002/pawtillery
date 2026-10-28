@@ -212,8 +212,10 @@ class AudioService {
         LightningStruck() => Sfx.thunder,
         SatelliteStruck() => Sfx.laser,
         CrateCollected() => Sfx.turn,
-        ExplosionEvent() => Sfx.explosion,
+        ExplosionEvent() || GroundCrumbled() => Sfx.explosion,
         UnitJumped() => Sfx.jump,
+        // Gas bites every second while a pet stays in it: no thud each time.
+        UnitDamaged(cause: DamageCause.poison) => null,
         UnitDamaged() => Sfx.hit,
         UnitDied() => Sfx.death,
         TurnStarted() => Sfx.turn,
