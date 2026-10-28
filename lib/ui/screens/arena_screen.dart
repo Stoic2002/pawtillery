@@ -58,7 +58,7 @@ class ArenaScreen extends StatefulWidget {
 enum _GestureMode { none, aim, camera }
 
 /// What stopped a Wi-Fi match.
-enum _NetStop { desync, playerLeft, hostLost }
+enum _NetStop { desync, playerLeft, reconnecting, hostLost }
 
 class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
   // The seed is the only randomness outside the sim; it is logged so any
@@ -78,6 +78,9 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
   Lockstep? _lockstep;
   _NetStop? _netStop;
   String _leftName = '';
+
+  /// Players whose connection is lost; the match waits for them.
+  final Set<int> _away = {};
   Timer? _waitTimer;
 
   /// The player whose phone the match is waiting for, if it has waited
@@ -133,12 +136,27 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
       case DesyncMsg():
         _stopNet(_NetStop.desync);
       case PlayerLeftMsg(:final playerId):
-        _leftName = _playerName(playerId);
-        _stopNet(
-          playerId == 0 && !widget.net!.isHost
-              ? _NetStop.hostLost
-              : _NetStop.playerLeft,
-        );
+        final net = widget.net!;
+        if (playerId == 0 && !net.isHost) {
+          _stopNet(_NetStop.hostLost);
+        } else {
+          _away.add(playerId);
+          _leftName = _playerName(playerId);
+          _stopNet(
+            playerId == net.myId ? _NetStop.reconnecting : _NetStop.playerLeft,
+          );
+        }
+      case PlayerBackMsg(:final playerId):
+        _away.remove(playerId);
+        if (_away.isEmpty &&
+            (_netStop == _NetStop.playerLeft ||
+                _netStop == _NetStop.reconnecting)) {
+          lock.paused = false;
+          if (mounted) setState(() => _netStop = null);
+        } else if (_away.isNotEmpty) {
+          _leftName = _playerName(_away.first);
+          if (mounted) setState(() {});
+        }
       case EndMatchMsg():
         if (mounted) _backToLobby();
       default:
@@ -151,8 +169,16 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
     // The final hashes are compared just as the match ends: a desync then
     // still replaces the results.
     if (!mounted || (_finished && reason != _NetStop.desync)) return;
-    // A lost host outranks everything; otherwise keep the first reason.
-    if (_netStop != null && reason != _NetStop.hostLost) return;
+    // A lost host and a desync outrank waiting for a player; otherwise
+    // keep the first reason.
+    final waiting =
+        _netStop == _NetStop.playerLeft || _netStop == _NetStop.reconnecting;
+    if (_netStop != null &&
+        reason != _NetStop.hostLost &&
+        !(waiting && reason == _NetStop.desync)) {
+      if (mounted) setState(() {});
+      return;
+    }
     _game?.setWalk(0);
     setState(() => _netStop = reason);
   }
@@ -553,6 +579,12 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
         isHost ? l10n.netPausedHost : l10n.netPausedGuest,
         isHost ? l10n.netEndMatch : l10n.lobbyLeave,
         isHost ? (widget.net! as HostSession).endMatch : toMenu,
+      ),
+      _NetStop.reconnecting => (
+        l10n.netReconnectingTitle,
+        l10n.netReconnectingBody,
+        l10n.lobbyLeave,
+        toMenu,
       ),
       _NetStop.hostLost => (
         l10n.netHostLost,

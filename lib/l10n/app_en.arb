@@ -1478,11 +1478,11 @@
       }
     }
   },
-  "netPausedHost": "The match is paused. You can end it.",
+  "netPausedHost": "The match waits for them to reconnect. You can also end it.",
   "@netPausedHost": {
     "description": "Host text after a player left."
   },
-  "netPausedGuest": "The match is paused until the host ends it.",
+  "netPausedGuest": "The match waits for them to reconnect, or for the host to end it.",
   "@netPausedGuest": {
     "description": "Guest text after a player left."
   },
@@ -1493,6 +1493,14 @@
   "netHostLost": "Lost the connection to the host.",
   "@netHostLost": {
     "description": "A guest lost the host."
+  },
+  "netReconnectingTitle": "Connection lost",
+  "@netReconnectingTitle": {
+    "description": "This phone lost the host mid-match and is trying to rejoin."
+  },
+  "netReconnectingBody": "Reconnecting to the host… The match goes on from where it stopped.",
+  "@netReconnectingBody": {
+    "description": "Text while this phone tries to rejoin the match."
   },
   "netDesyncTitle": "Out of sync",
   "@netDesyncTitle": {

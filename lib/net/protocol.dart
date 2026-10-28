@@ -13,6 +13,12 @@ import '../sim/inputs.dart';
 /// [TicksMsg] (relayed by the host to everyone), guests send [HashMsg] to
 /// the host, and the host announces [DesyncMsg], [PlayerLeftMsg] and
 /// [EndMatchMsg]. [PingMsg] keeps quiet links alive.
+///
+/// A guest that lost its connection mid-match comes back with [RejoinMsg]
+/// (its id, the key from its [WelcomeMsg] and how many ticks it has); the
+/// host answers [WelcomeMsg], [ResumeMsg] with its own count, the ticks
+/// the guest missed, and tells everyone [PlayerBackMsg]. A guest that has
+/// ticks the host never got (it was playing when it dropped) sends them.
 sealed class NetMessage {
   const NetMessage();
 
@@ -42,13 +48,62 @@ final class HelloMsg extends NetMessage {
   };
 }
 
-/// Host → guest: accepted, with the guest's player id.
+/// Host → guest: accepted, with the guest's player id and the key it
+/// needs to rejoin a match after losing its connection.
 final class WelcomeMsg extends NetMessage {
-  const WelcomeMsg(this.playerId);
+  const WelcomeMsg(this.playerId, {this.key = 0});
+  final int playerId;
+  final int key;
+
+  @override
+  Map<String, Object?> toJson() => {'t': 'welcome', 'id': playerId, 'key': key};
+}
+
+/// Guest → host, first message on a new connection after losing the old
+/// one mid-match: player [playerId] with [key] has [known] ticks.
+final class RejoinMsg extends NetMessage {
+  const RejoinMsg({
+    required this.protocol,
+    required this.appVersion,
+    required this.playerId,
+    required this.key,
+    required this.known,
+  });
+
+  final int protocol;
+  final String appVersion;
+  final int playerId;
+  final int key;
+  final int known;
+
+  @override
+  Map<String, Object?> toJson() => {
+    't': 'rejoin',
+    'v': protocol,
+    'app': appVersion,
+    'id': playerId,
+    'key': key,
+    'known': known,
+  };
+}
+
+/// Host → rejoining guest: the host has [known] ticks; the missing ones
+/// follow as [TicksMsg].
+final class ResumeMsg extends NetMessage {
+  const ResumeMsg(this.known);
+  final int known;
+
+  @override
+  Map<String, Object?> toJson() => {'t': 'resume', 'known': known};
+}
+
+/// Host → everyone: a player who lost the connection is back.
+final class PlayerBackMsg extends NetMessage {
+  const PlayerBackMsg(this.playerId);
   final int playerId;
 
   @override
-  Map<String, Object?> toJson() => {'t': 'welcome', 'id': playerId};
+  Map<String, Object?> toJson() => {'t': 'back', 'id': playerId};
 }
 
 enum RejectReason { version, full, started }
@@ -242,7 +297,19 @@ NetMessage? _decode(Map json) {
         name: _name(json['name'] as String),
       );
     case 'welcome':
-      return WelcomeMsg(json['id'] as int);
+      return WelcomeMsg(json['id'] as int, key: (json['key'] as int?) ?? 0);
+    case 'rejoin':
+      return RejoinMsg(
+        protocol: json['v'] as int,
+        appVersion: json['app'] as String,
+        playerId: json['id'] as int,
+        key: json['key'] as int,
+        known: json['known'] as int,
+      );
+    case 'resume':
+      return ResumeMsg(json['known'] as int);
+    case 'back':
+      return PlayerBackMsg(json['id'] as int);
     case 'reject':
       return RejectMsg(RejectReason.values.byName(json['reason'] as String));
     case 'lobby':

@@ -918,3 +918,40 @@ with the same setup, players and team owners at once. Every guest
 follows on its own, because the lobby (still under the results) opens
 the arena whenever the host starts a match. "Back to lobby" stays for
 changing the setup; guests' results are unchanged (the host decides).
+
+## Wi-Fi: rejoining a match after a dropped connection (2026-10-28)
+
+Before, one phone dropping out (Wi-Fi blip, out of range, screen locked
+for a while) paused the match for good: the host could only end it.
+Now the slot waits and the phone comes back on its own.
+
+- **Who can rejoin:** a guest, while its app is still running. Its
+  `WelcomeMsg` carries a random key; mid-match it reconnects to the same
+  address (`redial`) every 2 s for up to 90 s and sends `RejoinMsg` (id,
+  key, how many ticks it has). The host lets it in only if that slot is
+  waiting, the key fits and the versions match; otherwise it says
+  "started" and the guest tries again (the host may not have noticed the
+  drop yet: links time out after 6 s). An app that was closed can't
+  rejoin, and a lost host still ends the match once the 90 s are up.
+- **What it gets:** both sessions keep the match's full input log (what
+  they sent and received, `NetSession._log`). The host answers with
+  `ResumeMsg(known)` and the ticks the guest is missing; a guest that was
+  playing when it dropped may instead have ticks the host never got, and
+  sends those. At equal counts the hand-over marker ("producer stopped")
+  wins, so nobody is left waiting for a producer that already stopped.
+  Because the sim is deterministic, that is all it needs: every phone
+  ends on the same hash.
+- **While waiting:** every phone pauses (as before) on `PlayerLeftMsg`;
+  the host can still end the match. The dropped phone shows "Connection
+  lost — reconnecting…" with a Leave button. `PlayerBackMsg` resumes
+  everyone once nobody is away. A rejoining guest is also told who else
+  is away.
+- **Lockstep:** a phone starts producing for its turn only once it has
+  stepped every known tick, so a guest catching up never takes one of
+  its old turns for a new one.
+- After the match the slots of guests still away are dropped from the
+  lobby, as before. Protocol version 15.
+- **Tests:** memory links with cuts in both players' turns, a link that
+  goes quiet so the host really misses the guest's ticks, three phones
+  waiting for one, refused rejoins, and one over real sockets on
+  localhost. Not yet tried on two phones.

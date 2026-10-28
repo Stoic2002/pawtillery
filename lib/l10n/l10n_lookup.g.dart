@@ -194,6 +194,8 @@ extension L10nByKey on AppLocalizations {
         'netHostLost' => netHostLost,
         'netPausedGuest' => netPausedGuest,
         'netPausedHost' => netPausedHost,
+        'netReconnectingBody' => netReconnectingBody,
+        'netReconnectingTitle' => netReconnectingTitle,
         'netRematch' => netRematch,
         'passiveBird' => passiveBird,
         'passiveBirdDesc' => passiveBirdDesc,

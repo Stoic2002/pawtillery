@@ -150,7 +150,12 @@ class _LanScreenState extends State<LanScreen> {
     GuestSession? session;
     try {
       final link = await connectLan(host, port);
-      session = await GuestSession.join(link, name: _playerName);
+      session = await GuestSession.join(
+        link,
+        name: _playerName,
+        // Rejoins the match if the connection drops mid-match.
+        redial: () => connectLan(host, port),
+      );
     } on JoinRejected catch (e) {
       error = switch (e.reason) {
         RejectReason.version => l10n.lanErrorVersion,

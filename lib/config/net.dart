@@ -4,8 +4,9 @@ abstract final class NetConfig {
   /// without an app version bump (new weapons); phones with another version
   /// are turned away in the lobby. 2 = bomber, satellite, homing missile;
   /// 3 = jet missile, storm cloud delay, bird flock; 4 = map objects;
-  /// 5 = dig mode, black hole, sticky bomb, clay, swap.
-  static const int protocolVersion = 14;
+  /// 5 = dig mode, black hole, sticky bomb, clay, swap; 14 = random
+  /// weapons rule; 15 = rejoining a match.
+  static const int protocolVersion = 15;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;
@@ -25,6 +26,11 @@ abstract final class NetConfig {
   static const Duration peerTimeout = Duration(seconds: 6);
 
   static const Duration connectTimeout = Duration(seconds: 4);
+
+  /// A guest that lost its connection mid-match tries to rejoin every
+  /// [rejoinRetry] for up to [rejoinWindow] before giving up on the host.
+  static const Duration rejoinRetry = Duration(seconds: 2);
+  static const Duration rejoinWindow = Duration(seconds: 90);
 
   /// Host plus up to three guests (the most teams a match can have).
   static const int maxPlayers = 4;

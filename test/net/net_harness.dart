@@ -50,6 +50,13 @@ class TestPhone {
           lock.receive(m);
         case DesyncMsg():
           desynced = true;
+        // Like the arena: wait while a player's connection is lost.
+        case PlayerLeftMsg(:final playerId):
+          away.add(playerId);
+          lock.paused = true;
+        case PlayerBackMsg(:final playerId):
+          away.remove(playerId);
+          if (away.isEmpty) lock.paused = false;
         default:
           break;
       }
@@ -64,6 +71,9 @@ class TestPhone {
   late final Lockstep lock;
   final Map<int, int> hashes = {};
   bool desynced = false;
+
+  /// Players whose connection is lost right now.
+  final Set<int> away = {};
   int _firedTurn = -1;
   int steps = 0;
 

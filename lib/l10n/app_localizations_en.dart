@@ -1250,16 +1250,25 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get netPausedHost => 'The match is paused. You can end it.';
+  String get netPausedHost =>
+      'The match waits for them to reconnect. You can also end it.';
 
   @override
-  String get netPausedGuest => 'The match is paused until the host ends it.';
+  String get netPausedGuest =>
+      'The match waits for them to reconnect, or for the host to end it.';
 
   @override
   String get netEndMatch => 'End match';
 
   @override
   String get netHostLost => 'Lost the connection to the host.';
+
+  @override
+  String get netReconnectingTitle => 'Connection lost';
+
+  @override
+  String get netReconnectingBody =>
+      'Reconnecting to the host… The match goes on from where it stopped.';
 
   @override
   String get netDesyncTitle => 'Out of sync';

@@ -2411,13 +2411,13 @@ abstract class AppLocalizations {
   /// Host text after a player left.
   ///
   /// In en, this message translates to:
-  /// **'The match is paused. You can end it.'**
+  /// **'The match waits for them to reconnect. You can also end it.'**
   String get netPausedHost;
 
   /// Guest text after a player left.
   ///
   /// In en, this message translates to:
-  /// **'The match is paused until the host ends it.'**
+  /// **'The match waits for them to reconnect, or for the host to end it.'**
   String get netPausedGuest;
 
   /// Host button that calls the match off.
@@ -2431,6 +2431,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Lost the connection to the host.'**
   String get netHostLost;
+
+  /// This phone lost the host mid-match and is trying to rejoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Connection lost'**
+  String get netReconnectingTitle;
+
+  /// Text while this phone tries to rejoin the match.
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnecting to the host… The match goes on from where it stopped.'**
+  String get netReconnectingBody;
 
   /// The phones' matches no longer agree.
   ///

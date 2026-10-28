@@ -94,7 +94,9 @@ class Lockstep {
   /// whether [queued] was used.
   bool produce(List<SimInput> held, List<SimInput> queued) {
     if (isOver) return false;
-    if (!_producing && _handOver && isMyTurn) {
+    // Only once every known tick is stepped: a phone catching up (after
+    // rejoining) must not take an old turn of its own for a new one.
+    if (!_producing && _handOver && isMyTurn && sim.tick >= _known) {
       _producing = true;
       _handOver = false;
     }

@@ -53,4 +53,53 @@ void main() {
     },
     timeout: const Timeout(Duration(minutes: 2)),
   );
+
+  test(
+    'over real sockets, a guest whose connection drops rejoins',
+    () async {
+      final config = MatchConfig.defaults(_names).withUnitsPerTeam(2, _names);
+      final host = HostSession(name: 'Arul', config: config);
+      final room = await LanRoom.open(host);
+      addTearDown(room.close);
+
+      var link = await connectLan('127.0.0.1', room.port);
+      final first = link;
+      final guest = await GuestSession.join(
+        link,
+        name: 'Sari',
+        rejoinRetry: const Duration(milliseconds: 50),
+        redial: () async => link = await connectLan('127.0.0.1', room.port),
+      );
+      addTearDown(guest.leave);
+      while (host.lobby.players.length < 2) {
+        await pump();
+      }
+      host.startMatch(random: Random(4));
+      while (guest.match == null) {
+        await pump();
+      }
+      final phones = [
+        TestPhone(host, host.match!, lag: 0),
+        TestPhone(guest, guest.match!, lag: 0),
+      ];
+      final rng = Random(8);
+      var sawReconnecting = false;
+      for (var f = 0; f < 400000; f++) {
+        if (phones.every((p) => p.lock.isOver)) break;
+        if (f == 900) await first.close();
+        for (final p in phones) {
+          p.frame(rng);
+        }
+        sawReconnecting |= guest.reconnecting;
+        await pump();
+        if (phones.any((p) => p.lock.paused)) {
+          await Future<void>.delayed(const Duration(milliseconds: 2));
+        }
+      }
+      expect(sawReconnecting, isTrue);
+      expect(identical(link, first), isFalse, reason: 'a new connection');
+      expectSame(phones);
+    },
+    timeout: const Timeout(Duration(minutes: 2)),
+  );
 }

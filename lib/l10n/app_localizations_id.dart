@@ -1253,16 +1253,25 @@ class AppLocalizationsId extends AppLocalizations {
   }
 
   @override
-  String get netPausedHost => 'Match dijeda. Kamu bisa mengakhirinya.';
+  String get netPausedHost =>
+      'Pertandingan menunggu dia tersambung lagi. Kamu juga bisa mengakhirinya.';
 
   @override
-  String get netPausedGuest => 'Match dijeda sampai host mengakhirinya.';
+  String get netPausedGuest =>
+      'Pertandingan menunggu dia tersambung lagi, atau host mengakhirinya.';
 
   @override
   String get netEndMatch => 'Akhiri match';
 
   @override
   String get netHostLost => 'Koneksi ke host terputus.';
+
+  @override
+  String get netReconnectingTitle => 'Koneksi terputus';
+
+  @override
+  String get netReconnectingBody =>
+      'Menyambung ulang ke host… Pertandingan lanjut dari posisi terakhir.';
 
   @override
   String get netDesyncTitle => 'Tidak sinkron';
