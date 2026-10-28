@@ -6,6 +6,7 @@ import '../../app/app_services.dart';
 import '../../app/match_config.dart';
 import '../../app/paw_palette.dart';
 import '../../config/breeds.dart';
+import '../../config/cpu.dart';
 import '../../config/families.dart';
 import '../../config/map_objects.dart';
 import '../../config/maps.dart';
@@ -132,6 +133,8 @@ class _SetupScreenState extends State<SetupScreen> {
                       revision: _revision,
                       pool: _pool,
                       rng: _rng,
+                      // A Wi-Fi match has no CPU teams.
+                      showCpu: widget.lobbyConfig == null,
                       onChanged: _update,
                     ),
                     _Tab.rules => _RulesTab(
@@ -201,6 +204,7 @@ class _TeamsTab extends StatelessWidget {
     required this.revision,
     required this.pool,
     required this.rng,
+    required this.showCpu,
     required this.onChanged,
   });
 
@@ -208,6 +212,7 @@ class _TeamsTab extends StatelessWidget {
   final int revision;
   final List<String> pool;
   final Random rng;
+  final bool showCpu;
   final void Function(MatchConfig, {bool resetFields}) onChanged;
 
   @override
@@ -226,6 +231,7 @@ class _TeamsTab extends StatelessWidget {
               index: i,
               pool: pool,
               rng: rng,
+              showCpu: showCpu,
               onChanged: onChanged,
             ),
           ),
@@ -306,6 +312,7 @@ class _TeamCard extends StatelessWidget {
     required this.index,
     required this.pool,
     required this.rng,
+    required this.showCpu,
     required this.onChanged,
   });
 
@@ -313,6 +320,9 @@ class _TeamCard extends StatelessWidget {
   final int index;
   final List<String> pool;
   final Random rng;
+
+  /// Offer the player / CPU picker (hotseat only).
+  final bool showCpu;
   final void Function(MatchConfig, {bool resetFields}) onChanged;
 
   TeamEntry get team => config.teams[index];
@@ -441,6 +451,21 @@ class _TeamCard extends StatelessWidget {
               ],
             ),
           ),
+          if (showCpu)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 0, 8, 4),
+              child: _ControllerPicker(
+                cpu: team.cpu,
+                onChanged: (level) => onChanged(
+                  config.withTeam(
+                    index,
+                    level == null
+                        ? team.copyWith(human: true)
+                        : team.copyWith(cpu: level),
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.fromLTRB(6, 0, 6, 8),
@@ -471,6 +496,82 @@ class _TeamCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Who plays a team: a person, or the computer at one of its levels.
+class _ControllerPicker extends StatelessWidget {
+  const _ControllerPicker({required this.cpu, required this.onChanged});
+
+  final CpuLevel? cpu;
+  final ValueChanged<CpuLevel?> onChanged;
+
+  static String _label(AppLocalizations l10n, CpuLevel? level) =>
+      switch (level) {
+        null => l10n.setupHuman,
+        CpuLevel.easy => l10n.setupCpuEasy,
+        CpuLevel.normal => l10n.setupCpuNormal,
+        CpuLevel.hard => l10n.setupCpuHard,
+      };
+
+  static IconData _icon(CpuLevel? level) =>
+      level == null ? Icons.person_rounded : Icons.smart_toy_rounded;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final isCpu = cpu != null;
+    final ink = isCpu ? Paw.cream : Paw.ink;
+    // Index 0 = a person, then the CPU levels in order.
+    return PopupMenuButton<int>(
+      tooltip: l10n.setupController,
+      color: Paw.cream,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: Paw.ink, width: 3),
+      ),
+      onSelected: (i) => onChanged(i == 0 ? null : CpuLevel.values[i - 1]),
+      itemBuilder: (context) => [
+        for (final (i, level) in [null, ...CpuLevel.values].indexed)
+          PopupMenuItem(
+            value: i,
+            child: Row(
+              children: [
+                Icon(_icon(level), size: 20, color: Paw.ink),
+                const SizedBox(width: 8),
+                Text(
+                  _label(l10n, level),
+                  style: Paw.text(14, weight: level == cpu ? 800 : 600),
+                ),
+              ],
+            ),
+          ),
+      ],
+      child: Container(
+        height: 32,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        decoration: BoxDecoration(
+          color: isCpu ? Paw.ink : Paw.peach,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Paw.ink, width: 2),
+        ),
+        child: Row(
+          children: [
+            Icon(_icon(cpu), size: 18, color: ink),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                _label(l10n, cpu),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Paw.text(13, weight: 800, color: ink),
+              ),
+            ),
+            Icon(Icons.arrow_drop_down_rounded, size: 22, color: ink),
+          ],
+        ),
       ),
     );
   }

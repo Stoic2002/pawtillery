@@ -292,6 +292,39 @@ void main() {
     expect(find.text('Over 17 turns'), findsOneWidget);
   });
 
+  testWidgets('setup: a team can be handed to the CPU, and it is saved',
+      (tester) async {
+    await _landscape(tester);
+    final settings = await _settings()..languageCode = 'id';
+    await tester.pumpWidget(PawtilleryApp(settings: settings));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Main'));
+    await tester.pumpAndSettle();
+    // Four teams: the narrowest cards.
+    await tester.tap(find.text('Aturan'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Tambah').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Tambah').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tim'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Pemain'), findsNWidgets(4));
+    await tester.tap(find.byTooltip('Siapa yang memainkan tim ini').at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('CPU · Sulit').last);
+    await tester.pumpAndSettle();
+    expect(find.text('CPU · Sulit'), findsOneWidget);
+    expect(find.text('Pemain'), findsNWidgets(3));
+    expect(tester.takeException(), isNull);
+
+    await tester.tap(find.text('Mulai pertandingan'));
+    await tester.pump();
+    expect(settings.lastMatch(const [])!.cpuTeams().keys, [1]);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('every screen fits in Indonesian without overflow',
       (tester) async {
     await _landscape(tester);

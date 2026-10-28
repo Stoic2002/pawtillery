@@ -4,7 +4,9 @@ import 'dart:ui';
 import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 
+import '../ai/cpu_player.dart';
 import '../config/controls.dart';
+import '../config/cpu.dart';
 import '../config/families.dart';
 import '../config/map_objects.dart';
 import '../config/maps.dart';
@@ -86,6 +88,7 @@ class PawtilleryGame extends FlameGame {
     this.showAimGuide = true,
     this.lockstep,
     this.objects,
+    this.cpuTeams = const {},
   });
 
   final int seed;
@@ -115,6 +118,11 @@ class PawtilleryGame extends FlameGame {
   /// Play on Wi-Fi: steps come from the network instead of the clock
   /// alone, and only the active team's phone has controls.
   final Lockstep? lockstep;
+
+  /// Teams the computer plays (hotseat only), by sim team index.
+  final Map<int, CpuLevel> cpuTeams;
+  late final CpuPlayer? _cpu =
+      cpuTeams.isEmpty ? null : CpuPlayer(levels: cpuTeams, seed: seed);
 
   late final MatchStats stats;
   final ParticleSystem particles = ParticleSystem();
@@ -189,7 +197,8 @@ class PawtilleryGame extends FlameGame {
     _aimGuide = AimGuideComponent(
       sim: sim,
       aim: () => aim.value,
-      showPath: () => showAimGuide,
+      // The CPU's shot path stays a surprise.
+      showPath: () => showAimGuide && !cpuTurn,
       teamColors: teamColors,
     );
     await world.addAll([
@@ -260,13 +269,17 @@ class PawtilleryGame extends FlameGame {
 
   // ------------------------------------------------------------ weapons
 
-  bool get canAim =>
-      sim.turn.allowsFire &&
-      hasControl &&
-      !(sim.activeUnit?.isGrappling ?? false);
+  bool get canAim => _turnAllowsAim && hasControl;
 
-  /// This phone controls the active team (always, in a hotseat match).
-  bool get hasControl => lockstep?.isMyTurn ?? true;
+  bool get _turnAllowsAim =>
+      sim.turn.allowsFire && !(sim.activeUnit?.isGrappling ?? false);
+
+  /// This phone controls the active team: always in a hotseat match,
+  /// except on a CPU team's turn.
+  bool get hasControl => lockstep?.isMyTurn ?? !cpuTurn;
+
+  /// The computer is playing the active team.
+  bool get cpuTurn => _cpu?.controls(sim) ?? false;
 
   WeaponDef get weapon => Weapons.byId(aim.value.weaponId);
 
@@ -501,7 +514,9 @@ class PawtilleryGame extends FlameGame {
       _keepActiveUnitInView();
     }
     _camera.update(dt);
-    if (aim.value.active && !canAim) {
+    if (cpuTurn) {
+      _showCpuAim();
+    } else if (aim.value.active && !canAim) {
       aim.value = aim.value.copyWith(active: false);
     } else if (!aim.value.active && canAim && weapon.aim == AimMode.none) {
       aim.value = aim.value.copyWith(active: true);
@@ -529,9 +544,33 @@ class PawtilleryGame extends FlameGame {
   }
 
   void _stepSim() {
-    final inputs = [..._held, ..._pendingInputs];
+    final cpu = _cpu?.step(sim) ?? const [];
+    final inputs = cpuTurn ? cpu : [..._held, ..._pendingInputs];
     _pendingInputs.clear();
     _runStep(() => sim.step(inputs));
+  }
+
+  /// A CPU turn: the aim guide shows the CPU's weapon and aim as it swings
+  /// into place, so players see the shot coming.
+  void _showCpuAim() {
+    final a = _cpu!.aim;
+    final AimState next;
+    if (a == null) {
+      if (!aim.value.active) return;
+      next = aim.value.copyWith(active: false);
+    } else {
+      next = AimState(
+        weaponId: a.weaponId,
+        active: _turnAllowsAim,
+        angle: a.angle,
+        power: a.power,
+        fuseSeconds: aim.value.fuseSeconds,
+        targetX: a.targetX,
+        targetY: a.targetY,
+        targetValid: a.targetX != null,
+      );
+    }
+    if (next != aim.value) aim.value = next;
   }
 
   /// One tick of real time in a network match: record this phone's inputs

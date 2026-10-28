@@ -792,6 +792,26 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupDeleteTeam => 'Hapus tim';
 
   @override
+  String get setupController => 'Siapa yang memainkan tim ini';
+
+  @override
+  String get setupHuman => 'Pemain';
+
+  @override
+  String get setupCpuEasy => 'CPU · Mudah';
+
+  @override
+  String get setupCpuNormal => 'CPU · Normal';
+
+  @override
+  String get setupCpuHard => 'CPU · Sulit';
+
+  @override
+  String hudCpuThinking(String name) {
+    return '$name sedang berpikir…';
+  }
+
+  @override
   String get setupDeleteTeamTitle => 'Hapus tim ini?';
 
   @override

@@ -803,3 +803,55 @@ wanted more weapons with genuinely new mechanics.
 - **Determinism:** dig state and sticky targets are in the hash. Both
   pins changed; the previous layout still gives the previous pins. The
   Wi-Fi protocol version is now 5.
+
+## CPU opponents (2026-10-28)
+
+The developer asked for computer opponents first, so the game can be
+played alone on one phone (and playtested without a second person).
+
+- **Setup:** each team card on the Teams tab has a picker: Player,
+  CPU · Easy, CPU · Normal or CPU · Hard. It is saved with the setup
+  (`TeamEntry.cpu`; older saves are players). Any mix works, CPU against
+  CPU included. Play on Wi-Fi has no CPU teams: the picker is hidden in a
+  Wi-Fi room and the host's saved setup is stripped of them.
+- **Where it lives:** `lib/ai/`, pure Dart like the sim but outside it.
+  The CPU is a player, not a rule: it only reads `SimWorld` and sends the
+  same inputs a person would, so the sim, its hash and the Wi-Fi protocol
+  are unchanged (no protocol bump).
+- **Planning** (`CpuPlanner`): thrown weapons whose landing can be
+  predicted (plain arcs, splits, fire, frost, gas, the nuke, sticky bomb)
+  are flown with the real `ProjectilePhysics` over a 4° × 4 % grid, then
+  1 × 1 around the best four spots. The best eight are flown again at the
+  edges of the level's aim error and lose half of what they would lose
+  there, so a shaky aim doesn't land on itself. Weapons that fly the same way share
+  one search. Air support, lightning, the satellite and meteors are tried
+  on each enemy, looking straight down that column for cover. Beams, the
+  shotgun and punches try every direction; the first-aid kit and the
+  crow's shockwave are scored in place. Bouncy, homing, drilling,
+  boomerang, walking and building weapons, mines and movement tools are
+  not used yet.
+- **Score:** expected damage with the sim's own falloff and
+  `explosionDamageScale`, +25 for a knockout, a popped shield counts 6;
+  damage to its own team counts −1.6×, measured as if they stood 30 px
+  closer to the blast. Limited ammo costs 8–18 points
+  (more for the last shot), so the rock stays the everyday weapon. A
+  small bonus for landing near an enemy keeps it shooting the right way
+  when nothing is in reach.
+- **A turn** (`CpuPlayer`): it plans during the turn banner, 60 flights
+  per tick so a frame never stalls. If the best plan is weak it walks up
+  to 1.5 s towards the nearest enemy (stopping before a drop of 60 px or
+  water) and plans again. It then pauses, swings the aim into place over
+  0.7 s (or shows the target marker) so players can see it coming, and
+  fires. The shot path is not drawn for CPU turns. Below 4 s on the turn
+  clock it fires the best plan so far.
+- **Levels** (`lib/config/cpu.dart`): Easy reads half the wind, aims up
+  to ±5° / ±6 % off and only uses unlimited weapons and its signature;
+  Normal reads the wind, ±3° / ±4 %; Hard ±1° / ±1 % and spends ammo
+  more freely.
+- **In the arena:** the controls give way to "{team} is thinking…", the
+  same pill Wi-Fi uses for another phone's turn. The first-match
+  tutorial only runs when a person plays the first turn.
+- **Tests** (`test/ai/cpu_test.dart`): hits on flat ground with and
+  without wind, no blast on its own teammate, same seed same plan, Easy
+  keeps to unlimited weapons, walks when out of reach, and CPU against
+  CPU matches on Backyard and Ruins end with a result.

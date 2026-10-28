@@ -171,6 +171,16 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
     _waitingFor.value = name;
   }
 
+  String? _otherTurnLabel(PawtilleryGame game) {
+    final l10n = AppLocalizations.of(context);
+    final lock = _lockstep;
+    if (lock != null) {
+      return game.hasControl ? null : l10n.netTurnOf(_playerName(lock.activeOwner));
+    }
+    if (!game.cpuTurn) return null;
+    return l10n.hudCpuThinking(_teamNames[game.sim.turn.activeTeam]);
+  }
+
   void _backToLobby() {
     widget.net?.matchFinished();
     Navigator.of(context).popUntil(ModalRoute.withName(LobbyScreen.routeName));
@@ -215,12 +225,16 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
       loadout: config.weapons,
       showAimGuide: AppServices.of(context).settings.showAimGuide,
       lockstep: _lockstep,
+      cpuTeams: net == null ? config.cpuTeams() : const {},
     );
     game.hud.addListener(_onHudChanged);
     final services = AppServices.of(context);
     final haptics = Haptics(services.settings);
     _audio = services.audio..playMusic(Music.match).ignore();
-    if (!services.settings.tutorialDone && net == null) {
+    // The tutorial is for the first turn, so only when a person plays it.
+    if (!services.settings.tutorialDone &&
+        net == null &&
+        config.teams.first.cpu == null) {
       final tutorial = _tutorial = TutorialController();
       tutorial.addListener(() {
         if (tutorial.isDone) services.settings.tutorialDone = true;
@@ -441,11 +455,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
                       teamSymbols: _teamSymbols,
                       onPause: _pause,
                       tutorial: _tutorial,
-                      remoteTurnName: _lockstep == null
-                          ? null
-                          : () => game.hasControl
-                                ? null
-                                : _playerName(_lockstep!.activeOwner),
+                      otherTurnLabel: () => _otherTurnLabel(game),
                     )
                   : const SizedBox.shrink(),
             ),

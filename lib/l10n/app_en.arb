@@ -1057,6 +1057,35 @@
   "setupAddTeam": "Add team",
   "setupRandomTeam": "Randomize team",
   "setupDeleteTeam": "Delete team",
+  "setupController": "Who plays this team",
+  "@setupController": {
+    "description": "Setup team card: tooltip of the menu that picks a player or a CPU level for the team."
+  },
+  "setupHuman": "Player",
+  "@setupHuman": {
+    "description": "Setup team card: the team is played by a person."
+  },
+  "setupCpuEasy": "CPU · Easy",
+  "@setupCpuEasy": {
+    "description": "Setup team card: the computer plays the team, easy level."
+  },
+  "setupCpuNormal": "CPU · Normal",
+  "@setupCpuNormal": {
+    "description": "Setup team card: the computer plays the team, normal level."
+  },
+  "setupCpuHard": "CPU · Hard",
+  "@setupCpuHard": {
+    "description": "Setup team card: the computer plays the team, hard level."
+  },
+  "hudCpuThinking": "{name} is thinking…",
+  "@hudCpuThinking": {
+    "description": "Shown at the bottom of the arena while a computer-controlled team takes its turn.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "setupDeleteTeamTitle": "Delete this team?",
   "setupDeleteTeamBody": "Its units will be removed too.",
   "setupEditUnit": "Edit unit",

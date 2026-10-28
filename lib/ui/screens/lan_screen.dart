@@ -119,7 +119,9 @@ class _LanScreenState extends State<LanScreen> {
     final pool = unitNamePool(l10n);
     final session = HostSession(
       name: _playerName,
-      config: services.settings.lastMatch(pool) ?? MatchConfig.defaults(pool),
+      // A Wi-Fi match has no CPU teams.
+      config: (services.settings.lastMatch(pool) ?? MatchConfig.defaults(pool))
+          .withoutCpu(),
     );
     setState(() => _busy = true);
     try {

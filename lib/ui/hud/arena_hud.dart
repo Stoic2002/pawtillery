@@ -31,7 +31,7 @@ class ArenaHud extends StatelessWidget {
     required this.teamSymbols,
     required this.onPause,
     this.tutorial,
-    this.remoteTurnName,
+    this.otherTurnLabel,
   });
 
   final PawtilleryGame game;
@@ -43,9 +43,10 @@ class ArenaHud extends StatelessWidget {
   /// First-match tutorial, if it should show.
   final TutorialController? tutorial;
 
-  /// Play on Wi-Fi: the name of the player taking the turn on another
-  /// phone, or null when this phone has the controls.
-  final String? Function()? remoteTurnName;
+  /// Who is taking the turn when it is not this phone's players ("Ana's
+  /// turn" on Wi-Fi, "Red Team is thinking…" for a CPU team), or null when
+  /// the controls are here.
+  final String? Function()? otherTurnLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +71,7 @@ class ArenaHud extends StatelessWidget {
                 (weapon.aim == AimMode.angleAndPower ||
                     weapon.aim == AimMode.direction);
             final teamColor = Color(game.teamColors[hud.activeTeam]);
-            final remote = remoteTurnName?.call();
+            final remote = otherTurnLabel?.call();
             final digging = remote == null && game.digging;
             return Stack(
               children: [
@@ -105,7 +106,7 @@ class ArenaHud extends StatelessWidget {
                         if (!hud.isOver && remote != null)
                           Align(
                             alignment: Alignment.bottomCenter,
-                            child: _RemoteTurn(name: remote, color: teamColor),
+                            child: _RemoteTurn(label: remote, color: teamColor),
                           ),
                         if (!hud.isOver && digging) ...[
                           Align(
@@ -357,9 +358,9 @@ class _DigDone extends StatelessWidget {
 
 /// Bottom of the screen on the other phones during a Wi-Fi turn.
 class _RemoteTurn extends StatelessWidget {
-  const _RemoteTurn({required this.name, required this.color});
+  const _RemoteTurn({required this.label, required this.color});
 
-  final String name;
+  final String label;
   final Color color;
 
   @override
@@ -371,10 +372,7 @@ class _RemoteTurn extends StatelessWidget {
       border: Border.all(color: color, width: 3),
       boxShadow: Paw.drop(3),
     ),
-    child: Text(
-      AppLocalizations.of(context).netTurnOf(name),
-      style: Paw.text(16),
-    ),
+    child: Text(label, style: Paw.text(16)),
   );
 }
 

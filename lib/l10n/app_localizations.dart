@@ -1568,6 +1568,42 @@ abstract class AppLocalizations {
   /// **'Delete team'**
   String get setupDeleteTeam;
 
+  /// Setup team card: tooltip of the menu that picks a player or a CPU level for the team.
+  ///
+  /// In en, this message translates to:
+  /// **'Who plays this team'**
+  String get setupController;
+
+  /// Setup team card: the team is played by a person.
+  ///
+  /// In en, this message translates to:
+  /// **'Player'**
+  String get setupHuman;
+
+  /// Setup team card: the computer plays the team, easy level.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU · Easy'**
+  String get setupCpuEasy;
+
+  /// Setup team card: the computer plays the team, normal level.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU · Normal'**
+  String get setupCpuNormal;
+
+  /// Setup team card: the computer plays the team, hard level.
+  ///
+  /// In en, this message translates to:
+  /// **'CPU · Hard'**
+  String get setupCpuHard;
+
+  /// Shown at the bottom of the arena while a computer-controlled team takes its turn.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} is thinking…'**
+  String hudCpuThinking(String name);
+
   /// No description provided for @setupDeleteTeamTitle.
   ///
   /// In en, this message translates to:

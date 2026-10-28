@@ -789,6 +789,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupDeleteTeam => 'Delete team';
 
   @override
+  String get setupController => 'Who plays this team';
+
+  @override
+  String get setupHuman => 'Player';
+
+  @override
+  String get setupCpuEasy => 'CPU · Easy';
+
+  @override
+  String get setupCpuNormal => 'CPU · Normal';
+
+  @override
+  String get setupCpuHard => 'CPU · Hard';
+
+  @override
+  String hudCpuThinking(String name) {
+    return '$name is thinking…';
+  }
+
+  @override
   String get setupDeleteTeamTitle => 'Delete this team?';
 
   @override

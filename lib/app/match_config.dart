@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import '../config/breeds.dart';
+import '../config/cpu.dart';
 import '../config/families.dart';
 import '../config/map_objects.dart';
 import '../config/maps.dart';
@@ -51,34 +52,42 @@ class UnitEntry {
 }
 
 /// One team on the setup screen. [customName] null = the default name of
-/// its colour ("Red Team" / "Tim Merah").
+/// its colour ("Red Team" / "Tim Merah"). [cpu] null = played by a person.
 class TeamEntry {
   const TeamEntry({
     required this.styleIndex,
     required this.units,
     this.customName,
+    this.cpu,
   });
 
   final int styleIndex;
   final String? customName;
   final List<UnitEntry> units;
 
+  /// The computer plays this team, at this level (hotseat only).
+  final CpuLevel? cpu;
+
   TeamEntry copyWith({
     int? styleIndex,
     String? customName,
     bool clearName = false,
     List<UnitEntry>? units,
+    CpuLevel? cpu,
+    bool human = false,
   }) =>
       TeamEntry(
         styleIndex: styleIndex ?? this.styleIndex,
         customName: clearName ? null : (customName ?? this.customName),
         units: units ?? this.units,
+        cpu: human ? null : (cpu ?? this.cpu),
       );
 
   Map<String, Object?> toJson() => {
         'style': styleIndex,
         'name': customName,
         'units': [for (final u in units) u.toJson()],
+        'cpu': cpu?.name,
       };
 }
 
@@ -244,6 +253,16 @@ class MatchConfig {
       ? Maps.all[rng.nextInt(Maps.all.length)]
       : Maps.byId(mapId);
 
+  /// Level of each computer-controlled team, by team index.
+  Map<int, CpuLevel> cpuTeams() => {
+        for (var t = 0; t < teams.length; t++)
+          t: ?teams[t].cpu,
+      };
+
+  /// Every team played by a person (Play on Wi-Fi has no CPU teams).
+  MatchConfig withoutCpu() =>
+      copyWith(teams: [for (final t in teams) t.copyWith(human: true)]);
+
   List<List<UnitSpec>> rosters() => [
         for (final t in teams)
           [
@@ -290,11 +309,13 @@ class MatchConfig {
       final style = t['style'];
       final name = t['name'];
       final units = t['units'];
+      final cpu = t['cpu'];
       if (style is! int ||
           style < 0 ||
           style >= Teams.styles.length ||
           !usedStyles.add(style) ||
           (name != null && name is! String) ||
+          (cpu != null && cpu is! String) ||
           units is! List ||
           units.length != unitsPerTeam) {
         return null;
@@ -305,6 +326,8 @@ class MatchConfig {
         styleIndex: style,
         customName: name as String?,
         units: entries.cast<UnitEntry>(),
+        // Saved before CPU teams existed (or an unknown level): a player.
+        cpu: CpuLevel.values.asNameMap()[cpu],
       ));
     }
     return MatchConfig(
