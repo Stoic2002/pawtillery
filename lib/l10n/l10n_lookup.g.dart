@@ -283,6 +283,7 @@ extension L10nByKey on AppLocalizations {
         'setupRandomAll' => setupRandomAll,
         'setupRandomTeam' => setupRandomTeam,
         'setupRandomUnit' => setupRandomUnit,
+        'setupRandomWeapons' => setupRandomWeapons,
         'setupRandomize' => setupRandomize,
         'setupSignatureWeapon' => setupSignatureWeapon,
         'setupStart' => setupStart,

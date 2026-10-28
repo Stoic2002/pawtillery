@@ -102,6 +102,7 @@ class MatchConfig {
     required this.suddenDeathMinutes,
     this.weapons = WeaponLoadout.standard,
     this.objects = ObjectAmount.few,
+    this.randomWeapons = false,
   });
 
   /// [mapId] value meaning "pick one at random".
@@ -118,6 +119,9 @@ class MatchConfig {
 
   /// Starter objects on the map (barrels, crates, mines).
   final ObjectAmount objects;
+
+  /// Random weapons rule: one drawn weapon per turn.
+  final bool randomWeapons;
 
   /// PRD defaults: 2 teams × 3 units, 45 s, random map, sudden death 15 min.
   factory MatchConfig.defaults(List<String> namePool) {
@@ -140,6 +144,7 @@ class MatchConfig {
     bool suddenDeathOff = false,
     WeaponLoadout? weapons,
     ObjectAmount? objects,
+    bool? randomWeapons,
   }) =>
       MatchConfig(
         teams: teams ?? this.teams,
@@ -151,6 +156,7 @@ class MatchConfig {
             : (suddenDeathMinutes ?? this.suddenDeathMinutes),
         weapons: weapons ?? this.weapons,
         objects: objects ?? this.objects,
+        randomWeapons: randomWeapons ?? this.randomWeapons,
       );
 
   /// Adds or removes teams; new teams get the first unused colour and
@@ -279,6 +285,7 @@ class MatchConfig {
         'suddenDeath': suddenDeathMinutes,
         'weapons': weapons.toJson(),
         'objects': objects.name,
+        'randomWeapons': randomWeapons,
       };
 
   /// Restores a saved config; anything invalid (old data, removed breeds)
@@ -342,6 +349,7 @@ class MatchConfig {
       // Saved before map objects existed: the default.
       objects: ObjectAmount.values.asNameMap()[json['objects']] ??
           ObjectAmount.few,
+      randomWeapons: json['randomWeapons'] == true,
     );
   }
 }

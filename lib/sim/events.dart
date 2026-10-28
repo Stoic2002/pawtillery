@@ -297,6 +297,13 @@ final class UnitJumped extends SimEvent {
   final int unitId;
 }
 
+/// Random weapons rule: [weaponId] is [unitId]'s weapon this turn.
+final class WeaponDrawn extends SimEvent {
+  const WeaponDrawn(this.unitId, this.weaponId);
+  final int unitId;
+  final String weaponId;
+}
+
 final class TurnStarted extends SimEvent {
   const TurnStarted({required this.team, required this.unitId});
   final int team;

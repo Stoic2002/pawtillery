@@ -89,6 +89,7 @@ class PawtilleryGame extends FlameGame {
     this.lockstep,
     this.objects,
     this.cpuTeams = const {},
+    this.randomWeapons = false,
   });
 
   final int seed;
@@ -118,6 +119,9 @@ class PawtilleryGame extends FlameGame {
   /// Play on Wi-Fi: steps come from the network instead of the clock
   /// alone, and only the active team's phone has controls.
   final Lockstep? lockstep;
+
+  /// Random weapons rule (see [SimWorld.randomWeapons]).
+  final bool randomWeapons;
 
   /// Teams the computer plays (hotseat only), by sim team index.
   final Map<int, CpuLevel> cpuTeams;
@@ -187,6 +191,7 @@ class PawtilleryGame extends FlameGame {
       suddenDeathAfterTicks: suddenDeathAfterTicks,
       loadout: loadout,
       objects: objects,
+      randomWeapons: randomWeapons,
     );
     stats = MatchStats(sim);
     lockstep?.attach(sim);
@@ -295,7 +300,8 @@ class PawtilleryGame extends FlameGame {
         ...Weapons.shared,
         if (family != null) Weapons.byId(family.signatureWeaponId),
       ])
-        if (loadout.enabled(w))
+        // Random weapons: only the drawn one (and skip) is on offer.
+        if (loadout.enabled(w) && (!randomWeapons || sim.canUse(unit, w)))
           WeaponChoice(
             weapon: w,
             ammoLeft: sim.ammoLeft(unit.team, w),
@@ -410,7 +416,9 @@ class PawtilleryGame extends FlameGame {
     _beforeTarget = null;
     final unit = sim.activeUnit;
     var id = Weapons.rock.id;
-    if (unit != null) {
+    if (sim.drawnWeaponId case final drawn?) {
+      id = drawn;
+    } else if (unit != null) {
       final last = _weaponByTeam[unit.team];
       if (last != null && sim.canUse(unit, Weapons.byId(last))) {
         id = last;
@@ -745,6 +753,7 @@ class PawtilleryGame extends FlameGame {
               MineTriggered() ||
               MineRemoved() ||
               PhaseChanged() ||
+              WeaponDrawn() ||
               SuddenDeathStarted() ||
               WaterRose() ||
               MatchEnded():

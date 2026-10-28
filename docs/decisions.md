@@ -888,3 +888,25 @@ like the settings (`SettingsStore.recordMatch`, `lib/app/match_history.dart`).
   left, the list on the right, "Clear history" (asks first) in the header.
 - The arena records the match when it ends, hotseat and Wi-Fi alike (a
   Wi-Fi match is recorded on each phone).
+
+## Random weapons rule (2026-10-28)
+
+The developer liked a "random weapon" mode. It is a rule on the setup
+screen's Rules tab ("Random weapons"), saved with the setup and sent to
+the other phones with it.
+
+- **In the sim** (`SimWorld.randomWeapons`): at the start of each turn
+  the sim RNG draws one weapon from the shared weapons this match's
+  loadout has on (the Weapons tab still decides the pool), tools left
+  out, plus the active pet's unused signature weapon. That weapon and
+  Skip are the only ones it may use that turn, and it costs no ammo.
+  A `WeaponDrawn` event announces it.
+- **Determinism:** the draw comes from the sim RNG, so every phone gets
+  the same weapon; it is in the state hash only when the rule is on, so
+  the pinned hashes didn't change. Wi-Fi protocol version 14.
+- **On screen:** the turn banner shows "This turn: {weapon}" with a die
+  and the weapon's icon, the weapon menu offers only it and Skip, and
+  the setup summary says "Random weapons".
+- **CPU:** plans with the drawn weapon at every level (Easy too, though
+  it normally skips limited weapons), with no ammo cost.
+- Matches with the rule are marked with a die in the history.

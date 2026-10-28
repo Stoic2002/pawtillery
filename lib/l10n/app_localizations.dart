@@ -1670,6 +1670,18 @@ abstract class AppLocalizations {
   /// **'Delete team'**
   String get setupDeleteTeam;
 
+  /// Setup rules: each turn draws one weapon, the only one that turn (free of ammo).
+  ///
+  /// In en, this message translates to:
+  /// **'Random weapons'**
+  String get setupRandomWeapons;
+
+  /// Turn banner under the random weapons rule: the weapon drawn for this turn.
+  ///
+  /// In en, this message translates to:
+  /// **'This turn: {weapon}'**
+  String hudDrawnWeapon(String weapon);
+
   /// Setup team card: tooltip of the menu that picks a player or a CPU level for the team.
   ///
   /// In en, this message translates to:

@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:math' show max, min, sqrt;
 import 'dart:typed_data';
 
+import '../config/families.dart';
 import '../config/map_objects.dart';
 import '../config/match_defaults.dart';
 import '../config/physics.dart';
@@ -41,6 +42,7 @@ class SimWorld implements SimContext {
     required TurnTimings timings,
     this.suddenDeathAfterTicks,
     this.loadout = WeaponLoadout.standard,
+    this.randomWeapons = false,
   })  : _waterLevel = waterLevel,
         _units = units,
         turn = TurnManager(teamCount: teamCount, timings: timings),
@@ -65,6 +67,7 @@ class SimWorld implements SimContext {
     int? suddenDeathAfterTicks,
     WeaponLoadout loadout = WeaponLoadout.standard,
     ObjectMix? objects,
+    bool randomWeapons = false,
   }) {
     final rng = SimRng(seed);
     final count = rosters.fold(0, (n, r) => n + r.length);
@@ -98,6 +101,7 @@ class SimWorld implements SimContext {
       timings: timings,
       suddenDeathAfterTicks: suddenDeathAfterTicks,
       loadout: loadout,
+      randomWeapons: randomWeapons,
     );
     if (objects != null && objects.total > 0) {
       world._placeObjects(objects, points);
@@ -115,6 +119,7 @@ class SimWorld implements SimContext {
     TurnTimings timings = const TurnTimings(),
     int? suddenDeathAfterTicks,
     WeaponLoadout loadout = WeaponLoadout.standard,
+    bool randomWeapons = false,
   }) {
     return SimWorld._(
       seed: seed,
@@ -135,10 +140,19 @@ class SimWorld implements SimContext {
       timings: timings,
       suddenDeathAfterTicks: suddenDeathAfterTicks,
       loadout: loadout,
+      randomWeapons: randomWeapons,
     );
   }
 
   final int seed;
+
+  /// Random weapons rule: each turn draws one weapon (from the loadout,
+  /// tools left out) and that is the turn's only weapon, free of ammo.
+  final bool randomWeapons;
+  String? _drawn;
+
+  /// This turn's weapon under [randomWeapons]; null otherwise.
+  String? get drawnWeaponId => _drawn;
 
   /// Weapons on and their starting ammo (setup's Weapons tab).
   final WeaponLoadout loadout;
@@ -316,6 +330,9 @@ class SimWorld implements SimContext {
     // Mid-shotgun: only its second pull.
     if (_shotgunLeft > 0) return weapon.delivery is Shotgun;
     if (!loadout.enabled(weapon)) return false;
+    if (randomWeapons) {
+      return weapon.id == _drawn || weapon.delivery is SkipTurn;
+    }
     if (weapon.isSignature) {
       return weapon.familyId == unit.familyId && !unit.signatureUsed;
     }
@@ -589,6 +606,8 @@ class SimWorld implements SimContext {
 
     if (weapon.isSignature) {
       unit.signatureUsed = true;
+    } else if (randomWeapons) {
+      // A drawn weapon is free.
     } else if (_ammo[unit.team][weapon.id] case final int left) {
       _ammo[unit.team][weapon.id] = left - 1;
     }
@@ -1879,6 +1898,7 @@ class SimWorld implements SimContext {
     _wind = rng.nextIntInRange(PhysicsConfig.windMin, PhysicsConfig.windMax);
     // A shield lasts until its pet's own next turn.
     final active = _units[turn.activeUnitId];
+    if (randomWeapons) _drawWeapon(active);
     if (active.shielded) {
       active.shielded = false;
       _events.add(ShieldPopped(active.id, blocked: false));
@@ -1893,6 +1913,24 @@ class SimWorld implements SimContext {
       ..add(const PhaseChanged(TurnPhase.turnStart));
     final start = suddenDeathAfterTicks;
     if (!_suddenDeath && start != null && _tick >= start) _startSuddenDeath();
+  }
+
+  /// Random weapons: one weapon for [unit]'s turn, drawn from the shared
+  /// weapons this match uses (no tools) and its unused signature weapon.
+  void _drawWeapon(Unit unit) {
+    final family = unit.familyId == null ? null : Families.byId(unit.familyId!);
+    final pool = [
+      for (final w in Weapons.shared)
+        if (loadout.enabled(w) && Weapons.groupOf(w) != WeaponGroup.tools) w,
+      if (family != null && !unit.signatureUsed)
+        if (Weapons.byId(family.signatureWeaponId) case final sig
+            when loadout.enabled(sig))
+          sig,
+    ];
+    _drawn = pool.isEmpty
+        ? null
+        : pool[rng.nextIntInRange(0, pool.length - 1)].id;
+    if (_drawn case final id?) _events.add(WeaponDrawn(unit.id, id));
   }
 
   /// PRD: every unit drops to 1 HP, then the water rises each round.
@@ -1955,6 +1993,10 @@ class SimWorld implements SimContext {
       ..add(_frozenSkip ? 1 : 0)
       ..add(_shotgunLeft)
       ..add(_nextCloudId);
+    // Only with the rule on, so hashes of other matches stay as they were.
+    if (randomWeapons) {
+      h.add(_drawn == null ? -1 : Weapons.all.indexWhere((w) => w.id == _drawn));
+    }
     for (final c in _clouds) {
       h
         ..add(c.id)

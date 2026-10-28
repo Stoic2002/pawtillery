@@ -1146,6 +1146,19 @@
   "setupAddTeam": "Add team",
   "setupRandomTeam": "Randomize team",
   "setupDeleteTeam": "Delete team",
+  "setupRandomWeapons": "Random weapons",
+  "@setupRandomWeapons": {
+    "description": "Setup rules: each turn draws one weapon, the only one that turn (free of ammo)."
+  },
+  "hudDrawnWeapon": "This turn: {weapon}",
+  "@hudDrawnWeapon": {
+    "description": "Turn banner under the random weapons rule: the weapon drawn for this turn.",
+    "placeholders": {
+      "weapon": {
+        "type": "String"
+      }
+    }
+  },
   "setupController": "Who plays this team",
   "@setupController": {
     "description": "Setup team card: tooltip of the menu that picks a player or a CPU level for the team."

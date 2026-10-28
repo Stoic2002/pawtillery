@@ -11,6 +11,7 @@ import '../../config/weapons.dart';
 import '../../game/hud_state.dart';
 import '../../game/pawtillery_game.dart';
 import '../../l10n/app_localizations.dart';
+import '../../l10n/l10n_lookup.g.dart';
 import '../../sim/inputs.dart';
 import '../../sim/turn_manager.dart';
 import '../widgets/paw/paw_widgets.dart';
@@ -178,6 +179,7 @@ class ArenaHud extends StatelessWidget {
                     unitName: _activeName(game),
                     color: teamColor,
                     symbol: teamSymbols[hud.activeTeam],
+                    drawnWeaponId: game.sim.drawnWeaponId,
                   ),
               ],
             );
@@ -1262,12 +1264,16 @@ class _TurnBanner extends StatelessWidget {
     required this.unitName,
     required this.color,
     required this.symbol,
+    this.drawnWeaponId,
   });
 
   final String name;
   final String unitName;
   final Color color;
   final TeamSymbol symbol;
+
+  /// Random weapons rule: this turn's weapon, shown under the banner.
+  final String? drawnWeaponId;
 
   @override
   Widget build(BuildContext context) {
@@ -1286,76 +1292,15 @@ class _TurnBanner extends StatelessWidget {
                 Transform.translate(offset: Offset(0, y), child: child),
             child: FractionallySizedBox(
               widthFactor: 0.64,
-              child: Container(
-                height: 76,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                decoration: BoxDecoration(
-                  color: color,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Paw.ink, width: 3),
-                  boxShadow: Paw.drop(5),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Paw.cream,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Paw.ink, width: 3),
-                      ),
-                      alignment: Alignment.center,
-                      child: SizedBox.square(
-                        dimension: 24,
-                        child: CustomPaint(
-                          painter: TeamSymbolPainter(
-                            symbol,
-                            fill: color,
-                            strokeWidth: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Stack(
-                        children: [
-                          Text(
-                            text,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: big.copyWith(
-                              foreground: Paint()
-                                ..style = PaintingStyle.stroke
-                                ..strokeWidth = 6
-                                ..strokeJoin = StrokeJoin.round
-                                ..color = Paw.ink,
-                            ),
-                          ),
-                          Text(
-                            text,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: big.copyWith(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (unitName.isNotEmpty)
-                      Container(
-                        height: 32,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: Paw.cream,
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(color: Paw.ink, width: 2),
-                        ),
-                        child: Text(unitName, style: Paw.text(14)),
-                      ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _banner(text, big),
+                  if (drawnWeaponId case final id?) ...[
+                    const SizedBox(height: 8),
+                    _drawn(l10n, Weapons.byId(id)),
                   ],
-                ),
+                ],
               ),
             ),
           ),
@@ -1363,4 +1308,100 @@ class _TurnBanner extends StatelessWidget {
       ),
     );
   }
+
+  Widget _drawn(AppLocalizations l10n, WeaponDef weapon) => Container(
+    height: 40,
+    padding: const EdgeInsets.fromLTRB(8, 0, 14, 0),
+    decoration: BoxDecoration(
+      color: Paw.cream,
+      borderRadius: BorderRadius.circular(999),
+      border: Border.all(color: Paw.ink, width: 2),
+      boxShadow: Paw.drop(3),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.casino_rounded, size: 22, color: Paw.ink),
+        const SizedBox(width: 6),
+        WeaponIcon(weapon: weapon, size: 28),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            l10n.hudDrawnWeapon(l10n.byKey(weapon.nameKey)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Paw.text(15),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _banner(String text, TextStyle big) => Container(
+    height: 76,
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    decoration: BoxDecoration(
+      color: color,
+      borderRadius: BorderRadius.circular(20),
+      border: Border.all(color: Paw.ink, width: 3),
+      boxShadow: Paw.drop(5),
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Paw.cream,
+            shape: BoxShape.circle,
+            border: Border.all(color: Paw.ink, width: 3),
+          ),
+          alignment: Alignment.center,
+          child: SizedBox.square(
+            dimension: 24,
+            child: CustomPaint(
+              painter: TeamSymbolPainter(symbol, fill: color, strokeWidth: 2),
+            ),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Stack(
+            children: [
+              Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: big.copyWith(
+                  foreground: Paint()
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = 6
+                    ..strokeJoin = StrokeJoin.round
+                    ..color = Paw.ink,
+                ),
+              ),
+              Text(
+                text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: big.copyWith(color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+        if (unitName.isNotEmpty)
+          Container(
+            height: 32,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Paw.cream,
+              borderRadius: BorderRadius.circular(999),
+              border: Border.all(color: Paw.ink, width: 2),
+            ),
+            child: Text(unitName, style: Paw.text(14)),
+          ),
+      ],
+    ),
+  );
 }

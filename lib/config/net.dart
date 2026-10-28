@@ -5,7 +5,7 @@ abstract final class NetConfig {
   /// are turned away in the lobby. 2 = bomber, satellite, homing missile;
   /// 3 = jet missile, storm cloud delay, bird flock; 4 = map objects;
   /// 5 = dig mode, black hole, sticky bomb, clay, swap.
-  static const int protocolVersion = 13;
+  static const int protocolVersion = 14;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;

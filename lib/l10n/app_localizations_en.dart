@@ -847,6 +847,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupDeleteTeam => 'Delete team';
 
   @override
+  String get setupRandomWeapons => 'Random weapons';
+
+  @override
+  String hudDrawnWeapon(String weapon) {
+    return 'This turn: $weapon';
+  }
+
+  @override
   String get setupController => 'Who plays this team';
 
   @override

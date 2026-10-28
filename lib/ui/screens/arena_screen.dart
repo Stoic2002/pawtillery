@@ -227,6 +227,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
       showAimGuide: AppServices.of(context).settings.showAimGuide,
       lockstep: _lockstep,
       cpuTeams: net == null ? config.cpuTeams() : const {},
+      randomWeapons: config.randomWeapons,
     );
     game.hud.addListener(_onHudChanged);
     final services = AppServices.of(context);
@@ -335,6 +336,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
         winnerTeam: result.winnerTeam,
         turns: result.turns,
         wifi: net,
+        randomWeapons: config.randomWeapons,
         topUnitName: result.topUnitName,
         topDamage: result.topDamage,
       ),

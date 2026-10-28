@@ -262,6 +262,8 @@
   "setupAddTeam": "Tambah tim",
   "setupRandomTeam": "Acak tim",
   "setupDeleteTeam": "Hapus tim",
+  "setupRandomWeapons": "Senjata acak",
+  "hudDrawnWeapon": "Giliran ini: {weapon}",
   "setupController": "Siapa yang memainkan tim ini",
   "setupHuman": "Pemain",
   "setupCpuEasy": "CPU · Mudah",

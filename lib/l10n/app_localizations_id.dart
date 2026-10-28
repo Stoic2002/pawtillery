@@ -851,6 +851,14 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupDeleteTeam => 'Hapus tim';
 
   @override
+  String get setupRandomWeapons => 'Senjata acak';
+
+  @override
+  String hudDrawnWeapon(String weapon) {
+    return 'Giliran ini: $weapon';
+  }
+
+  @override
   String get setupController => 'Siapa yang memainkan tim ini';
 
   @override

@@ -161,12 +161,15 @@ class _SetupScreenState extends State<SetupScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        l10n.setupSummary(
-                          config.teams.length,
-                          config.unitsPerTeam,
-                          config.turnSeconds,
-                          _mapName(l10n, config.mapId),
-                        ),
+                        [
+                          l10n.setupSummary(
+                            config.teams.length,
+                            config.unitsPerTeam,
+                            config.turnSeconds,
+                            _mapName(l10n, config.mapId),
+                          ),
+                          if (config.randomWeapons) l10n.setupRandomWeapons,
+                        ].join(' · '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Paw.text(14, weight: 700, color: Paw.muted),
@@ -755,6 +758,15 @@ class _RulesTab extends StatelessWidget {
                       ObjectAmount.many => l10n.setupObjectsMany,
                     },
                     onSelect: (a) => onChanged(config.copyWith(objects: a)),
+                  ),
+                ),
+                row(
+                  l10n.setupRandomWeapons,
+                  PawSwitch(
+                    value: config.randomWeapons,
+                    label: l10n.setupRandomWeapons,
+                    onChanged: (v) =>
+                        onChanged(config.copyWith(randomWeapons: v)),
                   ),
                   last: true,
                 ),

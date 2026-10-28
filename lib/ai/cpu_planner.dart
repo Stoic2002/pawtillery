@@ -172,6 +172,7 @@ class CpuPlanner {
       ])
         if (world.canUse(_me, w) &&
             (tuning.limitedWeapons ||
+                world.randomWeapons ||
                 w.isSignature ||
                 world.ammoLeft(_me.team, w) == null))
           w,
@@ -475,6 +476,7 @@ class CpuPlanner {
   }
 
   double _cost(WeaponDef w) {
+    if (world.randomWeapons) return 0; // Drawn weapons are free.
     if (w.isSignature) return CpuConfig.costSignature * tuning.ammoCostScale;
     final left = world.ammoLeft(_me.team, w);
     final cost = switch (left) {
