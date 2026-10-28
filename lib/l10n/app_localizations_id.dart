@@ -479,6 +479,50 @@ class AppLocalizationsId extends AppLocalizations {
   String get menuSettings => 'Pengaturan';
 
   @override
+  String get menuHistory => 'Riwayat';
+
+  @override
+  String get historyEmpty =>
+      'Belum ada pertandingan. Pertandingan yang selesai muncul di sini.';
+
+  @override
+  String get historyMatches => 'Pertandingan';
+
+  @override
+  String get historyVsCpu => 'Melawan CPU';
+
+  @override
+  String historyWinLoss(int won, int lost) {
+    return '$won menang · $lost kalah';
+  }
+
+  @override
+  String get historyFavorite => 'Senjata favorit';
+
+  @override
+  String get historyBestHit => 'Pukulan terbesar';
+
+  @override
+  String historyBestHitValue(int damage, String name) {
+    return '$damage oleh $name';
+  }
+
+  @override
+  String historyTurns(int count) {
+    return '$count giliran';
+  }
+
+  @override
+  String get historyClear => 'Hapus riwayat';
+
+  @override
+  String get historyClearTitle => 'Hapus riwayat?';
+
+  @override
+  String get historyClearBody =>
+      'Semua pertandingan dan statistik di HP ini akan dihapus.';
+
+  @override
   String get menuAbout => 'Tentang';
 
   @override

@@ -479,6 +479,49 @@ class AppLocalizationsEn extends AppLocalizations {
   String get menuSettings => 'Settings';
 
   @override
+  String get menuHistory => 'History';
+
+  @override
+  String get historyEmpty => 'No matches yet. Finished matches show up here.';
+
+  @override
+  String get historyMatches => 'Matches played';
+
+  @override
+  String get historyVsCpu => 'Against the CPU';
+
+  @override
+  String historyWinLoss(int won, int lost) {
+    return '$won won · $lost lost';
+  }
+
+  @override
+  String get historyFavorite => 'Favorite weapon';
+
+  @override
+  String get historyBestHit => 'Biggest hit';
+
+  @override
+  String historyBestHitValue(int damage, String name) {
+    return '$damage by $name';
+  }
+
+  @override
+  String historyTurns(int count) {
+    return '$count turns';
+  }
+
+  @override
+  String get historyClear => 'Clear history';
+
+  @override
+  String get historyClearTitle => 'Clear history?';
+
+  @override
+  String get historyClearBody =>
+      'Every past match and total on this phone will be removed.';
+
+  @override
   String get menuAbout => 'About';
 
   @override

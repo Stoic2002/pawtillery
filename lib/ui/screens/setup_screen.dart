@@ -21,6 +21,7 @@ import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/pet_figure.dart';
 import 'arena_screen.dart';
+import 'history_screen.dart' show cpuLevelLabel;
 
 /// Match setup (redesign prototype): a Teams tab with one card per team
 /// (and an "Add team" card), a Rules tab with the match options and the map
@@ -509,12 +510,7 @@ class _ControllerPicker extends StatelessWidget {
   final ValueChanged<CpuLevel?> onChanged;
 
   static String _label(AppLocalizations l10n, CpuLevel? level) =>
-      switch (level) {
-        null => l10n.setupHuman,
-        CpuLevel.easy => l10n.setupCpuEasy,
-        CpuLevel.normal => l10n.setupCpuNormal,
-        CpuLevel.hard => l10n.setupCpuHard,
-      };
+      level == null ? l10n.setupHuman : cpuLevelLabel(l10n, level);
 
   static IconData _icon(CpuLevel? level) =>
       level == null ? Icons.person_rounded : Icons.smart_toy_rounded;

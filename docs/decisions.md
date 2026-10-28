@@ -868,3 +868,23 @@ fits it. The menu opens on the tab of the weapon in hand, and a tab
 holds at most nine weapons so it fits without scrolling; if a loadout
 ever overflows, part of the next row peeks out to show it scrolls. A
 test checks every menu weapon has a tab.
+
+## Match history, on this phone only (2026-10-28)
+
+The developer asked for a history of past matches. There is no server,
+and losing it on uninstall is fine, so it lives in `shared_preferences`
+like the settings (`SettingsStore.recordMatch`, `lib/app/match_history.dart`).
+
+- **List:** the last 50 finished matches, newest first: date and time,
+  map, turns, each team (name, colour, CPU level), the winner, and
+  whether it was a Wi-Fi match.
+- **Totals** are stored apart from the list so they keep counting past
+  50: matches played, wins and losses of the people against each CPU
+  level (the highest level in the match; a draw counts as a loss), the
+  weapons people use (favourite = most used besides the rock and skip),
+  and the biggest single hit by a person's pet. CPU teams' weapons and
+  hits are not counted.
+- **Screen:** History, next to Settings on the main menu. Totals on the
+  left, the list on the right, "Clear history" (asks first) in the header.
+- The arena records the match when it ends, hotseat and Wi-Fi alike (a
+  Wi-Fi match is recorded on each phone).

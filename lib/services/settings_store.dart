@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app/match_config.dart';
+import '../app/match_history.dart';
 
 /// Player settings and the last team setup, kept on the device
 /// (PRD: Settings tersimpan; konfigurasi tim terakhir disimpan lokal).
@@ -25,6 +26,11 @@ class SettingsStore extends ChangeNotifier {
   static const _kTutorialDone = 'tutorialDone';
   static const _kMatch = 'lastMatchConfig';
   static const _kPlayerName = 'playerName';
+  static const _kHistory = 'matchHistory';
+  static const _kTotals = 'historyTotals';
+
+  /// Matches kept in the history list; the totals count every match.
+  static const historyLength = 50;
 
   /// 'en', 'id', or null to follow the device.
   String? get languageCode => _prefs.getString(_kLanguage);
@@ -76,6 +82,49 @@ class SettingsStore extends ChangeNotifier {
 
   Future<void> saveMatch(MatchConfig config) =>
       _prefs.setString(_kMatch, jsonEncode(config.toJson()));
+
+  /// Finished matches, newest first (on this phone only).
+  List<MatchRecord> get history {
+    final raw = _prefs.getString(_kHistory);
+    if (raw == null) return const [];
+    try {
+      final json = jsonDecode(raw);
+      if (json is! List) return const [];
+      return [for (final r in json) ?MatchRecord.fromJson(r)];
+    } on FormatException {
+      return const [];
+    }
+  }
+
+  HistoryTotals get historyTotals {
+    final raw = _prefs.getString(_kTotals);
+    if (raw == null) return const HistoryTotals();
+    try {
+      return HistoryTotals.fromJson(jsonDecode(raw));
+    } on FormatException {
+      return const HistoryTotals();
+    }
+  }
+
+  /// Adds a finished match to the history and the totals.
+  void recordMatch(
+    MatchRecord record, {
+    Map<String, int> weaponUses = const {},
+    (int, String)? bestHit,
+  }) {
+    final list = [record, ...history].take(historyLength);
+    final totals = historyTotals.add(record, uses: weaponUses, hit: bestHit);
+    _prefs.setString(
+      _kHistory,
+      jsonEncode([for (final r in list) r.toJson()]),
+    );
+    _set(() => _prefs.setString(_kTotals, jsonEncode(totals.toJson())));
+  }
+
+  void clearHistory() => _set(() async {
+    await _prefs.remove(_kHistory);
+    return _prefs.remove(_kTotals);
+  });
 
   void _set(Future<bool> Function() write) {
     write();

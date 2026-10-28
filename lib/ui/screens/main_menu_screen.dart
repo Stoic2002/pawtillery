@@ -13,6 +13,7 @@ import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_logo.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/pet_figure.dart';
+import 'history_screen.dart';
 import 'how_to_play_screen.dart';
 import 'lan_screen.dart';
 import 'settings_screen.dart';
@@ -120,11 +121,30 @@ class MainMenuScreen extends StatelessWidget {
                               onPressed: () => open(const HowToPlayScreen()),
                             ),
                             const SizedBox(height: 14),
-                            PawButton(
-                              label: l10n.menuSettings,
-                              icon: Icons.settings_rounded,
-                              borderWidth: 3,
-                              onPressed: () => open(const SettingsScreen()),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: PawButton(
+                                    label: l10n.menuHistory,
+                                    icon: Icons.history_rounded,
+                                    borderWidth: 3,
+                                    padding: 10,
+                                    onPressed: () =>
+                                        open(const HistoryScreen()),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: PawButton(
+                                    label: l10n.menuSettings,
+                                    icon: Icons.settings_rounded,
+                                    borderWidth: 3,
+                                    padding: 10,
+                                    onPressed: () =>
+                                        open(const SettingsScreen()),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),

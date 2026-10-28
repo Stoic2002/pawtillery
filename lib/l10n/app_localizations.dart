@@ -986,6 +986,78 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get menuSettings;
 
+  /// Main menu button and screen title: past matches and totals.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get menuHistory;
+
+  /// History screen when nothing has been played.
+  ///
+  /// In en, this message translates to:
+  /// **'No matches yet. Finished matches show up here.'**
+  String get historyEmpty;
+
+  /// History totals: number of finished matches.
+  ///
+  /// In en, this message translates to:
+  /// **'Matches played'**
+  String get historyMatches;
+
+  /// History totals: heading of wins and losses against computer teams.
+  ///
+  /// In en, this message translates to:
+  /// **'Against the CPU'**
+  String get historyVsCpu;
+
+  /// History totals: wins and losses against one CPU level.
+  ///
+  /// In en, this message translates to:
+  /// **'{won} won · {lost} lost'**
+  String historyWinLoss(int won, int lost);
+
+  /// History totals: the weapon players use most (besides the rock).
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite weapon'**
+  String get historyFavorite;
+
+  /// History totals: the biggest single hit by a player's pet.
+  ///
+  /// In en, this message translates to:
+  /// **'Biggest hit'**
+  String get historyBestHit;
+
+  /// History totals: damage of the biggest hit and the pet that dealt it.
+  ///
+  /// In en, this message translates to:
+  /// **'{damage} by {name}'**
+  String historyBestHitValue(int damage, String name);
+
+  /// History list: how long a match lasted.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} turns'**
+  String historyTurns(int count);
+
+  /// History screen button that removes every saved match.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear history'**
+  String get historyClear;
+
+  /// Confirmation title before clearing the history.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear history?'**
+  String get historyClearTitle;
+
+  /// Confirmation text before clearing the history.
+  ///
+  /// In en, this message translates to:
+  /// **'Every past match and total on this phone will be removed.'**
+  String get historyClearBody;
+
   /// Main menu button.
   ///
   /// In en, this message translates to:

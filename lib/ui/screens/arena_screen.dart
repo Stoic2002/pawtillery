@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_services.dart';
 import '../../app/match_config.dart';
+import '../../app/match_history.dart';
 import '../../app/paw_palette.dart';
 import '../../config/controls.dart';
 import '../../config/maps.dart';
@@ -283,6 +284,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
       topUnitTeam: top == null ? null : game.sim.units[top.$1].team,
       topDamage: top?.$2,
     );
+    _recordHistory(game, result);
     Future.delayed(const Duration(milliseconds: 1500), () {
       if (!mounted || _netStop != null) return;
       Navigator.of(context).pushReplacement(
@@ -295,6 +297,50 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
         ),
       );
     });
+  }
+
+  /// Keeps the match in the history on this phone. Weapon use and the
+  /// biggest hit count for teams played by people only.
+  void _recordHistory(PawtilleryGame game, MatchResult result) {
+    final config = widget.config;
+    final net = widget.net != null;
+    bool person(int t) => net || config.teams[t].cpu == null;
+    final uses = <String, int>{};
+    (int, String)? bestHit;
+    for (var t = 0; t < config.teams.length; t++) {
+      if (!person(t)) continue;
+      for (final MapEntry(:key, :value) in game.stats.weaponUses[t].entries) {
+        uses[key] = (uses[key] ?? 0) + value;
+      }
+      if (game.stats.biggestHit[t] case (final amount, final unitId)
+          when bestHit == null || amount > bestHit.$1) {
+        bestHit = (amount, _unitNames[unitId]);
+      }
+    }
+    AppServices.of(context).settings.recordMatch(
+      MatchRecord(
+        playedAt: DateTime.now(),
+        mapId: game.map.id,
+        teams: [
+          for (var t = 0; t < config.teams.length; t++)
+            TeamRecord(
+              name: _teamNames[t],
+              styleIndex: config.teams[t].styleIndex,
+              cpu: net ? null : config.teams[t].cpu,
+              damage: result.teamDamage[t],
+              knockouts: result.knockouts[t],
+              unitsLeft: result.unitsLeft[t],
+            ),
+        ],
+        winnerTeam: result.winnerTeam,
+        turns: result.turns,
+        wifi: net,
+        topUnitName: result.topUnitName,
+        topDamage: result.topDamage,
+      ),
+      weaponUses: uses,
+      bestHit: bestHit,
+    );
   }
 
   /// Leaving the app (home button, a call) mid-match opens the pause

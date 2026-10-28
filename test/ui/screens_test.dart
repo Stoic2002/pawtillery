@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pawtillery/app/app.dart';
 import 'package:pawtillery/app/app_services.dart';
 import 'package:pawtillery/app/match_config.dart';
+import 'package:pawtillery/app/match_history.dart';
+import 'package:pawtillery/config/cpu.dart';
 import 'package:pawtillery/config/weapons.dart';
 import 'package:pawtillery/l10n/app_localizations.dart';
 import 'package:pawtillery/services/audio_service.dart';
@@ -54,6 +56,7 @@ void main() {
     for (final (button, title) in [
       ('How to Play', 'Move'),
       ('Settings', 'Language'),
+      ('History', 'No matches yet. Finished matches show up here.'),
       ('Play', 'New Match'),
     ]) {
       await tester.tap(find.text(button));
@@ -329,9 +332,34 @@ void main() {
       (tester) async {
     await _landscape(tester);
     final settings = await _settings()..languageCode = 'id';
+    // Some history, so its screen shows the totals and the list.
+    for (var i = 0; i < 6; i++) {
+      settings.recordMatch(
+        MatchRecord(
+          playedAt: DateTime(2026, 10, 28, 20, i),
+          mapId: 'castle',
+          teams: [
+            for (var t = 0; t < 4; t++)
+              TeamRecord(
+                name: 'Tim Panjang Sekali $t',
+                styleIndex: t,
+                cpu: t.isOdd ? CpuLevel.hard : null,
+                damage: 120,
+                knockouts: 2,
+                unitsLeft: 1,
+              ),
+          ],
+          winnerTeam: i % 4,
+          turns: 31,
+          wifi: i == 0,
+        ),
+        weaponUses: const {'miniNuke': 2, 'rock': 9},
+        bestHit: (64, 'Milo'),
+      );
+    }
     await tester.pumpWidget(PawtilleryApp(settings: settings));
     await tester.pumpAndSettle();
-    for (final button in ['Main', 'Cara Bermain', 'Pengaturan']) {
+    for (final button in ['Main', 'Cara Bermain', 'Pengaturan', 'Riwayat']) {
       await tester.tap(find.text(button));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: button);

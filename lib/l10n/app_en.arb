@@ -650,6 +650,75 @@
   "@menuSettings": {
     "description": "Main menu / pause button."
   },
+  "menuHistory": "History",
+  "@menuHistory": {
+    "description": "Main menu button and screen title: past matches and totals."
+  },
+  "historyEmpty": "No matches yet. Finished matches show up here.",
+  "@historyEmpty": {
+    "description": "History screen when nothing has been played."
+  },
+  "historyMatches": "Matches played",
+  "@historyMatches": {
+    "description": "History totals: number of finished matches."
+  },
+  "historyVsCpu": "Against the CPU",
+  "@historyVsCpu": {
+    "description": "History totals: heading of wins and losses against computer teams."
+  },
+  "historyWinLoss": "{won} won · {lost} lost",
+  "@historyWinLoss": {
+    "description": "History totals: wins and losses against one CPU level.",
+    "placeholders": {
+      "won": {
+        "type": "int"
+      },
+      "lost": {
+        "type": "int"
+      }
+    }
+  },
+  "historyFavorite": "Favorite weapon",
+  "@historyFavorite": {
+    "description": "History totals: the weapon players use most (besides the rock)."
+  },
+  "historyBestHit": "Biggest hit",
+  "@historyBestHit": {
+    "description": "History totals: the biggest single hit by a player's pet."
+  },
+  "historyBestHitValue": "{damage} by {name}",
+  "@historyBestHitValue": {
+    "description": "History totals: damage of the biggest hit and the pet that dealt it.",
+    "placeholders": {
+      "damage": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "historyTurns": "{count} turns",
+  "@historyTurns": {
+    "description": "History list: how long a match lasted.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "historyClear": "Clear history",
+  "@historyClear": {
+    "description": "History screen button that removes every saved match."
+  },
+  "historyClearTitle": "Clear history?",
+  "@historyClearTitle": {
+    "description": "Confirmation title before clearing the history."
+  },
+  "historyClearBody": "Every past match and total on this phone will be removed.",
+  "@historyClearBody": {
+    "description": "Confirmation text before clearing the history."
+  },
   "menuAbout": "About",
   "@menuAbout": {
     "description": "Main menu button."
