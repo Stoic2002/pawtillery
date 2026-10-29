@@ -90,6 +90,11 @@ abstract final class CpuConfig {
   static const int maxFlightTicks = 360;
   static const double maxFlightAbove = 600;
 
+  /// Weapons run in a shadow of the world (bouncing, homing, rolling, ...):
+  /// aim grid step (degrees and power points) and longest run, ticks.
+  static const int simStep = 8;
+  static const int maxSimTicks = 7 * 60;
+
   /// Time spent planning per sim tick, so a frame never stalls.
   static const Duration planBudget = Duration(milliseconds: 2);
 

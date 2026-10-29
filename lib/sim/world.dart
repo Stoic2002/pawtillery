@@ -491,6 +491,46 @@ class SimWorld implements SimContext {
     return (origin, aims);
   }
 
+  /// The projectile [unit] throws with [weapon] at [angleDeg] and
+  /// [powerPercent] ([fuseTicks]: the player's fuse, for weapons that let
+  /// them pick it). Shared with the CPU's planning, so a planned throw is
+  /// exactly the real one.
+  static Projectile shotFor(
+    Unit unit,
+    WeaponDef weapon, {
+    required int id,
+    required int angleDeg,
+    required int powerPercent,
+    int? fuseTicks,
+  }) {
+    final (x, y) = launchOrigin(unit, angleDeg);
+    var fuse = weapon.fuseTicks;
+    if (weapon.playerFuse && fuseTicks != null) {
+      fuse = fuseTicks
+          .clamp(FuseConfig.minSeconds * 60, FuseConfig.maxSeconds * 60);
+    }
+    final p = ProjectilePhysics.launch(
+      id: id,
+      ownerId: unit.id,
+      weapon: weapon,
+      x: x,
+      y: y,
+      angleDeg: angleDeg,
+      powerPercent: powerPercent,
+      speedScale: unit.stats.firePowerScale * weapon.launchSpeedScale,
+      fuseTicks: fuse,
+    );
+    final flight = weapon.flight;
+    if (flight is Boomerang) {
+      final power = powerPercent.clamp(0, 100) / 100;
+      p
+        ..range = flight.minRange + (flight.maxRange - flight.minRange) * power
+        ..vx = SimTrig.cosDeg(angleDeg) * flight.speed
+        ..vy = -SimTrig.sinDeg(angleDeg) * flight.speed;
+    }
+    return p;
+  }
+
   /// Highest a satellite parks (world y).
   static const double satelliteParkY = 40;
 

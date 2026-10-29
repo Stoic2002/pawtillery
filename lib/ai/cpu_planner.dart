@@ -6,9 +6,14 @@ import '../config/weapons.dart';
 import '../sim/damage.dart';
 import '../sim/inputs.dart';
 import '../sim/physics.dart';
+import '../sim/projectile.dart';
 import '../sim/rng.dart';
+import '../sim/terrain_mask.dart';
 import '../sim/trig.dart';
 import '../sim/unit.dart';
+import '../sim/weapon_behaviors/flight_behavior.dart';
+import '../sim/weapon_behaviors/sim_context.dart';
+import '../sim/weapon_behaviors/walker_behavior.dart';
 import '../sim/world.dart';
 
 /// The shot a CPU settled on, and how good it looked.
@@ -100,6 +105,7 @@ class CpuPlanner {
   Iterable<void> _search() sync* {
     final usable = _usableWeapons();
     final ballistic = <_Group>[];
+    final simulated = <WeaponDef>[];
     for (final w in usable) {
       switch (w.aim) {
         case AimMode.target:
@@ -117,7 +123,7 @@ class CpuPlanner {
             group.weapons.add(w);
           }
         case AimMode.angleAndPower:
-          break;
+          simulated.add(w);
       }
     }
 
@@ -166,6 +172,13 @@ class CpuPlanner {
       }
     }
 
+    // Weapons whose flight can't be told from an arc (bouncing, homing,
+    // ricochets, rolling, drilling, boomerangs, scattered mines): their
+    // real behaviour is run in a shadow of the world.
+    for (final w in simulated) {
+      yield* _searchSimulated(w);
+    }
+
     // Nothing better: skip the turn rather than stand idle.
     if (bestSoFar == null && world.canUse(_me, Weapons.skip)) {
       _offer(const Fire(weaponId: 'skip'), -100);
@@ -199,7 +212,8 @@ class CpuPlanner {
           AddGround() || ScatterMines() => false,
         },
         // Goes through pets, but the first one is hit like a plain shot.
-        Sticky() || Pierce() => true,
+        // A black hole pulls pets in where it lands, then collapses.
+        Sticky() || Pierce() || Vortex() => true,
         _ => false,
       };
 
@@ -351,10 +365,114 @@ class CpuPlanner {
         value = healed * 0.8 + (_me.poisoned ? 8 : 0);
       case AreaHit(reach: 0):
         value = _blastValue(_me.centerX, _me.centerY, w, sparesMe: true);
+      case DropCharge():
+        // Set down in front; the CPU runs off before it goes (see
+        // CpuPlayer), so only the others count.
+        final f = _me.facing;
+        value = _simulate(
+          [
+            Projectile(
+              id: -1,
+              ownerId: _me.id,
+              weapon: w,
+              x: _me.centerX + f * (_me.stats.hitRadius + 3),
+              y: _me.centerY,
+              vx: f * 20,
+              vy: -60,
+              fuseTicks: w.fuseTicks,
+            ),
+          ],
+          sparesMe: true,
+        );
+      case PlaceMine():
+        // A trap: worth a little for every enemy close by.
+        var near = 0;
+        for (final e in _enemies) {
+          if ((e.centerX - _me.centerX).abs() < 160 &&
+              (e.centerY - _me.centerY).abs() < 60) {
+            near++;
+          }
+        }
+        value = near * w.maxDamage * 0.3;
+      case ShieldUp():
+        // Worth it when hurt and nothing better is on.
+        value = _me.hp <= 50 && _enemies.isNotEmpty ? 10 : 0;
       default:
         return;
     }
     _offer(Fire(weaponId: w.id), value - _cost(w));
+  }
+
+  /// A weapon run in a shadow of the world over a coarse grid of aims,
+  /// then finer around the best few. A player-set fuse is kept at its
+  /// default.
+  Iterable<void> _searchSimulated(WeaponDef w) sync* {
+    final cost = _cost(w);
+    final fuse = w.playerFuse ? FuseConfig.defaultSeconds * 60 : null;
+    final top = <(double, int, int)>[];
+    void tryAim(int a, int p) {
+      final v = _simulate([
+        SimWorld.shotFor(
+          _me,
+          w,
+          id: -1,
+          angleDeg: a,
+          powerPercent: p,
+          fuseTicks: fuse,
+        ),
+      ]);
+      _offer(
+        Fire(weaponId: w.id, angleDeg: a, powerPercent: p, fuseTicks: fuse),
+        v + _missPenalty(v) - cost,
+      );
+      top
+        ..add((v, a, p))
+        ..sort((x, y) => y.$1.compareTo(x.$1));
+      if (top.length > 3) top.removeLast();
+    }
+
+    const step = CpuConfig.simStep;
+    for (var a = CpuConfig.angleMin; a <= CpuConfig.angleMax; a += step) {
+      for (var p = CpuConfig.powerMin; p <= CpuConfig.powerMax; p += step) {
+        tryAim(a, p);
+        yield null;
+      }
+    }
+    for (final (v, a0, p0) in [...top]) {
+      if (v <= 0) continue;
+      for (var a = a0 - step ~/ 2; a <= a0 + step ~/ 2; a += 2) {
+        for (var p = p0 - step ~/ 2; p <= p0 + step ~/ 2; p += 2) {
+          if (p < 0 || p > 100 || (a == a0 && p == p0)) continue;
+          tryAim(a, p);
+          yield null;
+        }
+      }
+    }
+  }
+
+  /// A simulated shot that hurts nobody ranks just below one that does
+  /// (it has no landing point to rate by closeness).
+  static double _missPenalty(double value) => value > 0 ? 0 : -1;
+
+  /// Runs [shots] (and whatever they spawn) with their real behaviour in a
+  /// shadow of the world that changes nothing, and adds up what they did.
+  /// With [sparesMe] the CPU's own pet doesn't count (it will have moved).
+  double _simulate(List<Projectile> shots, {bool sparesMe = false}) {
+    final ctx = _PlanContext(this, sparesMe: sparesMe);
+    final live = [...shots];
+    for (var t = 0; t < CpuConfig.maxSimTicks && live.isNotEmpty; t++) {
+      for (var i = live.length - 1; i >= 0; i--) {
+        final p = live[i];
+        if (FlightBehavior.of(p.weapon).tick(p, ctx) != FlightOutcome.flying) {
+          live.removeAt(i);
+        }
+      }
+      if (ctx.spawned.isNotEmpty) {
+        live.addAll(ctx.spawned);
+        ctx.spawned.clear();
+      }
+    }
+    return ctx.score;
   }
 
   /// Beams, the shotgun and punches: every direction.
@@ -374,6 +492,46 @@ class CpuPlanner {
         case Shotgun(:final range):
           final u = _firstUnitOnRay(a, range);
           value = u == null ? 0 : _unitValue(u, w.maxDamage);
+        case Dash(:final distance) when a == 0 || a == 180:
+          // Charges sideways through the ground into the first pet.
+          final dir = a == 0 ? 1 : -1;
+          Unit? first;
+          for (final u in _living) {
+            if (u.id == _me.id) continue;
+            final dx = (u.centerX - _me.centerX) * dir;
+            if (dx <= 0 || dx > distance + u.stats.hitRadius) continue;
+            if ((u.centerY - _me.centerY).abs() > u.stats.hitRadius + 4) {
+              continue;
+            }
+            if (first == null ||
+                dx < (first.centerX - _me.centerX) * dir) {
+              first = u;
+            }
+          }
+          value = first == null ? 0 : _unitValue(first, w.maxDamage);
+        case final SpawnWalker spec when a == 0 || a == 180:
+          // A walker set off left or right, run for real.
+          final dir = a == 0 ? 1 : -1;
+          final body = WalkerBehavior.makeBody(
+            spec,
+            _me.x + dir * (_me.stats.hitRadius + 4),
+            _me.y,
+            dir,
+          );
+          value = _simulate([
+            Projectile(
+              id: -1,
+              ownerId: _me.id,
+              weapon: w,
+              x: body.centerX,
+              y: body.centerY,
+              vx: 0,
+              vy: 0,
+              fuseTicks: w.fuseTicks,
+            )..body = body,
+          ]);
+        case Dash() || SpawnWalker():
+          continue;
         case AreaHit(:final reach) when reach > 0:
           value = _blastValue(
             _me.centerX + SimTrig.cosDeg(a) * reach,
@@ -403,6 +561,10 @@ class CpuPlanner {
   /// What [w] going off at ([x], [y]) is worth, by what it does on impact.
   double _impactValue(WeaponDef w, double x, double y) {
     final flight = w.flight;
+    if (flight is Vortex) {
+      // Pets in reach are pulled to the middle before it collapses.
+      return _areaValue(x, y, flight.pullRadius * 0.6, w.maxDamage * 0.8);
+    }
     final impact = flight is Ballistic ? flight.onImpact : const Explode();
     return switch (impact) {
       Explode() => _blastValue(x, y, w),
@@ -572,6 +734,7 @@ class CpuPlanner {
           angleDeg: f.angleDeg + jitter(tuning.angleError),
           powerPercent:
               (f.powerPercent + jitter(tuning.powerError)).clamp(0, 100),
+          fuseTicks: f.fuseTicks,
         );
       case AimMode.direction:
         aimed = Fire(
@@ -587,6 +750,112 @@ class CpuPlanner {
     }
     return CpuPlan(fire: aimed, score: plan.score);
   }
+}
+
+/// The world as weapon behaviours see it while the CPU plans: reads the
+/// real terrain and pets, changes nothing (no carving, no ground added, no
+/// pet moved, its own random numbers) and adds up what would happen.
+class _PlanContext implements SimContext {
+  _PlanContext(this._planner, {required this.sparesMe})
+    : rng = SimRng(_planner.world.tick ^ 0x5eed);
+
+  final CpuPlanner _planner;
+  final bool sparesMe;
+  double score = 0;
+  final List<Projectile> spawned = [];
+  int _ids = -2;
+
+  SimWorld get _w => _planner.world;
+
+  @override
+  TerrainMask get terrain => _w.terrain;
+  @override
+  int get waterLevel => _w.waterLevel;
+  @override
+  int get wind => (_w.wind * _planner.tuning.windSense).round();
+  @override
+  final SimRng rng;
+  @override
+  List<Unit> get units => _w.units;
+
+  @override
+  void explode(double x, double y, WeaponDef weapon, {int? sourceId}) =>
+      score += _planner._blastValue(x, y, weapon, sparesMe: sparesMe);
+
+  @override
+  void strikeUnit(
+    Unit unit,
+    int damage,
+    double dirX,
+    double dirY,
+    double knockbackScale, {
+    int? sourceId,
+  }) => score += _planner._unitValue(unit, damage);
+
+  @override
+  void carveTunnel(int x, int y, int radius) {}
+
+  @override
+  void addGround(int x, int y, int radius) {}
+
+  @override
+  void spawnProjectile(Projectile p) => spawned.add(p);
+
+  @override
+  int nextProjectileId() => _ids--;
+
+  @override
+  void spawnMine(
+    WeaponDef weapon,
+    double x,
+    double y,
+    double vx,
+    double vy, {
+    int? ownerId,
+  }) => score += _planner._areaValue(x, y, 60, weapon.maxDamage * 0.4);
+
+  @override
+  void ignite(double x, double y, Ignite spec, {int? sourceId}) =>
+      score += _planner._areaValue(
+        x,
+        y,
+        spec.spread / 2 + FireConfig.reach,
+        FireConfig.damage * 2,
+      );
+
+  @override
+  void releaseGas(double x, double y, GasCloud spec, {int? sourceId}) =>
+      score += _planner._areaValue(
+        x,
+        y,
+        spec.radius.toDouble(),
+        GasConfig.damage * 2.5,
+      );
+
+  @override
+  void nuke(double x, double y, WeaponDef weapon, Nuke spec, {int? sourceId}) =>
+      score +=
+          _planner._blastValue(x, y, weapon) +
+          _planner._areaValue(
+            x,
+            y,
+            spec.falloutRadius.toDouble(),
+            GasConfig.damage * 2.5,
+          );
+
+  @override
+  void freeze(
+    double x,
+    double y,
+    WeaponDef weapon,
+    Freeze spec, {
+    int? sourceId,
+  }) => score += _planner._areaValue(
+    x,
+    y,
+    spec.radius.toDouble(),
+    weapon.maxDamage + 15,
+  );
 }
 
 /// Thrown weapons that fly the same way share their aim search.

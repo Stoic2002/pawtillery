@@ -1257,7 +1257,7 @@ abstract final class Weapons {
     aim: AimMode.none,
     delivery: Launch(),
     flight: Ballistic(),
-    maxDamage: 16,
+    maxDamage: 10,
     radius: 28,
     placeholderArgb: 0xFFC0623A,
   );

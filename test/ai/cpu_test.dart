@@ -120,6 +120,36 @@ void main() {
       expect(w.ammoLeft(0, weapon), isNull);
     });
 
+    test('plans with weapons that need their real behaviour run (bouncing, '
+        'ricochet, homing)', () {
+      final w = SimWorld.withUnits(
+        seed: 4,
+        terrain: flatMap(),
+        waterLevel: 560,
+        teamCount: 2,
+        placements: const [
+          UnitPlacement(0, 400, 400),
+          UnitPlacement(1, 800, 400),
+        ],
+        timings: testTimings,
+        randomWeapons: true,
+      );
+      const simulated = {'grenade', 'bottleRocket', 'snifferRocket'};
+      final seen = <String>{};
+      for (var turn = 0; turn < 80 && seen.length < 2; turn++) {
+        toAction(w);
+        final drawn = w.drawnWeaponId!;
+        if (simulated.contains(drawn) && w.activeUnit!.team == 0) {
+          final plan = CpuPlanner(w, CpuTuning.hard, seed: turn).planNow()!;
+          expect(plan.fire.weaponId, drawn, reason: 'not a skip');
+          expect(plan.score, greaterThan(5), reason: drawn);
+          seen.add(drawn);
+        }
+        fireAndSettle(w, const Fire(weaponId: 'skip'));
+      }
+      expect(seen, isNotEmpty);
+    });
+
     test('plans in slices, a few flights at a time', () {
       final w = world(const [
         UnitPlacement(0, 400, 400),

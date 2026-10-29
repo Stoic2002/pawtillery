@@ -83,9 +83,18 @@ class _CpuTurn {
   int _shots = 0;
   CpuAim? aim;
 
+  /// After setting down a charge or a mine: the way to run in the retreat.
+  int _fleeDir = 0;
+
   List<SimInput> step(SimWorld w, Unit me) {
     final phase = w.turn.phase;
     if (phase == TurnPhase.action) _actionTicks++;
+    if (phase == TurnPhase.retreat &&
+        _fleeDir != 0 &&
+        me.grounded &&
+        _safeAhead(w, me, _fleeDir)) {
+      return [Walk(_fleeDir)];
+    }
     if (phase != TurnPhase.turnStart && !w.turn.allowsFire) {
       aim = null;
       return const [];
@@ -147,6 +156,10 @@ class _CpuTurn {
         _shots++;
         _plan = null;
         aim = null;
+        // A charge or a mine is set down in front: run the other way.
+        if (weapon.delivery is DropCharge || weapon.delivery is PlaceMine) {
+          _fleeDir = -me.facing;
+        }
         // A weapon that leaves the turn open (shotgun) gets a new plan.
         _stage = _Stage.planning;
         return [plan.fire];

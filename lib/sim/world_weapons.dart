@@ -384,31 +384,14 @@ extension _Weapons on SimWorld {
 
   void _launchShot(Unit unit, WeaponDef weapon, Fire input, {int? angleDeg}) {
     final angle = angleDeg ?? input.angleDeg;
-    final (x, y) = SimWorld.launchOrigin(unit, angle);
-    var fuse = weapon.fuseTicks;
-    if (weapon.playerFuse && input.fuseTicks != null) {
-      fuse = input.fuseTicks!
-          .clamp(FuseConfig.minSeconds * 60, FuseConfig.maxSeconds * 60);
-    }
-    final p = ProjectilePhysics.launch(
+    final p = SimWorld.shotFor(
+      unit,
+      weapon,
       id: nextProjectileId(),
-      ownerId: unit.id,
-      weapon: weapon,
-      x: x,
-      y: y,
       angleDeg: angle,
       powerPercent: input.powerPercent,
-      speedScale: unit.stats.firePowerScale * weapon.launchSpeedScale,
-      fuseTicks: fuse,
+      fuseTicks: input.fuseTicks,
     );
-    final flight = weapon.flight;
-    if (flight is Boomerang) {
-      final power = input.powerPercent.clamp(0, 100) / 100;
-      p
-        ..range = flight.minRange + (flight.maxRange - flight.minRange) * power
-        ..vx = SimTrig.cosDeg(input.angleDeg) * flight.speed
-        ..vy = -SimTrig.sinDeg(input.angleDeg) * flight.speed;
-    }
     final dirX = SimTrig.cosDeg(angle);
     if (dirX.abs() > 1e-9) unit.facing = dirX > 0 ? 1 : -1;
     spawnProjectile(p);

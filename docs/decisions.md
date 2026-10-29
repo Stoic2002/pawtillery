@@ -1101,3 +1101,50 @@ The developer wanted a guest to come back even if its app was closed
   strikes, so it reaches the ground with the blast and its sound; the
   camera rides its tip. Visual only: the sim's timing is unchanged.
 - Protocol version 18 (eggs).
+
+## The CPU uses every attacking weapon (2026-10-29)
+
+The developer asked why the CPU left so many weapons alone. It only
+predicted plain arcs. Now weapons whose flight isn't an arc (grenade,
+sniffer rocket, bottle rocket, coconut, bone boomerang, drill carrot,
+seed mines) are run with their real `FlightBehavior` in a shadow of the
+world (`_PlanContext` in `lib/ai/cpu_planner.dart`): it reads the real
+ground and pets but carves nothing, adds no ground, moves no pet and has
+its own random numbers, and it adds up what the blasts, hits, fire, gas,
+frost and mines would do. Shots are built by `SimWorld.shotFor`, shared
+with the sim, so a planned throw is the real one. These are searched on
+a coarser grid (8° × 8 %, then finer around the best three).
+
+- The black hole is rated where it lands (it pulls pets in, which the
+  shadow can't do without moving them); the headbutt by the first pet
+  in its path; the walking duck is run for real left and right; the
+  firecracker is set down and the CPU then runs the other way in the
+  retreat (mines too); the shield when it is hurt and nothing better is
+  on. Tools for moving and building (teleport, grapple, dig, clay,
+  fortress, swap) are still left to people.
+- A probe with every weapon unlimited showed the new flowerpot stack too
+  strong (five pots on one spot, up to 80 damage, no aim needed, picked
+  67 times): 16 → 10 a pot.
+- Plans take longer in a debug build (about 75 ms on average, still
+  sliced 2 ms a tick). Protocol version 19.
+
+## Art: pets with feet, tails and faces; cleaner props (2026-10-29)
+
+- **Pets** (`AnimalArt`): two feet peeking out under the body that step
+  when walking (orange toes for birds), a tail per family (curled cat,
+  wagging dog, puff for rabbit and hamster, curling monkey, feathers for
+  birds and chickens, a duck tuft, a goat tuft, a pointed turtle tail),
+  and family faces: a pink nose, "w" mouth and whiskers for the cat, a
+  tongue for the dog, buck teeth for the rabbit, whiskers for the
+  hamster, nostrils for the goat, nostrils and a smile for the monkey, a
+  wattle for the chicken.
+- **Toy blocks** lost their pixel letters: an inked edge, a raised inner
+  panel and a smooth engraved ring, star, triangle or diamond.
+- **Tin can:** inked sides, cream trims on the label and a round emblem.
+- **Maps** (`tool/gen_maps.py`): the backyard burrow and the ruins
+  cellar were rectangles cut into the ground; they are winding tunnels
+  of overlapping blobs now (`tunnel`). The castle's dead trees have a
+  thicker trunk and tapering branches with two twigs each. Wreck is
+  unchanged.
+- Still to do: back walls behind the ruined houses so they read as
+  buildings, not frames.
