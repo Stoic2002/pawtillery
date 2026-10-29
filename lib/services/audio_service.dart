@@ -90,17 +90,35 @@ class AudioService {
         _ => 2,
       };
 
-  /// Loads every effect once into a few reusable low-latency players, so
-  /// playing a sound is a single restart: no asset copy, decode or new
-  /// player at the moment of the blast (which made sounds lag behind the
-  /// picture), and no player left behind after each sound (low-latency
-  /// players never report "completed", so one-shot players leaked).
+  /// On Android the effects play from the app's own SoundPool on a
+  /// background thread (`SoundEffects.kt`): the audio plugin ran every
+  /// call on the main thread, and bursts of blasts stalled it for up to a
+  /// second, holding up the sounds themselves and touches. Elsewhere (the
+  /// iOS simulators used to test Wi-Fi) the plugin is used.
+  static final bool _native =
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  static const _sfx = MethodChannel('pawtillery/sfx');
+  final Set<Sfx> _nativeLoaded = {};
+
+  /// Loads every effect once, so playing a sound needs no copy or decode
+  /// at the moment of the blast. With the plugin: into a few reusable
+  /// low-latency players (one-shot players leaked, as low-latency players
+  /// never report "completed").
   Future<void> preloadEffects() async {
     await Future.wait([
       for (final sfx in Sfx.values)
         if (_file('sfx_${sfx.name}') case final String file)
-          _loadVoices(sfx, file),
+          _native ? _loadNative(sfx, file) : _loadVoices(sfx, file),
     ]);
+  }
+
+  Future<void> _loadNative(Sfx sfx, String file) async {
+    try {
+      await _sfx.invokeMethod<void>('load', {'asset': '$_dir$file'});
+      _nativeLoaded.add(sfx);
+    } on Object catch (e) {
+      debugPrint('Sound $file not loaded: $e');
+    }
   }
 
   Future<void> _loadVoices(Sfx sfx, String file) async {
@@ -129,11 +147,20 @@ class AudioService {
   void play(Sfx sfx) {
     final volume = _settings.sfxVolume;
     final voices = _voices[sfx];
-    if (voices == null || volume <= 0) return;
+    final native = _nativeLoaded.contains(sfx);
+    if ((voices == null && !native) || volume <= 0) return;
     final now = _clock.elapsedMilliseconds;
     if (now - (_lastPlayedMs[sfx] ?? -1000) < 30) return;
     _lastPlayedMs[sfx] = now;
-    voices.restart(volume);
+    if (native) {
+      final file = _file('sfx_${sfx.name}')!;
+      // Not awaited: the sound starts on its own thread.
+      _sfx
+          .invokeMethod<void>('play', {'asset': '$_dir$file', 'volume': volume})
+          .catchError((Object e) => debugPrint('Sound failed: $e'));
+    } else {
+      voices!.restart(volume);
+    }
   }
 
   /// Switches to [music]; remembered but silent while music is off.

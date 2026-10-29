@@ -1148,3 +1148,26 @@ a coarser grid (8° × 8 %, then finer around the best three).
   unchanged.
 - Still to do: back walls behind the ruined houses so they read as
   buildings, not frames.
+
+## Sound effects off the Android main thread (2026-10-29)
+
+A profile run on the developer's phone (Galaxy A55, 120 Hz) logged the
+Android main thread stalling again and again ("Skipped 40–178 frames",
+0.3–1.5 s, and twice about 12 s). With effects and vibration switched
+off the stalls were gone. The audio plugin (audioplayers' SoundPool
+player) runs every call on that thread, which also takes touches; bursts
+of blasts held it up, and the sounds waited in the same queue, so they
+came late.
+
+- Effects on Android now play from the app's own `SoundPool`
+  (`android/.../SoundEffects.kt`) behind a method channel on a background
+  task queue (`makeBackgroundTaskQueue`), so a sound neither waits on nor
+  holds up the main thread. `AudioService` asks it to load every effect
+  at start (assets are copied out of the APK to the cache, afresh each
+  launch) and sends `play` without waiting. Not a new package: a few
+  lines of platform code like the Wi-Fi lock.
+- Music stays on the plugin (it only starts and stops between screens),
+  and so do effects elsewhere (the iOS simulators used for Wi-Fi tests).
+- Vibration still goes through Flutter's haptics on the main thread;
+  usually cheap, but it was off in the test too, so it needs its own
+  check.

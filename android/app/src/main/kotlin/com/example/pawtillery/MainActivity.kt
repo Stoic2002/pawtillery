@@ -8,11 +8,13 @@ import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     private var multicastLock: WifiManager.MulticastLock? = null
+    private var soundEffects: SoundEffects? = null
 
     // Play on Wi-Fi: many phones drop broadcast packets (the room beacon)
     // unless an app holds a multicast lock. See lib/services/wifi_lock.dart.
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        soundEffects = SoundEffects(applicationContext, flutterEngine.dartExecutor.binaryMessenger)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "pawtillery/wifi")
             .setMethodCallHandler { call, result ->
                 when (call.method) {
@@ -45,6 +47,8 @@ class MainActivity : FlutterActivity() {
 
     override fun onDestroy() {
         releaseMulticast()
+        soundEffects?.release()
+        soundEffects = null
         super.onDestroy()
     }
 }
