@@ -190,24 +190,42 @@ def tombstone(m, x, ground, h, w=34):
     settle(m, x - w, x + w, ground - 20, ground + 10, [STONE, SOIL], SOIL)
 
 
+def tunnel(m, x0, x1, y, r, seed):
+    """A winding burrow from x0 to x1 around depth y: overlapping blobs
+    that rise and fall a little, so it reads as dug rather than cut."""
+    rng = random.Random(seed)
+    steps = max(2, int((x1 - x0) / (r * 0.8)))
+    for i in range(steps + 1):
+        x = x0 + (x1 - x0) * i / steps
+        yy = y + math.sin(i * 1.3 + seed) * r * 0.35
+        m.blob(x, yy, r * rng.uniform(0.9, 1.15), carve=True, wobble=0.16,
+               seed=seed * 100 + i)
+
+
 def dead_tree(m, x, ground, h, seed):
     """A bare tree: a trunk tapering from a flared root plate, crooked
     branches that thin out, and twigs. Roots are dug into a soil mound."""
     rng = random.Random(seed)
     m.ellipse(x, ground + 4, 46, 14, m=SOIL)
-    m.poly([(x - 34, ground + 10), (x - 16, ground - 14), (x - 8, ground - h),
-            (x + 8, ground - h), (x + 16, ground - 14), (x + 34, ground + 10)],
+    m.poly([(x - 40, ground + 10), (x - 22, ground - 16), (x - 14, ground - h * 0.6),
+            (x - 9, ground - h), (x + 9, ground - h), (x + 14, ground - h * 0.6),
+            (x + 22, ground - 16), (x + 40, ground + 10)],
            m=WOOD)
-    for k in range(4):
-        y = ground - h * (0.42 + k * 0.15)
+    for k in range(5):
+        y = ground - h * (0.38 + k * 0.13)
         side = -1 if k % 2 else 1
-        length = rng.randint(60, 95) * (1 - k * 0.15)
-        tip = (x + side * length, y - length * 0.65)
-        m.poly([(x, y), tip, (x, y + 14 - k * 2)], m=WOOD)
-        # A twig off each branch.
-        mid = (x + side * length * 0.55, y - length * 0.35)
-        m.poly([mid, (mid[0] + side * 22, mid[1] - 34),
-                (mid[0] + side * 4, mid[1] + 5)], m=WOOD)
+        length = rng.randint(70, 105) * (1 - k * 0.12)
+        tip = (x + side * length, y - length * 0.6)
+        w = 11 - k * 1.5
+        # A tapering branch: thick where it leaves the trunk.
+        m.poly([(x, y - w), (tip[0], tip[1] - 3), (tip[0] + side * 2, tip[1] + 3),
+                (x, y + w)], m=WOOD)
+        # Two twigs off each branch.
+        for f, up in ((0.45, 30), (0.75, 22)):
+            mid = (x + side * length * f, y - length * 0.6 * f)
+            m.poly([(mid[0] - side * 3, mid[1] - 2),
+                    (mid[0] + side * 18, mid[1] - up),
+                    (mid[0] + side * 4, mid[1] + 4)], m=WOOD)
     settle(m, x - 40, x + 40, ground - 30, ground + 20, [WOOD, SOIL], SOIL)
 
 
@@ -445,7 +463,7 @@ def ruins():
     m.ellipse(1200, 1136, 120, 30, m=SOIL)
     settle(m, 1120, 1280, 1040, 1140, [METAL, SOIL], SOIL)
     m.blob(600, 1010, 70, carve=True, wobble=0.2, seed=31)       # cellar
-    m.rect(600, 990, 860, 1030, carve=True)
+    tunnel(m, 620, 860, 1010, 30, 33)
     return m
 
 
@@ -487,7 +505,7 @@ def backyard():
 
     # A burrow under the left mound and a pebble cave on the right.
     m.blob(640, 980, 70, carve=True, wobble=0.22, seed=41)
-    m.rect(640, 960, 900, 1000, carve=True)
+    tunnel(m, 660, 900, 982, 30, 43)
     m.blob(2050, 990, 80, carve=True, wobble=0.2, seed=42)
     return m
 

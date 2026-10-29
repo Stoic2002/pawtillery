@@ -521,12 +521,27 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
     if (run == ridge) col = _shade(col, -0.25);
     if (run == ridge + 1) col = _shade(col, 0.2);
   }
+  if (labelTop) {
+    // Cream trims along the label's edges, and a round emblem on the
+    // front: a cream disc in a dark red ring.
+    if (run < 51 || run > 113) col = _shade((0xF2, 0xE6, 0xCF), (t - 0.4).abs() * -0.6);
+    final dx = (t - 0.4) * (r - l);
+    final dy = run - 82.0;
+    final d = math.sqrt(dx * dx + dy * dy);
+    if (d < 25) col = (0x7A, 0x24, 0x27);
+    if (d < 21) col = _shade((0xF6, 0xEC, 0xD6), -d / 21 * 0.12);
+    if (d >= 7 && d < 9.5) col = (0xB8, 0x47, 0x4A);
+  }
+  // An inked outline down both sides.
+  final edge = math.min(x - l, r - x);
+  if (edge < 3) col = _shade(col, -0.55);
   return col;
 }
 
-/// Painted wooden toy blocks on a 72 px grid: a colour per block, a big
-/// letter (5 × 7 pixel font, scaled) in a darker shade, a lighter top-left
-/// bevel and a darker bottom-right one, wood grain.
+/// Painted wooden toy blocks on a 72 px grid: a colour per block, an inked
+/// edge, a lighter top-left bevel and a darker bottom-right one, a raised
+/// inner panel with a smooth engraved symbol (ring, star, triangle or
+/// diamond), and wood grain.
 (double, double, double) _toy(int x, int y) {
   const size = 72;
   final bx = x ~/ size;
@@ -541,26 +556,42 @@ double _posterise(double k) => (k / 0.03).round() * 0.03;
     (0x4C, 0xA8, 0x5A),
   ];
   final base = colors[h % colors.length];
-  var k = math.sin(x * 0.35 + _vnoise(x / 30, y / 4, 5) * 4) * 0.04;
-  if (lx < 4 || ly < 4) k += 0.2;
-  if (lx > size - 5 || ly > size - 5) k -= 0.25;
-  // The letter.
-  const glyphs = [
-    // A
-    [0x0E, 0x11, 0x11, 0x1F, 0x11, 0x11, 0x11],
-    // B
-    [0x1E, 0x11, 0x11, 0x1E, 0x11, 0x11, 0x1E],
-    // C
-    [0x0E, 0x11, 0x10, 0x10, 0x10, 0x11, 0x0E],
-    // P
-    [0x1E, 0x11, 0x11, 0x1E, 0x10, 0x10, 0x10],
-  ];
-  final g = glyphs[(h >> 4) % glyphs.length];
-  final gx = (lx - 16) ~/ 8;
-  final gy = (ly - 8) ~/ 8;
-  if (gx >= 0 && gx < 5 && gy >= 0 && gy < 7 && (g[gy] >> (4 - gx)) & 1 == 1) {
-    k -= 0.35;
+  var k = math.sin(x * 0.35 + _vnoise(x / 30, y / 4, 5) * 4) * 0.035;
+  // Bevel, then an inked edge like the game's outlines.
+  if (lx < 6 || ly < 6) k += 0.18;
+  if (lx > size - 7 || ly > size - 7) k -= 0.22;
+  if (lx < 2 || ly < 2 || lx > size - 3 || ly > size - 3) {
+    return _shade(base, -0.62);
   }
+  // A raised panel: a thin dark groove, then a slightly lighter face.
+  const inset = 11;
+  final inPanel =
+      lx >= inset && ly >= inset && lx < size - inset && ly < size - inset;
+  final onGroove = inPanel &&
+      (lx < inset + 2 || ly < inset + 2 ||
+          lx >= size - inset - 2 || ly >= size - inset - 2);
+  if (onGroove) return _shade(base, -0.3);
+  if (inPanel) k += 0.06;
+  // The symbol, measured from the block's centre (px).
+  final px = lx - size / 2 + 0.5;
+  final py = ly - size / 2 + 0.5;
+  final double d; // < 0 inside the symbol
+  switch ((h >> 4) % 4) {
+    case 0: // ring
+      final rr = math.sqrt(px * px + py * py);
+      d = (rr - 14).abs() - 4.5;
+    case 1: // five-point star
+      final a = math.atan2(py, px) + math.pi / 2;
+      final rr = math.sqrt(px * px + py * py);
+      final spike = (math.cos(5 * a) * 0.5 + 0.5);
+      d = rr - (9 + 10 * spike);
+    case 2: // triangle, point up
+      d = math.max(py - 12, (px.abs() * 1.7 - 18) - py);
+    default: // diamond
+      d = px.abs() + py.abs() - 18;
+  }
+  if (d < 0) k -= 0.36;
+  if (d >= 0 && d < 1.5) k -= 0.18;
   return _shade(base, k);
 }
 

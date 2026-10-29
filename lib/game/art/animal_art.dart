@@ -169,6 +169,8 @@ class _Pet {
       case AnimalPose.idle:
         break;
     }
+    _tail();
+    _feet();
     _behind();
     final body = circle(50, 60, 34);
     c.drawPath(body, bodyFill);
@@ -187,6 +189,97 @@ class _Pet {
     _face();
     _collar();
     c.restore();
+  }
+
+  /// Two little feet peeking out under the body (drawn behind it), stepping
+  /// when walking. Birds get orange toes.
+  void _feet() {
+    final step = switch (pose) {
+      AnimalPose.walkA => 1.8,
+      AnimalPose.walkB => -1.8,
+      _ => 0.0,
+    };
+    final birdish = const ['bird', 'chicken', 'duck'].contains(family);
+    final foot = birdish
+        ? fill(const ui.Color(0xFFF2A33A))
+        : fill(family == 'turtle' ? mix(0.82) : dark);
+    for (final (x, lift) in [(36.0, step), (64.0, -step)]) {
+      final y = 94.5 - math.max(0, lift);
+      if (birdish) {
+        final toes = ui.Path()
+          ..moveTo(x - 6, y + 3)
+          ..lineTo(x, y - 3)
+          ..lineTo(x + 6, y + 3)
+          ..quadraticBezierTo(x, y + 5, x - 6, y + 3)
+          ..close();
+        shape(toes, foot, line: 2);
+      } else {
+        shape(oval(x, y, 8.5, 5.2), foot, line: 2.2);
+        // Toe lines.
+        final toe = stroke(1.2);
+        c
+          ..drawLine(ui.Offset(x - 2.5, y + 1.5), ui.Offset(x - 2.5, y + 4.2), toe)
+          ..drawLine(ui.Offset(x + 2.5, y + 1.5), ui.Offset(x + 2.5, y + 4.2), toe);
+      }
+    }
+  }
+
+  /// The tail, behind the body on the side away from the face.
+  void _tail() {
+    switch (family) {
+      case 'cat':
+        final tail = ui.Path()
+          ..moveTo(26, 78)
+          ..cubicTo(4, 80, 2, 54, 12, 44)
+          ..cubicTo(15, 41, 19, 43, 17, 47)
+          ..cubicTo(10, 57, 14, 72, 30, 70)
+          ..close();
+        shape(tail, fill(dark));
+      case 'dog':
+        final wag = pose == AnimalPose.walkA ? -4.0 : 0.0;
+        shape(oval(16, 62 + wag, 6, 11, -35), fill(base));
+      case 'rabbit' || 'hamster':
+        shape(circle(17, 76, family == 'rabbit' ? 8 : 5), fill(light));
+      case 'monkey':
+        final tail = ui.Path()
+          ..moveTo(24, 80)
+          ..cubicTo(2, 84, -2, 56, 10, 52)
+          ..cubicTo(20, 48, 22, 62, 14, 62)
+          ..cubicTo(10, 62, 10, 57, 13, 56)
+          ..cubicTo(6, 60, 8, 76, 26, 72)
+          ..close();
+        shape(tail, fill(dark));
+      case 'bird' || 'chicken':
+        final feathers = ui.Path()
+          ..moveTo(22, 62)
+          ..lineTo(4, 50)
+          ..lineTo(12, 64)
+          ..lineTo(2, 66)
+          ..lineTo(14, 72)
+          ..lineTo(6, 80)
+          ..lineTo(24, 76)
+          ..close();
+        shape(
+          feathers,
+          fill(family == 'chicken' ? mix(0.6) : dark),
+        );
+      case 'duck':
+        final tuft = ui.Path()
+          ..moveTo(22, 70)
+          ..quadraticBezierTo(8, 66, 10, 54)
+          ..quadraticBezierTo(16, 62, 26, 62)
+          ..close();
+        shape(tuft, fill(base));
+      case 'goat':
+        shape(oval(18, 58, 5, 8, -30), fill(light));
+      case 'turtle':
+        final tail = ui.Path()
+          ..moveTo(22, 78)
+          ..lineTo(8, 82)
+          ..lineTo(22, 86)
+          ..close();
+        shape(tail, fill(mix(0.82)), line: 2);
+    }
   }
 
   /// Ears, horns and other parts behind the body.
@@ -434,15 +527,99 @@ class _Pet {
     c
       ..drawCircle(const ui.Offset(35, 70), 5, blush)
       ..drawCircle(const ui.Offset(72, 70), 5, blush);
+    final mouth = stroke(1.6);
+    // A small "w" mouth under the nose.
+    void wMouth(double y) => c.drawPath(
+      ui.Path()
+        ..moveTo(49, y)
+        ..quadraticBezierTo(52, y + 3.5, 55, y)
+        ..quadraticBezierTo(58, y + 3.5, 61, y),
+      mouth,
+    );
     switch (family) {
-      case 'cat' || 'dog':
+      case 'cat':
         c.drawOval(
           ui.Rect.fromCenter(
             center: const ui.Offset(55, 68),
-            width: 9,
-            height: 6.6,
+            width: 7,
+            height: 5,
+          ),
+          fill(const ui.Color(0xFFE07A7A)),
+        );
+        wMouth(71);
+        final whisker = stroke(1.1);
+        for (final dy in [-2.0, 2.0]) {
+          c
+            ..drawLine(ui.Offset(40, 70 + dy), ui.Offset(28, 68 + dy * 2), whisker)
+            ..drawLine(ui.Offset(70, 70 + dy), ui.Offset(82, 68 + dy * 2), whisker);
+        }
+      case 'dog':
+        c.drawOval(
+          ui.Rect.fromCenter(
+            center: const ui.Offset(55, 68),
+            width: 10,
+            height: 7,
           ),
           fill(_eye),
+        );
+        c.drawLine(const ui.Offset(55, 71), const ui.Offset(55, 75), mouth);
+        // A little tongue out.
+        shape(
+          ui.Path()..addRRect(
+            ui.RRect.fromLTRBR(52, 75, 58, 82, const ui.Radius.circular(3)),
+          ),
+          fill(const ui.Color(0xFFE8737A)),
+          line: 1.4,
+        );
+      case 'rabbit':
+        c.drawOval(
+          ui.Rect.fromCenter(
+            center: const ui.Offset(55, 67),
+            width: 6,
+            height: 4.5,
+          ),
+          fill(const ui.Color(0xFFE07A7A)),
+        );
+        wMouth(70);
+        // Buck teeth.
+        shape(
+          ui.Path()..addRRect(
+            ui.RRect.fromLTRBR(52, 72, 58, 78, const ui.Radius.circular(1.2)),
+          ),
+          fill(const ui.Color(0xFFFFFFFF)),
+          line: 1.3,
+        );
+        c.drawLine(const ui.Offset(55, 72.5), const ui.Offset(55, 77.5),
+            stroke(0.9));
+      case 'hamster':
+        c.drawCircle(const ui.Offset(55, 67), 2.6, fill(const ui.Color(0xFFE07A7A)));
+        wMouth(70);
+        final whisker = stroke(1);
+        c
+          ..drawLine(const ui.Offset(42, 69), const ui.Offset(32, 67), whisker)
+          ..drawLine(const ui.Offset(68, 69), const ui.Offset(78, 67), whisker);
+      case 'goat':
+        for (final x in [51.5, 58.5]) {
+          c.drawOval(
+            ui.Rect.fromCenter(center: ui.Offset(x, 69), width: 2.6, height: 3.6),
+            fill(_eye),
+          );
+        }
+        c.drawPath(
+          ui.Path()
+            ..moveTo(50, 75)
+            ..quadraticBezierTo(55, 78, 60, 75),
+          mouth,
+        );
+      case 'monkey':
+        for (final x in [51.0, 57.0]) {
+          c.drawCircle(ui.Offset(x, 68), 1.4, fill(_eye));
+        }
+        c.drawPath(
+          ui.Path()
+            ..moveTo(46, 74)
+            ..quadraticBezierTo(54, 80, 62, 74),
+          mouth,
         );
       case 'bird':
         shape(
@@ -454,6 +631,8 @@ class _Pet {
           fill(const ui.Color(0xFFF5B700)),
         );
       case 'chicken':
+        // Wattle under the beak.
+        shape(oval(84, 76, 3.5, 5.5), fill(const ui.Color(0xFFE5484D)), line: 1.6);
         shape(
           ui.Path()
             ..moveTo(81, 60)
