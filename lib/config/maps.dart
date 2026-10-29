@@ -43,6 +43,7 @@ class MapDef {
     required this.id,
     required this.nameKey,
     required this.maskAsset,
+    this.artAsset,
     required this.waterLevel,
     required this.skyTopArgb,
     required this.skyBottomArgb,
@@ -68,6 +69,11 @@ class MapDef {
 
   /// PNG whose alpha channel is the terrain mask (alpha > 128 = ground).
   final String maskAsset;
+
+  /// Painted map (same size as the mask, from tool/art/convert_art.py):
+  /// drawn as the ground instead of the code-painted materials, and with
+  /// no code-drawn decor on top. Null = code-painted.
+  final String? artAsset;
 
   /// World y of the water surface; everything below is water.
   final int waterLevel;
@@ -108,6 +114,7 @@ abstract final class Maps {
     id: 'backyard',
     nameKey: 'mapBackyard',
     maskAsset: 'assets/maps/backyard/mask.png',
+    artAsset: 'assets/maps/backyard/art.webp',
     waterLevel: 1120,
     skyTopArgb: 0xFF2A2652,
     skyBottomArgb: 0xFFF4AE78,
@@ -125,6 +132,7 @@ abstract final class Maps {
     id: 'castle',
     nameKey: 'mapCastle',
     maskAsset: 'assets/maps/castle/mask.png',
+    artAsset: 'assets/maps/castle/art.webp',
     waterLevel: 1120,
     skyTopArgb: 0xFF0B1226,
     skyBottomArgb: 0xFF3A4170,
@@ -142,6 +150,7 @@ abstract final class Maps {
     id: 'wreck',
     nameKey: 'mapWreck',
     maskAsset: 'assets/maps/wreck/mask.png',
+    artAsset: 'assets/maps/wreck/art.webp',
     waterLevel: 1120,
     skyTopArgb: 0xFF1E252E,
     skyBottomArgb: 0xFF7D7A72,
@@ -159,6 +168,7 @@ abstract final class Maps {
     id: 'ruins',
     nameKey: 'mapRuins',
     maskAsset: 'assets/maps/ruins/mask.png',
+    artAsset: 'assets/maps/ruins/art.webp',
     waterLevel: 1120,
     skyTopArgb: 0xFF2A1C24,
     skyBottomArgb: 0xFFB8643C,

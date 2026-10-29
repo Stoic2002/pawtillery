@@ -659,6 +659,57 @@ abstract final class PaintKitless {
   }
 }
 
+/// A painted map's chunk: the painting where there is ground (premultiplied
+/// for the engine), its soft edge where the mask has none, and ground the
+/// painting doesn't cover (added since, Benteng or Tanah Liat) in the map's
+/// dirt colour. Holes carved since are clear. Null if all clear.
+Uint8List? buildArtChunkPixels(
+  TerrainMask mask,
+  MapDef map,
+  Uint8List art,
+  int x0,
+  int y0,
+  int w,
+  int h,
+) {
+  final out = Uint8List(w * h * 4);
+  final (dr, dg, db) = _rgb(map.dirtArgb);
+  var any = false;
+  for (var ly = 0; ly < h; ly++) {
+    final y = y0 + ly;
+    if (y < 0 || y >= mask.height) continue;
+    for (var lx = 0; lx < w; lx++) {
+      final x = x0 + lx;
+      if (x < 0 || x >= mask.width) continue;
+      final i = (y * mask.width + x) * 4;
+      final o = (ly * w + lx) * 4;
+      final a = art[i + 3];
+      if (mask.isSolid(x, y)) {
+        any = true;
+        if (a >= 128) {
+          out[o] = art[i];
+          out[o + 1] = art[i + 1];
+          out[o + 2] = art[i + 2];
+        } else {
+          final n = (_vnoise(x / 6, y / 6, 13) - 0.5) * 0.18;
+          final (r, g, b) = _shade((dr, dg, db), n);
+          out[o] = r.round().clamp(0, 255);
+          out[o + 1] = g.round().clamp(0, 255);
+          out[o + 2] = b.round().clamp(0, 255);
+        }
+        out[o + 3] = 255;
+      } else if (a > 0 && a < 128) {
+        any = true;
+        out[o] = art[i] * a ~/ 255;
+        out[o + 1] = art[i + 1] * a ~/ 255;
+        out[o + 2] = art[i + 2] * a ~/ 255;
+        out[o + 3] = a;
+      }
+    }
+  }
+  return any ? out : null;
+}
+
 (int, int, int) _rgb(int argb) =>
     ((argb >> 16) & 0xFF, (argb >> 8) & 0xFF, argb & 0xFF);
 

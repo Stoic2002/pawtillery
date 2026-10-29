@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import '../../config/breeds.dart';
+import 'pet_sprites.dart';
 
 enum AnimalPose { idle, walkA, walkB, air }
 
@@ -31,6 +32,10 @@ abstract final class AnimalArt {
     required int teamArgb,
     required AnimalPose pose,
   }) {
+    if (PetSprites.of(familyId) case final sprite?) {
+      _drawSprite(canvas, sprite, teamArgb, pose);
+      return;
+    }
     final picture = _cache.putIfAbsent((
       familyId,
       breedId,
@@ -38,6 +43,73 @@ abstract final class AnimalArt {
       pose,
     ), () => _record(familyId, breedId, teamArgb, pose));
     canvas.drawPicture(picture);
+  }
+
+  /// Painted pets stand about this tall (world px) and at most this wide.
+  static const double _spriteHeight = 38;
+  static const double _spriteWidth = 46;
+
+  static final ui.Paint _image = ui.Paint()
+    ..filterQuality = ui.FilterQuality.medium;
+  static final ui.Paint _marker = ui.Paint();
+  static final ui.Paint _markerEdge = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeWidth = 1.4;
+
+  /// A painted pet, feet on the origin, facing right, with an oval in the
+  /// team colour under its feet (the painting has no collar to colour).
+  /// Poses lean and stretch it about the feet.
+  static void _drawSprite(
+    ui.Canvas canvas,
+    ui.Image image,
+    int teamArgb,
+    AnimalPose pose,
+  ) {
+    final s = math.min(
+      _spriteHeight / image.height,
+      _spriteWidth / image.width,
+    );
+    final w = image.width * s;
+    final h = image.height * s;
+    final team = ui.Color(teamArgb);
+    final ring = ui.Rect.fromCenter(
+      center: const ui.Offset(0, 0.5),
+      width: w * 0.8,
+      height: 7,
+    );
+    _marker.color = team.withValues(alpha: 0.5);
+    _markerEdge.color = team;
+    canvas
+      ..drawOval(ring, _marker)
+      ..drawOval(ring, _markerEdge)
+      ..save();
+    switch (pose) {
+      case AnimalPose.walkA:
+        canvas
+          ..translate(0, -0.8)
+          ..rotate(0.07);
+      case AnimalPose.walkB:
+        canvas
+          ..translate(0, -0.8)
+          ..rotate(-0.07);
+      case AnimalPose.air:
+        canvas.scale(0.94, 1.07);
+      case AnimalPose.idle:
+        break;
+    }
+    canvas
+      ..drawImageRect(
+        image,
+        ui.Rect.fromLTWH(
+          0,
+          0,
+          image.width.toDouble(),
+          image.height.toDouble(),
+        ),
+        ui.Rect.fromLTWH(-w / 2, -h, w, h),
+        _image,
+      )
+      ..restore();
   }
 
   static ui.Picture _record(

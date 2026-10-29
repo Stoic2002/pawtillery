@@ -180,7 +180,7 @@ class PawtilleryGame extends FlameGame {
 
   @override
   Future<void> onLoad() async {
-    final mapData = await loadMapData(map.maskAsset);
+    final mapData = await loadMapData(map.maskAsset, artAsset: map.artAsset);
     final mask = mapData.mask;
     sim = SimWorld.newMatch(
       seed: seed,
@@ -201,6 +201,7 @@ class PawtilleryGame extends FlameGame {
       mask: mask,
       map: map,
       materials: mapData.materials,
+      art: mapData.art,
       visible: () => visibleWorld,
     );
     _aimGuide = AimGuideComponent(
@@ -218,12 +219,14 @@ class PawtilleryGame extends FlameGame {
         cameraPosition: () => camera.viewfinder.position,
       ),
       _terrain,
-      DecorComponent(
-        mask: mask,
-        map: map,
-        materials: mapData.materials,
-        visible: () => visibleWorld,
-      ),
+      // A painted map has its own grass, stones and flowers.
+      if (mapData.art == null)
+        DecorComponent(
+          mask: mask,
+          map: map,
+          materials: mapData.materials,
+          visible: () => visibleWorld,
+        ),
       UnitsComponent(
         sim,
         teamColors: teamColors,

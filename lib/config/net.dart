@@ -8,8 +8,9 @@ abstract final class NetConfig {
   /// weapons rule; 15 = rejoining a match; 16 = pet gravity, gas damage,
   /// rebalanced and reworked weapons, crumbling sudden death; 17 =
   /// rejoining after a restart; 18 = eggs arm on their first touch;
-  /// 19 = lighter flowerpots, reshaped caves and trees.
-  static const int protocolVersion = 19;
+  /// 19 = lighter flowerpots, reshaped caves and trees; 20 = painted
+  /// maps (3600 x 1200).
+  static const int protocolVersion = 20;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;

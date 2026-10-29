@@ -513,7 +513,13 @@ def backyard():
 MAPS = {'backyard': backyard, 'castle': castle, 'wreck': wreck, 'ruins': ruins}
 
 if __name__ == '__main__':
-    for name in sys.argv[1:] or MAPS:
+    # A map with a painting (assets/maps/<map>/art.webp) gets its mask from
+    # tool/art/convert_art.py; it is only overwritten here on request.
+    force = '--code' in sys.argv
+    for name in [a for a in sys.argv[1:] if a != '--code'] or MAPS:
         out = ROOT / 'assets' / 'maps' / name / 'mask.png'
+        if (out.parent / 'art.webp').exists() and not force:
+            print(f'skipped {name}: painted (art.webp); --code to overwrite')
+            continue
         MAPS[name]().write(out)
         print(f'wrote {out} ({out.stat().st_size} bytes)')

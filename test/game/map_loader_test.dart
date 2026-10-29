@@ -31,13 +31,17 @@ void main() {
   });
 
   for (final map in Maps.all) {
-    testWidgets('${map.id}: decodes, fits 16 units for many seeds',
+    testWidgets('${map.id}: the painting and mask decode, fit 16 units for '
+        'many seeds',
         (tester) async {
-      late TerrainMask mask;
+      late MapData data;
       await tester.runAsync(() async {
-        mask = await loadTerrainMask(map.maskAsset);
+        // Throws if the painting isn't the mask's size.
+        data = await loadMapData(map.maskAsset, artAsset: map.artAsset);
       });
-      expect((mask.width, mask.height), (2400, 1200));
+      final mask = data.mask;
+      expect((mask.width, mask.height), (3600, 1200));
+      expect(data.art, hasLength(3600 * 1200 * 4), reason: 'painted');
       for (var seed = 0; seed < 20; seed++) {
         final points = findSpawnPoints(
           terrain: mask,

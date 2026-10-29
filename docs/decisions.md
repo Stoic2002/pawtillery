@@ -1171,3 +1171,43 @@ came late.
 - Vibration still goes through Flutter's haptics on the main thread;
   usually cheap, but it was off in the test too, so it needs its own
   check.
+
+## Painted maps and pets (2026-10-29)
+
+The developer generated painted art (in an image generator, from prompts
+we wrote together) for the four maps and a lineup of the ten pets, all on
+a plain magenta background, to get closer to a hand-painted look than
+code-drawn shapes can. This replaces the "code-drawn, no image assets"
+rule for maps and pets; the PRD's package list is unchanged (Pillow is a
+tool, not an app dependency).
+
+- **Sources** live in `art/src/` (`backyard`, `castle`, `wreck`, `ruins`,
+  `pets`, WebP). `tool/art/convert_art.py` turns them into assets:
+  - The magenta is keyed out by how much purer it is than green, with a
+    soft edge; within 5 px of the background every trace of magenta is
+    pulled out of the colour (otherwise edges showed a purple rim), deeper
+    in only a strong lean is (pink flowers and purple flags keep theirs).
+  - Maps are scaled (premultiplied, Lanczos) to **3600 × 1200**, longer
+    than the code maps' 2400 × 1200 (the developer wanted longer matches);
+    specks of ground under 400 px are dropped and pin holes filled. Out
+    come `mask.png` (the sim's ground, alpha > 128) and `art.webp`
+    (quality 88, about 0.5–0.6 MB each).
+  - Pets are cut out of the lineup by their own connected pixels (they
+    overlap side by side, so boxes can't separate them; small pieces like
+    whiskers join the nearest pet), trimmed and scaled to 240 px high.
+- **In the game:** `MapDef.artAsset` makes the terrain chunks copy the
+  painting where the mask has ground (premultiplied; ground added later
+  by clay or a fortress is drawn in the map's dirt colour), keep its soft
+  edge, and carve holes as before. Debris takes the painting's colours.
+  The code-drawn decor is left out on painted maps; sky, scenery, water
+  and weather are unchanged. `tool/gen_maps.py` now skips painted maps
+  unless given `--code`.
+- **Pets:** `PetSprites` loads the ten paintings at start; `AnimalArt`
+  draws them about 38 px high, facing right, leaning and stretching for
+  the walk and air poses, over an oval in the team colour (the paintings
+  have no collar to colour). Tests run without them and get the
+  code-drawn pets. Every breed of a family shares the painting for now.
+- The art is soft up close: the sources were 2000 px wide and are scaled
+  1.8× to the world, then zoomed again on screen. A sharper source (an AI
+  upscale to 3600+ px before converting) is the fix.
+- Wi-Fi protocol version 20 (the maps changed).

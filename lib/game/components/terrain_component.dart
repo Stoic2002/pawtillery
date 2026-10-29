@@ -16,8 +16,12 @@ class TerrainComponent extends PositionComponent {
     required this.mask,
     required this.map,
     this.materials,
+    this.art,
     this.visible,
   }) : super(size: Vector2(mask.width.toDouble(), mask.height.toDouble()));
+
+  /// The painted map (straight RGBA), drawn instead of the materials.
+  final Uint8List? art;
 
   static const int chunkSize = 256;
 
@@ -84,15 +88,26 @@ class TerrainComponent extends PositionComponent {
     final w = (mask.width - x0).clamp(0, chunkSize);
     final h = (mask.height - y0).clamp(0, chunkSize);
     const g = gutter;
-    final pixels = buildChunkPixels(
-      mask,
-      map,
-      materials,
-      x0 - g,
-      y0 - g,
-      w + 2 * g,
-      h + 2 * g,
-    );
+    final painted = art;
+    final pixels = painted != null
+        ? buildArtChunkPixels(
+            mask,
+            map,
+            painted,
+            x0 - g,
+            y0 - g,
+            w + 2 * g,
+            h + 2 * g,
+          )
+        : buildChunkPixels(
+            mask,
+            map,
+            materials,
+            x0 - g,
+            y0 - g,
+            w + 2 * g,
+            h + 2 * g,
+          );
     ui.Image? image;
     if (pixels != null) {
       final completer = Completer<ui.Image>();
@@ -253,6 +268,14 @@ class TerrainComponent extends PositionComponent {
       final x = cx + ((radius + 3) * math.cos(a)).round();
       final y = cy + ((radius + 3) * math.sin(a)).round();
       if (!mask.isSolid(x, y)) continue;
+      // A painted map: the painting's own colour there.
+      if (art case final a?) {
+        final i = (y * mask.width + x) * 4;
+        if (a[i + 3] >= 128) {
+          colors.add(0xFF000000 | a[i] << 16 | a[i + 1] << 8 | a[i + 2]);
+          continue;
+        }
+      }
       if (!mask.isSolid(x, y - map.grassThickness)) colors.add(map.grassArgb);
       final m = materials?[y * mask.width + x];
       colors.add(materialColor(m == null ? map.baseMaterial : TerrainMaterial.values[m]));
