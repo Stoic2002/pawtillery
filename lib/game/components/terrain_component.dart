@@ -17,11 +17,19 @@ class TerrainComponent extends PositionComponent {
     required this.map,
     this.materials,
     this.art,
+    this.artScale = 1,
     this.visible,
   }) : super(size: Vector2(mask.width.toDouble(), mask.height.toDouble()));
 
   /// The painted map (straight RGBA), drawn instead of the materials.
   final Uint8List? art;
+
+  /// The painting is this many times finer than the mask, and so are the
+  /// chunk images (a world px is [artScale] image px each way).
+  final int artScale;
+
+  /// Image px per world px in the chunk images.
+  int get _scale => art == null ? 1 : artScale;
 
   static const int chunkSize = 256;
 
@@ -89,6 +97,7 @@ class TerrainComponent extends PositionComponent {
     final h = (mask.height - y0).clamp(0, chunkSize);
     const g = gutter;
     final painted = art;
+    final s = _scale;
     final pixels = painted != null
         ? buildArtChunkPixels(
             mask,
@@ -98,6 +107,7 @@ class TerrainComponent extends PositionComponent {
             y0 - g,
             w + 2 * g,
             h + 2 * g,
+            scale: s,
           )
         : buildChunkPixels(
             mask,
@@ -113,8 +123,8 @@ class TerrainComponent extends PositionComponent {
       final completer = Completer<ui.Image>();
       ui.decodeImageFromPixels(
         pixels,
-        w + 2 * g,
-        h + 2 * g,
+        (w + 2 * g) * s,
+        (h + 2 * g) * s,
         ui.PixelFormat.rgba8888,
         completer.complete,
       );
@@ -212,7 +222,10 @@ class TerrainComponent extends PositionComponent {
         -(index ~/ _cols) * chunkSize + gutter.toDouble(),
       );
       final recorder = ui.PictureRecorder();
-      final c = ui.Canvas(recorder)..drawImage(old, ui.Offset.zero, _copy);
+      final c = ui.Canvas(recorder)
+        ..drawImage(old, ui.Offset.zero, _copy)
+        // Edits are in world px.
+        ..scale(_scale.toDouble());
       for (final edit in edits) {
         edit(c, origin);
       }
@@ -270,7 +283,7 @@ class TerrainComponent extends PositionComponent {
       if (!mask.isSolid(x, y)) continue;
       // A painted map: the painting's own colour there.
       if (art case final a?) {
-        final i = (y * mask.width + x) * 4;
+        final i = ((y * mask.width * artScale + x) * artScale) * 4;
         if (a[i + 3] >= 128) {
           colors.add(0xFF000000 | a[i] << 16 | a[i + 1] << 8 | a[i + 2]);
           continue;
@@ -320,19 +333,20 @@ class TerrainComponent extends PositionComponent {
       for (var col = 0; col < _cols; col++) {
         final image = _chunks[row * _cols + col];
         if (image == null) continue;
-        const g = gutter;
-        final w = image.width - 2.0 * g;
-        final h = image.height - 2.0 * g;
+        final s = _scale;
+        final g = (gutter * s).toDouble();
+        final w = image.width - 2 * g;
+        final h = image.height - 2 * g;
         final dst = ui.Rect.fromLTWH(
           (col * chunkSize).toDouble(),
           (row * chunkSize).toDouble(),
-          w,
-          h,
+          w / s,
+          h / s,
         );
         if (view != null && !view.overlaps(dst)) continue;
         canvas.drawImageRect(
           image,
-          ui.Rect.fromLTWH(g.toDouble(), g.toDouble(), w, h),
+          ui.Rect.fromLTWH(g, g, w, h),
           dst,
           _paint,
         );

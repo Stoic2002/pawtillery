@@ -8,14 +8,16 @@ import '../sim/terrain_mask.dart';
 /// A decoded map: the collision mask for the sim, plus a material per pixel
 /// and (for a painted map) the painting, which only the renderer uses.
 class MapData {
-  const MapData(this.mask, this.materials, [this.art]);
+  const MapData(this.mask, this.materials, [this.art, this.artScale = 1]);
   final TerrainMask mask;
 
   /// [TerrainMaterial] index per pixel (soil where not encoded).
   final Uint8List materials;
 
-  /// The painted map as straight RGBA, the mask's size; null if none.
+  /// The painted map as straight RGBA, [artScale] times the mask's size
+  /// each way; null if none.
   final Uint8List? art;
+  final int artScale;
 }
 
 /// Decodes a map PNG: alpha > 128 = ground; the red channel carries the
@@ -43,10 +45,13 @@ Future<MapData> loadMapData(String asset, {String? artAsset}) async {
         materials[i] = m > maxMaterial ? 0 : m;
       }
     }
-    if (art != null && art.$1 != image.width) {
-      throw StateError('$artAsset is not the size of $asset');
+    final scale = art == null ? 1 : art.$1 ~/ image.width;
+    if (art != null &&
+        (scale < 1 || art.$1 != image.width * scale ||
+            art.$2.length != mask.width * mask.height * scale * scale * 4)) {
+      throw StateError('$artAsset is not a whole multiple of $asset');
     }
-    return MapData(mask, materials, art?.$2);
+    return MapData(mask, materials, art?.$2, scale);
   } finally {
     image.dispose();
     codec.dispose();

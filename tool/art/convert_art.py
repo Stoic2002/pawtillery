@@ -5,7 +5,7 @@ Sources are WebP or PNG (a PNG wins when both are there).
 
 Maps: art/src/<map>.webp (3:1, landscape on #FF00FF) becomes
   assets/maps/<map>/mask.png  the sim's ground (alpha > 128 = ground)
-  assets/maps/<map>/art.webp  what is drawn, same size
+  assets/maps/<map>/art.webp  what is drawn, ART_SCALE times as big
 scaled to the world size (3600 x 1200).
 
 Pets: art/src/pets.webp (two rows of five on #FF00FF, in the family order
@@ -38,6 +38,11 @@ ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / 'art' / 'src'
 
 WORLD = (3600, 1200)
+# The painting is kept this many times finer than the world (and its
+# mask), so it stays sharp when the camera zooms in.
+ART_SCALE = 2
+# Unsharp mask on the painting (radius, percent, threshold).
+SHARPEN = (1.5, 70, 2)
 MAPS = ['backyard', 'castle', 'wreck', 'ruins']
 FAMILIES = [
     'cat', 'dog', 'rabbit', 'bird', 'hamster',
@@ -157,18 +162,21 @@ def components(solid, w, h, want):
 
 
 def convert_map(name):
-    art = resize(key(source(name)), WORLD)
+    keyed = key(source(name))
+    art = resize(keyed, WORLD)
     w, h = art.size
     alpha = bytearray(art.getchannel('A').tobytes())
     solid = bytearray(1 if a > 128 else 0 for a in alpha)
 
     dropped = filled = 0
+    drop = bytearray(w * h)
+    fill = bytearray(w * h)
     for region in list(components(solid, w, h, 1)):
         if len(region) < SPECK:
             dropped += 1
             for i in region:
                 solid[i] = 0
-                alpha[i] = 0
+                drop[i] = 255
     for region in list(components(solid, w, h, 0)):
         touches_edge = any(i % w in (0, w - 1) or i // w in (0, h - 1)
                            for i in region)
@@ -176,8 +184,24 @@ def convert_map(name):
             filled += 1
             for i in region:
                 solid[i] = 1
-                alpha[i] = 255
-    art.putalpha(Image.frombytes('L', (w, h), bytes(alpha)))
+                fill[i] = 255
+
+    # What is drawn: ART_SCALE times finer than the mask, with the same
+    # specks dropped and pin holes filled.
+    big_size = (w * ART_SCALE, h * ART_SCALE)
+    art = resize(keyed, big_size)
+    up = [Image.frombytes('L', (w, h), bytes(m)).resize(big_size,
+                                                       Image.NEAREST)
+          for m in (drop, fill)]
+    big_alpha = ImageChops.lighter(
+        ImageChops.subtract(art.getchannel('A'), up[0]), up[1])
+    art.putalpha(big_alpha)
+    # A light sharpen, inside the ground only: across the soft edge it
+    # would pull in the clear pixels' black.
+    sharp = art.convert('RGB').filter(ImageFilter.UnsharpMask(*SHARPEN))
+    sharp.putalpha(big_alpha)
+    inside = big_alpha.point(lambda a: 255 if a == 255 else 0)
+    art = Image.composite(sharp, art, inside)
 
     out = ROOT / 'assets' / 'maps' / name
     out.mkdir(parents=True, exist_ok=True)
@@ -185,7 +209,7 @@ def convert_map(name):
     mask.putdata([(0, 0, 0, 255) if s else (0, 0, 0, 0) for s in solid])
     mask.save(out / 'mask.png', optimize=True)
     art.save(out / 'art.webp', quality=88, alpha_quality=100, method=6)
-    print(f'{name}: {w}x{h}, ground {sum(solid) * 100 // (w * h)} %, '
+    print(f'{name}: {w}x{h} (art {big_size[0]}x{big_size[1]}), ground {sum(solid) * 100 // (w * h)} %, '
           f'{dropped} specks dropped, {filled} pin holes filled, '
           f'art {(out / "art.webp").stat().st_size // 1024} KB')
 

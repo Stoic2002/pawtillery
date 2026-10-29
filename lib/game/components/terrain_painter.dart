@@ -663,6 +663,11 @@ abstract final class PaintKitless {
 /// for the engine), its soft edge where the mask has none, and ground the
 /// painting doesn't cover (added since, Benteng or Tanah Liat) in the map's
 /// dirt colour. Holes carved since are clear. Null if all clear.
+///
+/// The chunk is (x0, y0, w, h) in world px; the painting is [scale] times
+/// finer than the mask, and so is the result (w * scale by h * scale).
+/// There, ground keeps the painting's own fine edge inside each mask
+/// pixel instead of filling the whole pixel.
 Uint8List? buildArtChunkPixels(
   TerrainMask mask,
   MapDef map,
@@ -670,34 +675,70 @@ Uint8List? buildArtChunkPixels(
   int x0,
   int y0,
   int w,
-  int h,
-) {
-  final out = Uint8List(w * h * 4);
+  int h, {
+  int scale = 1,
+}) {
+  final ow = w * scale;
+  final oh = h * scale;
+  final artWidth = mask.width * scale;
+  final out = Uint8List(ow * oh * 4);
   final (dr, dg, db) = _rgb(map.dirtArgb);
   var any = false;
-  for (var ly = 0; ly < h; ly++) {
-    final y = y0 + ly;
-    if (y < 0 || y >= mask.height) continue;
-    for (var lx = 0; lx < w; lx++) {
-      final x = x0 + lx;
-      if (x < 0 || x >= mask.width) continue;
-      final i = (y * mask.width + x) * 4;
-      final o = (ly * w + lx) * 4;
+
+  /// The painting covers mask pixel (x, y): what made it ground.
+  bool coversPixel(int x, int y) {
+    for (var sy = 0; sy < scale; sy++) {
+      final row = (y * scale + sy) * artWidth + x * scale;
+      for (var sx = 0; sx < scale; sx++) {
+        if (art[(row + sx) * 4 + 3] >= 128) return true;
+      }
+    }
+    return false;
+  }
+
+  // Asked for each finer pixel of a mask pixel in turn along a row, so
+  // the last answer is kept.
+  var lastX = -1;
+  var lastY = -1;
+  var lastCovered = false;
+  bool covered(int x, int y) {
+    if (x == lastX && y == lastY) return lastCovered;
+    lastX = x;
+    lastY = y;
+    return lastCovered = coversPixel(x, y);
+  }
+
+  for (var ly = 0; ly < oh; ly++) {
+    final ay = y0 * scale + ly;
+    if (ay < 0) continue;
+    final y = ay ~/ scale;
+    if (y >= mask.height) continue;
+    for (var lx = 0; lx < ow; lx++) {
+      final ax = x0 * scale + lx;
+      if (ax < 0) continue;
+      final x = ax ~/ scale;
+      if (x >= mask.width) continue;
+      final i = (ay * artWidth + ax) * 4;
+      final o = (ly * ow + lx) * 4;
       final a = art[i + 3];
       if (mask.isSolid(x, y)) {
         any = true;
-        if (a >= 128) {
-          out[o] = art[i];
-          out[o + 1] = art[i + 1];
-          out[o + 2] = art[i + 2];
+        if (scale == 1 ? a >= 128 : covered(x, y)) {
+          // At scale 1 the pixel is ground through and through.
+          final k = scale == 1 ? 255 : a;
+          out[o] = art[i] * k ~/ 255;
+          out[o + 1] = art[i + 1] * k ~/ 255;
+          out[o + 2] = art[i + 2] * k ~/ 255;
+          out[o + 3] = k;
         } else {
-          final n = (_vnoise(x / 6, y / 6, 13) - 0.5) * 0.18;
+          final n = (_vnoise(ax / (6 * scale), ay / (6 * scale), 13) - 0.5) *
+              0.18;
           final (r, g, b) = _shade((dr, dg, db), n);
           out[o] = r.round().clamp(0, 255);
           out[o + 1] = g.round().clamp(0, 255);
           out[o + 2] = b.round().clamp(0, 255);
+          out[o + 3] = 255;
         }
-        out[o + 3] = 255;
       } else if (a > 0 && a < 128) {
         any = true;
         out[o] = art[i] * a ~/ 255;

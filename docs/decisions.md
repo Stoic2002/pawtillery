@@ -1217,6 +1217,16 @@ tool, not an app dependency).
   are kept as the `art/src/<map>.webp` sources (quality 94); the
   converter scales them down to 3600 × 1200, so each world pixel now
   holds real detail. Wi-Fi protocol 21 (the masks' edges moved a little).
+- Still soft at the arena's zoom, so the painting is now kept **twice as
+  fine as the world** (`ART_SCALE = 2`: `art.webp` is 7200 × 2400, the
+  mask stays 3600 × 1200, so the sim and protocol are untouched) and given
+  a light unsharp mask (radius 1.5, 70 %) inside the ground. The terrain
+  chunks are rendered at that scale (a world px is 2 × 2 image px; carves
+  are drawn in world px under a canvas scale), and inside each mask pixel
+  the ground keeps the painting's own finer edge. Cost: the decoded
+  painting is 69 MB in Dart (was 17) and the chunk images up to as much
+  on the GPU; chunk building took about 2.5 × as long in a test (167 ms).
+  APK about +5 MB.
 - Wi-Fi protocol version 20 (the maps changed).
 
 ## Painted weapons, aircraft, objects and backgrounds (2026-10-29)

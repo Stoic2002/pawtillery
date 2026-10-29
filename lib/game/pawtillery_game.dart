@@ -205,6 +205,7 @@ class PawtilleryGame extends FlameGame {
       map: map,
       materials: mapData.materials,
       art: mapData.art,
+      artScale: mapData.artScale,
       visible: () => visibleWorld,
     );
     _aimGuide = AimGuideComponent(

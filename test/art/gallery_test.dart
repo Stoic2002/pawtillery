@@ -218,6 +218,7 @@ void main() {
                 0,
                 mask.width,
                 mask.height,
+                scale: data.artScale,
               )!
             : buildChunkPixels(
                 mask,
@@ -229,10 +230,11 @@ void main() {
                 mask.height,
               )!;
         final done = Completer<ui.Image>();
+        final scale = data.art != null ? data.artScale : 1;
         ui.decodeImageFromPixels(
           pixels,
-          mask.width,
-          mask.height,
+          mask.width * scale,
+          mask.height * scale,
           ui.PixelFormat.rgba8888,
           done.complete,
         );
@@ -272,7 +274,17 @@ void main() {
           WaterBackComponent(
                   map: map, worldSize: size, level: () => map.waterLevel)
               .render(canvas);
-          canvas.drawImage(terrain, ui.Offset.zero, ui.Paint());
+          canvas.drawImageRect(
+            terrain,
+            ui.Rect.fromLTWH(
+              0,
+              0,
+              terrain.width.toDouble(),
+              terrain.height.toDouble(),
+            ),
+            ui.Rect.fromLTWH(0, 0, size.x, size.y),
+            ui.Paint()..filterQuality = ui.FilterQuality.low,
+          );
           if (data.art == null) decor.render(canvas);
           WaterComponent(
             map: map,

@@ -36,12 +36,14 @@ void main() {
         (tester) async {
       late MapData data;
       await tester.runAsync(() async {
-        // Throws if the painting isn't the mask's size.
+        // Throws if the painting isn't a whole multiple of the mask.
         data = await loadMapData(map.maskAsset, artAsset: map.artAsset);
       });
       final mask = data.mask;
       expect((mask.width, mask.height), (3600, 1200));
-      expect(data.art, hasLength(3600 * 1200 * 4), reason: 'painted');
+      // Painted twice as fine as the mask (tool/art/convert_art.py).
+      expect(data.artScale, 2);
+      expect(data.art, hasLength(7200 * 2400 * 4), reason: 'painted');
       for (var seed = 0; seed < 20; seed++) {
         final points = findSpawnPoints(
           terrain: mask,
