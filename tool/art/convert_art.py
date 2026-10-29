@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """Turns painted art on a magenta background into game assets.
 
+Sources are WebP or PNG (a PNG wins when both are there).
+
 Maps: art/src/<map>.webp (3:1, landscape on #FF00FF) becomes
   assets/maps/<map>/mask.png  the sim's ground (alpha > 128 = ground)
   assets/maps/<map>/art.webp  what is drawn, same size
@@ -93,6 +95,13 @@ SHEET_GREEN = 18
 SHEET_SPECK = 30
 
 
+def source(name):
+    """art/src/<name>.png (an upscaler's output) if there is one, else
+    art/src/<name>.webp."""
+    png = SRC / f'{name}.png'
+    return Image.open(png if png.exists() else SRC / f'{name}.webp')
+
+
 def key(img):
     """RGB -> RGBA with the magenta keyed out and despilled."""
     data = img.convert('RGB').tobytes()
@@ -148,7 +157,7 @@ def components(solid, w, h, want):
 
 
 def convert_map(name):
-    art = resize(key(Image.open(SRC / f'{name}.webp')), WORLD)
+    art = resize(key(source(name)), WORLD)
     w, h = art.size
     alpha = bytearray(art.getchannel('A').tobytes())
     solid = bytearray(1 if a > 128 else 0 for a in alpha)
@@ -186,7 +195,7 @@ def convert_pets():
     pets (two rows of five), every smaller piece (a whisker, a feather tip)
     joins the nearest of them. Pets may overlap side by side, so each is
     cut out by its own pixels, not by a box."""
-    sheet = key(Image.open(SRC / 'pets.webp'))
+    sheet = key(source('pets'))
     w, h = sheet.size
     alpha = sheet.getchannel('A').tobytes()
     solid = bytearray(1 if v > 128 else 0 for v in alpha)
@@ -243,7 +252,7 @@ def convert_pets():
 
 
 def convert_background(name):
-    img = Image.open(SRC / f'{name}_bg.webp').convert('RGB')
+    img = source(f'{name}_bg').convert('RGB')
     out = ROOT / 'assets' / 'maps' / name / 'background.webp'
     img.save(out, quality=84, method=6)
     print(f'{name} background: {img.size[0]}x{img.size[1]}, '
@@ -289,7 +298,7 @@ def key_sheet(img):
 
 def convert_sheet(sheet):
     cols, rows, prefix, longest, names = SHEETS[sheet]
-    img = key_sheet(Image.open(SRC / f'{sheet}.webp'))
+    img = key_sheet(source(sheet))
     w, h = img.size
     alpha = img.getchannel('A').tobytes()
     solid = bytearray(1 if v > 128 else 0 for v in alpha)
