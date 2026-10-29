@@ -4,36 +4,23 @@ import 'package:flutter/services.dart';
 import '../../app/app_services.dart';
 import '../../app/paw_palette.dart';
 import '../../config/app_info.dart';
-import '../../config/breeds.dart';
-import '../../config/teams.dart';
 import '../../l10n/app_localizations.dart';
 import '../../net/lan.dart';
 import '../../services/audio_service.dart';
 import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_logo.dart';
 import '../widgets/paw/paw_widgets.dart';
-import '../widgets/paw/pet_figure.dart';
 import 'history_screen.dart';
 import 'how_to_play_screen.dart';
 import 'lan_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 
-/// Title screen (redesign prototype): sky and two hills, the wordmark top
-/// left, a row of pets on the green hill, the Play button with How to Play
-/// and Settings on the right, version and About bottom right.
+/// Title screen: the painted meadow, the wordmark top left, the Play
+/// button with How to Play and Settings on the right, version and About
+/// bottom right.
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
-
-  /// Pets on the hill: family, breed colour from the family's first
-  /// breed, team, x (fraction), lift (fraction of height), size, flip.
-  static const _gang = [
-    ('dog', 0, 0.06, 0.30, 60.0, false),
-    ('cat', 1, 0.14, 0.35, 64.0, false),
-    ('turtle', 2, 0.24, 0.37, 72.0, false),
-    ('rabbit', 3, 0.34, 0.35, 64.0, true),
-    ('duck', 0, 0.42, 0.30, 56.0, true),
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -58,18 +45,6 @@ class MainMenuScreen extends StatelessWidget {
             child: LayoutBuilder(
               builder: (context, box) => Stack(
                 children: [
-                  for (final (family, team, x, lift, size, flip) in _gang)
-                    Positioned(
-                      left: box.maxWidth * x - size / 2,
-                      bottom: box.maxHeight * lift - 8,
-                      child: PetFigure(
-                        familyId: family,
-                        breedId: Breeds.ofFamily(family).first.id,
-                        teamArgb: Teams.styles[team].colorArgb,
-                        size: size,
-                        flip: flip,
-                      ),
-                    ),
                   SafeArea(
                     child: Stack(
                       children: [

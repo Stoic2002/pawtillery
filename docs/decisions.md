@@ -1275,4 +1275,5 @@ buttons). `art/src/menu_bg.webp` (1916 × 821) is copied by
 draws it covering the screen, anchored at its left edge so the hill
 stays under the pets on any aspect. The pets' places were checked on a
 mock at the phone's size and needed no change. Other screens keep the
-code-drawn meadow.
+code-drawn meadow. Then, at the developer's request, the row of pets
+was taken off the main menu: the painting stands on its own.
