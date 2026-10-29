@@ -1207,9 +1207,16 @@ tool, not an app dependency).
   the walk and air poses, over an oval in the team colour (the paintings
   have no collar to colour). Tests run without them and get the
   code-drawn pets. Every breed of a family shares the painting for now.
-- The art is soft up close: the sources were 2000 px wide and are scaled
-  1.8× to the world, then zoomed again on screen. A sharper source (an AI
-  upscale to 3600+ px before converting) is the fix.
+- The art was soft up close: the sources were 2000 px wide and are scaled
+  1.8× to the world, then zoomed again on screen. Fixed (same day) by
+  upscaling the four map sources 4× to 8000 × 2668 with Real-ESRGAN
+  (`realesrgan-ncnn-vulkan`, model `realesrgan-x4plus-anime`, run on the
+  Mac; not part of the repo). The developer compared it with the general
+  `realesrgan-x4plus` model and chose the anime one: crisp bold outlines
+  that match the sprites, at the cost of flatter shading. The upscales
+  are kept as the `art/src/<map>.webp` sources (quality 94); the
+  converter scales them down to 3600 × 1200, so each world pixel now
+  holds real detail. Wi-Fi protocol 21 (the masks' edges moved a little).
 - Wi-Fi protocol version 20 (the maps changed).
 
 ## Painted weapons, aircraft, objects and backgrounds (2026-10-29)
