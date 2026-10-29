@@ -1263,3 +1263,16 @@ maps, and a friendlier pet lineup (the first one looked too fierce).
   and slides from its left edge to its right as the camera crosses the
   map (top to bottom likewise): a slow parallax, as far-off things move.
 - `test/art/gallery_test.dart` renders the painted art with `PAINTED=1`.
+
+## Painted main menu (2026-10-29)
+
+The developer generated a painting for the main menu from a prompt laid
+out for the menu (open sky top left for the logo, a hilltop on the left
+for the five pets, a calm hazy countryside on the right behind the
+buttons). `art/src/menu_bg.webp` (1916 × 821) is copied by
+`convert_art.py menu_bg` to `assets/menu/background.webp`.
+`PawBackdrop.load()` reads it before the first frame and the main menu
+draws it covering the screen, anchored at its left edge so the hill
+stays under the pets on any aspect. The pets' places were checked on a
+mock at the phone's size and needed no change. Other screens keep the
+code-drawn meadow.

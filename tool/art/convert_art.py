@@ -15,6 +15,9 @@ fixed height.
 Backgrounds: art/src/<map>_bg.webp (a 3:1 painting, no magenta) becomes
 assets/maps/<map>/background.webp.
 
+Menu: art/src/menu_bg.webp (a painting, no magenta) becomes
+assets/menu/background.webp, behind the main menu.
+
 Sprite sheets: art/src/<sheet>.webp (items in a grid on #FF00FF, in the
 order of SHEETS below) becomes assets/sprites/<prefix>_<name>.webp, each
 item cut out with every loose bit (a spark, a puff, a motion line) whose
@@ -283,6 +286,15 @@ def convert_background(name):
           f'{out.stat().st_size // 1024} KB')
 
 
+def convert_menu():
+    img = source('menu_bg').convert('RGB')
+    out = ROOT / 'assets' / 'menu'
+    out.mkdir(parents=True, exist_ok=True)
+    img.save(out / 'background.webp', quality=86, method=6)
+    print(f'menu background: {img.size[0]}x{img.size[1]}, '
+          f'{(out / "background.webp").stat().st_size // 1024} KB')
+
+
 def key_sheet(img):
     """Like key(), but only near clear background: inside an item's
     outline every colour stays as painted."""
@@ -378,10 +390,12 @@ def _near(own, i, w, h):
 
 if __name__ == '__main__':
     targets = sys.argv[1:] or (MAPS + [f'{m}_bg' for m in MAPS] + ['pets'] +
-                               list(SHEETS))
+                               list(SHEETS) + ['menu_bg'])
     for t in targets:
         if t == 'pets':
             convert_pets()
+        elif t == 'menu_bg':
+            convert_menu()
         elif t in SHEETS:
             convert_sheet(t)
         elif t.endswith('_bg'):

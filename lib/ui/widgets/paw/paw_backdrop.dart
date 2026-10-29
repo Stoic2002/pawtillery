@@ -1,6 +1,8 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 /// The sky behind menus: a painted meadow at golden hour. A soft sun, a
 /// few fluffy clouds, hazy mountains and a tree line in the distance, and
@@ -9,6 +11,10 @@ import 'package:flutter/material.dart';
 /// [hills] picks the front hills' layout: the menu's (a light hill to the
 /// right, a green one to the left that the pets stand on), the splash's,
 /// or none (only low, faint hills on the horizon).
+///
+/// The main menu ([PawHills.menu]) shows the painted meadow from
+/// `assets/menu/background.webp` instead, once [PawBackdrop.load] has
+/// read it (tool/art/convert_art.py); without it, the code-drawn one.
 enum PawHills { menu, splash, none }
 
 class PawBackdrop extends StatelessWidget {
@@ -23,16 +29,42 @@ class PawBackdrop extends StatelessWidget {
   final PawHills hills;
   final bool clouds;
 
+  static ui.Image? _painting;
+
+  /// Reads the main menu's painting, once, before the first frame (so it
+  /// never pops in over the code-drawn meadow).
+  static Future<void> load() async {
+    try {
+      final data = await rootBundle.load('assets/menu/background.webp');
+      final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+      _painting = (await codec.getNextFrame()).image;
+      codec.dispose();
+    } on Object catch (e) {
+      debugPrint('Menu background not loaded: $e');
+    }
+  }
+
   @override
-  Widget build(BuildContext context) => Stack(
-    fit: StackFit.expand,
-    children: [
-      RepaintBoundary(
-        child: CustomPaint(painter: _MeadowPainter(hills, clouds)),
-      ),
-      child,
-    ],
-  );
+  Widget build(BuildContext context) {
+    final painting = hills == PawHills.menu ? _painting : null;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        RepaintBoundary(
+          child: painting != null
+              // The hill the pets stand on is at its left: keep that edge.
+              ? RawImage(
+                  image: painting,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.centerLeft,
+                  filterQuality: FilterQuality.medium,
+                )
+              : CustomPaint(painter: _MeadowPainter(hills, clouds)),
+        ),
+        child,
+      ],
+    );
+  }
 }
 
 class _MeadowPainter extends CustomPainter {
