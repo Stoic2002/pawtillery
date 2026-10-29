@@ -3,28 +3,47 @@ import 'dart:ui' as ui;
 
 import '../../sim/map_object.dart';
 import 'paint_kit.dart';
+import 'sprites.dart';
 
 /// Starter objects, drawn with their base centre at the origin, about
 /// 16 px wide: a red fuel barrel, a health crate with a green cross and a
-/// wooden weapon crate. Recorded once into pictures.
+/// wooden weapon crate. Painted sprites ([Sprites]) where there are some,
+/// else code-drawn and recorded once into pictures.
 abstract final class ObjectArt {
   static final Map<ObjectKind, ui.Picture> _cache = {};
 
-  static void draw(ui.Canvas canvas, ObjectKind kind) => canvas.drawPicture(
-    _cache.putIfAbsent(kind, () {
-      final recorder = ui.PictureRecorder();
-      final c = ui.Canvas(recorder);
-      switch (kind) {
-        case ObjectKind.barrel:
-          _barrel(c);
-        case ObjectKind.healthCrate:
-          _healthCrate(c);
-        case ObjectKind.weaponCrate:
-          _weaponCrate(c);
-      }
-      return recorder.endRecording();
-    }),
-  );
+  /// The painted sprite and its height, px.
+  static (String, double) _painted(ObjectKind kind) => switch (kind) {
+    ObjectKind.barrel => ('obj_barrel', 23),
+    ObjectKind.healthCrate => ('obj_healthCrate', 16),
+    ObjectKind.weaponCrate => ('obj_weaponCrate', 17),
+  };
+
+  static void draw(ui.Canvas canvas, ObjectKind kind) {
+    final (name, height) = _painted(kind);
+    if (Sprites.of(name) case final sprite?) {
+      final longest = height * math.max(sprite.width, sprite.height) /
+          sprite.height;
+      Sprites.draw(canvas, sprite, longest, center: ui.Offset(0, -height / 2));
+      return;
+    }
+    _drawCoded(canvas, kind);
+  }
+
+  static void _drawCoded(ui.Canvas canvas, ObjectKind kind) =>
+      canvas.drawPicture(_cache.putIfAbsent(kind, () {
+        final recorder = ui.PictureRecorder();
+        final c = ui.Canvas(recorder);
+        switch (kind) {
+          case ObjectKind.barrel:
+            _barrel(c);
+          case ObjectKind.healthCrate:
+            _healthCrate(c);
+          case ObjectKind.weaponCrate:
+            _weaponCrate(c);
+        }
+        return recorder.endRecording();
+      }));
 
   /// A red steel drum with two ribs and a yellow flame label.
   static void _barrel(ui.Canvas c) {

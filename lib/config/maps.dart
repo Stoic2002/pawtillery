@@ -44,6 +44,7 @@ class MapDef {
     required this.nameKey,
     required this.maskAsset,
     this.artAsset,
+    this.backgroundAsset,
     required this.waterLevel,
     required this.skyTopArgb,
     required this.skyBottomArgb,
@@ -74,6 +75,11 @@ class MapDef {
   /// drawn as the ground instead of the code-painted materials, and with
   /// no code-drawn decor on top. Null = code-painted.
   final String? artAsset;
+
+  /// Painted background (a 3:1 landscape, from tool/art/convert_art.py):
+  /// drawn behind the terrain instead of the code-drawn sky and scenery
+  /// layers. Null = code-drawn.
+  final String? backgroundAsset;
 
   /// World y of the water surface; everything below is water.
   final int waterLevel;
@@ -115,6 +121,7 @@ abstract final class Maps {
     nameKey: 'mapBackyard',
     maskAsset: 'assets/maps/backyard/mask.png',
     artAsset: 'assets/maps/backyard/art.webp',
+    backgroundAsset: 'assets/maps/backyard/background.webp',
     waterLevel: 1120,
     skyTopArgb: 0xFF2A2652,
     skyBottomArgb: 0xFFF4AE78,
@@ -133,6 +140,7 @@ abstract final class Maps {
     nameKey: 'mapCastle',
     maskAsset: 'assets/maps/castle/mask.png',
     artAsset: 'assets/maps/castle/art.webp',
+    backgroundAsset: 'assets/maps/castle/background.webp',
     waterLevel: 1120,
     skyTopArgb: 0xFF0B1226,
     skyBottomArgb: 0xFF3A4170,
@@ -151,6 +159,7 @@ abstract final class Maps {
     nameKey: 'mapWreck',
     maskAsset: 'assets/maps/wreck/mask.png',
     artAsset: 'assets/maps/wreck/art.webp',
+    backgroundAsset: 'assets/maps/wreck/background.webp',
     waterLevel: 1120,
     skyTopArgb: 0xFF1E252E,
     skyBottomArgb: 0xFF7D7A72,
@@ -169,6 +178,7 @@ abstract final class Maps {
     nameKey: 'mapRuins',
     maskAsset: 'assets/maps/ruins/mask.png',
     artAsset: 'assets/maps/ruins/art.webp',
+    backgroundAsset: 'assets/maps/ruins/background.webp',
     waterLevel: 1120,
     skyTopArgb: 0xFF2A1C24,
     skyBottomArgb: 0xFFB8643C,

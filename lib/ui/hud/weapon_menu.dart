@@ -392,7 +392,8 @@ class _FuseBox extends StatelessWidget {
   );
 }
 
-/// A weapon's picture in colour (code-drawn, lib/game/art/weapon_art.dart).
+/// A weapon's picture in colour (painted or code-drawn, see
+/// lib/game/art/weapon_art.dart).
 class WeaponIcon extends StatelessWidget {
   const WeaponIcon({super.key, required this.weapon, required this.size});
 

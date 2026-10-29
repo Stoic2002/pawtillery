@@ -3,12 +3,56 @@ import 'dart:ui' as ui;
 
 import 'animal_art.dart';
 import 'paint_kit.dart';
+import 'sprites.dart';
 
-/// Procedural, softly shaded weapon art: the projectiles in flight, mines
-/// on the ground, and the icons in the weapon menu. Everything is drawn
-/// centred on the origin; callers rotate and place it. Static shapes are
-/// recorded once into pictures.
+/// A projectile drawn from a painted sprite: its longest side in px, the
+/// turn (degrees clockwise) that points its nose right (+x) — for the
+/// firecracker, its fuse up — and how far it sits back along -x so its
+/// heavy end (a meteor's rock, not its tail) is at the origin.
+class _Painted {
+  const _Painted(this.sprite, this.size, {this.turn = 0, this.back = 0});
+  final String sprite;
+  final double size;
+  final double turn;
+  final double back;
+}
+
+/// Weapon art: the projectiles in flight, aircraft, mines on the ground,
+/// and the icons in the weapon menu, from the painted sprites ([Sprites])
+/// where there is one, else procedural and softly shaded. Everything is
+/// drawn centred on the origin; callers rotate and place it. Static
+/// shapes are recorded once into pictures.
 abstract final class WeaponArt {
+  static const Map<String, _Painted> _painted = {
+    'rock': _Painted('icon_rock', 13),
+    'twinSling': _Painted('icon_rock', 8),
+    'grenade': _Painted('icon_grenade', 15),
+    'cluster': _Painted('icon_cluster', 16),
+    'clusterBomblet': _Painted('obj_bomblet', 9),
+    'hairball': _Painted('icon_hairball', 15),
+    'hairballBomb': _Painted('obj_hairballBomb', 10),
+    'boneBoomerang': _Painted('icon_boneBoomerang', 20),
+    'drillCarrot': _Painted('icon_drillCarrot', 22, turn: -8),
+    'egg': _Painted('craft_egg', 11),
+    'seedMines': _Painted('obj_seedMine', 10),
+    'coconut': _Painted('icon_coconut', 15),
+    'bottleRocket': _Painted('icon_bottleRocket', 22, turn: 30),
+    'snifferRocket': _Painted('icon_snifferRocket', 22, turn: 28),
+    'firecracker': _Painted('icon_firecracker', 16, turn: -44),
+    'flowerpot': _Painted('craft_flowerpot', 15),
+    'missile': _Painted('craft_missile', 24),
+    'blackHole': _Painted('icon_blackHole', 17),
+    'stickyBomb': _Painted('icon_stickyBomb', 15),
+    'clay': _Painted('icon_clay', 14),
+    'bomberBomb': _Painted('craft_bomb', 22, turn: -90),
+    'meteor': _Painted('craft_meteor', 42, turn: -40, back: 9),
+    'napalm': _Painted('icon_napalm', 16),
+    'poisonGas': _Painted('obj_gas', 14),
+    'gasBomb': _Painted('obj_gas', 16, turn: -90),
+    'miniNuke': _Painted('icon_miniNuke', 22),
+    'iceBomb': _Painted('icon_iceBomb', 15),
+  };
+
   static final Map<String, ui.Picture> _cache = {};
 
   static ui.Picture _cached(String key, void Function(ui.Canvas) draw) =>
@@ -20,6 +64,18 @@ abstract final class WeaponArt {
 
   /// A projectile of weapon [id] in flight, about 8–14 px across.
   static void projectile(ui.Canvas canvas, String id) {
+    final painted = _painted[id];
+    final sprite = painted == null ? null : Sprites.of(painted.sprite);
+    if (painted != null && sprite != null) {
+      Sprites.draw(
+        canvas,
+        sprite,
+        painted.size,
+        turnDeg: painted.turn,
+        center: ui.Offset(-painted.back, 0),
+      );
+      return;
+    }
     canvas.drawPicture(_cached('p:$id', (c) => _projectile(c, id)));
   }
 
@@ -28,7 +84,11 @@ abstract final class WeaponArt {
   static void bomberPlane(ui.Canvas canvas, {required bool facingLeft}) {
     canvas.save();
     if (facingLeft) canvas.scale(-1, 1);
-    canvas.drawPicture(_cached('plane', _plane));
+    if (Sprites.of('craft_plane') case final sprite?) {
+      Sprites.draw(canvas, sprite, 104);
+    } else {
+      canvas.drawPicture(_cached('plane', _plane));
+    }
     canvas.restore();
   }
 
@@ -37,12 +97,21 @@ abstract final class WeaponArt {
   static void fighterJet(ui.Canvas canvas, {required bool facingLeft}) {
     canvas.save();
     if (facingLeft) canvas.scale(-1, 1);
-    canvas.drawPicture(_cached('jet', _jet));
+    if (Sprites.of('craft_jet') case final sprite?) {
+      Sprites.draw(canvas, sprite, 88);
+    } else {
+      canvas.drawPicture(_cached('jet', _jet));
+    }
     canvas.restore();
   }
 
-  /// The satellite in orbit (no beam), about 96 px across, centred.
+  /// The satellite in orbit (no beam), about 96 px across, centred, its
+  /// dish at (0, 9).
   static void satellite(ui.Canvas canvas) {
+    if (Sprites.of('craft_satellite') case final sprite?) {
+      Sprites.draw(canvas, sprite, 100, center: const ui.Offset(-3, -13));
+      return;
+    }
     canvas
       ..save()
       ..scale(3.2);
@@ -51,8 +120,13 @@ abstract final class WeaponArt {
   }
 
   /// A dark storm cloud about 150 px wide, centred on the origin.
-  static void stormCloud(ui.Canvas canvas) =>
+  static void stormCloud(ui.Canvas canvas) {
+    if (Sprites.of('craft_cloud') case final sprite?) {
+      Sprites.draw(canvas, sprite, 160);
+    } else {
       canvas.drawPicture(_cached('storm', _storm));
+    }
+  }
 
   /// A three-pronged grappling hook about 16 px long, its points facing
   /// right (+x), the rope tied on at the origin.
@@ -60,15 +134,30 @@ abstract final class WeaponArt {
       canvas.drawPicture(_cached('hook', _hook));
 
   /// A mine lying on the ground (origin = resting point).
-  static void mine(ui.Canvas canvas, {required bool small}) =>
-      canvas.drawPicture(_cached('mine:$small', (c) {
-        c.scale(small ? 0.7 : 1);
-        _mine(c);
-      }));
+  static void mine(ui.Canvas canvas, {required bool small}) {
+    if (Sprites.of(small ? 'obj_seedMine' : 'obj_mine') case final sprite?) {
+      final size = Sprites.sizeOf(sprite, small ? 12 : 19);
+      Sprites.draw(
+        canvas,
+        sprite,
+        small ? 12 : 19,
+        center: ui.Offset(0, -size.height / 2 + 1),
+      );
+      return;
+    }
+    canvas.drawPicture(_cached('mine:$small', (c) {
+      c.scale(small ? 0.7 : 1);
+      _mine(c);
+    }));
+  }
 
   /// Menu icon for weapon [id], fitting a [size]-px box centred on the
   /// origin.
   static void icon(ui.Canvas canvas, String id, double size) {
+    if (Sprites.of('icon_$id') case final sprite?) {
+      Sprites.draw(canvas, sprite, size);
+      return;
+    }
     canvas
       ..save()
       ..scale(size / 32);
@@ -142,7 +231,12 @@ abstract final class WeaponArt {
   /// Weapons drawn pointing along their flight (the renderer rotates them
   /// to the velocity instead of tumbling them), with a motor flame.
   static bool pointsAlongFlight(String id) =>
-      hasMotor(id) || id == 'bomberBomb' || id == 'gasBomb';
+      hasMotor(id) ||
+      id == 'bomberBomb' ||
+      id == 'gasBomb' ||
+      // Painted with a tail or a nose.
+      ((id == 'meteor' || id == 'miniNuke') &&
+          Sprites.of(_painted[id]!.sprite) != null);
 
   /// Rockets: drawn with a motor flame behind them.
   static bool hasMotor(String id) =>

@@ -14,8 +14,10 @@ Play on Wi-Fi across phones on the same network. Working title.
 - `lib/config/` — all balancing numbers and game data.
 - `lib/l10n/` — `app_en.arb`, `app_id.arb`.
 - `docs/decisions.md` — design decisions not covered by the PRD.
-- `art/src/` — painted maps and pets on magenta; `python3 tool/art/convert_art.py`
-  turns them into `assets/maps/<map>/{mask.png,art.webp}` and `assets/pets/` (needs Pillow).
+- `art/src/` — painted maps, backgrounds, pets and item sheets (on magenta);
+  `python3 tool/art/convert_art.py` turns them into
+  `assets/maps/<map>/{mask.png,art.webp,background.webp}`, `assets/pets/` and
+  `assets/sprites/` (needs Pillow).
 
 ## Develop
 

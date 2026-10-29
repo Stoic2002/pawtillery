@@ -16,13 +16,23 @@ import 'package:pawtillery/game/components/terrain_painter.dart';
 import 'package:pawtillery/game/effects/particle_system.dart';
 import 'package:pawtillery/game/map_loader.dart';
 import 'package:pawtillery/game/art/animal_art.dart';
+import 'package:pawtillery/game/art/object_art.dart';
+import 'package:pawtillery/game/art/pet_sprites.dart';
+import 'package:pawtillery/game/art/sprites.dart';
 import 'package:pawtillery/game/art/weapon_art.dart';
+import 'package:pawtillery/sim/map_object.dart';
 
 /// Renders every breed in every pose. Always checks the painters don't
 /// throw; with RENDER_GALLERY=1 it also writes build/gallery/*.png for
-/// eyeballing the art.
+/// eyeballing the art. With PAINTED=1 the painted sprites are loaded
+/// first (as the app does), else the code-drawn art is shown.
 void main() {
   final write = Platform.environment['RENDER_GALLERY'] == '1';
+  final painted = Platform.environment['PAINTED'] == '1';
+
+  setUpAll(() async {
+    if (painted) await Future.wait([PetSprites.load(), Sprites.load()]);
+  });
 
   Future<void> save(ui.Picture picture, int w, int h, String name) async {
     final image = await picture.toImage(w, h);
@@ -125,6 +135,14 @@ void main() {
       ..scale(3);
     WeaponArt.mine(canvas, small: false);
     canvas.restore();
+    for (final (i, kind) in ObjectKind.values.indexed) {
+      canvas
+        ..save()
+        ..translate(cols * cell - cell * (1.5 + i), rows * cell - cell / 3)
+        ..scale(3);
+      ObjectArt.draw(canvas, kind);
+      canvas.restore();
+    }
     // Things in the sky, on the last rows: bomber, jet, satellite, cloud.
     final sky = rows * cell - cell * 1.6;
     canvas
@@ -182,18 +200,34 @@ void main() {
   testWidgets('maps: scenery, terrain, decorations, water', (tester) async {
     for (final map in Maps.all) {
       await tester.runAsync(() async {
-        final data = await loadMapData(map.maskAsset);
+        final data = await loadMapData(
+          map.maskAsset,
+          artAsset: painted ? map.artAsset : null,
+        );
+        final background = painted && map.backgroundAsset != null
+            ? await loadBackground(map.backgroundAsset!)
+            : null;
         final mask = data.mask;
         final size = Vector2(mask.width.toDouble(), mask.height.toDouble());
-        final pixels = buildChunkPixels(
-          mask,
-          map,
-          data.materials,
-          0,
-          0,
-          mask.width,
-          mask.height,
-        )!;
+        final pixels = data.art != null
+            ? buildArtChunkPixels(
+                mask,
+                map,
+                data.art!,
+                0,
+                0,
+                mask.width,
+                mask.height,
+              )!
+            : buildChunkPixels(
+                mask,
+                map,
+                data.materials,
+                0,
+                0,
+                mask.width,
+                mask.height,
+              )!;
         final done = Completer<ui.Image>();
         ui.decodeImageFromPixels(
           pixels,
@@ -224,17 +258,22 @@ void main() {
           final canvas = ui.Canvas(recorder)
             ..scale(scale)
             ..translate(-focus.dx, -focus.dy);
-          SkyComponent(map: map, worldSize: size).render(canvas);
+          if (background == null) {
+            SkyComponent(map: map, worldSize: size).render(canvas);
+          }
           SceneryComponent(
             map: map,
             worldSize: size,
             cameraPosition: () => size / 2,
+            visible: () =>
+                ui.Rect.fromLTWH(focus.dx, focus.dy, w / scale, h / scale),
+            background: background,
           ).render(canvas);
           WaterBackComponent(
                   map: map, worldSize: size, level: () => map.waterLevel)
               .render(canvas);
           canvas.drawImage(terrain, ui.Offset.zero, ui.Paint());
-          decor.render(canvas);
+          if (data.art == null) decor.render(canvas);
           WaterComponent(
             map: map,
             worldSize: size,
@@ -243,6 +282,7 @@ void main() {
           await save(recorder.endRecording(), w.round(), h.round(), name);
         }
         terrain.dispose();
+        background?.dispose();
       });
     }
   });

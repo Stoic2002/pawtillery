@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 
+import '../../config/controls.dart';
 import '../../config/maps.dart';
 import '../art/scenery.dart';
 
@@ -10,22 +11,33 @@ import '../art/scenery.dart';
 /// bats, a storm with lightning and rain, or a fire-lit dusk with embers),
 /// clouds, and the map's scenery layers. Each layer follows the camera at its own speed
 /// (parallax), so distant things move less and the scene reads as deep.
+///
+/// With a painted [background], that painting stands in for the sky,
+/// clouds and layers; the bats, rain, lightning and embers still play on
+/// top of it.
 class SceneryComponent extends Component {
   SceneryComponent({
     required this.map,
     required this.worldSize,
     required this.cameraPosition,
+    required this.visible,
+    this.background,
   }) : super(priority: -9);
 
   final MapDef map;
   final Vector2 worldSize;
   final Vector2 Function() cameraPosition;
 
-  late final List<SceneryLayer> _layers = Scenery.build(
-    map,
-    worldSize.x,
-    worldSize.y,
-  );
+  /// The part of the world on screen.
+  final ui.Rect Function() visible;
+  final ui.Image? background;
+
+  final ui.Paint _painting = ui.Paint()
+    ..filterQuality = ui.FilterQuality.medium;
+
+  late final List<SceneryLayer> _layers = background != null
+      ? const []
+      : Scenery.build(map, worldSize.x, worldSize.y);
   double _time = 0;
 
   @override
@@ -42,6 +54,59 @@ class SceneryComponent extends Component {
 
   @override
   void render(ui.Canvas canvas) {
+    if (background case final painting?) {
+      _drawPainting(canvas, painting);
+      if (map.theme == MapTheme.wreck) _lightning(canvas, bolt: false);
+    } else {
+      _drawSky(canvas);
+    }
+    switch (map.theme) {
+      case MapTheme.backyard:
+        break;
+      case MapTheme.castle:
+        _bats(canvas);
+      case MapTheme.wreck:
+        _rain(canvas);
+      case MapTheme.ruins:
+        _embers(canvas);
+    }
+  }
+
+  /// The painting fills the screen at every zoom and slides less than the
+  /// camera moves: from its left edge with the view at the map's far left
+  /// to its right edge at the far right, and likewise top to bottom.
+  void _drawPainting(ui.Canvas canvas, ui.Image painting) {
+    final v = visible();
+    const side = ControlsConfig.cameraMarginSide;
+    const top = ControlsConfig.cameraMarginTop;
+    final aspect = painting.width / painting.height;
+    // Some room to slide both ways.
+    final h = math.max(v.height * 1.25, v.width * 1.4 / aspect);
+    final w = h * aspect;
+    double along(double pos, double min, double max) =>
+        max <= min ? 0.5 : ((pos - min) / (max - min)).clamp(0.0, 1.0);
+    final u = along(v.left, -side, worldSize.x + side - v.width);
+    final t = along(v.top, -top, worldSize.y - v.height);
+    canvas.drawImageRect(
+      painting,
+      ui.Rect.fromLTWH(
+        0,
+        0,
+        painting.width.toDouble(),
+        painting.height.toDouble(),
+      ),
+      ui.Rect.fromLTWH(
+        v.left - u * (w - v.width),
+        v.top - t * (h - v.height),
+        w,
+        h,
+      ),
+      _painting,
+    );
+  }
+
+  /// The code-drawn sky, clouds and scenery layers.
+  void _drawSky(ui.Canvas canvas) {
     switch (map.theme) {
       case MapTheme.backyard:
         _duskSky(canvas);
@@ -76,16 +141,6 @@ class SceneryComponent extends Component {
         ..translate(shift.dx, shift.dy)
         ..drawPicture(layer.picture)
         ..restore();
-    }
-    switch (map.theme) {
-      case MapTheme.backyard:
-        break;
-      case MapTheme.castle:
-        _bats(canvas);
-      case MapTheme.wreck:
-        _rain(canvas);
-      case MapTheme.ruins:
-        _embers(canvas);
     }
   }
 
@@ -186,8 +241,9 @@ class SceneryComponent extends Component {
 
   // ----------------------------------------------------------------- wreck
 
-  /// Every few seconds the storm flashes: the sky lights up for a moment.
-  void _lightning(ui.Canvas canvas) {
+  /// Every few seconds the storm flashes: the sky lights up for a moment,
+  /// with a far-off [bolt] (a painted sky has its own).
+  void _lightning(ui.Canvas canvas, {bool bolt = true}) {
     final cycle = _time % 7.3;
     if (cycle > 0.5) return;
     final strength = (cycle < 0.08 || (cycle > 0.18 && cycle < 0.26))
@@ -198,7 +254,7 @@ class SceneryComponent extends Component {
       ui.Paint()
         ..color = const ui.Color(0xFFDDE6FF).withValues(alpha: strength),
     );
-    if (cycle < 0.26) {
+    if (bolt && cycle < 0.26) {
       // The bolt itself, far off.
       final x = worldSize.x * 0.3 + (_time ~/ 7.3 % 5) * 280;
       final bolt = ui.Path()..moveTo(x, -100);
@@ -317,6 +373,7 @@ class SceneryComponent extends Component {
     for (final l in _layers) {
       l.picture.dispose();
     }
+    background?.dispose();
     super.onRemove();
   }
 }

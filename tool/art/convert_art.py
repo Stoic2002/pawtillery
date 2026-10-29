@@ -10,19 +10,27 @@ Pets: art/src/pets.webp (two rows of five on #FF00FF, in the family order
 below) becomes assets/pets/<family>.webp, each trimmed and scaled to a
 fixed height.
 
+Backgrounds: art/src/<map>_bg.webp (a 3:1 painting, no magenta) becomes
+assets/maps/<map>/background.webp.
+
+Sprite sheets: art/src/<sheet>.webp (items in a grid on #FF00FF, in the
+order of SHEETS below) becomes assets/sprites/<prefix>_<name>.webp, each
+item cut out with every loose bit (a spark, a puff, a motion line) whose
+centre lies in its grid cell.
+
 The magenta is keyed out by how much purer it is than green (soft edge
 between two thresholds), and what is left of it on the edges is pulled
 out of the colour (despill). Specks of ground too small to matter are
 dropped and pin holes filled. Needs Pillow. Run from the project root:
 
     python3 tool/art/convert_art.py            # everything
-    python3 tool/art/convert_art.py castle pets
+    python3 tool/art/convert_art.py castle pets craft
 """
 import sys
 from collections import deque
 from pathlib import Path
 
-from PIL import Image, ImageFilter
+from PIL import Image, ImageChops, ImageFilter
 
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / 'art' / 'src'
@@ -44,6 +52,45 @@ SPILL = 40
 EDGE = 5
 # Ground or holes smaller than this many pixels are noise.
 SPECK = 400
+
+# Sheet: (columns, rows, output prefix, longest side px, item names in
+# reading order). Icon names are weapon ids.
+SHEETS = {
+    'weapons_throw': (3, 3, 'icon', 192, [
+        'rock', 'bottleRocket', 'snifferRocket',
+        'grenade', 'cluster', 'twinSling',
+        'stickyBomb', 'miniNuke', 'coconut']),
+    'weapons_sky': (4, 2, 'icon', 192, [
+        'homingMissile', 'thunderCloud', 'flowerpotRain', 'bomber',
+        'gasRaid', 'satellite', 'meteorShower', 'eggStrike']),
+    'weapons_effects': (4, 2, 'icon', 192, [
+        'napalm', 'poisonGas', 'iceBomb', 'clay',
+        'mine', 'seedMines', 'firecracker', 'blackHole']),
+    'weapons_close': (3, 3, 'icon', 192, [
+        'shotgun', 'laserPointer', 'punch',
+        'startleCrow', 'headbutt', 'seedSpitter',
+        'hairball', 'boneBoomerang', 'drillCarrot']),
+    'weapons_tools': (3, 3, 'icon', 192, [
+        'digClaws', 'grapple', 'shield',
+        'firstAid', 'teleport', 'swap',
+        'fortress', 'skip', 'boomDuck']),
+    'craft': (3, 3, 'craft', 400, [
+        'plane', 'jet', 'satellite',
+        'cloud', 'bomb', 'missile',
+        'egg', 'flowerpot', 'meteor']),
+    'objects': (4, 2, 'obj', 160, [
+        'gas', 'bomblet', 'hairballBomb', 'seedMine',
+        'mine', 'barrel', 'healthCrate', 'weaponCrate']),
+}
+# On a sheet only pixels this magenta count as background, and only
+# within EDGE px of them is an edge softened: purple items (a portal, a
+# black hole) keep their colour inside their outline.
+SHEET_CORE = 200
+# A patch of those is background (also inside a slingshot's fork) when
+# its mean green is below this.
+SHEET_GREEN = 18
+# Loose bits smaller than this many pixels are noise.
+SHEET_SPECK = 30
 
 
 def key(img):
@@ -195,6 +242,97 @@ def convert_pets():
               f'{len(pet)} pieces')
 
 
+def convert_background(name):
+    img = Image.open(SRC / f'{name}_bg.webp').convert('RGB')
+    out = ROOT / 'assets' / 'maps' / name / 'background.webp'
+    img.save(out, quality=84, method=6)
+    print(f'{name} background: {img.size[0]}x{img.size[1]}, '
+          f'{out.stat().st_size // 1024} KB')
+
+
+def key_sheet(img):
+    """Like key(), but only near clear background: inside an item's
+    outline every colour stays as painted."""
+    data = img.convert('RGB').tobytes()
+    n = len(data) // 3
+    core = bytearray(n)
+    for j in range(n):
+        if min(data[3 * j], data[3 * j + 2]) - data[3 * j + 1] >= SHEET_CORE:
+            core[j] = 1
+    # Background shows through as pure magenta (green near 0); a patch with
+    # more green in it is a painted streak (a black hole's swirl).
+    w, h = img.size
+    for region in list(components(core, w, h, 1)):
+        green = sum(data[3 * i + 1] for i in region) / len(region)
+        for i in region:
+            core[i] = 255 if green < SHEET_GREEN else 0
+    band = Image.frombytes('L', img.size, bytes(core)).filter(
+        ImageFilter.MaxFilter(2 * EDGE + 1)).tobytes()
+    out = bytearray(4 * n)
+    for j in range(n):
+        if core[j]:
+            continue
+        r, g, b = data[3 * j], data[3 * j + 1], data[3 * j + 2]
+        a = 255
+        if band[j]:
+            k = min(r, b) - g
+            a = (0 if k >= KEY_HI else 255 if k <= KEY_LO else
+                 round(255 * (KEY_HI - k) / (KEY_HI - KEY_LO)))
+            if a == 0:
+                continue
+            if k > 0:
+                r -= k
+                b -= k
+        out[4 * j:4 * j + 4] = bytes((r, g, b, a))
+    return Image.frombytes('RGBA', img.size, bytes(out))
+
+
+def convert_sheet(sheet):
+    cols, rows, prefix, longest, names = SHEETS[sheet]
+    img = key_sheet(Image.open(SRC / f'{sheet}.webp'))
+    w, h = img.size
+    alpha = img.getchannel('A').tobytes()
+    solid = bytearray(1 if v > 128 else 0 for v in alpha)
+    cells = [[] for _ in names]
+    for region in components(solid, w, h, 1):
+        if len(region) < SHEET_SPECK:
+            continue
+        xs = [i % w for i in region]
+        ys = [i // w for i in region]
+        cx = (min(xs) + max(xs)) / 2
+        cy = (min(ys) + max(ys)) / 2
+        cell = (min(rows - 1, int(cy * rows / h)) * cols +
+                min(cols - 1, int(cx * cols / w)))
+        cells[cell].append((region, (min(xs), min(ys),
+                                     max(xs) + 1, max(ys) + 1)))
+    out = ROOT / 'assets' / 'sprites'
+    out.mkdir(parents=True, exist_ok=True)
+    for name, pieces in zip(names, cells):
+        if not pieces:
+            sys.exit(f'{sheet}: nothing found for {name}')
+        x0 = max(0, min(p[1][0] for p in pieces) - 2)
+        y0 = max(0, min(p[1][1] for p in pieces) - 2)
+        x1 = min(w, max(p[1][2] for p in pieces) + 2)
+        y1 = min(h, max(p[1][3] for p in pieces) + 2)
+        cw, ch = x1 - x0, y1 - y0
+        own = bytearray(cw * ch)
+        for region, _ in pieces:
+            for i in region:
+                own[(i // w - y0) * cw + i % w - x0] = 255
+        # Its pixels, and the soft edge right around them.
+        keep = Image.frombytes('L', (cw, ch), bytes(own)).filter(
+            ImageFilter.MaxFilter(3))
+        item = img.crop((x0, y0, x1, y1))
+        item.putalpha(ImageChops.darker(item.getchannel('A'), keep))
+        scale = min(1, longest / max(cw, ch))
+        if scale < 1:
+            item = resize(item, (round(cw * scale), round(ch * scale)))
+        path = out / f'{prefix}_{name}.webp'
+        item.save(path, quality=90, alpha_quality=100, method=6)
+        print(f'{prefix}_{name}: {item.size[0]}x{item.size[1]}, '
+              f'{len(pieces)} pieces, {path.stat().st_size // 1024} KB')
+
+
 def _near(own, i, w, h):
     """A soft-edge pixel right next to this pet."""
     x, y = i % w, i // w
@@ -206,6 +344,14 @@ def _near(own, i, w, h):
 
 
 if __name__ == '__main__':
-    targets = sys.argv[1:] or MAPS + ['pets']
+    targets = sys.argv[1:] or (MAPS + [f'{m}_bg' for m in MAPS] + ['pets'] +
+                               list(SHEETS))
     for t in targets:
-        convert_pets() if t == 'pets' else convert_map(t)
+        if t == 'pets':
+            convert_pets()
+        elif t in SHEETS:
+            convert_sheet(t)
+        elif t.endswith('_bg'):
+            convert_background(t[:-3])
+        else:
+            convert_map(t)

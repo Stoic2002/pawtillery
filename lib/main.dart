@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'app/app.dart';
 import 'game/art/pet_sprites.dart';
+import 'game/art/sprites.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,6 +12,6 @@ Future<void> main() async {
     DeviceOrientation.landscapeRight,
   ]);
   await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
-  await PetSprites.load();
+  await Future.wait([PetSprites.load(), Sprites.load()]);
   runApp(const PawtilleryApp());
 }

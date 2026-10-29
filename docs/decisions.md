@@ -1211,3 +1211,38 @@ tool, not an app dependency).
   1.8× to the world, then zoomed again on screen. A sharper source (an AI
   upscale to 3600+ px before converting) is the fix.
 - Wi-Fi protocol version 20 (the maps changed).
+
+## Painted weapons, aircraft, objects and backgrounds (2026-10-29)
+
+The developer generated the rest of the art the same way: seven sheets of
+items on magenta (the five weapon-menu tabs, aircraft and their loads,
+small loads and map objects), a painted background for each of the four
+maps, and a friendlier pet lineup (the first one looked too fierce).
+
+- **Sheets** (`art/src/weapons_*.webp`, `craft.webp`, `objects.webp`) are
+  cut by `convert_art.py` into `assets/sprites/<prefix>_<name>.webp`
+  (`icon_<weaponId>`, `craft_*`, `obj_*`; the order of each sheet is in
+  `SHEETS`). Every loose piece (a spark, a gas puff, a motion line) goes
+  to the grid cell its centre lies in. Keying differs from the maps: only
+  pure magenta (green near 0) is background, and only within 5 px of it
+  is an edge softened, so purple items (portal, black hole, sniffer
+  rocket) keep their colour; pockets of background inside an item (the
+  slingshot's fork) are found the same way. Icons are kept at 192 px,
+  aircraft at 400, objects at 160 (about 0.9 MB in all).
+- **In the game** `Sprites` loads every file in `assets/sprites/` at start.
+  `WeaponArt` and `ObjectArt` draw the sprite when there is one and fall
+  back to the code-drawn art (tests, or a missing file): menu icons, the
+  crate pop-up, projectiles (each with a size and the turn that points its
+  nose along the flight; the meteor and mini nuke now point along their
+  flight too), mines, barrels and crates, the bomber, jet, satellite and
+  storm cloud. The grapple hook and the seed spitter's seeds stay
+  code-drawn (too small or not on a sheet). Effects (blasts, fire, gas,
+  beams, bolts) stay in code.
+- **Backgrounds** (`art/src/<map>_bg.webp`, 2000 × 667) are copied to
+  `assets/maps/<map>/background.webp`. With `MapDef.backgroundAsset` the
+  painting replaces the code-drawn sky, clouds and scenery layers; the
+  bats, rain, lightning flash and embers still play on top. It is sized
+  to the view (1.25 × its height), so it fills the screen at every zoom,
+  and slides from its left edge to its right as the camera crosses the
+  map (top to bottom likewise): a slow parallax, as far-off things move.
+- `test/art/gallery_test.dart` renders the painted art with `PAINTED=1`.

@@ -53,6 +53,17 @@ Future<MapData> loadMapData(String asset, {String? artAsset}) async {
   }
 }
 
+/// A painted background (see [MapDef.backgroundAsset]), ready to draw.
+Future<ui.Image> loadBackground(String asset) async {
+  final data = await rootBundle.load(asset);
+  final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+  try {
+    return (await codec.getNextFrame()).image;
+  } finally {
+    codec.dispose();
+  }
+}
+
 /// (width, straight RGBA bytes) of an image asset.
 Future<(int, Uint8List)> _loadRgba(String asset) async {
   final data = await rootBundle.load(asset);
