@@ -5,15 +5,21 @@ import 'package:flame/components.dart';
 
 import '../../config/weapons.dart';
 import '../../sim/air_support.dart';
+import '../../sim/physics.dart';
 import '../../sim/world.dart';
 import '../art/animal_art.dart';
 import '../art/weapon_art.dart';
 
 /// Draws what the sim has in the sky, so every "external" weapon is seen
 /// arriving: bombers, fighter jets and bird flocks crossing the map; the
-/// satellite gliding over its column and charging; the storm cloud
-/// drifting in on the wind and rumbling. A red sighting line and a closing
-/// ring mark where a strike from the sky will land.
+/// satellite and the storm cloud coming down from high in the sky to their
+/// place over the target (fixed in the world, not the screen), charging,
+/// and their beam or bolt shooting down to the ground. A red sighting line
+/// and a closing ring mark where a strike from the sky will land.
+///
+/// The sim strikes at once at its due tick; the bolt or beam is drawn
+/// leaving [travelTicks] earlier, so it reaches the ground just as the
+/// blast (and its sound) happens.
 class AirSupportComponent extends Component {
   AirSupportComponent(
     this.sim, {
@@ -24,35 +30,78 @@ class AirSupportComponent extends Component {
   final SimWorld sim;
   final List<int> teamColors;
 
-  /// Height of the visible world (px), so a satellite or storm cloud can
-  /// sit near the top of the view over a low target rather than far above
-  /// it, out of sight.
+  /// Height of the visible world (px).
   final double Function() viewHeight;
 
-  /// Highest the satellite and the storm cloud sit (world y).
-  static const double satelliteY = 40;
+  /// Highest the storm cloud sits (world y), and how far above what its
+  /// bolt will hit.
   static const double cloudY = 70;
+  static const double _cloudAbove = 230;
 
-  /// Where the satellite or storm cloud over a target at [targetY] sits:
-  /// near the top of a view framed on the target (see the game's camera).
-  double sourceYFor({required bool lightning, required double targetY}) {
-    final vh = viewHeight();
-    return lightning
-        ? math.max(cloudY, targetY - vh * 0.5)
-        : math.max(satelliteY, targetY - vh * 0.56);
-  }
+  /// Ticks the bolt or beam is drawn travelling down before it lands.
+  static const int travelTicks = 10;
 
-  /// Where the storm cloud sits, or the satellite parks to fire (the
-  /// sim's own firing point, so its beams leave from it).
-  double strikeSourceY(PendingStrike s) => s.weapon.delivery is Lightning
-      ? sourceYFor(lightning: true, targetY: s.y.toDouble())
-      : SimWorld.satelliteAim(s).$1.$2;
-
-  /// Ticks the satellite or cloud spends arriving; then it charges.
+  /// Ticks the satellite or cloud spends coming down; then it charges.
   static const int _arriveTicks = 72;
 
-  /// How far away (px) they start.
-  static const double _arriveDistance = 520;
+  /// How far above its place (px) it starts.
+  static const double _dropFrom = 460;
+
+  /// The first ground or pet straight down column [x] (what a bolt hits).
+  double columnImpactY(int x) {
+    final t = sim.terrain;
+    final cx = x.clamp(0, t.width - 1);
+    var y = 0;
+    while (y < sim.waterLevel && y < t.height) {
+      if (t.isSolid(cx, y) ||
+          ProjectilePhysics.unitAt(cx + 0.5, y + 0.5, sim.units) != null) {
+        break;
+      }
+      y++;
+    }
+    return y.toDouble();
+  }
+
+  /// Where a storm cloud sits over a bolt that lands at [impactY].
+  static double cloudYOver(double impactY) =>
+      math.max(cloudY, impactY - _cloudAbove);
+
+  bool _isBolt(PendingStrike s) => s.weapon.delivery is Lightning;
+
+  /// Where the storm cloud ends up over what its bolt will hit, or the
+  /// satellite parks to fire (the sim's own firing point).
+  (double, double) strikeSource(PendingStrike s) => _isBolt(s)
+      ? (s.x.toDouble(), cloudYOver(columnImpactY(s.x)))
+      : SimWorld.satelliteAim(s).$1;
+
+  /// Where it is now: coming down from high in the sky over the arrival.
+  (double, double) sourceNow(PendingStrike s) {
+    final (x, y) = strikeSource(s);
+    return (x, y - _dropFrom * (1 - _arrival(sim, s)));
+  }
+
+  /// Where the bolt or the current beam lands.
+  (double, double) strikeTarget(PendingStrike s) => _isBolt(s)
+      ? (s.x.toDouble(), columnImpactY(s.x))
+      : SimWorld.satelliteAim(s).$2[s.shot];
+
+  /// 0 → 1 as the bolt or beam travels down; null before it leaves.
+  double? travelOf(PendingStrike s) {
+    final left = s.dueTick - sim.tick;
+    if (left > travelTicks) return null;
+    return (1 - left / travelTicks).clamp(0.0, 1.0);
+  }
+
+  /// What the camera watches: the bolt's or beam's tip on its way down,
+  /// else the middle between the cloud or satellite and its target, so
+  /// both are seen.
+  (double, double) cameraTarget(PendingStrike s) {
+    final (sx, sy) = sourceNow(s);
+    final (tx, ty) = strikeTarget(s);
+    final t = travelOf(s);
+    if (t != null) return (sx + (tx - sx) * t, sy + (ty - sy) * t);
+    return ((sx + tx) / 2, (sy + ty) / 2);
+  }
 
   /// Seconds the cloud or satellite stays in view after its strike.
   static const double _leaveSeconds = 1.6;
@@ -71,13 +120,6 @@ class AirSupportComponent extends Component {
         .clamp(0.0, 1.0);
   }
 
-  /// Where the satellite or storm cloud of [s] is now (also followed by
-  /// the camera).
-  static double strikeSourceX(SimWorld sim, PendingStrike s) =>
-      (s.weapon.delivery is Lightning
-          ? s.x.toDouble()
-          : SimWorld.satelliteAim(s).$1.$1) +
-      s.fromDir * _arriveDistance * (1 - _arrival(sim, s));
 
   final ui.Paint _sight = ui.Paint()..strokeWidth = 2;
   final ui.Paint _ring = ui.Paint()
@@ -122,7 +164,8 @@ class AirSupportComponent extends Component {
   void render(ui.Canvas canvas) {
     for (final s in sim.pendingStrikes) {
       _drawMarker(canvas, s);
-      if (s.weapon.delivery is Lightning) {
+      _drawStreak(canvas, s);
+      if (_isBolt(s)) {
         _drawCloud(canvas, s);
       } else {
         _drawSatellite(canvas, s);
@@ -155,8 +198,12 @@ class AirSupportComponent extends Component {
     final blink = (_time * (left < 40 ? 16 : 6)).floor().isEven;
     _sight.color = ui.Color(blink ? 0xCCE5484D : 0x66E5484D);
     final arrived = _arrival(sim, s) >= 1;
-    if (arrived && s.weapon.delivery is Lightning) {
-      canvas.drawLine(ui.Offset(x, strikeSourceY(s)), ui.Offset(x, y), _sight);
+    if (arrived && _isBolt(s) && travelOf(s) == null) {
+      canvas.drawLine(
+        ui.Offset(x, strikeSource(s).$2),
+        ui.Offset(x, strikeTarget(s).$2),
+        _sight,
+      );
     }
     canvas
       ..drawCircle(ui.Offset(x, y), 10 + left * 0.2, _ring)
@@ -168,8 +215,7 @@ class AirSupportComponent extends Component {
   /// spots its beams will slant down to, flickering at first and then
   /// locking on. Each goes out as its beam fires.
   void _drawSatellite(ui.Canvas canvas, PendingStrike s) {
-    final x = strikeSourceX(sim, s);
-    final sy = strikeSourceY(s);
+    final (x, sy) = sourceNow(s);
     final charge = chargeOf(sim, s);
     final bob = math.sin(_time * 2) * 1.2;
     if (charge > 0.15) {
@@ -223,9 +269,9 @@ class AirSupportComponent extends Component {
   /// shadow darkens the ground, and flashes inside it come faster and
   /// brighter until the bolt.
   void _drawCloud(ui.Canvas canvas, PendingStrike s) {
-    final x = strikeSourceX(sim, s);
+    final (x, sy) = sourceNow(s);
     final charge = chargeOf(sim, s);
-    final y = strikeSourceY(s) + math.sin(_time * 1.5) * 2;
+    final y = sy + math.sin(_time * 1.5) * 2;
     _drawRain(canvas, x, y, _arrival(sim, s) * (0.5 + 0.5 * charge));
     canvas
       ..save()
@@ -245,6 +291,53 @@ class AirSupportComponent extends Component {
       if (charge > 0.5) _miniBolt(canvas, (_time * rate).floor());
     }
     canvas.restore();
+  }
+
+  /// The bolt or beam on its way down: a bright tip with a trail from the
+  /// cloud or satellite, reaching the ground as the strike lands.
+  void _drawStreak(ui.Canvas canvas, PendingStrike s) {
+    final t = travelOf(s);
+    if (t == null) return;
+    final (sx, sy0) = sourceNow(s);
+    final bolt = _isBolt(s);
+    final sy = sy0 + (bolt ? 18 : 12);
+    final (tx, ty) = strikeTarget(s);
+    final hx = sx + (tx - sx) * t;
+    final hy = sy + (ty - sy) * t;
+    if (bolt) {
+      // A jagged bolt growing downwards.
+      final r = math.Random(s.dueTick);
+      final path = ui.Path()..moveTo(sx, sy);
+      const steps = 9;
+      for (var i = 1; i <= steps; i++) {
+        final f = i / steps;
+        if (f > t) break;
+        final y = sy + (ty - sy) * f;
+        path.lineTo(sx + (i == steps ? 0 : r.nextDouble() * 22 - 11), y);
+      }
+      path.lineTo(hx, hy);
+      _laser
+        ..style = ui.PaintingStyle.stroke
+        ..strokeWidth = 7
+        ..color = const ui.Color(0x55FFF6C8);
+      canvas.drawPath(path, _laser);
+      _laser
+        ..strokeWidth = 2.6
+        ..color = const ui.Color(0xFFFFFBE6);
+      canvas.drawPath(path, _laser);
+      _laser.style = ui.PaintingStyle.fill;
+    } else {
+      _laser
+        ..strokeWidth = 9
+        ..color = const ui.Color(0x557FD3FF);
+      canvas.drawLine(ui.Offset(sx, sy), ui.Offset(hx, hy), _laser);
+      _laser
+        ..strokeWidth = 3
+        ..color = const ui.Color(0xFFF4FBFF);
+      canvas.drawLine(ui.Offset(sx, sy), ui.Offset(hx, hy), _laser);
+    }
+    _glow.color = bolt ? const ui.Color(0xCCFFF6C8) : const ui.Color(0xCCBFEFFF);
+    canvas.drawCircle(ui.Offset(hx, hy), 6, _glow);
   }
 
   /// Rain from the cloud's underside, as streaks that loop downwards.

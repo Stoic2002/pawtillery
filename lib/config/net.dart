@@ -7,8 +7,8 @@ abstract final class NetConfig {
   /// 5 = dig mode, black hole, sticky bomb, clay, swap; 14 = random
   /// weapons rule; 15 = rejoining a match; 16 = pet gravity, gas damage,
   /// rebalanced and reworked weapons, crumbling sudden death; 17 =
-  /// rejoining after a restart.
-  static const int protocolVersion = 17;
+  /// rejoining after a restart; 18 = eggs arm on their first touch.
+  static const int protocolVersion = 18;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;

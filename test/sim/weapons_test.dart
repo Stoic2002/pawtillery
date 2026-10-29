@@ -240,7 +240,9 @@ void main() {
       expect(blasts, hasLength(5));
       for (final b in blasts) {
         expect(b.x, inInclusiveRange(880, 1120));
-        expect(b.y, inInclusiveRange(300, 402), reason: 'near the ground');
+        // Dropped from high up, they must reach the ground before they go
+        // off (the fuse starts at the first touch).
+        expect(b.y, inInclusiveRange(360, 402), reason: 'near the ground');
       }
     });
 

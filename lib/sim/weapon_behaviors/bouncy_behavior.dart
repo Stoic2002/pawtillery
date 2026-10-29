@@ -8,7 +8,9 @@ import 'flight_behavior.dart';
 import 'sim_context.dart';
 
 /// Bounces off ground and units, losing speed each time, and comes to rest
-/// on flat ground. Explodes only when its fuse runs out.
+/// on flat ground. Explodes only when its fuse runs out. With
+/// [Bouncy.armOnImpact], [Projectile.mode] 0 = not yet touched (the fuse
+/// waits), 1 = armed.
 class BouncyBehavior extends FlightBehavior {
   const BouncyBehavior(this.spec);
   final Bouncy spec;
@@ -18,7 +20,8 @@ class BouncyBehavior extends FlightBehavior {
 
   @override
   FlightOutcome tick(Projectile p, SimContext ctx) {
-    if (tickFuse(p)) {
+    final armed = !spec.armOnImpact || p.mode == 1;
+    if (armed && tickFuse(p)) {
       ctx.explode(p.x, p.y, p.weapon, sourceId: p.ownerId);
       return FlightOutcome.finished;
     }
@@ -31,6 +34,10 @@ class BouncyBehavior extends FlightBehavior {
     }
     final o = ProjectilePhysics.step(p, ctx.terrain,
         wind: ctx.wind, waterLevel: ctx.waterLevel, units: ctx.units);
+    if (spec.armOnImpact &&
+        (o == FlightOutcome.hitTerrain || o == FlightOutcome.hitUnit)) {
+      p.mode = 1;
+    }
     switch (o) {
       case FlightOutcome.hitTerrain:
         final (nx, ny) = surfaceNormal(ctx.terrain, p.x, p.y, p.vx, p.vy);

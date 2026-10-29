@@ -523,20 +523,17 @@ class PawtilleryGame extends FlameGame {
     if (sim.projectiles.isNotEmpty) {
       final p = sim.projectiles.first;
       _camera.follow(Vector2(p.x, p.y));
-    } else if (sim.aircraft.isNotEmpty) {
-      final b = sim.aircraft.first;
+    } else if (sim.aircraft
+        .where((a) => a.dropped < a.dropXs.length)
+        .firstOrNull case final b?) {
+      // A craft with bombs still to drop; once all are away the camera
+      // stays with them, not with the craft flying off.
       _camera.follow(Vector2(b.x, b.y));
     } else if (sim.pendingStrikes.isNotEmpty) {
-      // Stay on the marked spot, a little low in the view: the satellite
-      // or storm cloud comes in over it near the top of the view, so its
-      // arrival, the strike and who it hits are all seen.
-      final s = sim.pendingStrikes.first;
-      final viewHeight = camera.viewport.virtualSize.y / _camera.zoom;
-      // The satellite parks closer above its spot than the cloud.
-      final lift = s.weapon.delivery is OrbitalStrike
-          ? math.min(viewHeight * 0.15, 100.0)
-          : viewHeight * 0.15;
-      _camera.follow(Vector2(s.x.toDouble(), s.y - lift));
+      // The satellite or storm cloud coming down with its target in view,
+      // then the beam or bolt on its way down.
+      final (x, y) = _airSupport.cameraTarget(sim.pendingStrikes.first);
+      _camera.follow(Vector2(x, y));
     } else if (sim.tick >= _impactHoldUntil) {
       _keepActiveUnitInView();
     }
@@ -676,7 +673,7 @@ class PawtilleryGame extends FlameGame {
           impact = Vector2(x1, y1);
         case LightningStruck(:final x, :final y):
           final cloudY =
-              _airSupport.sourceYFor(lightning: true, targetY: y.toDouble());
+              AirSupportComponent.cloudYOver(y.toDouble());
           particles.bolt(x.toDouble(), y.toDouble(), top: cloudY + 18);
           _airSupport.strikeLanded(
               lightning: true, x: x.toDouble(), y: cloudY);

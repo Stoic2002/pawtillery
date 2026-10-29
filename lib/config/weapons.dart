@@ -284,9 +284,12 @@ final class Ballistic extends FlightSpec {
 }
 
 /// Bounces off ground and units, losing speed; explodes when the fuse ends.
+/// With [armOnImpact] the fuse only starts at the first touch (dropped
+/// from high up, it would otherwise go off in the air).
 final class Bouncy extends FlightSpec {
-  const Bouncy({required this.restitution});
+  const Bouncy({required this.restitution, this.armOnImpact = false});
   final double restitution;
+  final bool armOnImpact;
 }
 
 /// Flies straight out, turns around, and flies back, hitting every unit
@@ -1240,8 +1243,8 @@ abstract final class Weapons {
     hidden: true,
     aim: AimMode.none,
     delivery: Launch(),
-    flight: Bouncy(restitution: 0.45),
-    fuseTicks: 80,
+    flight: Bouncy(restitution: 0.3, armOnImpact: true),
+    fuseTicks: 30,
     maxDamage: 18,
     radius: 30,
     placeholderArgb: 0xFFFFF9C4,

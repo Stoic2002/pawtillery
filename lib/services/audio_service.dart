@@ -124,28 +124,16 @@ class AudioService {
     focus: AudioContextConfigFocus.mixWithOthers,
   ).build();
 
-  /// Plays [sfx]; the same sound at most once per 60 ms, so a cluster
-  /// explosion doesn't stack six copies.
+  /// Plays [sfx]; the same sound at most once per 30 ms (one frame or
+  /// two), so blasts landing together don't stack copies.
   void play(Sfx sfx) {
     final volume = _settings.sfxVolume;
     final voices = _voices[sfx];
     if (voices == null || volume <= 0) return;
     final now = _clock.elapsedMilliseconds;
-    if (now - (_lastPlayedMs[sfx] ?? -1000) < 60) return;
+    if (now - (_lastPlayedMs[sfx] ?? -1000) < 30) return;
     _lastPlayedMs[sfx] = now;
-    _restart(voices.next(), volume);
-  }
-
-  /// Stop first: a low-latency player still counts as "playing" after its
-  /// sound ended, and would ignore a plain resume.
-  Future<void> _restart(AudioPlayer player, double volume) async {
-    try {
-      await player.stop();
-      await player.setVolume(volume);
-      await player.resume();
-    } on Object catch (e) {
-      debugPrint('Sound failed: $e');
-    }
+    voices.restart(volume);
   }
 
   /// Switches to [music]; remembered but silent while music is off.
@@ -235,11 +223,28 @@ class AudioService {
 
 /// A sound's players, used in turn.
 class _Voices {
-  _Voices(this.players);
+  _Voices(this.players) : _volumes = List.filled(players.length, -1);
   final List<AudioPlayer> players;
+  final List<double> _volumes;
   int _next = 0;
 
-  AudioPlayer next() => players[_next++ % players.length];
+  /// Plays the next copy from the start. The calls are sent one after the
+  /// other without waiting for each answer (the platform channel keeps
+  /// their order), so the sound starts a few round trips sooner, in step
+  /// with the blast on screen. Stop first: a low-latency player still
+  /// counts as "playing" after its sound ended and would ignore a resume.
+  void restart(double volume) {
+    final i = _next++ % players.length;
+    final p = players[i];
+    void quiet(Future<void> f) =>
+        f.catchError((Object e) => debugPrint('Sound failed: $e'));
+    quiet(p.stop());
+    if (_volumes[i] != volume) {
+      _volumes[i] = volume;
+      quiet(p.setVolume(volume));
+    }
+    quiet(p.resume());
+  }
 }
 
 /// Short vibrations (PRD: getaran saat menembak dan ledakan), off when the

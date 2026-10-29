@@ -1076,3 +1076,28 @@ The developer wanted a guest to come back even if its app was closed
 - Tests: a guest killed mid-match (in its own turn) rejoins from its
   ticket and both phones end on the same hash; a stale ticket is refused;
   the menu offer. Protocol version 17. Not yet tried on two phones.
+
+## Playtest round 2: eggs, camera, sound, strikes from the sky (2026-10-29)
+
+- **Eggs went off in the air:** their fuse ran from the drop, and a drop
+  from the flock takes longer than the fuse. `Bouncy.armOnImpact` starts
+  the fuse at the first touch (eggs: 0.5 s, and a lower bounce, 0.3), so
+  they burst on or just above the ground near the spot.
+- **Camera after a bombing run:** it went back to the plane flying off
+  once its last bomb had dropped. It now follows a craft only while it
+  still has payload to drop, then stays with the bombs.
+- **Sound out of step:** each effect waited for three platform round
+  trips (stop, set volume, play) before it started, and blasts closer
+  than 60 ms were dropped. The calls are now sent back to back without
+  waiting (the channel keeps their order), the volume only when it
+  changed, and the same sound may repeat after 30 ms. To be heard on a
+  phone.
+- **Storm cloud and satellite:** they slid in sideways at a height that
+  depended on the screen, and the bolt or beam appeared at once. Now they
+  come down from 460 px above to a place fixed in the world (the cloud
+  230 px above what its bolt will hit, the satellite where the sim fires
+  from), the camera keeps them and their target in view, and the bolt or
+  beam is drawn travelling down over the last 10 ticks before the sim
+  strikes, so it reaches the ground with the blast and its sound; the
+  camera rides its tip. Visual only: the sim's timing is unchanged.
+- Protocol version 18 (eggs).
