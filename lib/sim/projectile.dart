@@ -15,7 +15,9 @@ class Projectile {
     this.ownerId,
     this.fuseTicks,
   })  : freeX = x,
-        freeY = y;
+        freeY = y,
+        prevX = x,
+        prevY = y;
 
   final int id;
 
@@ -27,6 +29,11 @@ class Projectile {
   double vx;
   double vy;
   int ageTicks = 0;
+
+  /// Where it was a tick ago (drawing only: between ticks it is drawn
+  /// between the two; not part of the state hash).
+  double prevX;
+  double prevY;
 
   /// Last sampled position that was not inside anything (bounce restart).
   double freeX;

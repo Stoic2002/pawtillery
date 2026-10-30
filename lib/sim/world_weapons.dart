@@ -50,7 +50,7 @@ extension _Weapons on SimWorld {
             ownerId: unit.id,
             weapon: child,
             x: tx! + (i * 2 - (count - 1)) * spacing / 2,
-            y: -40.0 - i * stagger,
+            y: -280.0 - i * stagger,
             vx: 0,
             vy: 0,
             fuseTicks: child.fuseTicks,
@@ -87,6 +87,13 @@ extension _Weapons on SimWorld {
           fromDir: weapon.delivery is OrbitalStrike
               ? (tx < terrain.width / 2 ? 1 : -1)
               : (_wind >= 0 ? -1 : 1),
+          originY: switch (weapon.delivery) {
+            final OrbitalStrike spec => _parkY(
+              tx + (tx < terrain.width / 2 ? 1 : -1) * spec.offset,
+              ty - spec.height,
+            ),
+            _ => 0,
+          },
         ));
       case PlaceMine():
         unit.facing = dir;
@@ -203,7 +210,7 @@ extension _Weapons on SimWorld {
     for (var i = 0; i < spec.count; i++) {
       final landX = (tx + rng.nextIntInRange(-spec.spread, spec.spread))
           .clamp(4, terrain.width - 5);
-      final y0 = -80.0 - i * spec.gap;
+      final y0 = -320.0 - i * spec.gap;
       final vy = spec.speed;
       final t = (-vy + sqrt(vy * vy + 2 * g * (ty - y0))) / g;
       var dir = windDir;
@@ -395,6 +402,22 @@ extension _Weapons on SimWorld {
     final dirX = SimTrig.cosDeg(angle);
     if (dirX.abs() > 1e-9) unit.facing = dirX > 0 ? 1 : -1;
     spawnProjectile(p);
+  }
+
+  /// The satellite parks at [wanted] (world y) or higher, clear of any
+  /// ground under its [SimWorld.satelliteClearance] wide body at column [x].
+  double _parkY(int x, int wanted) {
+    var top = wanted;
+    const reach = SimWorld.satelliteClearance;
+    for (var cx = x - reach; cx <= x + reach; cx += 12) {
+      for (var y = 0; y < wanted + reach; y++) {
+        if (terrain.isSolid(cx, y)) {
+          if (y - reach < top) top = y - reach;
+          break;
+        }
+      }
+    }
+    return top.toDouble();
   }
 
   /// Air raids come from the shooter's side of the target. Free-falling

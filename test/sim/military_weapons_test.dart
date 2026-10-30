@@ -3,6 +3,7 @@ import 'package:pawtillery/config/weapons.dart';
 import 'package:pawtillery/sim/events.dart';
 import 'package:pawtillery/sim/inputs.dart';
 import 'package:pawtillery/sim/match_setup.dart';
+import 'package:pawtillery/sim/world.dart';
 
 import 'sim_test_utils.dart';
 
@@ -154,7 +155,7 @@ void main() {
       toAction(w);
       // A point high in open sky: it circles there until the fuel runs out.
       w.step(const [
-        Fire(weaponId: 'homingMissile', targetX: 900, targetY: 150),
+        Fire(weaponId: 'homingMissile', targetX: 900, targetY: -60),
       ]);
       final spec = Weapons.missile.flight! as Homing;
       var burntOut = false;
@@ -173,6 +174,29 @@ void main() {
       expect(burntOut, isTrue);
       expect(explosions(events), isNotEmpty);
     });
+  });
+
+  test('aircraft and the satellite stay clear of the ground', () {
+    // Ground up to y 30, as high as the tallest map's.
+    final terrain = flatMap(w: 3000)..fillRect(800, 30, 400, 400);
+    final w = world([
+      UnitPlacement(0, 200, 400),
+      UnitPlacement(1, 1800, 400),
+    ], terrain: terrain);
+    toAction(w);
+    w.step(const [Fire(weaponId: 'bomber', targetX: 1000, targetY: 30)]);
+    final plane = w.aircraft.single;
+    expect(plane.y, lessThan(30 - 100));
+    expect(w.aircraft.single.dropXs, hasLength(5));
+
+    final w2 = world([
+      UnitPlacement(0, 200, 400),
+      UnitPlacement(1, 1800, 400),
+    ], terrain: flatMap(w: 3000)..fillRect(800, 30, 400, 400));
+    toAction(w2);
+    w2.step(const [Fire(weaponId: 'satellite', targetX: 1000, targetY: 30)]);
+    final (origin, _) = SimWorld.satelliteAim(w2.pendingStrikes.single);
+    expect(origin.$2, lessThanOrEqualTo(30 - SimWorld.satelliteClearance));
   });
 
   group('Awan Petir', () {

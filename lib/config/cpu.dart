@@ -88,7 +88,7 @@ abstract final class CpuConfig {
   /// above the map (most land far sooner; slow lobs make poor shots, and
   /// near-weightless ones would fly on for ages).
   static const int maxFlightTicks = 360;
-  static const double maxFlightAbove = 600;
+  static const double maxFlightAbove = 1300;
 
   /// Weapons run in a shadow of the world (bouncing, homing, rolling, ...):
   /// aim grid step (degrees and power points) and longest run, ticks.

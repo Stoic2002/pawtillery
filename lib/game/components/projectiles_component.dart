@@ -8,12 +8,18 @@ import '../../sim/projectile.dart';
 import '../../sim/world.dart';
 import '../art/weapon_art.dart';
 
-/// Draws projectiles and mines from the sim. Placeholder shapes: a circle
-/// in the weapon colour, with a few weapons given a recognisable outline.
+/// Draws projectiles and mines from the sim, between the last two sim
+/// ticks ([alpha]) so they move smoothly at any refresh rate.
 class ProjectilesComponent extends Component {
-  ProjectilesComponent(this.sim) : super(priority: 5);
+  ProjectilesComponent(this.sim, {required this.alpha}) : super(priority: 5);
 
   final SimWorld sim;
+  final double Function() alpha;
+
+  /// Turn of each projectile, kept here (it is only for show): a tumbling
+  /// one spins with its speed and stops when it stops, one that points
+  /// along its flight holds its heading while it is too slow to have one.
+  final Map<int, double> _angles = {};
 
   final ui.Paint _fill = ui.Paint();
   final ui.Paint _outline = ui.Paint()
@@ -26,10 +32,42 @@ class ProjectilesComponent extends Component {
   double _time = 0;
 
   @override
-  void update(double dt) => _time += dt;
+  void update(double dt) {
+    _time += dt;
+    for (final p in sim.projectiles) {
+      final flight = p.weapon.flight;
+      final speed = math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      if (p.weapon.id == Weapons.firecracker.id) {
+        // Stands upright so its fuse stays on top.
+        _angles[p.id] = 0;
+      } else if (flight is Drill || WeaponArt.pointsAlongFlight(p.weapon.id)) {
+        if (speed >= _minHeadingSpeed || !_angles.containsKey(p.id)) {
+          _angles[p.id] = math.atan2(p.vy, p.vx);
+        }
+      } else if (!p.resting && speed >= _minSpinSpeed) {
+        final rate = flight is Boomerang
+            ? 27.0
+            : (speed / 60).clamp(_minSpin, _maxSpin);
+        _angles[p.id] =
+            (_angles[p.id] ?? p.id * 1.3) + (p.vx < 0 ? -rate : rate) * dt;
+      }
+    }
+    if (_angles.length > sim.projectiles.length) {
+      final live = {for (final p in sim.projectiles) p.id};
+      _angles.removeWhere((id, _) => !live.contains(id));
+    }
+  }
+
+  static const double _minHeadingSpeed = 25;
+  static const double _minSpinSpeed = 14;
+
+  /// Tumbling speed, radians/s.
+  static const double _minSpin = 2.5;
+  static const double _maxSpin = 8;
 
   @override
   void render(ui.Canvas canvas) {
+    final t = alpha();
     for (final p in sim.projectiles) {
       if (p.body != null) {
         _drawWalker(canvas, p);
@@ -41,19 +79,10 @@ class ProjectilesComponent extends Component {
         continue;
       }
       if (p.weapon.id == Weapons.meteor.id) _meteorTail(canvas, p);
-      final along = WeaponArt.pointsAlongFlight(p.weapon.id);
-      // Carrots and rockets point along their flight; everything else
-      // tumbles.
-      // The firecracker stands upright so its fuse stays on top.
-      final angle = flight is Drill || along
-          ? math.atan2(p.vy, p.vx)
-          : p.weapon.id == Weapons.firecracker.id
-          ? 0.0
-          : p.ageTicks * (flight is Boomerang ? 0.45 : 0.12);
       canvas
         ..save()
-        ..translate(p.x, p.y)
-        ..rotate(angle);
+        ..translate(p.prevX + (p.x - p.prevX) * t, p.prevY + (p.y - p.prevY) * t)
+        ..rotate(_angles[p.id] ?? 0);
       // Rockets show their motor: small before a homing motor starts, gone
       // once a guided missile has burnt out.
       if (WeaponArt.hasMotor(p.weapon.id) &&

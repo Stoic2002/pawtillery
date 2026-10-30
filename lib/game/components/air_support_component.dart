@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flame/components.dart';
 
+import '../../config/physics.dart';
 import '../../config/weapons.dart';
 import '../../sim/air_support.dart';
 import '../../sim/physics.dart';
@@ -25,6 +26,8 @@ class AirSupportComponent extends Component {
     this.sim, {
     required this.teamColors,
     required this.viewHeight,
+    required this.alpha,
+    required this.showTarget,
   }) : super(priority: 6);
 
   final SimWorld sim;
@@ -33,10 +36,18 @@ class AirSupportComponent extends Component {
   /// Height of the visible world (px).
   final double Function() viewHeight;
 
-  /// Highest the storm cloud sits (world y), and how far above what its
-  /// bolt will hit.
-  static const double cloudY = 70;
+  /// How far real time is between the last two sim ticks (see
+  /// PawtilleryGame.renderAlpha).
+  final double Function() alpha;
+
+  /// Whether team [team]'s strike shows where it will land.
+  final bool Function(int team) showTarget;
+
+  /// How far the storm cloud sits above what its bolt will hit, and above
+  /// the highest ground under its width.
   static const double _cloudAbove = 230;
+  static const double _cloudClear = 62;
+  static const int _cloudHalfWidth = 80;
 
   /// Ticks the bolt or beam is drawn travelling down before it lands.
   static const int travelTicks = 10;
@@ -62,16 +73,30 @@ class AirSupportComponent extends Component {
     return y.toDouble();
   }
 
-  /// Where a storm cloud sits over a bolt that lands at [impactY].
-  static double cloudYOver(double impactY) =>
-      math.max(cloudY, impactY - _cloudAbove);
+  /// Where a storm cloud sits over a bolt down column [x] that lands at
+  /// [impactY]: clear of the ground under all of it.
+  double cloudYOver(int x, double impactY) {
+    final t = sim.terrain;
+    var y = impactY - _cloudAbove;
+    for (var cx = x - _cloudHalfWidth;
+        cx <= x + _cloudHalfWidth;
+        cx += 16) {
+      for (var row = 0; row < y + _cloudClear; row++) {
+        if (t.isSolid(cx, row)) {
+          y = math.min(y, row - _cloudClear);
+          break;
+        }
+      }
+    }
+    return y;
+  }
 
   bool _isBolt(PendingStrike s) => s.weapon.delivery is Lightning;
 
   /// Where the storm cloud ends up over what its bolt will hit, or the
   /// satellite parks to fire (the sim's own firing point).
   (double, double) strikeSource(PendingStrike s) => _isBolt(s)
-      ? (s.x.toDouble(), cloudYOver(columnImpactY(s.x)))
+      ? (s.x.toDouble(), cloudYOver(s.x, columnImpactY(s.x)))
       : SimWorld.satelliteAim(s).$1;
 
   /// Where it is now: coming down from high in the sky over the arrival.
@@ -163,7 +188,7 @@ class AirSupportComponent extends Component {
   @override
   void render(ui.Canvas canvas) {
     for (final s in sim.pendingStrikes) {
-      _drawMarker(canvas, s);
+      if (showTarget(sim.units[s.ownerId].team)) _drawMarker(canvas, s);
       _drawStreak(canvas, s);
       if (_isBolt(s)) {
         _drawCloud(canvas, s);
@@ -415,10 +440,14 @@ class AirSupportComponent extends Component {
     canvas.restore();
   }
 
+  /// Where a craft is now, between the last two sim ticks.
+  double _craftX(Aircraft a) =>
+      a.x - a.dir * a.speed * PhysicsConfig.dt * (1 - alpha());
+
   void _drawBomber(ui.Canvas canvas, Aircraft a) {
     canvas
       ..save()
-      ..translate(a.x, a.y + math.sin(_time * 3) * 1.5)
+      ..translate(_craftX(a), a.y + math.sin(_time * 3) * 1.5)
       ..drawOval(const ui.Rect.fromLTWH(-40, 14, 80, 6), _shadow);
     WeaponArt.bomberPlane(canvas, facingLeft: a.dir < 0);
     canvas.restore();
@@ -429,7 +458,7 @@ class AirSupportComponent extends Component {
   void _drawJet(ui.Canvas canvas, Aircraft a) {
     canvas
       ..save()
-      ..translate(a.x, a.y)
+      ..translate(_craftX(a), a.y)
       ..scale(a.dir.toDouble(), 1);
     final flicker = 0.8 + 0.2 * math.sin(_time * 60);
     final flame = ui.Path()
@@ -467,7 +496,7 @@ class AirSupportComponent extends Component {
       final flap = ((_time * 7 + i * 0.4).floor()).isEven;
       canvas
         ..save()
-        ..translate(a.x + dx * a.dir, a.y + dy + math.sin(_time * 4 + i) * 2)
+        ..translate(_craftX(a) + dx * a.dir, a.y + dy + math.sin(_time * 4 + i) * 2)
         ..scale(0.5 * a.dir, 0.5);
       AnimalArt.draw(
         canvas,

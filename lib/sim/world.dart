@@ -1,5 +1,5 @@
 import 'dart:collection';
-import 'dart:math' show max, min, sqrt;
+import 'dart:math' show max, min, pi, sqrt;
 import 'dart:typed_data';
 
 import '../config/families.dart';
@@ -350,6 +350,11 @@ class SimWorld implements SimContext {
   List<SimEvent> step(List<SimInput> inputs) {
     _tick++;
     _events.clear();
+    for (final p in _projectiles) {
+      p
+        ..prevX = p.x
+        ..prevY = p.y;
+    }
 
     final walkDir = _applyInputs(inputs);
     _firePendingShots();
@@ -477,7 +482,7 @@ class SimWorld implements SimContext {
     final spec = strike.weapon.delivery as OrbitalStrike;
     final origin = (
       (strike.x + strike.fromDir * spec.offset).toDouble(),
-      max(satelliteParkY, strike.y - spec.height).toDouble(),
+      strike.originY,
     );
     // The far beam first, sweeping back towards the satellite.
     final aims = [
@@ -531,8 +536,8 @@ class SimWorld implements SimContext {
     return p;
   }
 
-  /// Highest a satellite parks (world y).
-  static const double satelliteParkY = 40;
+  /// How far (px) the parked satellite keeps from the ground, every way.
+  static const int satelliteClearance = 60;
 
   // --------------------------------------------------- SimContext actions
 
@@ -588,6 +593,7 @@ class SimWorld implements SimContext {
         x: px,
         y: surface,
         turnsLeft: FireConfig.turns,
+        creepLeft: FireConfig.creepPx,
         ownerId: sourceId,
       );
       _fires.add(patch);
@@ -611,12 +617,14 @@ class SimWorld implements SimContext {
       {int? sourceId}) {
     _events.add(IceBurst(x, y, spec.radius));
     // The cold freezes gas out of the air.
-    _clouds.removeWhere((c) {
-      final dx = c.x - x;
-      final dy = c.y - y;
-      final r = spec.radius + c.radius * 0.5;
-      return dx * dx + dy * dy <= r * r;
-    });
+    for (final c in _clouds) {
+      c.puffs.removeWhere((p) {
+        final dx = p.x - x;
+        final dy = p.y - y;
+        return dx * dx + dy * dy <= spec.radius * spec.radius;
+      });
+    }
+    _clouds.removeWhere((c) => c.puffs.isEmpty);
     for (final u in _units) {
       if (!u.alive) continue;
       final dx = u.centerX - x;
@@ -909,15 +917,20 @@ class SimWorld implements SimContext {
     for (final c in _clouds) {
       h
         ..add(c.id)
-        ..addDouble(c.x)
         ..add(c.turnsLeft);
+      for (final p in c.puffs) {
+        h
+          ..addDouble(p.x)
+          ..addDouble(p.y);
+      }
     }
     for (final f in _fires) {
       h
         ..add(f.id)
         ..add(f.x)
         ..add(f.y)
-        ..add(f.turnsLeft);
+        ..add(f.turnsLeft)
+        ..add(f.creepLeft);
     }
     for (final id in _burnt.toList()..sort()) {
       h.add(id);

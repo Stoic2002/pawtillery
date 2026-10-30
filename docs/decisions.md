@@ -1277,3 +1277,38 @@ stays under the pets on any aspect. The pets' places were checked on a
 mock at the phone's size and needed no change. Other screens keep the
 code-drawn meadow. Then, at the developer's request, the row of pets
 was taken off the main menu: the painting stands on its own.
+
+## Taller sky, smooth flight, flowing gas, livelier fire (2026-10-30)
+
+From a playtest:
+
+- **Sky.** Air strikes touched the ground: the highest ground is at y ≈ 22
+  and aircraft flew at y 40–80. The world is now 2:3 without growing the
+  map: the camera may look 1200 px above it (was 500), so the 3600 × 1200
+  mask, the art and their memory are untouched. Aircraft fly at y −180 to
+  −220, flowerpots and meteors start higher, the satellite parks clear of
+  the ground under it (`PendingStrike.originY`, set when called) and the
+  storm cloud likewise (drawing only). Eggs bounce less (restitution
+  0.3 → 0.15): from the new height they went off in the air again.
+- **Shaking weapons.** The sim moves things 60 times a second, the phone
+  draws and moves the camera up to 120, so a followed projectile jumped
+  against the smooth camera. Projectiles and aircraft are now drawn
+  between their last two ticks (`Projectile.prevX/Y`, not hashed;
+  `PawtilleryGame.renderAlpha`) and the camera follows that point.
+  Tumbling is now for show only: it follows the speed and stops when the
+  thing stops (it used to spin on the spot while resting).
+- **CPU's aim.** A CPU's target marker, before and after it fires, is no
+  longer shown. Thrown weapons still swing their aim into view.
+- **Gas** is now a cloud of 8–36 puffs in the sim (`GasPuff`): they fall,
+  push each other apart, run towards lower ground (so into gaps), drift
+  with the wind, lie on water, and move at most 2 px a tick with a check
+  against the ground, so a 3 px wall stops them. A pet is reached only
+  with no ground between it and a puff. It is drawn behind the terrain,
+  so it can't show over the ground. The ice bomb clears the puffs in its
+  reach. Radii are unchanged, so damage is too, but a settled cloud covers
+  a wider, lower area than the old disc.
+- **Fire** patches now run up to 70 px downhill (one px per 5 ticks) and
+  come up out of ground put on them. Each patch looks different, its
+  tongues stand on the ground under each one, it catches quickly, and
+  flamelets break off the tips.
+- Wi-Fi protocol 22.

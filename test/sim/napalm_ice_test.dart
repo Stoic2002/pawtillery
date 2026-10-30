@@ -47,6 +47,22 @@ void main() {
       expect(rest.whereType<FireOut>(), hasLength(1));
     });
 
+    test('fire runs downhill and comes to rest at the bottom', () {
+      final w = _duel();
+      toAction(w);
+      // A dent to run into: its rim at 600 is at y 400, the bottom lower.
+      w.terrain.carveCircle(625, 400, 25);
+      w.ignite(601, 395, const Ignite(patches: 1, spread: 0));
+      final patch = w.fires.single;
+      for (var i = 0; i < 300; i++) {
+        w.step(const []);
+      }
+      expect(patch.x, greaterThan(601), reason: 'ran down');
+      expect(patch.y, greaterThan(400));
+      expect(w.terrain.isSolid(patch.x, patch.y), isTrue);
+      expect(w.terrain.isSolid(patch.x, patch.y - 1), isFalse);
+    });
+
     test('fire drops with the ground under it and drowns in water', () {
       final w = _duel();
       toAction(w);

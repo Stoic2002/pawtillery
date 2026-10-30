@@ -250,7 +250,12 @@ class SceneryComponent extends Component {
         ? 0.45
         : 0.12 * (1 - cycle / 0.5);
     canvas.drawRect(
-      ui.Rect.fromLTWH(-worldSize.x, -800, worldSize.x * 3, worldSize.y + 800),
+      ui.Rect.fromLTWH(
+        -worldSize.x,
+        -ControlsConfig.cameraMarginTop,
+        worldSize.x * 3,
+        worldSize.y + ControlsConfig.cameraMarginTop,
+      ),
       ui.Paint()
         ..color = const ui.Color(0xFFDDE6FF).withValues(alpha: strength),
     );
@@ -281,10 +286,11 @@ class SceneryComponent extends Component {
     final paint = ui.Paint()
       ..color = const ui.Color(0x55C8D2DC)
       ..strokeWidth = 1.4;
-    for (var i = 0; i < 260; i++) {
+    const top = ControlsConfig.cameraMarginTop;
+    for (var i = 0; i < 400; i++) {
       final speed = 900 + (i % 5) * 120;
       final x = (i * 37.9 + _time * 160) % (worldSize.x + 400) - 200;
-      final y = (i * 71.3 + _time * speed) % (worldSize.y + 200) - 100;
+      final y = (i * 71.3 + _time * speed) % (worldSize.y + top) - top;
       canvas.drawLine(ui.Offset(x, y), ui.Offset(x - 6, y + 22), paint);
     }
   }

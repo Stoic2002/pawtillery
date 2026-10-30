@@ -590,6 +590,12 @@ abstract final class FireConfig {
 
   /// A pet whose body comes this close (px) to a patch is touching it.
   static const double reach = 8;
+
+  /// Fire runs downhill: one px per this many ticks, at most [creepPx] in
+  /// all, down steps of up to [creepDrop] px.
+  static const int creepEveryTicks = 5;
+  static const int creepPx = 70;
+  static const int creepDrop = 4;
 }
 
 /// Poison gas.
@@ -597,8 +603,40 @@ abstract final class GasConfig {
   /// Turns (anyone's) a cloud hangs about.
   static const int turns = 3;
 
-  /// How fast a cloud drifts per point of wind, px/s.
+  /// How fast gas drifts per point of wind, px/s.
   static const double driftPerWind = 2.5;
+
+  /// A cloud is this many puffs, each about [puffSpacing] px apart (more
+  /// for a big cloud), and a pet is in it within [puffReach] spacings of a
+  /// puff with no ground between.
+  static const int minPuffs = 8;
+  static const int maxPuffs = 36;
+  static const double puffSpacing = 22;
+  static const double puffReach = 0.9;
+
+  /// Falling and flowing towards lower ground, px/s²; with [damping] they
+  /// top out at about 46 and 37 px/s.
+  static const double fallAccel = 110;
+  static const double seekAccel = 90;
+
+  /// How hard packed puffs push apart at the same spot, px/s².
+  static const double pressure = 900;
+
+  /// Speed kept per tick.
+  static const double damping = 0.96;
+
+  /// Fastest a puff moves in a tick, px: smaller than the thinnest wall.
+  static const double maxStep = 2;
+
+  /// A puff hovers this high (px) over the ground, and flows over bumps up
+  /// to [climb] px.
+  static const double clearance = 3;
+  static const double climb = 3;
+
+  /// How it looks for lower ground: at [seekStep] and twice that to each
+  /// side, down to [seekDepth] px.
+  static const double seekStep = 14;
+  static const int seekDepth = 28;
 
   /// HP a poisoned pet loses at the start of each of its turns. Poison
   /// never takes the last HP.
@@ -823,7 +861,7 @@ abstract final class Weapons {
       count: 5,
       spacing: 36,
       speed: 300,
-      altitude: 40,
+      altitude: -220,
       leadIn: 520,
     ),
     ammo: 1,
@@ -927,7 +965,7 @@ abstract final class Weapons {
       count: 3,
       spacing: 80,
       speed: 300,
-      altitude: 40,
+      altitude: -220,
       leadIn: 520,
     ),
     ammo: 1,
@@ -995,7 +1033,7 @@ abstract final class Weapons {
       childId: 'missile',
       count: 1,
       speed: 460,
-      altitude: 70,
+      altitude: -190,
       leadIn: 560,
       releaseAhead: 420,
       craft: CraftKind.jet,
@@ -1131,7 +1169,7 @@ abstract final class Weapons {
       count: 5,
       spacing: 40,
       speed: 240,
-      altitude: 80,
+      altitude: -180,
       leadIn: 420,
       craft: CraftKind.flock,
     ),
@@ -1243,7 +1281,7 @@ abstract final class Weapons {
     hidden: true,
     aim: AimMode.none,
     delivery: Launch(),
-    flight: Bouncy(restitution: 0.3, armOnImpact: true),
+    flight: Bouncy(restitution: 0.15, armOnImpact: true),
     fuseTicks: 30,
     maxDamage: 18,
     radius: 30,

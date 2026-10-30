@@ -13,6 +13,7 @@ import '../config/maps.dart';
 import '../config/teams.dart';
 import '../config/match_defaults.dart';
 import '../config/net.dart';
+import '../config/physics.dart';
 import '../config/weapons.dart';
 import '../net/lockstep.dart';
 import '../sim/events.dart';
@@ -243,11 +244,14 @@ class PawtilleryGame extends FlameGame {
       _grapple = GrappleComponent(sim),
       FireComponent(sim),
       GasComponent(sim),
-      ProjectilesComponent(sim),
+      ProjectilesComponent(sim, alpha: () => renderAlpha),
       _airSupport = AirSupportComponent(
         sim,
         teamColors: teamColors,
         viewHeight: () => camera.viewport.virtualSize.y / _camera.zoom,
+        alpha: () => renderAlpha,
+        // A CPU's target stays a surprise until it lands.
+        showTarget: (team) => !(_cpu?.levels.containsKey(team) ?? false),
       ),
       WaterBackComponent(
           map: map, worldSize: worldSize, level: () => sim.waterLevel),
@@ -464,6 +468,12 @@ class PawtilleryGame extends FlameGame {
   /// it.
   Rect get visibleWorld => camera.visibleWorldRect.inflate(64);
 
+  /// How far real time is between the last two sim ticks, 0 to 1. Things
+  /// in flight are drawn there: the sim moves them 60 times a second, the
+  /// screen and camera up to 120, and unsmoothed they shake on screen.
+  double get renderAlpha =>
+      (_accumulator / MatchDefaults.tickSeconds).clamp(0.0, 1.0);
+
   void zoomCamera(Vector2 screenFocal, double zoom) =>
       _camera.zoomAt(screenFocal, zoom);
 
@@ -531,13 +541,18 @@ class PawtilleryGame extends FlameGame {
 
     if (sim.projectiles.isNotEmpty) {
       final p = sim.projectiles.first;
-      _camera.follow(Vector2(p.x, p.y));
+      final t = renderAlpha;
+      _camera.follow(
+        Vector2(p.prevX + (p.x - p.prevX) * t, p.prevY + (p.y - p.prevY) * t),
+      );
     } else if (sim.aircraft
         .where((a) => a.dropped < a.dropXs.length)
         .firstOrNull case final b?) {
       // A craft with bombs still to drop; once all are away the camera
       // stays with them, not with the craft flying off.
-      _camera.follow(Vector2(b.x, b.y));
+      _camera.follow(
+        Vector2(b.x - b.dir * b.speed * PhysicsConfig.dt * (1 - renderAlpha), b.y),
+      );
     } else if (sim.pendingStrikes.isNotEmpty) {
       // The satellite or storm cloud coming down with its target in view,
       // then the beam or bolt on its way down.
@@ -584,7 +599,7 @@ class PawtilleryGame extends FlameGame {
   }
 
   /// A CPU turn: the aim guide shows the CPU's weapon and aim as it swings
-  /// into place, so players see the shot coming.
+  /// into place, so players see the shot coming (not a sky weapon's target).
   void _showCpuAim() {
     final a = _cpu!.aim;
     final AimState next;
@@ -598,9 +613,8 @@ class PawtilleryGame extends FlameGame {
         angle: a.angle,
         power: a.power,
         fuseSeconds: aim.value.fuseSeconds,
-        targetX: a.targetX,
-        targetY: a.targetY,
-        targetValid: a.targetX != null,
+        // Where a sky weapon is aimed stays a surprise; thrown weapons
+        // show their angle as they swing into place.
       );
     }
     if (next != aim.value) aim.value = next;
@@ -681,8 +695,7 @@ class PawtilleryGame extends FlameGame {
           _aimGuide.invalidate();
           impact = Vector2(x1, y1);
         case LightningStruck(:final x, :final y):
-          final cloudY =
-              AirSupportComponent.cloudYOver(y.toDouble());
+          final cloudY = _airSupport.cloudYOver(x, y.toDouble());
           particles.bolt(x.toDouble(), y.toDouble(), top: cloudY + 18);
           _airSupport.strikeLanded(
               lightning: true, x: x.toDouble(), y: cloudY);

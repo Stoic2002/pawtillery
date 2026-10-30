@@ -20,9 +20,11 @@ abstract final class ControlsConfig {
   static const double maxZoom = 2;
   static const double defaultZoom = 1.4;
 
-  /// How far the camera may look past the map edges, world px.
+  /// How far the camera may look past the map edges, world px. The sky
+  /// above a 3600 x 1200 map is as tall as the map: 2:3 in all, with room
+  /// for aircraft and strikes clear of the highest ground.
   static const double cameraMarginSide = 200;
-  static const double cameraMarginTop = 500;
+  static const double cameraMarginTop = 1200;
 
   /// Camera catch-up rate when following a target, per second.
   static const double cameraFollowRate = 6;

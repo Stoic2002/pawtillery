@@ -60,6 +60,7 @@ class PendingStrike {
     required this.firedTick,
     this.fromDir = -1,
     this.shot = 0,
+    this.originY = 0,
   });
 
   final int dueTick;
@@ -75,6 +76,9 @@ class PendingStrike {
   /// Satellite: how many of its beams have fired.
   final int shot;
 
+  /// Satellite: the height it parks at, clear of the ground under it.
+  final double originY;
+
   PendingStrike nextShot(int dueTick) => PendingStrike(
         dueTick: dueTick,
         x: x,
@@ -84,5 +88,6 @@ class PendingStrike {
         firedTick: firedTick,
         fromDir: fromDir,
         shot: shot + 1,
+        originY: originY,
       );
 }
