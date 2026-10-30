@@ -734,13 +734,18 @@ class _RulesTab extends StatelessWidget {
                 row(
                   l10n.setupSuddenDeath,
                   PawPillToggle<int>(
+                    // -1 stands for off.
                     values: [
-                      for (final m in MatchDefaults.suddenDeathOptions) m ?? 0,
+                      for (final m in MatchDefaults.suddenDeathOptions) m ?? -1,
                     ],
-                    selected: config.suddenDeathMinutes ?? 0,
-                    label: (m) => m == 0 ? l10n.setupOff : l10n.setupMinutes(m),
+                    selected: config.suddenDeathMinutes ?? -1,
+                    label: (m) => switch (m) {
+                      -1 => l10n.setupOff,
+                      0 => l10n.setupFromStart,
+                      _ => l10n.setupMinutes(m),
+                    },
                     onSelect: (m) => onChanged(
-                      m == 0
+                      m == -1
                           ? config.copyWith(suddenDeathOff: true)
                           : config.copyWith(suddenDeathMinutes: m),
                     ),

@@ -839,7 +839,7 @@ abstract class AppLocalizations {
   /// Option label.
   ///
   /// In en, this message translates to:
-  /// **'Sudden death'**
+  /// **'Crumbling ground'**
   String get setupSuddenDeath;
 
   /// Sudden death disabled.
@@ -911,7 +911,7 @@ abstract class AppLocalizations {
   /// Shown while sudden death is on.
   ///
   /// In en, this message translates to:
-  /// **'Sudden death'**
+  /// **'Crumbling ground'**
   String get hudSuddenDeath;
 
   /// Pause dialog title.
@@ -1073,7 +1073,7 @@ abstract class AppLocalizations {
   /// How-to-play text.
   ///
   /// In en, this message translates to:
-  /// **'The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, the ground gives way after every round, in more places each time, until nobody has anywhere to stand.'**
+  /// **'The last team with units standing wins. Two fingers move and zoom the camera. If the ground starts crumbling, it gives way after every round, in more places each time, until nobody has anywhere to stand.'**
   String get howWinBody;
 
   /// Settings label.
@@ -2461,6 +2461,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Crates fall from the sky. Grab them before your rival does.'**
   String get loadingTip6;
+
+  /// No description provided for @setupFromStart.
+  ///
+  /// In en, this message translates to:
+  /// **'From start'**
+  String get setupFromStart;
 }
 
 class _AppLocalizationsDelegate

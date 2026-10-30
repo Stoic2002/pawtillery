@@ -228,6 +228,7 @@ extension L10nByKey on AppLocalizations {
         'setupDone' => setupDone,
         'setupEditUnit' => setupEditUnit,
         'setupFamily' => setupFamily,
+        'setupFromStart' => setupFromStart,
         'setupHuman' => setupHuman,
         'setupMap' => setupMap,
         'setupMapObjects' => setupMapObjects,

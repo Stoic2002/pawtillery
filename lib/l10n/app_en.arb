@@ -571,7 +571,7 @@
   "@setupMapRandom": {
     "description": "Random map choice."
   },
-  "setupSuddenDeath": "Sudden death",
+  "setupSuddenDeath": "Crumbling ground",
   "@setupSuddenDeath": {
     "description": "Option label."
   },
@@ -624,7 +624,7 @@
   "@hudPause": {
     "description": "Pause button tooltip."
   },
-  "hudSuddenDeath": "Sudden death",
+  "hudSuddenDeath": "Crumbling ground",
   "@hudSuddenDeath": {
     "description": "Shown while sudden death is on."
   },
@@ -748,7 +748,7 @@
   "@howWinTitle": {
     "description": "How-to-play page title."
   },
-  "howWinBody": "The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, the ground gives way after every round, in more places each time, until nobody has anywhere to stand.",
+  "howWinBody": "The last team with units standing wins. Two fingers move and zoom the camera. If the ground starts crumbling, it gives way after every round, in more places each time, until nobody has anywhere to stand.",
   "@howWinBody": {
     "description": "How-to-play text."
   },
@@ -1527,5 +1527,6 @@
   "loadingTip3": "Fire runs downhill. Stay above it.",
   "loadingTip4": "Water is the fastest way to lose a pet, and to win a match.",
   "loadingTip5": "Every animal has its own ability and signature weapon.",
-  "loadingTip6": "Crates fall from the sky. Grab them before your rival does."
+  "loadingTip6": "Crates fall from the sky. Grab them before your rival does.",
+  "setupFromStart": "From start"
 }

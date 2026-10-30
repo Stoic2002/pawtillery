@@ -412,7 +412,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupMapRandom => 'Random';
 
   @override
-  String get setupSuddenDeath => 'Sudden death';
+  String get setupSuddenDeath => 'Crumbling ground';
 
   @override
   String get setupOff => 'Off';
@@ -450,7 +450,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hudPause => 'Pause';
 
   @override
-  String get hudSuddenDeath => 'Sudden death';
+  String get hudSuddenDeath => 'Crumbling ground';
 
   @override
   String get pauseTitle => 'Paused';
@@ -541,7 +541,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get howWinBody =>
-      'The last team with units standing wins. Two fingers move and zoom the camera. If sudden death starts, the ground gives way after every round, in more places each time, until nobody has anywhere to stand.';
+      'The last team with units standing wins. Two fingers move and zoom the camera. If the ground starts crumbling, it gives way after every round, in more places each time, until nobody has anywhere to stand.';
 
   @override
   String get settingsLanguage => 'Language';
@@ -1306,4 +1306,7 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get loadingTip6 =>
       'Crates fall from the sky. Grab them before your rival does.';
+
+  @override
+  String get setupFromStart => 'From start';
 }

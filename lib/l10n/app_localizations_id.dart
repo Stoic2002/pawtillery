@@ -414,7 +414,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupMapRandom => 'Acak';
 
   @override
-  String get setupSuddenDeath => 'Mati mendadak';
+  String get setupSuddenDeath => 'Tanah runtuh';
 
   @override
   String get setupOff => 'Nonaktif';
@@ -452,7 +452,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get hudPause => 'Jeda';
 
   @override
-  String get hudSuddenDeath => 'Mati mendadak';
+  String get hudSuddenDeath => 'Tanah runtuh';
 
   @override
   String get pauseTitle => 'Jeda';
@@ -543,7 +543,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get howWinBody =>
-      'Tim terakhir yang masih punya unit menang. Dua jari menggeser dan memperbesar kamera. Saat mati mendadak dimulai, tanah runtuh setiap ronde di makin banyak tempat, sampai tidak ada lagi tempat berpijak.';
+      'Tim terakhir yang masih punya unit menang. Dua jari menggeser dan memperbesar kamera. Saat tanah runtuh dimulai, tanah longsor setiap ronde di makin banyak tempat, sampai tidak ada lagi tempat berpijak.';
 
   @override
   String get settingsLanguage => 'Bahasa';
@@ -1308,4 +1308,7 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get loadingTip6 =>
       'Peti jatuh dari langit. Ambil sebelum lawan mendahului.';
+
+  @override
+  String get setupFromStart => 'Dari awal';
 }

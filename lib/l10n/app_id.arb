@@ -123,7 +123,7 @@
   "setupTurnTime": "Waktu giliran",
   "setupMap": "Peta",
   "setupMapRandom": "Acak",
-  "setupSuddenDeath": "Mati mendadak",
+  "setupSuddenDeath": "Tanah runtuh",
   "setupOff": "Nonaktif",
   "setupMinutes": "{minutes} menit",
   "setupRandomAll": "Acak",
@@ -135,7 +135,7 @@
   "setupColor": "Warna tim",
   "setupOptions": "Opsi pertandingan",
   "hudPause": "Jeda",
-  "hudSuddenDeath": "Mati mendadak",
+  "hudSuddenDeath": "Tanah runtuh",
   "pauseTitle": "Jeda",
   "pauseResume": "Lanjut",
   "pauseExit": "Keluar ke menu",
@@ -162,7 +162,7 @@
   "howFamiliesTitle": "Jenis hewan",
   "howFamiliesBody": "Setiap hewan punya kemampuan pasif: kucing selamat dari satu serangan mematikan, anjing lebih tangguh, kelinci lompat lebih tinggi, burung melayang, dan lainnya.",
   "howWinTitle": "Menang",
-  "howWinBody": "Tim terakhir yang masih punya unit menang. Dua jari menggeser dan memperbesar kamera. Saat mati mendadak dimulai, tanah runtuh setiap ronde di makin banyak tempat, sampai tidak ada lagi tempat berpijak.",
+  "howWinBody": "Tim terakhir yang masih punya unit menang. Dua jari menggeser dan memperbesar kamera. Saat tanah runtuh dimulai, tanah longsor setiap ronde di makin banyak tempat, sampai tidak ada lagi tempat berpijak.",
   "settingsLanguage": "Bahasa",
   "settingsLanguageSystem": "Bahasa perangkat",
   "languageEnglish": "English",
@@ -393,5 +393,6 @@
   "loadingTip3": "Api mengalir ke bawah. Berdirilah di atasnya.",
   "loadingTip4": "Air adalah cara tercepat kehilangan hewan, juga memenangkan pertandingan.",
   "loadingTip5": "Setiap hewan punya kemampuan dan senjata khasnya sendiri.",
-  "loadingTip6": "Peti jatuh dari langit. Ambil sebelum lawan mendahului."
+  "loadingTip6": "Peti jatuh dari langit. Ambil sebelum lawan mendahului.",
+  "setupFromStart": "Dari awal"
 }

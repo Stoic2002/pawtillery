@@ -1422,3 +1422,10 @@ position, or a long missile would bury half its length before going off. Motor
 flames start at each rocket's own tail. Bigger craft needed more room: the cloud
 and satellite keep further from the ground, and the satellite's clearance is in
 the sim, so Wi-Fi protocol 24.
+
+## Crumbling ground as a rule (2026-10-31)
+
+"Sudden death" is now called "Tanah runtuh" / "Crumbling ground" on screen, and
+the Rules tab offers off, from the start, 5, 10 or 15 minutes. It stays a rule,
+not a separate mode screen; other modes will be chosen in the same tab, until
+there are enough of them to justify a screen of their own.

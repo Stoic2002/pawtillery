@@ -32,8 +32,9 @@ abstract final class MatchDefaults {
   static const unitsPerTeamOptions = [1, 2, 3, 4];
   static const turnSecondsOptions = [30, 45, 60];
 
-  /// null = sudden death off.
-  static const suddenDeathOptions = <int?>[null, 10, 15];
+  /// Minutes until the ground starts crumbling: null = never, 0 = from the
+  /// first round.
+  static const suddenDeathOptions = <int?>[null, 0, 5, 10, 15];
 
   /// Sudden death: after every round the ground gives way in holes of
   /// [crumbleRadius] px: one near every pet still standing (up to
