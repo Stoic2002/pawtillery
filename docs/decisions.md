@@ -1409,3 +1409,16 @@ as the painting has its own outline.
 The zoom in still felt too close: 0.35–1.0, starting at 0.85. Setup's team cards
 and the HUD's panels now use the same `Paw.paper` face as `PawCard`. A long
 screen title shrinks to fit its header instead of being cut off.
+
+## Weapons in proportion to the pets (2026-10-31)
+
+Next to a 44 px pet a missile was tiny and the bomber barely bigger than a dog.
+Sizes are now set against the pet: stones and eggs stay small, a grenade about
+half a pet, a rocket or missile as long as it is tall or longer, the nuke big;
+the bomber 240 px, the jet 190, the satellite 190, the storm cloud 300, barrels
+32 high, crates 24. Only the drawing changes, hit points and blast sizes do not.
+Things that point along their flight sit back so their nose marks their real
+position, or a long missile would bury half its length before going off. Motor
+flames start at each rocket's own tail. Bigger craft needed more room: the cloud
+and satellite keep further from the ground, and the satellite's clearance is in
+the sim, so Wi-Fi protocol 24.

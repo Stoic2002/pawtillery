@@ -110,14 +110,14 @@ class MapObjectsComponent extends Component {
     final flicker = 0.75 + 0.25 * math.sin(_time * 40);
     final h = 9 * flicker;
     final flame = ui.Path()
-      ..moveTo(-3, -21)
-      ..quadraticBezierTo(-3.5, -21 - h * 0.6, 0, -21 - h)
-      ..quadraticBezierTo(3.5, -21 - h * 0.6, 3, -21)
+      ..moveTo(-3, -30)
+      ..quadraticBezierTo(-3.5, -30 - h * 0.6, 0, -30 - h)
+      ..quadraticBezierTo(3.5, -30 - h * 0.6, 3, -30)
       ..close();
     _flame.color = const Color(0xDDFF8A2A);
     canvas.drawPath(flame, _flame);
     _flame.color = const Color(0xEEFFE08A);
-    canvas.drawCircle(Offset(0, -22 - h * 0.25), 1.6, _flame);
+    canvas.drawCircle(Offset(0, -31 - h * 0.25), 1.6, _flame);
   }
 }
 

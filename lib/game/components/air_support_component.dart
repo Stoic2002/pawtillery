@@ -45,9 +45,9 @@ class AirSupportComponent extends Component {
 
   /// How far the storm cloud sits above what its bolt will hit, and above
   /// the highest ground under its width.
-  static const double _cloudAbove = 230;
-  static const double _cloudClear = 62;
-  static const int _cloudHalfWidth = 80;
+  static const double _cloudAbove = 290;
+  static const double _cloudClear = 110;
+  static const int _cloudHalfWidth = 150;
 
   /// Ticks the bolt or beam is drawn travelling down before it lands.
   static const int travelTicks = 10;
@@ -312,7 +312,7 @@ class AirSupportComponent extends Component {
         246,
         200,
       );
-      canvas.drawOval(const ui.Rect.fromLTWH(-44, -22, 88, 40), _glow);
+      canvas.drawOval(const ui.Rect.fromLTWH(-85, -40, 170, 76), _glow);
       if (charge > 0.5) _miniBolt(canvas, (_time * rate).floor());
     }
     canvas.restore();
@@ -370,9 +370,9 @@ class AirSupportComponent extends Component {
     if (amount <= 0) return;
     _rain.color = ui.Color.fromARGB((150 * amount).round(), 170, 200, 235);
     for (var i = 0; i < 16; i++) {
-      final dx = -60 + i * 8.0;
-      final fall = (_time * 380 + i * 53) % 150;
-      final top = y + 20 + fall;
+      final dx = -125 + i * 16.0;
+      final fall = (_time * 380 + i * 53) % 170;
+      final top = y + 70 + fall;
       canvas.drawLine(
         ui.Offset(x + dx - fall * 0.08, top),
         ui.Offset(x + dx - fall * 0.08 - 2, top + 12),
@@ -384,11 +384,11 @@ class AirSupportComponent extends Component {
   /// A short forked crackle inside the cloud.
   void _miniBolt(ui.Canvas canvas, int seed) {
     final r = math.Random(seed);
-    final path = ui.Path()..moveTo(-30 + r.nextDouble() * 60, -6);
+    final path = ui.Path()..moveTo(-60 + r.nextDouble() * 120, 40);
     var px = 0.0;
     for (var i = 1; i <= 4; i++) {
-      px = -30 + r.nextDouble() * 60;
-      path.lineTo(px, -6 + i * 7.0);
+      px = -60 + r.nextDouble() * 120;
+      path.lineTo(px, 40 + i * 11.0);
     }
     _laser
       ..strokeWidth = 1.6
@@ -413,7 +413,7 @@ class AirSupportComponent extends Component {
     WeaponArt.stormCloud(canvas);
     if (age < 0.6 && (_time * 12).floor().isEven) {
       _glow.color = const ui.Color(0x88FFF6C8);
-      canvas.drawOval(const ui.Rect.fromLTWH(-44, -22, 88, 40), _glow);
+      canvas.drawOval(const ui.Rect.fromLTWH(-85, -40, 170, 76), _glow);
     }
     canvas.restore();
   }
@@ -448,7 +448,7 @@ class AirSupportComponent extends Component {
     canvas
       ..save()
       ..translate(_craftX(a), a.y + math.sin(_time * 3) * 1.5)
-      ..drawOval(const ui.Rect.fromLTWH(-40, 14, 80, 6), _shadow);
+      ..drawOval(const ui.Rect.fromLTWH(-95, 44, 190, 10), _shadow);
     WeaponArt.bomberPlane(canvas, facingLeft: a.dir < 0);
     canvas.restore();
   }
@@ -461,19 +461,21 @@ class AirSupportComponent extends Component {
       ..translate(_craftX(a), a.y)
       ..scale(a.dir.toDouble(), 1);
     final flicker = 0.8 + 0.2 * math.sin(_time * 60);
+    // The flame starts at the painted jet's tail.
+    const tail = -WeaponArt.jetLength / 2 + 8;
     final flame = ui.Path()
-      ..moveTo(-43, -3)
-      ..quadraticBezierTo(-52 - 14 * flicker, -2, -60 - 16 * flicker, 0)
-      ..quadraticBezierTo(-52 - 14 * flicker, 2, -43, 3)
+      ..moveTo(tail, -6)
+      ..quadraticBezierTo(tail - 22 * flicker, -4, tail - 44 * flicker, 0)
+      ..quadraticBezierTo(tail - 22 * flicker, 4, tail, 6)
       ..close();
     _glow.color = const ui.Color(0xCCFF8A2A);
     canvas.drawPath(flame, _glow);
     _glow.color = const ui.Color(0xEEFFE08A);
-    canvas.drawOval(ui.Rect.fromLTWH(-52 - 6 * flicker, -1.4, 10, 2.8), _glow);
+    canvas.drawOval(ui.Rect.fromLTWH(tail - 20 * flicker, -2.5, 20, 5), _glow);
     if (a.dropped < a.dropXs.length) {
       canvas
         ..save()
-        ..translate(-4, 9);
+        ..translate(0, 22);
       WeaponArt.projectile(canvas, a.payload.id);
       canvas.restore();
     }

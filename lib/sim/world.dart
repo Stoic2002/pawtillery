@@ -536,7 +536,7 @@ class SimWorld implements SimContext {
   }
 
   /// How far (px) the parked satellite keeps from the ground, every way.
-  static const int satelliteClearance = 60;
+  static const int satelliteClearance = 110;
 
   // --------------------------------------------------- SimContext actions
 

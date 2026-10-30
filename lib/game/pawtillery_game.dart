@@ -685,7 +685,7 @@ class PawtilleryGame extends FlameGame {
           impact = Vector2(x1, y1);
         case LightningStruck(:final x, :final y):
           final cloudY = _airSupport.cloudYOver(x, y.toDouble());
-          particles.bolt(x.toDouble(), y.toDouble(), top: cloudY + 18);
+          particles.bolt(x.toDouble(), y.toDouble(), top: cloudY + 70);
           _airSupport.strikeLanded(
               lightning: true, x: x.toDouble(), y: cloudY);
           impact = Vector2(x.toDouble(), y.toDouble());

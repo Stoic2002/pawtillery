@@ -23,34 +23,38 @@ class _Painted {
 /// drawn centred on the origin; callers rotate and place it. Static
 /// shapes are recorded once into pictures.
 abstract final class WeaponArt {
+  // Sizes are in proportion to a pet (about 44 px high): a stone fits in its
+  // paw, a missile is as long as it is tall. What points along its flight
+  // sits back so that its nose is where the sim says it is, and so where it
+  // goes off.
   static const Map<String, _Painted> _painted = {
-    'rock': _Painted('icon_rock', 13),
-    'twinSling': _Painted('icon_rock', 8),
-    'grenade': _Painted('icon_grenade', 15),
-    'cluster': _Painted('icon_cluster', 16),
-    'clusterBomblet': _Painted('obj_bomblet', 9),
-    'hairball': _Painted('icon_hairball', 15),
-    'hairballBomb': _Painted('obj_hairballBomb', 10),
-    'boneBoomerang': _Painted('icon_boneBoomerang', 20),
-    'drillCarrot': _Painted('icon_drillCarrot', 22, turn: -8),
-    'egg': _Painted('craft_egg', 11),
-    'seedMines': _Painted('obj_seedMine', 10),
-    'coconut': _Painted('icon_coconut', 15),
-    'bottleRocket': _Painted('icon_bottleRocket', 22, turn: 30),
-    'snifferRocket': _Painted('icon_snifferRocket', 22, turn: 28),
-    'firecracker': _Painted('icon_firecracker', 16, turn: -44),
-    'flowerpot': _Painted('craft_flowerpot', 15),
-    'missile': _Painted('craft_missile', 24),
-    'blackHole': _Painted('icon_blackHole', 17),
-    'stickyBomb': _Painted('icon_stickyBomb', 15),
-    'clay': _Painted('icon_clay', 14),
-    'bomberBomb': _Painted('craft_bomb', 22, turn: -90),
-    'meteor': _Painted('craft_meteor', 42, turn: -40, back: 9),
-    'napalm': _Painted('icon_napalm', 16),
-    'poisonGas': _Painted('obj_gas', 14),
-    'gasBomb': _Painted('obj_gas', 16, turn: -90),
-    'miniNuke': _Painted('icon_miniNuke', 22),
-    'iceBomb': _Painted('icon_iceBomb', 15),
+    'rock': _Painted('icon_rock', 16),
+    'twinSling': _Painted('icon_rock', 10),
+    'grenade': _Painted('icon_grenade', 20),
+    'cluster': _Painted('icon_cluster', 26),
+    'clusterBomblet': _Painted('obj_bomblet', 13),
+    'hairball': _Painted('icon_hairball', 20),
+    'hairballBomb': _Painted('obj_hairballBomb', 14),
+    'boneBoomerang': _Painted('icon_boneBoomerang', 30),
+    'drillCarrot': _Painted('icon_drillCarrot', 34, turn: -8, back: 12),
+    'egg': _Painted('craft_egg', 16),
+    'seedMines': _Painted('obj_seedMine', 14),
+    'coconut': _Painted('icon_coconut', 22),
+    'bottleRocket': _Painted('icon_bottleRocket', 38, turn: 30, back: 14),
+    'snifferRocket': _Painted('icon_snifferRocket', 38, turn: 28, back: 14),
+    'firecracker': _Painted('icon_firecracker', 26, turn: -44),
+    'flowerpot': _Painted('craft_flowerpot', 26),
+    'missile': _Painted('craft_missile', 52, back: 22),
+    'blackHole': _Painted('icon_blackHole', 28),
+    'stickyBomb': _Painted('icon_stickyBomb', 22),
+    'clay': _Painted('icon_clay', 20),
+    'bomberBomb': _Painted('craft_bomb', 38, turn: -90, back: 15),
+    'meteor': _Painted('craft_meteor', 78, turn: -40, back: 17),
+    'napalm': _Painted('icon_napalm', 26),
+    'poisonGas': _Painted('obj_gas', 22),
+    'gasBomb': _Painted('obj_gas', 28, turn: -90, back: 8),
+    'miniNuke': _Painted('icon_miniNuke', 46, back: 18),
+    'iceBomb': _Painted('icon_iceBomb', 22),
   };
 
   static final Map<String, ui.Picture> _cache = {};
@@ -79,37 +83,37 @@ abstract final class WeaponArt {
     canvas.drawPicture(_cached('p:$id', (c) => _projectile(c, id)));
   }
 
-  /// The bomber plane (Pesawat Pengebom), about 96 px long, centred on the
+  /// The bomber plane (Pesawat Pengebom), much bigger than a pet, centred on the
   /// origin and flying right; mirrored when [facingLeft].
   static void bomberPlane(ui.Canvas canvas, {required bool facingLeft}) {
     canvas.save();
     if (facingLeft) canvas.scale(-1, 1);
     if (Sprites.of('craft_plane') case final sprite?) {
-      Sprites.draw(canvas, sprite, 104);
+      Sprites.draw(canvas, sprite, 240);
     } else {
       canvas.drawPicture(_cached('plane', _plane));
     }
     canvas.restore();
   }
 
-  /// A fighter jet, about 84 px long, centred on the origin and flying
+  /// A fighter jet, about [jetLength] px long, centred on the origin and flying
   /// right; mirrored when [facingLeft].
   static void fighterJet(ui.Canvas canvas, {required bool facingLeft}) {
     canvas.save();
     if (facingLeft) canvas.scale(-1, 1);
     if (Sprites.of('craft_jet') case final sprite?) {
-      Sprites.draw(canvas, sprite, 88);
+      Sprites.draw(canvas, sprite, jetLength);
     } else {
       canvas.drawPicture(_cached('jet', _jet));
     }
     canvas.restore();
   }
 
-  /// The satellite in orbit (no beam), about 96 px across, centred, its
+  /// The satellite in orbit (no beam), big enough to read from far off, centred, its
   /// dish at (0, 9).
   static void satellite(ui.Canvas canvas) {
     if (Sprites.of('craft_satellite') case final sprite?) {
-      Sprites.draw(canvas, sprite, 100, center: const ui.Offset(-3, -13));
+      Sprites.draw(canvas, sprite, 190, center: const ui.Offset(-6, -33));
       return;
     }
     canvas
@@ -119,10 +123,10 @@ abstract final class WeaponArt {
     canvas.restore();
   }
 
-  /// A dark storm cloud about 150 px wide, centred on the origin.
+  /// A dark storm cloud, far wider than a pet, centred on the origin.
   static void stormCloud(ui.Canvas canvas) {
     if (Sprites.of('craft_cloud') case final sprite?) {
-      Sprites.draw(canvas, sprite, 160);
+      Sprites.draw(canvas, sprite, 300);
     } else {
       canvas.drawPicture(_cached('storm', _storm));
     }
@@ -136,11 +140,12 @@ abstract final class WeaponArt {
   /// A mine lying on the ground (origin = resting point).
   static void mine(ui.Canvas canvas, {required bool small}) {
     if (Sprites.of(small ? 'obj_seedMine' : 'obj_mine') case final sprite?) {
-      final size = Sprites.sizeOf(sprite, small ? 12 : 19);
+      final longest = small ? 16.0 : 28.0;
+      final size = Sprites.sizeOf(sprite, longest);
       Sprites.draw(
         canvas,
         sprite,
-        small ? 12 : 19,
+        longest,
         center: ui.Offset(0, -size.height / 2 + 1),
       );
       return;
@@ -237,6 +242,16 @@ abstract final class WeaponArt {
       // Painted with a tail or a nose.
       ((id == 'meteor' || id == 'miniNuke') &&
           Sprites.of(_painted[id]!.sprite) != null);
+
+  /// Where a rocket's motor flame starts, along its length; -x is behind.
+  static double motorX(String id) {
+    final painted = _painted[id];
+    if (painted == null || Sprites.of(painted.sprite) == null) return -8;
+    return -painted.size / 2 - painted.back + 3;
+  }
+
+  /// Painted fighter jet's length, px.
+  static const double jetLength = 190;
 
   /// Rockets: drawn with a motor flame behind them.
   static bool hasMotor(String id) =>

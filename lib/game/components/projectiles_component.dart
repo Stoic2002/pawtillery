@@ -87,7 +87,11 @@ class ProjectilesComponent extends Component {
       // once a guided missile has burnt out.
       if (WeaponArt.hasMotor(p.weapon.id) &&
           !(flight is Homing && p.mode == 2)) {
-        _flame(canvas, p.mode == 1 || flight is! Homing);
+        _flame(
+          canvas,
+          p.mode == 1 || flight is! Homing,
+          WeaponArt.motorX(p.weapon.id),
+        );
       }
       WeaponArt.projectile(canvas, p.weapon.id);
       canvas.restore();
@@ -166,21 +170,21 @@ class ProjectilesComponent extends Component {
       ..restore();
   }
 
-  /// A flickering motor flame behind a rocket (drawn pointing right);
-  /// small before a homing rocket's motor starts.
-  void _flame(ui.Canvas canvas, bool burning) {
+  /// A flickering motor flame behind a rocket (drawn pointing right), from
+  /// its tail at [tail]; small before a homing rocket's motor starts.
+  void _flame(ui.Canvas canvas, bool burning, double tail) {
     final flicker = 0.8 + 0.2 * math.sin(_time * 50);
-    final len = (burning ? 11.0 : 4.0) * flicker;
+    final len = (burning ? 22.0 : 7.0) * flicker;
     final flame = ui.Path()
-      ..moveTo(-8, -2.6)
-      ..quadraticBezierTo(-8 - len * 0.6, -2, -8 - len, 0)
-      ..quadraticBezierTo(-8 - len * 0.6, 2, -8, 2.6)
+      ..moveTo(tail, -4)
+      ..quadraticBezierTo(tail - len * 0.6, -3, tail - len, 0)
+      ..quadraticBezierTo(tail - len * 0.6, 3, tail, 4)
       ..close();
     _light.color = const ui.Color(0xCCFF8A2A);
     canvas.drawPath(flame, _light);
     _light.color = const ui.Color(0xEEFFE08A);
     canvas.drawOval(
-      ui.Rect.fromLTWH(-8 - len * 0.45, -1.2, len * 0.45, 2.4),
+      ui.Rect.fromLTWH(tail - len * 0.45, -1.8, len * 0.45, 3.6),
       _light,
     );
   }
@@ -190,7 +194,7 @@ class ProjectilesComponent extends Component {
     final left = (p.fuseTicks ?? 0) / 60;
     if ((_time * (left < 1.5 ? 14 : 5)).floor().isEven) {
       _light.color = const ui.Color(0xFFFFD25A);
-      canvas.drawCircle(ui.Offset(p.x, p.y - 10), 2.4, _light);
+      canvas.drawCircle(ui.Offset(p.x, p.y - 16), 2.8, _light);
     }
   }
 
@@ -234,7 +238,7 @@ class ProjectilesComponent extends Component {
       final rate = m.countdown != null ? 14.0 : 2.0;
       if (armed && (_time * rate).floor().isEven) {
         _light.color = const ui.Color(0xFFFF1744);
-        canvas.drawCircle(ui.Offset(m.x, m.y - (small ? 7 : 9.5)), 1.8, _light);
+        canvas.drawCircle(ui.Offset(m.x, m.y - (small ? 13 : 16)), 2.2, _light);
       }
     }
   }

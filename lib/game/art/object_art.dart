@@ -14,9 +14,9 @@ abstract final class ObjectArt {
 
   /// The painted sprite and its height, px.
   static (String, double) _painted(ObjectKind kind) => switch (kind) {
-    ObjectKind.barrel => ('obj_barrel', 23),
-    ObjectKind.healthCrate => ('obj_healthCrate', 16),
-    ObjectKind.weaponCrate => ('obj_weaponCrate', 17),
+    ObjectKind.barrel => ('obj_barrel', 32),
+    ObjectKind.healthCrate => ('obj_healthCrate', 24),
+    ObjectKind.weaponCrate => ('obj_weaponCrate', 25),
   };
 
   static void draw(ui.Canvas canvas, ObjectKind kind) {
