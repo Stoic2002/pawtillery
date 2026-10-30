@@ -20,7 +20,7 @@ abstract final class AnimalArt {
   static final Map<(String?, int, AnimalPose), ui.Picture> _cache = {};
 
   /// Visual height of a standard unit, for placing labels above it.
-  static const double height = 37;
+  static const double height = 43;
 
   /// World pixels per prototype unit.
   static const double _k = 0.4;
@@ -44,8 +44,8 @@ abstract final class AnimalArt {
   }
 
   /// Painted pets stand about this tall (world px) and at most this wide.
-  static const double _spriteHeight = 40;
-  static const double _spriteWidth = 46;
+  static const double _spriteHeight = 44;
+  static const double _spriteWidth = 50;
 
   static final ui.Paint _image = ui.Paint()
     ..filterQuality = ui.FilterQuality.medium;

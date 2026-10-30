@@ -61,11 +61,11 @@ class MainMenuScreen extends StatelessWidget {
                         ),
                         Positioned(
                           right: 20,
-                          top: 72,
-                          bottom: 40,
+                          top: 90,
+                          bottom: 56,
                           width: (box.maxWidth * 0.28).clamp(210, 300),
                           child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               PawButton(

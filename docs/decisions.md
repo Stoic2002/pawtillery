@@ -1368,3 +1368,11 @@ the whole camp.
   11 KB), not blurred at run time, which would cost a blur on phones for nothing.
 - A CPU's aim is now hidden for every weapon. The planning and the pause before
   it fires are unchanged; only the drawing is gone.
+
+## Zoom limit, bigger pets (2026-10-30)
+
+Terrain stays at 2× (3× would add no real detail and about 310 MB): instead the
+zoom in stops at 1.6× (was 2×), where the softness shows most. Pets are drawn
+10 % bigger (44 px high, was 40); only the drawing, so hits and movement are
+unchanged. Labels, ice and shields follow `AnimalArt.height` (43, was 37). The
+main menu's buttons start under the logo, clear of the About button.
