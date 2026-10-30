@@ -15,7 +15,8 @@ Backgrounds: art/src/<map>_bg.webp (a 3:1 painting, no magenta) becomes
 assets/maps/<map>/background.webp.
 
 Menu: art/src/menu_bg.webp (a painting, no magenta) becomes
-assets/menu/background.webp, behind the main menu.
+assets/menu/background.webp, behind the main menu, and a soft, out-of-focus
+background_soft.webp behind the other screens.
 
 Sprite sheets: art/src/<sheet>.webp (items in a grid on #FF00FF, in the
 order of SHEETS below) becomes assets/sprites/<prefix>_<name>.webp, each
@@ -54,6 +55,15 @@ FAMILIES = [
 ]
 PET_HEIGHT = 240
 POSES = ['idle', 'walkA', 'walkB', 'air']
+# Painted backgrounds are kept this wide: a map's fills the screen behind the
+# terrain, the menu's the screen.
+BG_WIDTH = 4000
+MENU_WIDTH = 2880
+# The out-of-focus menu painting behind the other screens.
+SOFT_WIDTH = 960
+SOFT_BLUR = 7
+SOFT_WASH = (255, 239, 214)
+SOFT_WASH_SHARE = 0.3
 # The head is about this much of a pet's height from the top.
 HEAD_SHARE = 0.45
 # min(R, B) - G from here up is a pocket of background left inside a pet.
@@ -223,10 +233,15 @@ def convert_map(name):
           f'art {(out / "art.webp").stat().st_size // 1024} KB')
 
 
+def fit_width(img, width):
+    return (width, round(img.height * width / img.width))
+
+
 def convert_background(name):
     img = source(f'{name}_bg').convert('RGB')
+    img = img.resize(fit_width(img, BG_WIDTH), Image.LANCZOS)
     out = ROOT / 'assets' / 'maps' / name / 'background.webp'
-    img.save(out, quality=84, method=6)
+    img.save(out, quality=78, method=6)
     print(f'{name} background: {img.size[0]}x{img.size[1]}, '
           f'{out.stat().st_size // 1024} KB')
 
@@ -235,9 +250,18 @@ def convert_menu():
     img = source('menu_bg').convert('RGB')
     out = ROOT / 'assets' / 'menu'
     out.mkdir(parents=True, exist_ok=True)
-    img.save(out / 'background.webp', quality=86, method=6)
-    print(f'menu background: {img.size[0]}x{img.size[1]}, '
-          f'{(out / "background.webp").stat().st_size // 1024} KB')
+    img.resize(fit_width(img, MENU_WIDTH), Image.LANCZOS).save(
+        out / 'background.webp', quality=82, method=6)
+    # The other screens: the same camp, out of focus and washed towards
+    # the UI's cream so that cards and titles stand out. Small: it is blurry.
+    soft = img.resize(fit_width(img, SOFT_WIDTH), Image.LANCZOS).filter(
+        ImageFilter.GaussianBlur(SOFT_BLUR))
+    wash = Image.new('RGB', soft.size, SOFT_WASH)
+    Image.blend(soft, wash, SOFT_WASH_SHARE).save(
+        out / 'background_soft.webp', quality=80, method=6)
+    print(f'menu background: {MENU_WIDTH} wide, '
+          f'{(out / "background.webp").stat().st_size // 1024} KB, soft '
+          f'{(out / "background_soft.webp").stat().st_size // 1024} KB')
 
 
 def key_sheet(img):

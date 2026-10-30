@@ -598,25 +598,14 @@ class PawtilleryGame extends FlameGame {
     _runStep(() => sim.step(inputs));
   }
 
-  /// A CPU turn: the aim guide shows the CPU's weapon and aim as it swings
-  /// into place, so players see the shot coming (not a sky weapon's target).
+  /// A CPU turn: its aim stays a surprise, thrown or from the sky. It still
+  /// holds the weapon it is about to use.
   void _showCpuAim() {
     final a = _cpu!.aim;
-    final AimState next;
-    if (a == null) {
-      if (!aim.value.active) return;
-      next = aim.value.copyWith(active: false);
-    } else {
-      next = AimState(
-        weaponId: a.weaponId,
-        active: _turnAllowsAim,
-        angle: a.angle,
-        power: a.power,
-        fuseSeconds: aim.value.fuseSeconds,
-        // Where a sky weapon is aimed stays a surprise; thrown weapons
-        // show their angle as they swing into place.
-      );
-    }
+    final next = aim.value.copyWith(
+      active: false,
+      weaponId: a?.weaponId,
+    );
     if (next != aim.value) aim.value = next;
   }
 

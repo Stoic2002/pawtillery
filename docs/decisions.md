@@ -1355,3 +1355,16 @@ the whole camp.
   sky at the top right and the buttons to a narrower column under it. The hen is
   mostly behind the buttons; a repaint with it further left would show it.
 - The lineup (`art/src/pets_lineup.webp`) is only a reference for prompts.
+
+## Sharper backgrounds, one look for every screen, the CPU's aim hidden (2026-10-30)
+
+- The map backgrounds and the menu painting were upscaled 4× with Real-ESRGAN's
+  general model (`realesrgan-x4plus`: these are soft paintings, the anime model
+  flattens them). Kept as `art/src/*_bg.webp`; the converter writes map
+  backgrounds 4000 wide (190–300 KB, 21 MB decoded, one per match) and the menu
+  2880 wide (448 KB).
+- Every other screen now shows the camp painting out of focus and washed towards
+  the UI's cream. It is baked by the converter (`background_soft.webp`, 960 wide,
+  11 KB), not blurred at run time, which would cost a blur on phones for nothing.
+- A CPU's aim is now hidden for every weapon. The planning and the pause before
+  it fires are unchanged; only the drawing is gone.

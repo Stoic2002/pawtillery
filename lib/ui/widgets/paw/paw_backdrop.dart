@@ -12,9 +12,10 @@ import 'package:flutter/services.dart';
 /// right, a green one to the left that the pets stand on), the splash's,
 /// or none (only low, faint hills on the horizon).
 ///
-/// The main menu ([PawHills.menu]) shows the painted meadow from
-/// `assets/menu/background.webp` instead, once [PawBackdrop.load] has
-/// read it (tool/art/convert_art.py); without it, the code-drawn one.
+/// Once [PawBackdrop.load] has read them, the main menu ([PawHills.menu])
+/// shows the painted camp from `assets/menu/` instead, and every other
+/// screen the same painting out of focus (tool/art/convert_art.py); without
+/// them, the code-drawn meadow.
 enum PawHills { menu, splash, none }
 
 class PawBackdrop extends StatelessWidget {
@@ -30,23 +31,35 @@ class PawBackdrop extends StatelessWidget {
   final bool clouds;
 
   static ui.Image? _painting;
+  static ui.Image? _soft;
 
-  /// Reads the main menu's painting, once, before the first frame (so it
-  /// never pops in over the code-drawn meadow).
+  /// Reads the paintings, once, before the first frame (so they never pop
+  /// in over the code-drawn meadow).
   static Future<void> load() async {
+    final (painting, soft) = await (
+      _read('assets/menu/background.webp'),
+      _read('assets/menu/background_soft.webp'),
+    ).wait;
+    _painting = painting;
+    _soft = soft;
+  }
+
+  static Future<ui.Image?> _read(String asset) async {
     try {
-      final data = await rootBundle.load('assets/menu/background.webp');
+      final data = await rootBundle.load(asset);
       final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
-      _painting = (await codec.getNextFrame()).image;
+      final image = (await codec.getNextFrame()).image;
       codec.dispose();
+      return image;
     } on Object catch (e) {
-      debugPrint('Menu background not loaded: $e');
+      debugPrint('Menu background $asset not loaded: $e');
+      return null;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final painting = hills == PawHills.menu ? _painting : null;
+    final painting = hills == PawHills.menu ? _painting : _soft;
     return Stack(
       fit: StackFit.expand,
       children: [
