@@ -70,7 +70,7 @@ class TutorialOverlay extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                   decoration: BoxDecoration(
-                    color: Paw.cream,
+                    gradient: Paw.paper(Paw.cream),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: Paw.ink, width: 3),
                     boxShadow: Paw.drop(),

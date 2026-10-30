@@ -338,7 +338,7 @@ class _DigDone extends StatelessWidget {
           width: 150,
           padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
           decoration: BoxDecoration(
-            color: Paw.cream,
+            gradient: Paw.paper(Paw.cream),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Paw.ink, width: 2),
             boxShadow: Paw.drop(3),
@@ -387,7 +387,7 @@ class _RemoteTurn extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
     decoration: BoxDecoration(
-      color: Paw.cream,
+      gradient: Paw.paper(Paw.cream),
       borderRadius: BorderRadius.circular(999),
       border: Border.all(color: color, width: 3),
       boxShadow: Paw.drop(3),
@@ -608,7 +608,7 @@ class _TopCentre extends StatelessWidget {
               height: 28,
               padding: const EdgeInsets.fromLTRB(3, 0, 10, 0),
               decoration: BoxDecoration(
-                color: Paw.cream,
+                gradient: Paw.paper(Paw.cream),
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(color: teamColor, width: 2),
                 boxShadow: Paw.drop(2),
@@ -628,7 +628,7 @@ class _TopCentre extends StatelessWidget {
               height: 26,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: Paw.cream,
+                gradient: Paw.paper(Paw.cream),
                 borderRadius: BorderRadius.circular(999),
                 border: Border.all(color: const Color(0xFFC42A2F), width: 2),
               ),
@@ -1024,7 +1024,7 @@ class _WeaponButton extends StatelessWidget {
                 width: 64,
                 height: 64,
                 decoration: BoxDecoration(
-                  color: Paw.peach,
+                  gradient: Paw.paper(Paw.peach),
                   shape: BoxShape.circle,
                   border: Border.all(color: Paw.ink, width: 3),
                   boxShadow: Paw.drop(),
@@ -1040,7 +1040,7 @@ class _WeaponButton extends StatelessWidget {
                   height: 26,
                   padding: const EdgeInsets.symmetric(horizontal: 5),
                   decoration: BoxDecoration(
-                    color: Paw.cream,
+                    gradient: Paw.paper(Paw.cream),
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(color: Paw.ink, width: 2),
                   ),
@@ -1225,7 +1225,7 @@ class _AimPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Paw.cream,
+        gradient: Paw.paper(Paw.cream),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: Paw.ink, width: 3),
         boxShadow: Paw.drop(),
@@ -1331,7 +1331,7 @@ class _TurnBanner extends StatelessWidget {
     height: 40,
     padding: const EdgeInsets.fromLTRB(8, 0, 14, 0),
     decoration: BoxDecoration(
-      color: Paw.cream,
+      gradient: Paw.paper(Paw.cream),
       borderRadius: BorderRadius.circular(999),
       border: Border.all(color: Paw.ink, width: 2),
       boxShadow: Paw.drop(3),
@@ -1370,7 +1370,7 @@ class _TurnBanner extends StatelessWidget {
           width: 48,
           height: 48,
           decoration: BoxDecoration(
-            color: Paw.cream,
+            gradient: Paw.paper(Paw.cream),
             shape: BoxShape.circle,
             border: Border.all(color: Paw.ink, width: 3),
           ),
@@ -1413,7 +1413,7 @@ class _TurnBanner extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 12),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Paw.cream,
+              gradient: Paw.paper(Paw.cream),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(color: Paw.ink, width: 2),
             ),

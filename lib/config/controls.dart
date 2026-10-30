@@ -17,8 +17,8 @@ abstract final class ControlsConfig {
 
   /// Camera zoom limits (1 = one world px per logical px).
   static const double minZoom = 0.35;
-  static const double maxZoom = 1.25;
-  static const double defaultZoom = 1.0;
+  static const double maxZoom = 1.0;
+  static const double defaultZoom = 0.85;
 
   /// How far the camera may look past the map edges, world px. The sky
   /// above a 3600 x 1200 map is as tall as the map: 2:3 in all, with room

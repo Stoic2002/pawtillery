@@ -153,7 +153,7 @@ class ResultsScreen extends StatelessWidget {
           width: 250,
           height: 58,
           decoration: BoxDecoration(
-            color: Paw.cream,
+            gradient: Paw.paper(Paw.cream),
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(16),
               bottom: Radius.circular(6),
@@ -244,7 +244,7 @@ class ResultsScreen extends StatelessWidget {
     final best = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Paw.peach,
+        gradient: Paw.paper(Paw.peach),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Paw.ink, width: 3),
         boxShadow: Paw.drop(),

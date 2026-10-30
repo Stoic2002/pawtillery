@@ -261,7 +261,7 @@ class _TeamsTab extends StatelessWidget {
                         width: 48,
                         height: 48,
                         decoration: BoxDecoration(
-                          color: Paw.cream,
+                          gradient: Paw.paper(Paw.cream),
                           shape: BoxShape.circle,
                           border: Border.all(color: Paw.ink, width: 2),
                           boxShadow: Paw.drop(3),
@@ -339,7 +339,7 @@ class _TeamCard extends StatelessWidget {
     final defaultName = l10n.byKey(style.nameKey);
     return Container(
       decoration: BoxDecoration(
-        color: Paw.cream,
+        gradient: Paw.paper(Paw.cream),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Paw.ink, width: 3),
         boxShadow: Paw.drop(),
@@ -633,7 +633,7 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 1),
     decoration: BoxDecoration(
-      color: Paw.peach,
+      gradient: Paw.paper(Paw.peach),
       borderRadius: BorderRadius.circular(999),
       border: Border.all(color: Paw.ink, width: 2),
     ),
@@ -865,7 +865,7 @@ class _WeaponsTab extends StatelessWidget {
                           vertical: 2,
                         ),
                         decoration: BoxDecoration(
-                          color: Paw.peach,
+                          gradient: Paw.paper(Paw.peach),
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(color: Paw.ink, width: 2),
                         ),
@@ -1233,7 +1233,7 @@ class _UnitEditorScreenState extends State<UnitEditorScreen> {
                   height: 32,
                   padding: const EdgeInsets.fromLTRB(4, 0, 10, 0),
                   decoration: BoxDecoration(
-                    color: Paw.cream,
+                    gradient: Paw.paper(Paw.cream),
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(color: Paw.ink, width: 2),
                   ),
@@ -1268,7 +1268,7 @@ class _UnitEditorScreenState extends State<UnitEditorScreen> {
                                 width: 118,
                                 height: 118,
                                 decoration: BoxDecoration(
-                                  color: Paw.peach,
+                                  gradient: Paw.paper(Paw.peach),
                                   shape: BoxShape.circle,
                                   border: Border.all(color: Paw.ink, width: 3),
                                 ),

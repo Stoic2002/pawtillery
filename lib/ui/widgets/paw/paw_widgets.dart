@@ -305,12 +305,7 @@ class PawCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     decoration: BoxDecoration(
-      // Like old paper: warmer towards the bottom right.
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [color, Color.lerp(color, _warm, 0.55)!],
-      ),
+      gradient: Paw.paper(color),
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: borderColor, width: borderWidth),
       boxShadow: Paw.drop(),
@@ -335,7 +330,6 @@ class PawCard extends StatelessWidget {
     ),
   );
 
-  static const Color _warm = Color(0xFFF6DDB4);
   static const Color _line = Color(0x55A8763E);
 }
 
@@ -873,11 +867,10 @@ class PawHeader extends StatelessWidget {
             child: Row(
               children: [
                 Flexible(
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Paw.title(20),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(title, maxLines: 1, style: Paw.title(20)),
                   ),
                 ),
                 if (center != null) ...[

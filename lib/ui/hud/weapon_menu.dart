@@ -196,7 +196,7 @@ class _WeaponPanelState extends State<_WeaponPanel> {
                 constraints: const BoxConstraints(minHeight: 48),
                 padding: const EdgeInsets.fromLTRB(12, 4, 8, 4),
                 decoration: BoxDecoration(
-                  color: Paw.peach,
+                  gradient: Paw.paper(Paw.peach),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Paw.ink, width: 2),
                 ),

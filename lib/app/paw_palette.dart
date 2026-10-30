@@ -91,6 +91,13 @@ abstract final class Paw {
     stops: const [0, 0.2, 0.62, 1],
   );
 
+  /// A panel's face, like old paper: warmer towards the bottom right.
+  static LinearGradient paper(Color c) => LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [c, Color.lerp(c, const Color(0xFFF6DDB4), 0.55)!],
+  );
+
   /// The solid "pressed into the page" shadow under every control.
   static List<BoxShadow> drop([double y = 4]) => [
     BoxShadow(color: ink, offset: Offset(0, y)),

@@ -458,7 +458,7 @@ class _TeamRow extends StatelessWidget {
               height: 40,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: Paw.cream,
+                gradient: Paw.paper(Paw.cream),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(color: Paw.ink, width: 2),
               ),

@@ -1403,3 +1403,9 @@ as the painting has its own outline.
   controls a straight top-to-bottom light (a slant washed out wide buttons), and
   `PawCard` is warmer towards the bottom right with a thin inner line, like a
   painted sign. In code, no textures, so text stays sharp and it costs nothing.
+
+## Zoom once more, panels match (2026-10-31)
+
+The zoom in still felt too close: 0.35–1.0, starting at 0.85. Setup's team cards
+and the HUD's panels now use the same `Paw.paper` face as `PawCard`. A long
+screen title shrinks to fit its header instead of being cut off.
