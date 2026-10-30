@@ -104,6 +104,19 @@ SHEETS = {
         'plane', 'jet', 'satellite',
         'cloud', 'bomb', 'missile',
         'egg', 'flowerpot', 'meteor']),
+    'ui_menu': (4, 3, 'ui', 128, [
+        'play', 'wifi', 'book', 'history',
+        'settings', 'info', 'pause', 'back',
+        'check', 'close', 'trophy', 'star']),
+    'ui_hud': (4, 3, 'ui', 128, [
+        'jump', 'highJump', 'run', 'touch',
+        'focus', 'target', 'water', 'snow',
+        'dice', 'plus', 'minus', 'paw']),
+    'ui_setup': (4, 4, 'ui', 128, [
+        'music', 'volume', 'vibrate', 'globe',
+        'speed', 'aimPath', 'school', 'person',
+        'robot', 'shuffle', 'trash', 'shield',
+        'group', 'replay', 'sliders', 'exit']),
     'objects': (4, 2, 'obj', 160, [
         'gas', 'bomblet', 'hairballBomb', 'seedMine',
         'mine', 'barrel', 'healthCrate', 'weaponCrate']),

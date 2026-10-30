@@ -12,6 +12,7 @@ import '../../l10n/l10n_lookup.g.dart';
 import '../hud/weapon_menu.dart' show WeaponIcon;
 import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
+import '../widgets/paw/paw_icon.dart';
 
 /// Match history (kept on this phone only): a card of totals on the left
 /// (matches, wins and losses against each CPU level, favourite weapon,
@@ -131,7 +132,7 @@ class _Totals extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(vertical: 2),
                 child: Row(
                   children: [
-                    const Icon(Icons.smart_toy_rounded,
+                    const PawIcon(Icons.smart_toy_rounded,
                         size: 18, color: Paw.ink),
                     const SizedBox(width: 6),
                     Expanded(
@@ -228,12 +229,12 @@ class _MatchRow extends StatelessWidget {
               if (record.wifi)
                 const Padding(
                   padding: EdgeInsets.only(right: 6),
-                  child: Icon(Icons.wifi_rounded, size: 16, color: Paw.muted),
+                  child: PawIcon(Icons.wifi_rounded, size: 16, color: Paw.muted),
                 ),
               if (record.randomWeapons)
                 const Padding(
                   padding: EdgeInsets.only(right: 6),
-                  child: Icon(Icons.casino_rounded, size: 16, color: Paw.muted),
+                  child: PawIcon(Icons.casino_rounded, size: 16, color: Paw.muted),
                 ),
               Expanded(
                 child: Text(
@@ -304,11 +305,11 @@ class _TeamChip extends StatelessWidget {
           ),
           if (team.cpu != null) ...[
             const SizedBox(width: 4),
-            const Icon(Icons.smart_toy_rounded, size: 16, color: Paw.ink),
+            const PawIcon(Icons.smart_toy_rounded, size: 16, color: Paw.ink),
           ],
           if (won) ...[
             const SizedBox(width: 4),
-            const Icon(Icons.emoji_events_rounded, size: 16, color: Paw.ink),
+            const PawIcon(Icons.emoji_events_rounded, size: 16, color: Paw.ink),
           ],
         ],
       ),

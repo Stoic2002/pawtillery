@@ -9,6 +9,7 @@ import '../hud/weapon_menu.dart';
 import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/pet_figure.dart';
+import '../widgets/paw/paw_icon.dart';
 
 /// How to Play (PRD: 4–6 illustrated pages; redesign prototype): one card
 /// with the page count and a close button, a striped picture panel on the
@@ -183,9 +184,9 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
         return Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.arrow_back_rounded, size: 34, color: Paw.ink),
+            const PawIcon(Icons.arrow_back_rounded, size: 34, color: Paw.ink),
             _pet('rabbit', 0),
-            const Icon(Icons.arrow_forward_rounded, size: 34, color: Paw.ink),
+            const PawIcon(Icons.arrow_forward_rounded, size: 34, color: Paw.ink),
           ],
         );
       case 1:
@@ -193,7 +194,7 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _pet('cat', 1),
-            const Icon(Icons.gps_fixed_rounded, size: 40, color: Paw.ink),
+            const PawIcon(Icons.gps_fixed_rounded, size: 40, color: Paw.ink),
           ],
         );
       case 2:
@@ -214,7 +215,7 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
           ],
         );
       case 3:
-        return const Icon(Icons.air_rounded, size: 110, color: Paw.ink);
+        return const PawIcon(Icons.air_rounded, size: 110, color: Paw.ink);
       case 4:
         return Wrap(
           alignment: WrapAlignment.center,
@@ -235,7 +236,7 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             _pet('dog', 0),
-            const Icon(Icons.emoji_events_rounded, size: 46, color: Paw.yellow),
+            const PawIcon(Icons.emoji_events_rounded, size: 46, color: Paw.yellow),
             _pet('duck', 1, flip: true, size: 76),
           ],
         );

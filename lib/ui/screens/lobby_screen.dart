@@ -16,6 +16,7 @@ import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
 import 'arena_screen.dart';
 import 'setup_screen.dart';
+import '../widgets/paw/paw_icon.dart';
 
 /// A Wi-Fi room before (and between) matches: the players, which player
 /// controls each team, and the host's setup. The host edits the setup,
@@ -464,7 +465,7 @@ class _TeamRow extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.person_rounded, size: 17, color: Paw.ink),
+                  const PawIcon(Icons.person_rounded, size: 17, color: Paw.ink),
                   const SizedBox(width: 6),
                   Text(owner, style: Paw.text(13)),
                 ],

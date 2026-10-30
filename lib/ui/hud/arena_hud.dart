@@ -17,6 +17,7 @@ import '../../sim/turn_manager.dart';
 import '../widgets/paw/paw_widgets.dart';
 import 'tutorial.dart';
 import 'weapon_menu.dart';
+import '../widgets/paw/paw_icon.dart';
 
 /// Arena HUD (redesign prototype): pause and team HP pills top left, the
 /// turn timer and active unit top centre, wind and the camera button top
@@ -300,7 +301,7 @@ class _DigJoystickState extends State<_DigJoystick> {
                     border: Border.all(color: Paw.ink, width: 3),
                   ),
                   alignment: Alignment.center,
-                  child: const Icon(
+                  child: const PawIcon(
                     Icons.pets_rounded,
                     size: 24,
                     color: Paw.ink,
@@ -581,7 +582,7 @@ class _TopCentre extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (!running && !retreat) ...[
-                      const Icon(
+                      const PawIcon(
                         Icons.pause_circle_rounded,
                         size: 18,
                         color: Paw.muted,
@@ -634,7 +635,7 @@ class _TopCentre extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  const PawIcon(
                     Icons.water_rounded,
                     size: 16,
                     color: Color(0xFFC42A2F),
@@ -656,7 +657,7 @@ class _TopCentre extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  const PawIcon(
                     Icons.ac_unit_rounded,
                     size: 20,
                     color: Color(0xFF2F7FB5),
@@ -674,7 +675,7 @@ class _TopCentre extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  const PawIcon(
                     Icons.directions_run_rounded,
                     size: 20,
                     color: Paw.ink,
@@ -692,7 +693,7 @@ class _TopCentre extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  const PawIcon(
                     Icons.touch_app_rounded,
                     size: 18,
                     color: Paw.cream,
@@ -794,7 +795,7 @@ class _TopRight extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(
+                    PawIcon(
                       wind > 0
                           ? Icons.east_rounded
                           : wind < 0
@@ -1115,7 +1116,7 @@ class _FireButtonState extends State<_FireButton> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
+                  PawIcon(
                     Icons.gps_fixed_rounded,
                     size: 34,
                     color: ready ? Paw.ink : Paw.muted,
@@ -1338,7 +1339,7 @@ class _TurnBanner extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.casino_rounded, size: 22, color: Paw.ink),
+        const PawIcon(Icons.casino_rounded, size: 22, color: Paw.ink),
         const SizedBox(width: 6),
         WeaponIcon(weapon: weapon, size: 28),
         const SizedBox(width: 6),

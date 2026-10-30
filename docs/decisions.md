@@ -1376,3 +1376,15 @@ zoom in stops at 1.6× (was 2×), where the softness shows most. Pets are drawn
 10 % bigger (44 px high, was 40); only the drawing, so hits and movement are
 unchanged. Labels, ice and shields follow `AnimalArt.height` (43, was 37). The
 main menu's buttons start under the logo, clear of the About button.
+
+## Painted UI icons (2026-10-30)
+
+The flat single-colour Material icons looked wrong next to the painted art, so
+the developer generated three sheets (`art/src/ui_menu`, `ui_hud`, `ui_setup`,
+40 icons, 312 KB; cut to `assets/sprites/ui_<name>.webp`). `PawIcon` takes the
+same `IconData` as `Icon` and draws the painting mapped to it, or the plain icon
+if there is none (tests, and the few too small to paint: chevrons, the dropdown
+arrow, the three dots). So buttons keep their API, and the flat button shapes
+stay: they read better over the game than textured ones. Right, east and forward
+arrows are the left arrow mirrored. Signature weapons' star lost its ink shadow,
+as the painting has its own outline.

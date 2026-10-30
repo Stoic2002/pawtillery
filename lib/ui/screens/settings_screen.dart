@@ -5,6 +5,7 @@ import '../../app/paw_palette.dart';
 import '../../l10n/app_localizations.dart';
 import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
+import '../widgets/paw/paw_icon.dart';
 
 /// Settings (redesign prototype): one card of rows, each with an icon,
 /// a label and its control. Changes are saved immediately.
@@ -170,7 +171,7 @@ class _Row extends StatelessWidget {
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       children: [
-        Icon(icon, size: 22, color: Paw.ink),
+        PawIcon(icon, size: 22, color: Paw.ink),
         const SizedBox(width: 12),
         Expanded(child: Text(label, style: Paw.text(16))),
         Flexible(

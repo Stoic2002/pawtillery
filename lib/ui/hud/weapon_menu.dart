@@ -11,6 +11,7 @@ import '../../l10n/app_localizations.dart';
 import '../../l10n/l10n_lookup.g.dart';
 import '../../services/audio_service.dart';
 import '../widgets/paw/paw_widgets.dart';
+import '../widgets/paw/paw_icon.dart';
 
 /// Weapon menu (PRD: Menu senjata; redesign prototype): a cream panel over
 /// the right of the arena with tabs per [WeaponGroup] (opening on the
@@ -340,16 +341,10 @@ class _WeaponTile extends StatelessWidget {
               const Positioned(
                 top: -10,
                 left: -7,
-                child: Icon(
+                child: PawIcon(
                   Icons.star_rounded,
                   size: 24,
                   color: Paw.yellow,
-                  shadows: [
-                    Shadow(color: Paw.ink, offset: Offset(1, 1)),
-                    Shadow(color: Paw.ink, offset: Offset(-1, -1)),
-                    Shadow(color: Paw.ink, offset: Offset(1, -1)),
-                    Shadow(color: Paw.ink, offset: Offset(-1, 1)),
-                  ],
                 ),
               ),
           ],

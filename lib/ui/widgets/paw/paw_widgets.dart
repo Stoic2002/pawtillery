@@ -6,6 +6,7 @@ import '../../../app/app_services.dart';
 import '../../../app/paw_palette.dart';
 import '../../../config/teams.dart';
 import '../../../services/audio_service.dart';
+import 'paw_icon.dart';
 
 /// Shared building blocks of the prototype's look (docs/art_style_guide.md):
 /// cream shapes with an ink outline and a solid ink shadow that they sink
@@ -154,7 +155,7 @@ class PawButton extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) ...[
-                Icon(icon, size: iconSize, color: style.color),
+                PawIcon(icon, size: iconSize, color: style.color),
                 SizedBox(width: fontSize * 0.4),
               ],
               Flexible(
@@ -167,7 +168,7 @@ class PawButton extends StatelessWidget {
               ),
               if (trailingIcon != null) ...[
                 SizedBox(width: fontSize * 0.35),
-                Icon(trailingIcon, size: iconSize, color: style.color),
+                PawIcon(trailingIcon, size: iconSize, color: style.color),
               ],
             ],
           ),
@@ -234,7 +235,7 @@ class PawCircleButton extends StatelessWidget {
             alignment: Alignment.center,
             child: Transform.scale(
               scaleX: mirror ? -1 : 1,
-              child: Icon(icon, size: iconSize ?? size * 0.54, color: Paw.ink),
+              child: PawIcon(icon, size: iconSize ?? size * 0.54, color: Paw.ink),
             ),
           ),
           if (badge != null)
@@ -418,7 +419,7 @@ class PawIconBox extends StatelessWidget {
               boxShadow: Paw.drop(down ? 1 : 3),
             ),
             alignment: Alignment.center,
-            child: Icon(icon, size: size * 0.5, color: Paw.ink),
+            child: PawIcon(icon, size: size * 0.5, color: Paw.ink),
           ),
         ),
       ),
@@ -723,7 +724,7 @@ class PawIconChip extends StatelessWidget {
       border: Border.all(color: Paw.ink, width: 2),
     ),
     alignment: Alignment.center,
-    child: Icon(icon, size: size * 0.6, color: Paw.ink),
+    child: PawIcon(icon, size: size * 0.6, color: Paw.ink),
   );
 }
 

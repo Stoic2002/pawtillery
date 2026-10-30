@@ -20,6 +20,7 @@ import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/pet_figure.dart';
 import 'arena_screen.dart';
+import '../widgets/paw/paw_icon.dart';
 import 'history_screen.dart' show cpuLevelLabel;
 
 /// Match setup (redesign prototype): a Teams tab with one card per team
@@ -265,7 +266,7 @@ class _TeamsTab extends StatelessWidget {
                           border: Border.all(color: Paw.ink, width: 2),
                           boxShadow: Paw.drop(3),
                         ),
-                        child: const Icon(
+                        child: const PawIcon(
                           Icons.add_rounded,
                           size: 28,
                           color: Paw.ink,
@@ -394,7 +395,7 @@ class _TeamCard extends StatelessWidget {
                 ),
                 PopupMenuButton<int>(
                   tooltip: l10n.setupTeamName,
-                  icon: const Icon(Icons.more_vert_rounded, color: Paw.ink),
+                  icon: const PawIcon(Icons.more_vert_rounded, color: Paw.ink),
                   color: Paw.cream,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -421,7 +422,7 @@ class _TeamCard extends StatelessWidget {
                       value: 0,
                       child: Row(
                         children: [
-                          const Icon(
+                          const PawIcon(
                             Icons.shuffle_rounded,
                             size: 20,
                             color: Paw.ink,
@@ -436,7 +437,7 @@ class _TeamCard extends StatelessWidget {
                       enabled: config.teams.length > 2,
                       child: Row(
                         children: [
-                          const Icon(
+                          const PawIcon(
                             Icons.delete_rounded,
                             size: 20,
                             color: Paw.redText,
@@ -537,7 +538,7 @@ class _ControllerPicker extends StatelessWidget {
             value: i,
             child: Row(
               children: [
-                Icon(_icon(level), size: 20, color: Paw.ink),
+                PawIcon(_icon(level), size: 20, color: Paw.ink),
                 const SizedBox(width: 8),
                 Text(
                   _label(l10n, level),
@@ -557,7 +558,7 @@ class _ControllerPicker extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(_icon(cpu), size: 18, color: ink),
+            PawIcon(_icon(cpu), size: 18, color: ink),
             const SizedBox(width: 6),
             Expanded(
               child: Text(
@@ -567,7 +568,7 @@ class _ControllerPicker extends StatelessWidget {
                 style: Paw.text(13, weight: 800, color: ink),
               ),
             ),
-            Icon(Icons.arrow_drop_down_rounded, size: 22, color: ink),
+            PawIcon(Icons.arrow_drop_down_rounded, size: 22, color: ink),
           ],
         ),
       ),
@@ -1069,7 +1070,7 @@ class _MapCard extends StatelessWidget {
                     if (random)
                       const CustomPaint(
                         painter: StripesPainter(band: 8),
-                        child: Icon(
+                        child: PawIcon(
                           Icons.shuffle_rounded,
                           size: 30,
                           color: Paw.ink,
@@ -1089,7 +1090,7 @@ class _MapCard extends StatelessWidget {
                             shape: BoxShape.circle,
                             border: Border.all(color: Paw.ink, width: 2),
                           ),
-                          child: const Icon(
+                          child: const PawIcon(
                             Icons.check_rounded,
                             size: 16,
                             color: Paw.ink,

@@ -17,6 +17,7 @@ import '../../services/wifi_lock.dart';
 import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
 import 'lobby_screen.dart';
+import '../widgets/paw/paw_icon.dart';
 
 /// Play on Wi-Fi: pick a name, then host a room or join one heard on the
 /// network (or typed in by address, for networks that block broadcasts).
@@ -426,7 +427,7 @@ class _RoomRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.wifi_rounded, color: Paw.ink),
+          const PawIcon(Icons.wifi_rounded, color: Paw.ink),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
