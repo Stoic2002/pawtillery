@@ -76,6 +76,21 @@ abstract final class Paw {
     fontVariations: [FontVariation('wght', weight)],
   );
 
+  /// A hand-painted look for a raised control of colour [c]: lit along the
+  /// top edge, as the game's art is, darker towards the bottom. Straight
+  /// down: on a wide button a slant would wash out one end.
+  static LinearGradient bevel(Color c) => LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color.lerp(c, const Color(0xFFFFFFFF), 0.34)!,
+      Color.lerp(c, const Color(0xFFFFFFFF), 0.08)!,
+      c,
+      Color.lerp(c, const Color(0xFF3A1E08), 0.18)!,
+    ],
+    stops: const [0, 0.2, 0.62, 1],
+  );
+
   /// The solid "pressed into the page" shadow under every control.
   static List<BoxShadow> drop([double y = 4]) => [
     BoxShadow(color: ink, offset: Offset(0, y)),

@@ -2,6 +2,7 @@ package com.example.pawtillery
 
 import android.content.Context
 import android.net.wifi.WifiManager
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -27,6 +28,21 @@ class MainActivity : FlutterActivity() {
                         result.success(null)
                     }
                     else -> result.notImplemented()
+                }
+            }
+        // During a match the screen stays on. See
+        // lib/services/screen_awake.dart.
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "pawtillery/screen")
+            .setMethodCallHandler { call, result ->
+                if (call.method == "keepOn") {
+                    if (call.arguments == true) {
+                        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    } else {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                    }
+                    result.success(null)
+                } else {
+                    result.notImplemented()
                 }
             }
     }

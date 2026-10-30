@@ -141,12 +141,6 @@ class MainMenuScreen extends StatelessWidget {
                                   color: Paw.cream,
                                 ),
                               ),
-                              const SizedBox(width: 10),
-                              PawCircleButton(
-                                icon: Icons.info_rounded,
-                                tooltip: l10n.menuAbout,
-                                onPressed: () => showAbout(context),
-                              ),
                             ],
                           ),
                         ),
@@ -220,98 +214,4 @@ Future<void> confirmQuitApp(BuildContext context) async {
     cancel: l10n.dialogCancel,
   );
   if (quit) await SystemNavigator.pop();
-}
-
-/// About (PRD: versi, kredit aset, tautan kebijakan privasi) as a card over
-/// the menu.
-Future<void> showAbout(BuildContext context) {
-  final l10n = AppLocalizations.of(context);
-  return showPawDialog<void>(
-    context: context,
-    width: 420,
-    builder: (context) {
-      Widget row(String k, String v) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 3),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              width: 110,
-              child: Text(k, style: Paw.text(14, color: Paw.muted)),
-            ),
-            Expanded(child: Text(v, style: Paw.text(14, weight: 700))),
-          ],
-        ),
-      );
-      return PawCard(
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Expanded(child: Text(l10n.menuAbout, style: Paw.title(22))),
-                Text(
-                  l10n.aboutVersion(AppInfo.version),
-                  style: Paw.text(12, weight: 700, color: Paw.muted),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(l10n.aboutDescription, style: Paw.text(14, weight: 600)),
-            const SizedBox(height: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: Paw.peach,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: Paw.ink, width: 2),
-              ),
-              child: Column(
-                children: [
-                  row(l10n.aboutDeveloper, AppInfo.developer),
-                  row(l10n.aboutArt, l10n.aboutArtValue),
-                  row(l10n.aboutFonts, AppInfo.fonts),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(l10n.aboutPrivacyNote, style: Paw.text(13, weight: 600)),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () async {
-                      await Clipboard.setData(
-                        const ClipboardData(text: AppInfo.privacyPolicyUrl),
-                      );
-                      if (!context.mounted) return;
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(l10n.aboutLinkCopied)),
-                      );
-                    },
-                    child: Text(
-                      l10n.aboutPrivacy,
-                      style: Paw.text(14, color: Paw.orangeDeep).copyWith(
-                        decoration: TextDecoration.underline,
-                        decorationColor: Paw.orangeDeep,
-                      ),
-                    ),
-                  ),
-                ),
-                PawButton(
-                  label: l10n.dialogClose,
-                  height: 44,
-                  fontSize: 14,
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-          ],
-        ),
-      );
-    },
-  );
 }

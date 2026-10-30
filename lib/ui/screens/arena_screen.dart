@@ -26,6 +26,7 @@ import '../../sim/turn_manager.dart';
 import '../hud/arena_hud.dart';
 import '../hud/pause_dialog.dart';
 import '../hud/tutorial.dart';
+import '../../services/screen_awake.dart';
 import '../widgets/paw/match_loading.dart';
 import '../widgets/paw/paw_widgets.dart';
 import 'lobby_screen.dart';
@@ -101,6 +102,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    ScreenAwake.set(on: true);
     debugPrint('Pawtillery match seed: $_seed');
     final net = widget.net;
     if (net != null) {
@@ -499,6 +501,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    ScreenAwake.set(on: false);
     widget.net?.detachMatch();
     _waitTimer?.cancel();
     _waitingFor.dispose();

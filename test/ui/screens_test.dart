@@ -69,8 +69,16 @@ void main() {
       expect(find.text('Play'), findsOneWidget);
     }
 
-    // About is a card over the menu.
-    await tester.tap(find.byTooltip('About'));
+    // About is a card over Settings.
+    await tester.tap(find.text('Settings'));
+    await tester.pumpAndSettle();
+    await tester.dragUntilVisible(
+      find.widgetWithText(PawButton, 'About'),
+      find.byType(ListView),
+      const Offset(0, -80),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(PawButton, 'About'));
     await tester.pumpAndSettle();
     expect(find.text('Privacy policy'), findsOneWidget);
     await tester.tap(find.text('Close'));
@@ -449,7 +457,15 @@ void main() {
       }
       await _back(tester);
     }
-    await tester.tap(find.byTooltip('Tentang'));
+    await tester.tap(find.text('Pengaturan'));
+    await tester.pumpAndSettle();
+    await tester.dragUntilVisible(
+      find.widgetWithText(PawButton, 'Tentang'),
+      find.byType(ListView),
+      const Offset(0, -80),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(PawButton, 'Tentang'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull, reason: 'Tentang');
   });

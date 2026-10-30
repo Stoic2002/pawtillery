@@ -141,11 +141,13 @@ class PawButton extends StatelessWidget {
           transform: Matrix4.translationValues(0, down ? shadow - 1 : 0, 0),
           padding: EdgeInsets.symmetric(horizontal: padding),
           decoration: BoxDecoration(
-            color: !enabled
-                ? Paw.line
-                : down && fill == Paw.orange
-                ? Paw.orangeDeep
-                : fill,
+            gradient: Paw.bevel(
+              !enabled
+                  ? Paw.line
+                  : down && fill == Paw.orange
+                  ? Paw.orangeDeep
+                  : fill,
+            ),
             borderRadius: BorderRadius.circular(radius),
             border: Border.all(color: border, width: borderWidth),
             boxShadow: Paw.drop(down ? 1 : shadow),
@@ -227,7 +229,7 @@ class PawCircleButton extends StatelessWidget {
             height: size,
             transform: Matrix4.translationValues(0, down ? shadow - 1 : 0, 0),
             decoration: BoxDecoration(
-              color: fill,
+              gradient: Paw.bevel(fill),
               shape: BoxShape.circle,
               border: Border.all(color: Paw.ink, width: borderWidth),
               boxShadow: Paw.drop(down ? 1 : shadow),
@@ -302,15 +304,39 @@ class PawCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: padding,
     decoration: BoxDecoration(
-      color: color,
+      // Like old paper: warmer towards the bottom right.
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [color, Color.lerp(color, _warm, 0.55)!],
+      ),
       borderRadius: BorderRadius.circular(radius),
       border: Border.all(color: borderColor, width: borderWidth),
       boxShadow: Paw.drop(),
     ),
-    child: child,
+    child: Stack(
+      fit: StackFit.passthrough,
+      children: [
+        Padding(padding: padding, child: child),
+        // A thin inner line, as on a painted sign.
+        Positioned.fill(
+          child: IgnorePointer(
+            child: Container(
+              margin: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(radius - 5),
+                border: Border.all(color: _line, width: 1.5),
+              ),
+            ),
+          ),
+        ),
+      ],
+    ),
   );
+
+  static const Color _warm = Color(0xFFF6DDB4);
+  static const Color _line = Color(0x55A8763E);
 }
 
 /// A pill holding a few options; the chosen one is an ink pill with cream

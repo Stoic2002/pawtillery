@@ -1388,3 +1388,18 @@ arrow, the three dots). So buttons keep their API, and the flat button shapes
 stay: they read better over the game than textured ones. Right, east and forward
 arrows are the left arrow mirrored. Signature weapons' star lost its ink shadow,
 as the painting has its own outline.
+
+## Zoom again, screen stays on, About in Settings, painted controls (2026-10-30)
+
+- Zoom range 0.35–1.25 (was 0.5–1.6), starting at 1.0 (was 1.4): the developer
+  found it still too close, and wanted to see more of the map.
+- The screen dimmed and slept during a match when nobody touched it. On Android
+  `ScreenAwake` now sets `FLAG_KEEP_SCREEN_ON` for the time the arena is open
+  (`pawtillery/screen` channel). No wakelock package: the flag needs no
+  permission and ends with the window. iOS is not done (not the target yet).
+- About moved from the main menu, where its button collided with Settings on the
+  phone, into a row of Settings. The version stays in the corner of the menu.
+- Buttons and cards looked flat next to the paintings. `Paw.bevel` gives raised
+  controls a straight top-to-bottom light (a slant washed out wide buttons), and
+  `PawCard` is warmer towards the bottom right with a thin inner line, like a
+  painted sign. In code, no textures, so text stays sharp and it costs nothing.

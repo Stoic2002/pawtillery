@@ -16,9 +16,9 @@ abstract final class ControlsConfig {
   static const double slingshotDeadZone = 16;
 
   /// Camera zoom limits (1 = one world px per logical px).
-  static const double minZoom = 0.5;
-  static const double maxZoom = 1.6;
-  static const double defaultZoom = 1.4;
+  static const double minZoom = 0.35;
+  static const double maxZoom = 1.25;
+  static const double defaultZoom = 1.0;
 
   /// How far the camera may look past the map edges, world px. The sky
   /// above a 3600 x 1200 map is as tall as the map: 2:3 in all, with room
