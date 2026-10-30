@@ -1333,3 +1333,25 @@ From a playtest:
   maps over WebP at lower quality, and AVIF decodes more slowly. Instead
   `ART_QUALITY` went from 88 to 72: the four maps fell from 7.7 to 4.9 MB
   with no visible change at play zoom.
+
+## Pets in battle gear, with real walking; a livelier menu (2026-10-30)
+
+The developer generated new art: each pet in its own gear (helmet, goggles,
+saucepan...), one sheet of four poses per pet, and a new main menu painting of
+the whole camp.
+
+- **Poses.** `art/src/pet_<family>.webp` (idle, two strides, in the air) become
+  `assets/pets/<family>_<pose>.webp`. All four share a size and scale; the
+  converter lines each pose up on the head (best match of the top 45 %), keeps
+  walking poses on the ground and leaves the air pose's head where it was, so
+  swapping images moves the legs and not the pet. Pockets of magenta between
+  legs are cleared. 860 KB for all 40 images.
+- **Walking.** The generator drew the two strides nearly alike, so the cycle is
+  stride, feet together, other stride, feet together, 8 phases a second. On a
+  120 Hz screen frames without a sim step looked like stopping and reset the
+  walk, so a pet now only counts as stopped after 0.06 s still. The code lean
+  and stretch on poses are gone.
+- **Menu.** The painting fills the left with pets, so the logo moved to the open
+  sky at the top right and the buttons to a narrower column under it. The hen is
+  mostly behind the buttons; a repaint with it further left would show it.
+- The lineup (`art/src/pets_lineup.webp`) is only a reference for prompts.

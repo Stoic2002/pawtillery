@@ -31,8 +31,8 @@ abstract final class AnimalArt {
     required int teamArgb,
     required AnimalPose pose,
   }) {
-    if (PetSprites.of(familyId) case final sprite?) {
-      _drawSprite(canvas, sprite, teamArgb, pose);
+    if (PetSprites.of(familyId, pose) case final sprite?) {
+      _drawSprite(canvas, sprite, teamArgb);
       return;
     }
     final picture = _cache.putIfAbsent((
@@ -44,7 +44,7 @@ abstract final class AnimalArt {
   }
 
   /// Painted pets stand about this tall (world px) and at most this wide.
-  static const double _spriteHeight = 38;
+  static const double _spriteHeight = 40;
   static const double _spriteWidth = 46;
 
   static final ui.Paint _image = ui.Paint()
@@ -56,12 +56,10 @@ abstract final class AnimalArt {
 
   /// A painted pet, feet on the origin, facing right, with an oval in the
   /// team colour under its feet (the painting has no collar to colour).
-  /// Poses lean and stretch it about the feet.
   static void _drawSprite(
     ui.Canvas canvas,
     ui.Image image,
     int teamArgb,
-    AnimalPose pose,
   ) {
     final s = math.min(
       _spriteHeight / image.height,
@@ -81,20 +79,6 @@ abstract final class AnimalArt {
       ..drawOval(ring, _marker)
       ..drawOval(ring, _markerEdge)
       ..save();
-    switch (pose) {
-      case AnimalPose.walkA:
-        canvas
-          ..translate(0, -0.8)
-          ..rotate(0.07);
-      case AnimalPose.walkB:
-        canvas
-          ..translate(0, -0.8)
-          ..rotate(-0.07);
-      case AnimalPose.air:
-        canvas.scale(0.94, 1.07);
-      case AnimalPose.idle:
-        break;
-    }
     canvas
       ..drawImageRect(
         image,

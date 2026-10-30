@@ -91,16 +91,35 @@ class UnitsComponent extends Component {
     for (final u in sim.units) {
       final last = _lastX[u.id];
       final moving = last != null && (u.x - last).abs() > 0.01 && u.grounded;
-      _walkTime[u.id] = moving ? (_walkTime[u.id] ?? 0) + dt : 0;
+      // The sim moves it 60 times a second and a 120 Hz screen updates
+      // twice as often: a frame or two without a move isn't stopping.
+      _stillFor[u.id] = moving ? 0 : (_stillFor[u.id] ?? 0) + dt;
+      final walked = _walkTime[u.id] ?? 0;
+      _walkTime[u.id] = _stillFor[u.id]! >= _stopAfterSeconds
+          ? 0
+          : moving || walked > 0
+          ? walked + dt
+          : 0;
       _lastX[u.id] = u.x;
     }
   }
+
+  final Map<int, double> _stillFor = {};
+  static const double _stopAfterSeconds = 0.06;
+
+  /// Phases of the walk (stride, together, stride, together) per second.
+  static const double _stepsPerSecond = 8;
 
   AnimalPose _pose(Unit u) {
     if (!u.grounded || u.isDashing) return AnimalPose.air;
     final t = _walkTime[u.id] ?? 0;
     if (t == 0) return AnimalPose.idle;
-    return (t * 8).floor().isEven ? AnimalPose.walkA : AnimalPose.walkB;
+    // A stride, feet together, the other stride, feet together.
+    return switch ((t * _stepsPerSecond).floor() % 4) {
+      0 => AnimalPose.walkA,
+      2 => AnimalPose.walkB,
+      _ => AnimalPose.idle,
+    };
   }
 
   @override

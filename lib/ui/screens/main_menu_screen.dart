@@ -16,8 +16,8 @@ import 'lan_screen.dart';
 import 'settings_screen.dart';
 import 'setup_screen.dart';
 
-/// Title screen: the painted meadow, the wordmark top left, the Play
-/// button with How to Play and Settings on the right, version and About
+/// Title screen: the painted pet camp, the wordmark top right, the Play
+/// button with How to Play and Settings under it, version and About
 /// bottom right.
 class MainMenuScreen extends StatelessWidget {
   const MainMenuScreen({super.key});
@@ -48,21 +48,22 @@ class MainMenuScreen extends StatelessWidget {
                   SafeArea(
                     child: Stack(
                       children: [
+                        // The painting's pets fill the left: the logo goes
+                        // over the open sky at the top right, the buttons
+                        // down the far right.
                         Positioned(
-                          left: 24,
-                          top: 24,
-                          width: box.maxWidth * 0.55,
-                          child: Center(
-                            child: FittedBox(
-                              child: PawLogo(title: l10n.appTitle, size: 68),
-                            ),
+                          right: 20,
+                          top: 10,
+                          width: box.maxWidth * 0.36,
+                          child: FittedBox(
+                            child: PawLogo(title: l10n.appTitle, size: 68),
                           ),
                         ),
                         Positioned(
-                          right: 24,
-                          top: 0,
-                          bottom: 24,
-                          width: (box.maxWidth * 0.36).clamp(220, 340),
+                          right: 20,
+                          top: 72,
+                          bottom: 40,
+                          width: (box.maxWidth * 0.28).clamp(210, 300),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -71,8 +72,8 @@ class MainMenuScreen extends StatelessWidget {
                                 label: l10n.menuPlay,
                                 icon: Icons.play_arrow_rounded,
                                 fill: Paw.orange,
-                                height: 68,
-                                fontSize: 30,
+                                height: 56,
+                                fontSize: 26,
                                 display: true,
                                 borderWidth: 3,
                                 radius: 16,
@@ -80,7 +81,7 @@ class MainMenuScreen extends StatelessWidget {
                               ),
                               // No sockets on the web.
                               if (lanSupported) ...[
-                                const SizedBox(height: 14),
+                                const SizedBox(height: 8),
                                 PawButton(
                                   label: l10n.menuPlayWifi,
                                   icon: Icons.wifi_rounded,
@@ -89,14 +90,14 @@ class MainMenuScreen extends StatelessWidget {
                                   onPressed: () => open(const LanScreen()),
                                 ),
                               ],
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 8),
                               PawButton(
                                 label: l10n.menuHowToPlay,
                                 icon: Icons.menu_book_rounded,
                                 borderWidth: 3,
                                 onPressed: () => open(const HowToPlayScreen()),
                               ),
-                              const SizedBox(height: 14),
+                              const SizedBox(height: 8),
                               Row(
                                 children: [
                                   Expanded(
@@ -104,7 +105,8 @@ class MainMenuScreen extends StatelessWidget {
                                       label: l10n.menuHistory,
                                       icon: Icons.history_rounded,
                                       borderWidth: 3,
-                                      padding: 10,
+                                      padding: 4,
+                                      fontSize: 13,
                                       onPressed: () =>
                                           open(const HistoryScreen()),
                                     ),
@@ -115,7 +117,8 @@ class MainMenuScreen extends StatelessWidget {
                                       label: l10n.menuSettings,
                                       icon: Icons.settings_rounded,
                                       borderWidth: 3,
-                                      padding: 10,
+                                      padding: 4,
+                                      fontSize: 13,
                                       onPressed: () =>
                                           open(const SettingsScreen()),
                                     ),
@@ -135,7 +138,7 @@ class MainMenuScreen extends StatelessWidget {
                                 style: Paw.text(
                                   12,
                                   weight: 700,
-                                  color: Paw.muted,
+                                  color: Paw.cream,
                                 ),
                               ),
                               const SizedBox(width: 10),

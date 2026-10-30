@@ -8,9 +8,8 @@ Maps: art/src/<map>.webp (3:1, landscape on #FF00FF) becomes
   assets/maps/<map>/art.webp  what is drawn, ART_SCALE times as big
 scaled to the world size (3600 x 1200).
 
-Pets: art/src/pets.webp (two rows of five on #FF00FF, in the family order
-below) becomes assets/pets/<family>.webp, each trimmed and scaled to a
-fixed height.
+Pets: art/src/pet_<family>.webp (four poses in a row on #FF00FF) becomes
+assets/pets/<family>_<pose>.webp, lined up to swap without the pet moving.
 
 Backgrounds: art/src/<map>_bg.webp (a 3:1 painting, no magenta) becomes
 assets/maps/<map>/background.webp.
@@ -29,7 +28,7 @@ out of the colour (despill). Specks of ground too small to matter are
 dropped and pin holes filled. Needs Pillow. Run from the project root:
 
     python3 tool/art/convert_art.py            # everything
-    python3 tool/art/convert_art.py castle pets craft
+    python3 tool/art/convert_art.py castle pet_cat craft
 """
 import sys
 from collections import deque
@@ -54,6 +53,11 @@ FAMILIES = [
     'duck', 'chicken', 'turtle', 'goat', 'monkey',
 ]
 PET_HEIGHT = 240
+POSES = ['idle', 'walkA', 'walkB', 'air']
+# The head is about this much of a pet's height from the top.
+HEAD_SHARE = 0.45
+# min(R, B) - G from here up is a pocket of background left inside a pet.
+PET_POCKET = 90
 
 # min(R, B) - G: fully opaque below KEY_LO, fully clear above KEY_HI.
 KEY_LO, KEY_HI = 70, 180
@@ -219,67 +223,6 @@ def convert_map(name):
           f'art {(out / "art.webp").stat().st_size // 1024} KB')
 
 
-def convert_pets():
-    """Each pet is a group of connected pieces: the ten biggest are the
-    pets (two rows of five), every smaller piece (a whisker, a feather tip)
-    joins the nearest of them. Pets may overlap side by side, so each is
-    cut out by its own pixels, not by a box."""
-    sheet = key(source('pets'))
-    w, h = sheet.size
-    alpha = sheet.getchannel('A').tobytes()
-    solid = bytearray(1 if v > 128 else 0 for v in alpha)
-    pieces = []
-    for region in components(solid, w, h, 1):
-        xs = [i % w for i in region]
-        ys = [i // w for i in region]
-        pieces.append((region, (min(xs), min(ys), max(xs) + 1, max(ys) + 1)))
-    pieces.sort(key=lambda p: -len(p[0]))
-    if len(pieces) < len(FAMILIES):
-        sys.exit(f'pets: found {len(pieces)} pieces, need {len(FAMILIES)}')
-    pets = [[p] for p in pieces[:len(FAMILIES)]]
-
-    def gap(a, b):
-        dx = max(0, a[0] - b[2], b[0] - a[2])
-        dy = max(0, a[1] - b[3], b[1] - a[3])
-        return dx * dx + dy * dy
-
-    for piece in pieces[len(FAMILIES):]:
-        nearest = min(pets, key=lambda pet: min(gap(piece[1], q[1])
-                                                 for q in pet))
-        nearest.append(piece)
-
-    def box(pet):
-        return (min(q[1][0] for q in pet), min(q[1][1] for q in pet),
-                max(q[1][2] for q in pet), max(q[1][3] for q in pet))
-
-    # Reading order: top row then bottom row, left to right.
-    mid = h / 2
-    pets.sort(key=lambda pet: ((box(pet)[1] + box(pet)[3]) / 2 > mid,
-                               box(pet)[0]))
-    out = ROOT / 'assets' / 'pets'
-    out.mkdir(parents=True, exist_ok=True)
-    for name, pet in zip(FAMILIES, pets):
-        x0, y0, x1, y1 = box(pet)
-        own = bytearray(w * h)
-        for region, _ in pet:
-            for i in region:
-                own[i] = 1
-        # Its pixels at full strength, the soft edge around them kept.
-        keep = Image.frombytes('L', (w, h), bytes(
-            alpha[i] if own[i] or _near(own, i, w, h) else 0
-            for i in range(w * h)))
-        img = sheet.copy()
-        img.putalpha(keep)
-        img = img.crop((max(0, x0 - 2), max(0, y0 - 2),
-                        min(w, x1 + 2), min(h, y1 + 2)))
-        pw, ph = img.size
-        img = resize(img, (round(pw * PET_HEIGHT / ph), PET_HEIGHT))
-        img.save(out / f'{name}.webp', quality=92, alpha_quality=100,
-                 method=6)
-        print(f'pet {name}: {img.size[0]}x{img.size[1]}, '
-              f'{len(pet)} pieces')
-
-
 def convert_background(name):
     img = source(f'{name}_bg').convert('RGB')
     out = ROOT / 'assets' / 'maps' / name / 'background.webp'
@@ -336,11 +279,30 @@ def key_sheet(img):
 
 def convert_sheet(sheet):
     cols, rows, prefix, longest, names = SHEETS[sheet]
-    img = key_sheet(source(sheet))
+    items = cut_cells(key_sheet(source(sheet)), cols, rows)
+    out = ROOT / 'assets' / 'sprites'
+    out.mkdir(parents=True, exist_ok=True)
+    for name, item in zip(names, items):
+        if item is None:
+            sys.exit(f'{sheet}: nothing found for {name}')
+        cw, ch = item.size
+        scale = min(1, longest / max(cw, ch))
+        if scale < 1:
+            item = resize(item, (round(cw * scale), round(ch * scale)))
+        path = out / f'{prefix}_{name}.webp'
+        item.save(path, quality=90, alpha_quality=100, method=6)
+        print(f'{prefix}_{name}: {item.size[0]}x{item.size[1]}, '
+              f'{path.stat().st_size // 1024} KB')
+
+
+def cut_cells(img, cols, rows):
+    """Every item of a keyed sheet, cropped, in reading order: all the
+    loose pieces (a spark, a puff, a whisker) whose centre is in its cell,
+    each by its own pixels."""
     w, h = img.size
     alpha = img.getchannel('A').tobytes()
     solid = bytearray(1 if v > 128 else 0 for v in alpha)
-    cells = [[] for _ in names]
+    cells = [[] for _ in range(cols * rows)]
     for region in components(solid, w, h, 1):
         if len(region) < SHEET_SPECK:
             continue
@@ -352,11 +314,11 @@ def convert_sheet(sheet):
                 min(cols - 1, int(cx * cols / w)))
         cells[cell].append((region, (min(xs), min(ys),
                                      max(xs) + 1, max(ys) + 1)))
-    out = ROOT / 'assets' / 'sprites'
-    out.mkdir(parents=True, exist_ok=True)
-    for name, pieces in zip(names, cells):
+    items = []
+    for pieces in cells:
         if not pieces:
-            sys.exit(f'{sheet}: nothing found for {name}')
+            items.append(None)
+            continue
         x0 = max(0, min(p[1][0] for p in pieces) - 2)
         y0 = max(0, min(p[1][1] for p in pieces) - 2)
         x1 = min(w, max(p[1][2] for p in pieces) + 2)
@@ -371,31 +333,92 @@ def convert_sheet(sheet):
             ImageFilter.MaxFilter(3))
         item = img.crop((x0, y0, x1, y1))
         item.putalpha(ImageChops.darker(item.getchannel('A'), keep))
-        scale = min(1, longest / max(cw, ch))
-        if scale < 1:
-            item = resize(item, (round(cw * scale), round(ch * scale)))
-        path = out / f'{prefix}_{name}.webp'
-        item.save(path, quality=90, alpha_quality=100, method=6)
-        print(f'{prefix}_{name}: {item.size[0]}x{item.size[1]}, '
-              f'{len(pieces)} pieces, {path.stat().st_size // 1024} KB')
+        items.append(item)
+    return items
 
 
-def _near(own, i, w, h):
-    """A soft-edge pixel right next to this pet."""
-    x, y = i % w, i // w
-    for dx, dy in ((-1, 0), (1, 0), (0, -1), (0, 1)):
-        nx, ny = x + dx, y + dy
-        if 0 <= nx < w and 0 <= ny < h and own[ny * w + nx]:
-            return True
-    return False
+def head_profile(frame, height):
+    """How much of the frame is in each column, over its top [height]."""
+    top = frame.getchannel('A').crop((0, 0, frame.width, height))
+    return list(top.resize((frame.width, 1), Image.BOX).tobytes())
+
+
+def head_shift(idle, frame, height, reach=60):
+    """How far right to move [frame] so its head is over the idle head."""
+    a = head_profile(idle, height)
+    b = head_profile(frame, height)
+    def cost(dx):
+        total = 0
+        for x in range(len(a)):
+            i = x - dx
+            total += abs(a[x] - (b[i] if 0 <= i < len(b) else 0))
+        for i in range(len(b)):
+            x = i + dx
+            if not 0 <= x < len(a):
+                total += b[i]
+        return total
+    return min(range(-reach, reach + 1), key=cost)
+
+
+def convert_pet(family):
+    """art/src/pet_<family>.webp: four poses in a row, on magenta. Out come
+    assets/pets/<family>_<pose>.webp, all the same size and scale, so that
+    swapping them moves the legs and not the pet: the head stays put, the
+    feet are on the bottom edge, the standing pet centred."""
+    # No pet has any magenta in it, so even small pockets between its legs
+    # are background.
+    keyed = key_sheet(source(f'pet_{family}'))
+    r, g, b, a = keyed.split()
+    keyed.putalpha(ImageChops.darker(a, ImageChops.subtract(
+        ImageChops.darker(r, b), g).point(
+            lambda k: 0 if k >= PET_POCKET else 255)))
+    frames = cut_cells(keyed, len(POSES), 1)
+    if None in frames:
+        sys.exit(f'pet_{family}: a pose is missing')
+    idle = frames[0]
+    placed = []
+    for pose, frame in zip(POSES, frames):
+        dx = 0 if frame is idle else head_shift(
+            idle, frame, round(idle.height * HEAD_SHARE))
+        # Walking: on the ground. In the air: the head stays, legs tuck up.
+        dy = idle.height - frame.height
+        if pose == 'air':
+            dy = min(0, dy)
+        placed.append((frame, dx, dy))
+    half = max(max(abs(dx - idle.width / 2),
+                   abs(dx + frame.width - idle.width / 2))
+               for frame, dx, _ in placed)
+    top = min(dy for _, _, dy in placed)
+    w = round(half * 2)
+    h = idle.height - top
+    k = PET_HEIGHT / idle.height
+    out = ROOT / 'assets' / 'pets'
+    out.mkdir(parents=True, exist_ok=True)
+    size = (round(w * k), round(h * k))
+    last = None
+    for pose, (frame, dx, dy) in zip(POSES, placed):
+        canvas = Image.new('RGBA', (w, h))
+        canvas.paste(frame, (round(w / 2 - idle.width / 2) + dx, dy - top))
+        img = resize(canvas, size)
+        img.save(out / f'{family}_{pose}.webp', quality=90, alpha_quality=100,
+                 method=6)
+        if pose == 'walkB':
+            diff = ImageChops.difference(img.getchannel('A'),
+                                         last.getchannel('A'))
+            moved = sum(1 for v in diff.tobytes() if v > 128)
+            print(f'pet {family}: {size[0]}x{size[1]}, walks differ '
+                  f'{moved * 100 // (size[0] * size[1])} %, '
+                  f'shifts {[p[1] for p in placed]}')
+        last = img
 
 
 if __name__ == '__main__':
-    targets = sys.argv[1:] or (MAPS + [f'{m}_bg' for m in MAPS] + ['pets'] +
+    targets = sys.argv[1:] or (MAPS + [f'{m}_bg' for m in MAPS] +
+                               [f'pet_{f}' for f in FAMILIES] +
                                list(SHEETS) + ['menu_bg'])
     for t in targets:
-        if t == 'pets':
-            convert_pets()
+        if t.startswith('pet_'):
+            convert_pet(t[4:])
         elif t == 'menu_bg':
             convert_menu()
         elif t in SHEETS:

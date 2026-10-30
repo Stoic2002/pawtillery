@@ -52,7 +52,7 @@ class PawBackdrop extends StatelessWidget {
       children: [
         RepaintBoundary(
           child: painting != null
-              // The hill the pets stand on is at its left: keep that edge.
+              // The pets are on its left: keep that edge.
               ? RawImage(
                   image: painting,
                   fit: BoxFit.cover,
