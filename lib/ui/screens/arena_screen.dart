@@ -26,6 +26,7 @@ import '../../sim/turn_manager.dart';
 import '../hud/arena_hud.dart';
 import '../hud/pause_dialog.dart';
 import '../hud/tutorial.dart';
+import '../widgets/paw/match_loading.dart';
 import '../widgets/paw/paw_widgets.dart';
 import 'lobby_screen.dart';
 import 'results_screen.dart';
@@ -528,7 +529,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
               child: GameWidget(
                 game: game,
                 loadingBuilder: (_) =>
-                    const Center(child: CircularProgressIndicator()),
+                    MatchLoading(map: game.map, config: widget.config),
               ),
             ),
             FutureBuilder<void>(

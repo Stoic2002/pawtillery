@@ -142,7 +142,6 @@ class ResultsScreen extends StatelessWidget {
               for (final (i, u) in pets.indexed)
                 PetFigure(
                   familyId: u.familyId,
-                  breedId: u.breedId,
                   teamArgb: result.teamColors[winner!],
                   size: 64,
                   flip: i.isOdd,

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pawtillery/config/breeds.dart';
 import 'package:pawtillery/config/families.dart';
 import 'dart:async';
 
@@ -22,7 +21,7 @@ import 'package:pawtillery/game/art/sprites.dart';
 import 'package:pawtillery/game/art/weapon_art.dart';
 import 'package:pawtillery/sim/map_object.dart';
 
-/// Renders every breed in every pose. Always checks the painters don't
+/// Renders every pet in every pose. Always checks the painters don't
 /// throw; with RENDER_GALLERY=1 it also writes build/gallery/*.png for
 /// eyeballing the art. With PAINTED=1 the painted sprites are loaded
 /// first (as the app does), else the code-drawn art is shown.
@@ -44,12 +43,9 @@ void main() {
     image.dispose();
   }
 
-  testWidgets('animals: every breed, every pose', (tester) async {
+  testWidgets('animals: every pet, every pose', (tester) async {
     const cell = 84.0;
     const zoom = 2.0;
-    final breedsByFamily = {
-      for (final f in Families.all) f.id: Breeds.ofFamily(f.id),
-    };
     final cols = 8;
     final rows = Families.all.length;
     final recorder = ui.PictureRecorder();
@@ -60,12 +56,8 @@ void main() {
       );
     for (var r = 0; r < rows; r++) {
       final family = Families.all[r];
-      final breeds = breedsByFamily[family.id]!;
       for (var c = 0; c < cols; c++) {
-        final breed = breeds[c % breeds.length];
-        final pose = c < breeds.length
-            ? AnimalPose.idle
-            : AnimalPose.values[(c - breeds.length) % 4];
+        final pose = AnimalPose.values[c % AnimalPose.values.length];
         canvas
           ..save()
           ..translate(c * cell + cell / 2, r * cell + cell * 0.82)
@@ -77,7 +69,6 @@ void main() {
         AnimalArt.draw(
           canvas,
           familyId: family.id,
-          breedId: breed.id,
           teamArgb: r.isEven ? 0xFFE53935 : 0xFF1E88E5,
           pose: pose,
         );

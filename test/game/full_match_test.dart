@@ -29,12 +29,12 @@ void main() {
         waterLevel: Maps.sandbox.waterLevel,
         rosters: const [
           [
-            UnitSpec(familyId: 'cat', breedId: 'catBengal'),
-            UnitSpec(familyId: 'bird', breedId: 'birdBeo'),
+            UnitSpec(familyId: 'cat'),
+            UnitSpec(familyId: 'bird'),
           ],
           [
-            UnitSpec(familyId: 'dog', breedId: 'dogHusky'),
-            UnitSpec(familyId: 'rabbit', breedId: 'rabbitRex'),
+            UnitSpec(familyId: 'dog'),
+            UnitSpec(familyId: 'rabbit'),
           ],
         ],
       );

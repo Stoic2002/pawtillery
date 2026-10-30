@@ -360,214 +360,6 @@
   "@weaponCoconut": {
     "description": "Weapon name."
   },
-  "breedCatKampung": "Kampung",
-  "@breedCatKampung": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedCatAngora": "Anggora",
-  "@breedCatAngora": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedCatBritishShorthair": "British Shorthair",
-  "@breedCatBritishShorthair": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedCatSiberian": "Siberian",
-  "@breedCatSiberian": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedCatPersia": "Persia",
-  "@breedCatPersia": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedCatMaineCoon": "Maine Coon",
-  "@breedCatMaineCoon": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedCatBengal": "Bengal",
-  "@breedCatBengal": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedCatSphynx": "Sphynx",
-  "@breedCatSphynx": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDogGoldenRetriever": "Golden Retriever",
-  "@breedDogGoldenRetriever": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDogGermanShepherd": "German Shepherd",
-  "@breedDogGermanShepherd": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDogAlaskanMalamute": "Alaskan Malamute",
-  "@breedDogAlaskanMalamute": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDogHusky": "Husky",
-  "@breedDogHusky": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDogCorgi": "Corgi",
-  "@breedDogCorgi": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDogShibaInu": "Shiba Inu",
-  "@breedDogShibaInu": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDogPomeranian": "Pomeranian",
-  "@breedDogPomeranian": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDogDachshund": "Dachshund",
-  "@breedDogDachshund": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedRabbitHollandLop": "Holland Lop",
-  "@breedRabbitHollandLop": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedRabbitRex": "Rex",
-  "@breedRabbitRex": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedRabbitLionhead": "Lionhead",
-  "@breedRabbitLionhead": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedRabbitAngora": "Angora",
-  "@breedRabbitAngora": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedRabbitNetherlandDwarf": "Netherland Dwarf",
-  "@breedRabbitNetherlandDwarf": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedBirdMerpati": "Merpati",
-  "@breedBirdMerpati": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedBirdKakatua": "Kakatua",
-  "@breedBirdKakatua": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedBirdLovebird": "Lovebird",
-  "@breedBirdLovebird": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedBirdJalakBali": "Jalak Bali",
-  "@breedBirdJalakBali": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedBirdBeo": "Beo",
-  "@breedBirdBeo": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedHamsterSyrian": "Syrian",
-  "@breedHamsterSyrian": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedHamsterWinterWhite": "Winter White",
-  "@breedHamsterWinterWhite": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedHamsterCampbell": "Campbell",
-  "@breedHamsterCampbell": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedHamsterRoborovski": "Roborovski",
-  "@breedHamsterRoborovski": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDuckPeking": "Peking",
-  "@breedDuckPeking": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDuckMallard": "Mallard",
-  "@breedDuckMallard": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDuckIndianRunner": "Indian Runner",
-  "@breedDuckIndianRunner": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDuckMandarin": "Mandarin",
-  "@breedDuckMandarin": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedDuckCallDuck": "Call Duck",
-  "@breedDuckCallDuck": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedChickenKampung": "Kampung",
-  "@breedChickenKampung": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedChickenPelung": "Pelung",
-  "@breedChickenPelung": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedChickenCemani": "Cemani",
-  "@breedChickenCemani": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedChickenBangkok": "Bangkok",
-  "@breedChickenBangkok": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedChickenSilkie": "Silkie",
-  "@breedChickenSilkie": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedTurtleSulcata": "Sulcata",
-  "@breedTurtleSulcata": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedTurtleBrazil": "Brazil",
-  "@breedTurtleBrazil": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedTurtleAmbon": "Ambon",
-  "@breedTurtleAmbon": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedTurtleLeopard": "Leopard",
-  "@breedTurtleLeopard": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedGoatEtawa": "Etawa",
-  "@breedGoatEtawa": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedGoatKacang": "Kacang",
-  "@breedGoatKacang": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedGoatBoer": "Boer",
-  "@breedGoatBoer": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedGoatSaanen": "Saanen",
-  "@breedGoatSaanen": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedMonkeyEkorPanjang": "Ekor Panjang",
-  "@breedMonkeyEkorPanjang": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedMonkeyBekantan": "Bekantan",
-  "@breedMonkeyBekantan": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedMonkeyLutung": "Lutung",
-  "@breedMonkeyLutung": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
-  "breedMonkeyKapusin": "Kapusin",
-  "@breedMonkeyKapusin": {
-    "description": "Breed name (common breed name, usually untranslated)."
-  },
   "hudWeapons": "Weapons",
   "@hudWeapons": {
     "description": "Weapon menu title and button label."
@@ -816,13 +608,9 @@
   "@setupUnitName": {
     "description": "Unit name field label."
   },
-  "setupFamily": "Family",
+  "setupFamily": "Animal",
   "@setupFamily": {
     "description": "Unit family dropdown label."
-  },
-  "setupBreed": "Breed",
-  "@setupBreed": {
-    "description": "Unit breed dropdown label."
   },
   "setupColor": "Team colour",
   "@setupColor": {
@@ -952,7 +740,7 @@
   "@howFamiliesTitle": {
     "description": "How-to-play page title."
   },
-  "howFamiliesBody": "Each family has a passive ability: cats survive one lethal hit, dogs are tougher, rabbits jump higher, birds glide, and more. Breeds only change the look.",
+  "howFamiliesBody": "Each animal has a passive ability: cats survive one lethal hit, dogs are tougher, rabbits jump higher, birds glide, and more.",
   "@howFamiliesBody": {
     "description": "How-to-play text."
   },
@@ -1125,10 +913,6 @@
   "@setupChooseFamily": {
     "description": "Catalogue dialog title."
   },
-  "setupChooseBreed": "Choose a breed",
-  "@setupChooseBreed": {
-    "description": "Catalogue dialog title."
-  },
   "setupConditions": "Match rules",
   "@setupConditions": {
     "description": "Heading of the match options."
@@ -1198,7 +982,22 @@
   "setupStartMatch": "Start match",
   "setupTeamCount": "Number of teams",
   "setupSummary": "{teams} teams · {units} units · {seconds} s · {map}",
-  "@setupSummary": {"placeholders": {"teams": {"type": "int"},"units": {"type": "int"},"seconds": {"type": "int"},"map": {"type": "String"}}},
+  "@setupSummary": {
+    "placeholders": {
+      "teams": {
+        "type": "int"
+      },
+      "units": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      },
+      "map": {
+        "type": "String"
+      }
+    }
+  },
   "hudConfirm": "Confirm",
   "hudRetreatNow": "Retreat!",
   "hudWindLabel": "Wind",
@@ -1206,10 +1005,28 @@
   "hudPowerLabel": "Power",
   "hudFuseLabel": "Fuse (seconds)",
   "hudStepOf": "{step} / {total}",
-  "@hudStepOf": {"placeholders": {"step": {"type": "int"},"total": {"type": "int"}}},
+  "@hudStepOf": {
+    "placeholders": {
+      "step": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "resultBestShot": "Best shot",
   "resultBestShotValue": "{name} · {damage} damage",
-  "@resultBestShotValue": {"placeholders": {"name": {"type": "String"},"damage": {"type": "int"}}},
+  "@resultBestShotValue": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "damage": {
+        "type": "int"
+      }
+    }
+  },
   "resultColumnDamage": "Damage",
   "resultColumnKnockouts": "Defeated",
   "resultColumnLeft": "Left",
@@ -1443,7 +1260,6 @@
   "@lobbyLeave": {
     "description": "Leave the room."
   },
-  "setupDone": "Done",
   "@setupDone": {
     "description": "Setup screen button in a Wi-Fi room: keep the setup and go back to the lobby."
   },
@@ -1705,5 +1521,11 @@
   "weaponMiniNukeDesc": "Heavy and slow, but the blast is huge. Leaves a fallout cloud that poisons pets for 3 turns.",
   "@weaponMiniNukeDesc": {
     "description": "Weapon menu description."
-  }
+  },
+  "loadingTip1": "Wind pushes most shots: check the arrow before you fire.",
+  "loadingTip2": "Poison gas is heavy. It sinks into holes and pools there.",
+  "loadingTip3": "Fire runs downhill. Stay above it.",
+  "loadingTip4": "Water is the fastest way to lose a pet, and to win a match.",
+  "loadingTip5": "Every animal has its own ability and signature weapon.",
+  "loadingTip6": "Crates fall from the sky. Grab them before your rival does."
 }

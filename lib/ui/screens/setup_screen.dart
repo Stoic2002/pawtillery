@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import '../../app/app_services.dart';
 import '../../app/match_config.dart';
 import '../../app/paw_palette.dart';
-import '../../config/breeds.dart';
 import '../../config/cpu.dart';
 import '../../config/families.dart';
 import '../../config/map_objects.dart';
@@ -603,7 +602,6 @@ class _UnitRow extends StatelessWidget {
               const SizedBox(width: 4),
               PetFigure(
                 familyId: unit.familyId,
-                breedId: unit.breedId,
                 teamArgb: teamArgb,
                 size: 32,
               ),
@@ -1180,7 +1178,7 @@ class _MapThumbPainter extends CustomPainter {
 // ------------------------------------------------------------ unit editor
 
 /// Edit one unit (redesign prototype): portrait, name and Randomize on the
-/// left; family tiles, breed chips, the family's passive and signature
+/// left; family tiles, the family's passive and signature
 /// weapon, and Done on the right. Changes apply as you make them.
 class UnitEditorScreen extends StatefulWidget {
   const UnitEditorScreen({
@@ -1276,7 +1274,6 @@ class _UnitEditorScreenState extends State<UnitEditorScreen> {
                                 alignment: Alignment.center,
                                 child: PetFigure(
                                   familyId: _unit.familyId,
-                                  breedId: _unit.breedId,
                                   teamArgb: teamArgb,
                                   size: 92,
                                 ),
@@ -1341,30 +1338,6 @@ class _UnitEditorScreenState extends State<UnitEditorScreen> {
                               },
                             ),
                             const SizedBox(height: 10),
-                            SizedBox(
-                              height: 48,
-                              child: ListView(
-                                scrollDirection: Axis.horizontal,
-                                children: [
-                                  for (final b in Breeds.ofFamily(
-                                    _unit.familyId,
-                                  ))
-                                    Padding(
-                                      padding: const EdgeInsets.only(
-                                        right: 8,
-                                        bottom: 4,
-                                      ),
-                                      child: _BreedChip(
-                                        breed: b,
-                                        selected: b.id == _unit.breedId,
-                                        onTap: () =>
-                                            _set(_unit.copyWith(breedId: b.id)),
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 6),
                             Expanded(
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -1473,7 +1446,6 @@ class _FamilyTile extends StatelessWidget {
             children: [
               PetFigure(
                 familyId: family.id,
-                breedId: Breeds.ofFamily(family.id).first.id,
                 teamArgb: 0xFF2B2118,
                 size: 30,
               ),
@@ -1488,51 +1460,6 @@ class _FamilyTile extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _BreedChip extends StatelessWidget {
-  const _BreedChip({
-    required this.breed,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final BreedDef breed;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 42,
-        padding: const EdgeInsets.fromLTRB(6, 0, 12, 0),
-        decoration: BoxDecoration(
-          color: selected ? Paw.peach : Paw.cream,
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: Paw.ink, width: selected ? 3 : 2),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                color: Color(breed.primaryArgb),
-                shape: BoxShape.circle,
-                border: Border.all(color: Paw.ink, width: 2),
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(l10n.byKey(breed.nameKey), style: Paw.text(13)),
-          ],
         ),
       ),
     );

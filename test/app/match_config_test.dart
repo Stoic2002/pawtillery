@@ -3,7 +3,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pawtillery/app/match_config.dart';
-import 'package:pawtillery/config/breeds.dart';
+import 'package:pawtillery/config/families.dart';
 import 'package:pawtillery/config/match_defaults.dart';
 import 'package:pawtillery/services/settings_store.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,22 +40,16 @@ void main() {
     expect(c.teams.map((t) => t.styleIndex), [1, 0]);
   });
 
-  test('random fill always gives a breed of the chosen family', () {
+  test('random fill always gives a known family and a name', () {
     final rng = Random(1);
     var c = MatchConfig.defaults(_names).withTeamCount(4, _names);
     for (var i = 0; i < 50; i++) {
       c = c.randomized(rng, _names);
       for (final u in c.teams.expand((t) => t.units)) {
-        expect(Breeds.byId(u.breedId).familyId, u.familyId);
+        expect(Families.byId(u.familyId).id, u.familyId);
         expect(_names, contains(u.name));
       }
     }
-  });
-
-  test('changing a unit family resets its breed to that family', () {
-    final u = MatchConfig.defaults(_names).teams[0].units[0];
-    final v = u.copyWith(familyId: 'goat');
-    expect(Breeds.byId(v.breedId).familyId, 'goat');
   });
 
   test('round-trips through JSON; rejects broken data', () {

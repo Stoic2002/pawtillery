@@ -1,6 +1,5 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:pawtillery/config/breeds.dart';
 import 'package:pawtillery/config/families.dart';
 import 'package:pawtillery/config/maps.dart';
 import 'package:pawtillery/config/teams.dart';
@@ -17,7 +16,6 @@ void main() {
       f.passive.nameKey,
       f.passive.descriptionKey,
     ],
-    for (final b in Breeds.all) b.nameKey,
     for (final w in Weapons.all) w.nameKey,
     for (final t in Teams.styles) t.nameKey,
     for (final m in Maps.all) m.nameKey,
@@ -39,15 +37,6 @@ void main() {
     for (final w in Weapons.all.where((w) => w.hidden)) {
       expect(Weapons.groups, isNot(contains(w.id)), reason: w.id);
     }
-  });
-
-  test('every family has at least 4 breeds, and breeds are unique', () {
-    for (final f in Families.all) {
-      expect(Breeds.ofFamily(f.id).length, greaterThanOrEqualTo(4),
-          reason: f.id);
-    }
-    expect(Breeds.all.map((b) => b.id).toSet(), hasLength(Breeds.all.length));
-    expect(Breeds.all, hasLength(52));
   });
 
   test('Indonesian names differ where the PRD translates them', () async {

@@ -91,7 +91,6 @@ class SimWorld implements SimContext {
           x: x.toDouble(),
           y: y.toDouble(),
           familyId: spec.familyId,
-          breedId: spec.breedId,
         ));
       }
     }

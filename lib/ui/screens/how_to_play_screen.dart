@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../app/paw_palette.dart';
-import '../../config/breeds.dart';
 import '../../config/families.dart';
 import '../../config/teams.dart';
 import '../../config/weapons.dart';
@@ -173,7 +172,6 @@ class _HowToPlayScreenState extends State<HowToPlayScreen> {
   Widget _pet(String family, int team, {double size = 90, bool flip = false}) =>
       PetFigure(
         familyId: family,
-        breedId: Breeds.ofFamily(family).first.id,
         teamArgb: Teams.styles[team].colorArgb,
         size: size,
         flip: flip,

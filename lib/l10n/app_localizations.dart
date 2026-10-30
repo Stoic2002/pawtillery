@@ -566,318 +566,6 @@ abstract class AppLocalizations {
   /// **'Falling Coconut'**
   String get weaponCoconut;
 
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Kampung'**
-  String get breedCatKampung;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Anggora'**
-  String get breedCatAngora;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'British Shorthair'**
-  String get breedCatBritishShorthair;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Siberian'**
-  String get breedCatSiberian;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Persia'**
-  String get breedCatPersia;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Maine Coon'**
-  String get breedCatMaineCoon;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Bengal'**
-  String get breedCatBengal;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Sphynx'**
-  String get breedCatSphynx;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Golden Retriever'**
-  String get breedDogGoldenRetriever;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'German Shepherd'**
-  String get breedDogGermanShepherd;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Alaskan Malamute'**
-  String get breedDogAlaskanMalamute;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Husky'**
-  String get breedDogHusky;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Corgi'**
-  String get breedDogCorgi;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Shiba Inu'**
-  String get breedDogShibaInu;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Pomeranian'**
-  String get breedDogPomeranian;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Dachshund'**
-  String get breedDogDachshund;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Holland Lop'**
-  String get breedRabbitHollandLop;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Rex'**
-  String get breedRabbitRex;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Lionhead'**
-  String get breedRabbitLionhead;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Angora'**
-  String get breedRabbitAngora;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Netherland Dwarf'**
-  String get breedRabbitNetherlandDwarf;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Merpati'**
-  String get breedBirdMerpati;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Kakatua'**
-  String get breedBirdKakatua;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Lovebird'**
-  String get breedBirdLovebird;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Jalak Bali'**
-  String get breedBirdJalakBali;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Beo'**
-  String get breedBirdBeo;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Syrian'**
-  String get breedHamsterSyrian;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Winter White'**
-  String get breedHamsterWinterWhite;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Campbell'**
-  String get breedHamsterCampbell;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Roborovski'**
-  String get breedHamsterRoborovski;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Peking'**
-  String get breedDuckPeking;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Mallard'**
-  String get breedDuckMallard;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Indian Runner'**
-  String get breedDuckIndianRunner;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Mandarin'**
-  String get breedDuckMandarin;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Call Duck'**
-  String get breedDuckCallDuck;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Kampung'**
-  String get breedChickenKampung;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Pelung'**
-  String get breedChickenPelung;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Cemani'**
-  String get breedChickenCemani;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Bangkok'**
-  String get breedChickenBangkok;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Silkie'**
-  String get breedChickenSilkie;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Sulcata'**
-  String get breedTurtleSulcata;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Brazil'**
-  String get breedTurtleBrazil;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Ambon'**
-  String get breedTurtleAmbon;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Leopard'**
-  String get breedTurtleLeopard;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Etawa'**
-  String get breedGoatEtawa;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Kacang'**
-  String get breedGoatKacang;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Boer'**
-  String get breedGoatBoer;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Saanen'**
-  String get breedGoatSaanen;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Ekor Panjang'**
-  String get breedMonkeyEkorPanjang;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Bekantan'**
-  String get breedMonkeyBekantan;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Lutung'**
-  String get breedMonkeyLutung;
-
-  /// Breed name (common breed name, usually untranslated).
-  ///
-  /// In en, this message translates to:
-  /// **'Kapusin'**
-  String get breedMonkeyKapusin;
-
   /// Weapon menu title and button label.
   ///
   /// In en, this message translates to:
@@ -1199,14 +887,8 @@ abstract class AppLocalizations {
   /// Unit family dropdown label.
   ///
   /// In en, this message translates to:
-  /// **'Family'**
+  /// **'Animal'**
   String get setupFamily;
-
-  /// Unit breed dropdown label.
-  ///
-  /// In en, this message translates to:
-  /// **'Breed'**
-  String get setupBreed;
 
   /// Colour picker label.
   ///
@@ -1379,7 +1061,7 @@ abstract class AppLocalizations {
   /// How-to-play text.
   ///
   /// In en, this message translates to:
-  /// **'Each family has a passive ability: cats survive one lethal hit, dogs are tougher, rabbits jump higher, birds glide, and more. Breeds only change the look.'**
+  /// **'Each animal has a passive ability: cats survive one lethal hit, dogs are tougher, rabbits jump higher, birds glide, and more.'**
   String get howFamiliesBody;
 
   /// How-to-play page title.
@@ -1615,12 +1297,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose a family'**
   String get setupChooseFamily;
-
-  /// Catalogue dialog title.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose a breed'**
-  String get setupChooseBreed;
 
   /// Heading of the match options.
   ///
@@ -2749,6 +2425,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Heavy and slow, but the blast is huge. Leaves a fallout cloud that poisons pets for 3 turns.'**
   String get weaponMiniNukeDesc;
+
+  /// No description provided for @loadingTip1.
+  ///
+  /// In en, this message translates to:
+  /// **'Wind pushes most shots: check the arrow before you fire.'**
+  String get loadingTip1;
+
+  /// No description provided for @loadingTip2.
+  ///
+  /// In en, this message translates to:
+  /// **'Poison gas is heavy. It sinks into holes and pools there.'**
+  String get loadingTip2;
+
+  /// No description provided for @loadingTip3.
+  ///
+  /// In en, this message translates to:
+  /// **'Fire runs downhill. Stay above it.'**
+  String get loadingTip3;
+
+  /// No description provided for @loadingTip4.
+  ///
+  /// In en, this message translates to:
+  /// **'Water is the fastest way to lose a pet, and to win a match.'**
+  String get loadingTip4;
+
+  /// No description provided for @loadingTip5.
+  ///
+  /// In en, this message translates to:
+  /// **'Every animal has its own ability and signature weapon.'**
+  String get loadingTip5;
+
+  /// No description provided for @loadingTip6.
+  ///
+  /// In en, this message translates to:
+  /// **'Crates fall from the sky. Grab them before your rival does.'**
+  String get loadingTip6;
 }
 
 class _AppLocalizationsDelegate

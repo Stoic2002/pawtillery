@@ -531,7 +531,7 @@ class WeaponDef {
   final double knockbackScale;
   final bool terrainDamage;
 
-  /// Set for a family's signature weapon (PRD: Family dan breed).
+  /// Set for a family's signature weapon (PRD: Family).
   final String? familyId;
 
   /// Sub-munitions (bomblets, eggs, …) that never appear in the menu.
@@ -1118,7 +1118,7 @@ abstract final class Weapons {
     placeholderArgb: 0xFF90A4AE,
   );
 
-  // ---- family signature weapons (PRD: Family dan breed) ----------------
+  // ---- family signature weapons (PRD: Family) ----------------
 
   static const hairball = WeaponDef(
     id: 'hairball',

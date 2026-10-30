@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
-import '../../config/breeds.dart';
+import 'pet_coats.dart';
 import 'pet_sprites.dart';
 
 enum AnimalPose { idle, walkA, walkB, air }
@@ -10,14 +10,14 @@ enum AnimalPose { idle, walkA, walkB, air }
 /// The chibi pets of the approved redesign (redesign/PetSoft.dc.html): a
 /// round softly shaded body, family features (ears, horns, beak, shell...),
 /// two glossy eyes, blushing cheeks, and a collar in the team colour with
-/// a gold tag. Breeds change the coat colour and add a light pattern.
+/// a gold tag.
 ///
 /// Built in the prototype's 100 × 100 box and scaled so the feet sit at
 /// (0, 0) and a standard unit is [height] tall, facing right. Callers flip
-/// and scale. Every (breed, team, pose) is recorded once into a
+/// and scale. Every (family, team, pose) is recorded once into a
 /// [ui.Picture] and replayed.
 abstract final class AnimalArt {
-  static final Map<(String?, String?, int, AnimalPose), ui.Picture> _cache = {};
+  static final Map<(String?, int, AnimalPose), ui.Picture> _cache = {};
 
   /// Visual height of a standard unit, for placing labels above it.
   static const double height = 37;
@@ -28,7 +28,6 @@ abstract final class AnimalArt {
   static void draw(
     ui.Canvas canvas, {
     required String? familyId,
-    required String? breedId,
     required int teamArgb,
     required AnimalPose pose,
   }) {
@@ -38,10 +37,9 @@ abstract final class AnimalArt {
     }
     final picture = _cache.putIfAbsent((
       familyId,
-      breedId,
       teamArgb,
       pose,
-    ), () => _record(familyId, breedId, teamArgb, pose));
+    ), () => _record(familyId, teamArgb, pose));
     canvas.drawPicture(picture);
   }
 
@@ -114,7 +112,6 @@ abstract final class AnimalArt {
 
   static ui.Picture _record(
     String? familyId,
-    String? breedId,
     int teamArgb,
     AnimalPose pose,
   ) {
@@ -123,18 +120,17 @@ abstract final class AnimalArt {
     final canvas = ui.Canvas(recorder)
       ..scale(_k)
       ..translate(-50, -95);
-    final breed = breedId == null ? null : Breeds.byId(breedId);
-    _Pet(canvas, familyId ?? 'cat', breed, teamArgb, pose).draw();
+    _Pet(canvas, familyId ?? 'cat', teamArgb, pose).draw();
     return recorder.endRecording();
   }
 }
 
 class _Pet {
-  _Pet(this.c, this.family, BreedDef? breed, this.team, this.pose)
-    : color = breed?.primaryArgb ?? 0xFFF2A65A,
-      mark = breed?.markingArgb ?? 0xFF8A7458,
-      second = breed?.secondaryArgb ?? 0xFFF7EEDD,
-      pattern = breed?.pattern ?? CoatPattern.solid;
+  _Pet(this.c, this.family, this.team, this.pose)
+    : color = PetCoat.byFamily[family]?.primary ?? 0xFFF2A65A,
+      mark = PetCoat.byFamily[family]?.marking ?? 0xFF8A7458,
+      second = PetCoat.byFamily[family]?.secondary ?? 0xFFF7EEDD,
+      pattern = PetCoat.byFamily[family]?.pattern ?? CoatPattern.solid;
 
   final ui.Canvas c;
   final String family;
@@ -442,7 +438,7 @@ class _Pet {
     }
   }
 
-  /// A light breed pattern on the body, clipped to it.
+  /// A light coat pattern on the body, clipped to it.
   void _pattern(ui.Path body) {
     final m = fill(ui.Color(mark).withValues(alpha: 0.55));
     c

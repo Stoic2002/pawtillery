@@ -1312,3 +1312,24 @@ From a playtest:
   tongues stand on the ground under each one, it catches quickly, and
   flamelets break off the tips.
 - Wi-Fi protocol 22.
+
+## One animal per family, a real loading screen, smaller maps (2026-10-30)
+
+- **No more breeds.** The developer wants a cat to be a cat. Breeds were
+  cosmetic only, so `lib/config/breeds.dart`, `breedId`, the breed chips and
+  their 50-odd strings are gone; families (with their passives and signature
+  weapons) stay, called "Hewan" / "Animal" on screen. Old saves still load
+  (the extra `breed` key is ignored). The code-drawn fallback's colours moved
+  to `lib/game/art/pet_coats.dart`. Wi-Fi protocol 23.
+- **Loading.** `MatchLoading` replaces the spinner: the map's painting, the
+  logo, the match's own pets hopping in a wave, the map's name, a bar and a
+  random tip. The bar eases towards the end, since the load can't report its
+  progress. Terrain chunks are now built one at a time, so frames get in
+  between and the animation runs.
+- **AVIF: no.** On `ruins` art (7200 × 2400) WebP q88 is 2048 KB, WebP q70
+  1246 KB, AVIF q55 919 KB. But Flutter's engine has no AVIF decoder we can
+  rely on across Android versions; it would need a native package, whose
+  library adds to every APK and eats the 1.2 MB or so saved across the four
+  maps compared with WebP at lower quality, and decoding is slower. Instead
+  `ART_QUALITY` went from 88 to 72: the four maps fell from 7.7 to 4.9 MB
+  with no visible change at play zoom.

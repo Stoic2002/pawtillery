@@ -241,14 +241,14 @@ void main() {
           waterLevel: 1120,
           rosters: const [
             [
-              UnitSpec(familyId: 'cat', breedId: 'catKampung'),
-              UnitSpec(familyId: 'rabbit', breedId: 'rabbitRex'),
-              UnitSpec(familyId: 'chicken', breedId: 'chickenSilkie'),
+              UnitSpec(familyId: 'cat'),
+              UnitSpec(familyId: 'rabbit'),
+              UnitSpec(familyId: 'chicken'),
             ],
             [
-              UnitSpec(familyId: 'dog', breedId: 'dogCorgi'),
-              UnitSpec(familyId: 'turtle', breedId: 'turtleAmbon'),
-              UnitSpec(familyId: 'monkey', breedId: 'monkeyLutung'),
+              UnitSpec(familyId: 'dog'),
+              UnitSpec(familyId: 'turtle'),
+              UnitSpec(familyId: 'monkey'),
             ],
           ],
           timings: _timings,

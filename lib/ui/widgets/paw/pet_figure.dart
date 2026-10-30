@@ -8,14 +8,12 @@ class PetFigure extends StatelessWidget {
   const PetFigure({
     super.key,
     required this.familyId,
-    required this.breedId,
     required this.teamArgb,
     this.size = 64,
     this.flip = false,
   });
 
   final String? familyId;
-  final String? breedId;
   final int teamArgb;
   final double size;
   final bool flip;
@@ -43,7 +41,6 @@ class _PetPainter extends CustomPainter {
     AnimalArt.draw(
       canvas,
       familyId: f.familyId,
-      breedId: f.breedId,
       teamArgb: f.teamArgb,
       pose: AnimalPose.idle,
     );
@@ -53,7 +50,6 @@ class _PetPainter extends CustomPainter {
   @override
   bool shouldRepaint(_PetPainter old) =>
       old.f.familyId != f.familyId ||
-      old.f.breedId != f.breedId ||
       old.f.teamArgb != f.teamArgb ||
       old.f.flip != f.flip;
 }

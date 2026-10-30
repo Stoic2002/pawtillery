@@ -80,10 +80,12 @@ class TerrainComponent extends PositionComponent {
 
   @override
   Future<void> onLoad() async {
-    await Future.wait([
-      for (var row = 0; row < _rows; row++)
-        for (var col = 0; col < _cols; col++) _buildChunk(col, row),
-    ]);
+    // One at a time, so frames (the loading screen) get in between.
+    for (var row = 0; row < _rows; row++) {
+      for (var col = 0; col < _cols; col++) {
+        await _buildChunk(col, row);
+      }
+    }
   }
 
   /// Redraws a chunk from the mask. The old image stays on screen until the

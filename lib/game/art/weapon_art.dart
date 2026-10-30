@@ -999,7 +999,6 @@ abstract final class WeaponArt {
           ..scale(0.85);
         AnimalArt.draw(c,
             familyId: 'duck',
-            breedId: 'duckCallDuck',
             teamArgb: 0xFFE53935,
             pose: AnimalPose.idle);
         c.restore();
@@ -1720,7 +1719,6 @@ abstract final class WeaponArt {
       ..scale(0.8);
     AnimalArt.draw(c,
         familyId: 'chicken',
-        breedId: 'chickenKampung',
         teamArgb: 0xFFE53935,
         pose: AnimalPose.idle);
     c.restore();

@@ -1,4 +1,4 @@
-/// Family data (PRD: Family dan breed). A family decides gameplay through
+/// Family data (PRD: Family). A family decides gameplay through
 /// one passive — expressed purely as modifiers on [UnitConfig] numbers — and
 /// one signature weapon. Pure Dart. Adding a family = adding data here.
 library;

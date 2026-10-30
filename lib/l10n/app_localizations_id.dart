@@ -265,162 +265,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get weaponCoconut => 'Kelapa Jatuh';
 
   @override
-  String get breedCatKampung => 'Kampung';
-
-  @override
-  String get breedCatAngora => 'Anggora';
-
-  @override
-  String get breedCatBritishShorthair => 'British Shorthair';
-
-  @override
-  String get breedCatSiberian => 'Siberian';
-
-  @override
-  String get breedCatPersia => 'Persia';
-
-  @override
-  String get breedCatMaineCoon => 'Maine Coon';
-
-  @override
-  String get breedCatBengal => 'Bengal';
-
-  @override
-  String get breedCatSphynx => 'Sphynx';
-
-  @override
-  String get breedDogGoldenRetriever => 'Golden Retriever';
-
-  @override
-  String get breedDogGermanShepherd => 'German Shepherd';
-
-  @override
-  String get breedDogAlaskanMalamute => 'Alaskan Malamute';
-
-  @override
-  String get breedDogHusky => 'Husky';
-
-  @override
-  String get breedDogCorgi => 'Corgi';
-
-  @override
-  String get breedDogShibaInu => 'Shiba Inu';
-
-  @override
-  String get breedDogPomeranian => 'Pomeranian';
-
-  @override
-  String get breedDogDachshund => 'Dachshund';
-
-  @override
-  String get breedRabbitHollandLop => 'Holland Lop';
-
-  @override
-  String get breedRabbitRex => 'Rex';
-
-  @override
-  String get breedRabbitLionhead => 'Lionhead';
-
-  @override
-  String get breedRabbitAngora => 'Angora';
-
-  @override
-  String get breedRabbitNetherlandDwarf => 'Netherland Dwarf';
-
-  @override
-  String get breedBirdMerpati => 'Merpati';
-
-  @override
-  String get breedBirdKakatua => 'Kakatua';
-
-  @override
-  String get breedBirdLovebird => 'Lovebird';
-
-  @override
-  String get breedBirdJalakBali => 'Jalak Bali';
-
-  @override
-  String get breedBirdBeo => 'Beo';
-
-  @override
-  String get breedHamsterSyrian => 'Syrian';
-
-  @override
-  String get breedHamsterWinterWhite => 'Winter White';
-
-  @override
-  String get breedHamsterCampbell => 'Campbell';
-
-  @override
-  String get breedHamsterRoborovski => 'Roborovski';
-
-  @override
-  String get breedDuckPeking => 'Peking';
-
-  @override
-  String get breedDuckMallard => 'Mallard';
-
-  @override
-  String get breedDuckIndianRunner => 'Indian Runner';
-
-  @override
-  String get breedDuckMandarin => 'Mandarin';
-
-  @override
-  String get breedDuckCallDuck => 'Call Duck';
-
-  @override
-  String get breedChickenKampung => 'Kampung';
-
-  @override
-  String get breedChickenPelung => 'Pelung';
-
-  @override
-  String get breedChickenCemani => 'Cemani';
-
-  @override
-  String get breedChickenBangkok => 'Bangkok';
-
-  @override
-  String get breedChickenSilkie => 'Silkie';
-
-  @override
-  String get breedTurtleSulcata => 'Sulcata';
-
-  @override
-  String get breedTurtleBrazil => 'Brazil';
-
-  @override
-  String get breedTurtleAmbon => 'Ambon';
-
-  @override
-  String get breedTurtleLeopard => 'Leopard';
-
-  @override
-  String get breedGoatEtawa => 'Etawa';
-
-  @override
-  String get breedGoatKacang => 'Kacang';
-
-  @override
-  String get breedGoatBoer => 'Boer';
-
-  @override
-  String get breedGoatSaanen => 'Saanen';
-
-  @override
-  String get breedMonkeyEkorPanjang => 'Ekor Panjang';
-
-  @override
-  String get breedMonkeyBekantan => 'Bekantan';
-
-  @override
-  String get breedMonkeyLutung => 'Lutung';
-
-  @override
-  String get breedMonkeyKapusin => 'Kapusin';
-
-  @override
   String get hudWeapons => 'Senjata';
 
   @override
@@ -596,10 +440,7 @@ class AppLocalizationsId extends AppLocalizations {
   String get setupUnitName => 'Nama';
 
   @override
-  String get setupFamily => 'Jenis';
-
-  @override
-  String get setupBreed => 'Ras';
+  String get setupFamily => 'Hewan';
 
   @override
   String get setupColor => 'Warna tim';
@@ -695,7 +536,7 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get howFamiliesBody =>
-      'Setiap jenis hewan punya kemampuan pasif: kucing selamat dari satu serangan mematikan, anjing lebih tangguh, kelinci lompat lebih tinggi, burung melayang, dan lainnya. Ras hanya mengubah tampilan.';
+      'Setiap hewan punya kemampuan pasif: kucing selamat dari satu serangan mematikan, anjing lebih tangguh, kelinci lompat lebih tinggi, burung melayang, dan lainnya.';
 
   @override
   String get howWinTitle => 'Menang';
@@ -822,9 +663,6 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get setupChooseFamily => 'Pilih jenis hewan';
-
-  @override
-  String get setupChooseBreed => 'Pilih ras';
 
   @override
   String get setupConditions => 'Aturan main';
@@ -1447,4 +1285,27 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get weaponMiniNukeDesc =>
       'Berat dan lambat, tapi ledakannya sangat besar. Meninggalkan awan radiasi yang meracuni pet selama 3 giliran.';
+
+  @override
+  String get loadingTip1 =>
+      'Angin mendorong tembakan: cek panahnya sebelum menembak.';
+
+  @override
+  String get loadingTip2 =>
+      'Gas beracun itu berat: turun ke lubang dan menggenang di sana.';
+
+  @override
+  String get loadingTip3 => 'Api mengalir ke bawah. Berdirilah di atasnya.';
+
+  @override
+  String get loadingTip4 =>
+      'Air adalah cara tercepat kehilangan hewan, juga memenangkan pertandingan.';
+
+  @override
+  String get loadingTip5 =>
+      'Setiap hewan punya kemampuan dan senjata khasnya sendiri.';
+
+  @override
+  String get loadingTip6 =>
+      'Peti jatuh dari langit. Ambil sebelum lawan mendahului.';
 }

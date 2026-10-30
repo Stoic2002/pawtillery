@@ -127,7 +127,6 @@ class UnitsComponent extends Component {
       AnimalArt.draw(
         canvas,
         familyId: u.familyId,
-        breedId: u.breedId,
         teamArgb: teamColors[u.team],
         pose: pose,
       );

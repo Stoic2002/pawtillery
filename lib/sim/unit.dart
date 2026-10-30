@@ -87,7 +87,6 @@ class Unit {
     required this.x,
     required this.y,
     this.familyId,
-    this.breedId,
     UnitStats? stats,
   })  : stats = stats ??
             UnitStats.forFamily(
@@ -102,7 +101,6 @@ class Unit {
   final int id;
   final int team;
   final String? familyId;
-  final String? breedId;
   final UnitStats stats;
 
   double x;

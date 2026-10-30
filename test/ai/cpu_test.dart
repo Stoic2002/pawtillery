@@ -226,12 +226,12 @@ void main() {
             waterLevel: map.waterLevel,
             rosters: const [
               [
-                UnitSpec(familyId: 'cat', breedId: 'catBengal'),
-                UnitSpec(familyId: 'monkey', breedId: 'monkeyEkorPanjang'),
+                UnitSpec(familyId: 'cat'),
+                UnitSpec(familyId: 'monkey'),
               ],
               [
-                UnitSpec(familyId: 'dog', breedId: 'dogHusky'),
-                UnitSpec(familyId: 'bird', breedId: 'birdBeo'),
+                UnitSpec(familyId: 'dog'),
+                UnitSpec(familyId: 'bird'),
               ],
             ],
             objects: map.objects,

@@ -481,7 +481,7 @@ class AirSupportComponent extends Component {
     canvas.restore();
   }
 
-  /// A V of five birds of the shooter's own breed, flapping.
+  /// A V of five birds of the shooter's own kind, flapping.
   void _drawFlock(ui.Canvas canvas, Aircraft a) {
     final owner = sim.units[a.ownerId];
     const formation = [
@@ -501,7 +501,6 @@ class AirSupportComponent extends Component {
       AnimalArt.draw(
         canvas,
         familyId: owner.familyId,
-        breedId: owner.breedId,
         teamArgb: teamColors[owner.team],
         pose: flap ? AnimalPose.air : AnimalPose.idle,
       );

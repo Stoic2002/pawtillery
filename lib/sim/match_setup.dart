@@ -1,8 +1,7 @@
 /// One unit's identity in a match roster.
 class UnitSpec {
-  const UnitSpec({required this.familyId, required this.breedId});
+  const UnitSpec({required this.familyId});
   final String familyId;
-  final String breedId;
 }
 
 /// A unit placed explicitly (tests and scripted setups). [familyId] null =

@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import '../config/breeds.dart';
 import '../config/cpu.dart';
 import '../config/families.dart';
 import '../config/map_objects.dart';
@@ -14,40 +13,30 @@ import '../sim/match_setup.dart';
 class UnitEntry {
   const UnitEntry({
     required this.familyId,
-    required this.breedId,
     required this.name,
   });
 
   final String familyId;
-  final String breedId;
   final String name;
 
-  UnitEntry copyWith({String? familyId, String? breedId, String? name}) {
-    final family = familyId ?? this.familyId;
-    var breed = breedId ?? this.breedId;
-    // Changing the family resets the breed to one of that family.
-    if (Breeds.byId(breed).familyId != family) {
-      breed = Breeds.ofFamily(family).first.id;
-    }
-    return UnitEntry(familyId: family, breedId: breed, name: name ?? this.name);
-  }
+  UnitEntry copyWith({String? familyId, String? name}) => UnitEntry(
+    familyId: familyId ?? this.familyId,
+    name: name ?? this.name,
+  );
 
-  Map<String, Object?> toJson() =>
-      {'family': familyId, 'breed': breedId, 'name': name};
+  Map<String, Object?> toJson() => {'family': familyId, 'name': name};
 
   static UnitEntry? fromJson(Object? json) {
     if (json is! Map) return null;
     final family = json['family'];
-    final breed = json['breed'];
     final name = json['name'];
-    if (family is! String || breed is! String || name is! String) return null;
+    if (family is! String || name is! String) return null;
     try {
       Families.byId(family);
-      if (Breeds.byId(breed).familyId != family) return null;
     } on ArgumentError {
       return null;
     }
-    return UnitEntry(familyId: family, breedId: breed, name: name);
+    return UnitEntry(familyId: family, name: name);
   }
 }
 
@@ -212,7 +201,7 @@ class MatchConfig {
       ? this
       : copyWith(teams: [...teams]..removeAt(team));
 
-  /// Random family, breed and name for every unit of one team.
+  /// Random family and name for every unit of one team.
   MatchConfig withRandomTeam(int team, Random rng, List<String> namePool) =>
       withTeam(
         team,
@@ -222,7 +211,7 @@ class MatchConfig {
         ]),
       );
 
-  /// The "Acak" button: random family, breed and name for every unit.
+  /// The "Acak" button: random family and name for every unit.
   MatchConfig randomized(Random rng, List<String> namePool) => copyWith(
         teams: [
           for (final t in teams)
@@ -235,21 +224,17 @@ class MatchConfig {
 
   static UnitEntry randomUnit(Random rng, List<String> namePool) {
     final family = Families.all[rng.nextInt(Families.all.length)];
-    final breeds = Breeds.ofFamily(family.id);
     return UnitEntry(
       familyId: family.id,
-      breedId: breeds[rng.nextInt(breeds.length)].id,
       name: namePool.isEmpty ? '' : namePool[rng.nextInt(namePool.length)],
     );
   }
 
-  /// Default unit #[i]: families in order, first breed, a name from the
-  /// pool.
+  /// Default unit #[i]: families in order, a name from the pool.
   static UnitEntry _defaultUnit(int i, List<String> namePool) {
     final family = Families.all[i % Families.all.length];
     return UnitEntry(
       familyId: family.id,
-      breedId: Breeds.ofFamily(family.id).first.id,
       name: namePool.isEmpty ? '' : namePool[i % namePool.length],
     );
   }
@@ -273,7 +258,7 @@ class MatchConfig {
         for (final t in teams)
           [
             for (final u in t.units)
-              UnitSpec(familyId: u.familyId, breedId: u.breedId),
+              UnitSpec(familyId: u.familyId),
           ],
       ];
 
@@ -288,7 +273,7 @@ class MatchConfig {
         'randomWeapons': randomWeapons,
       };
 
-  /// Restores a saved config; anything invalid (old data, removed breeds)
+  /// Restores a saved config; anything invalid (old data)
   /// falls back to null so the caller can use the defaults.
   static MatchConfig? fromJson(Object? json, List<String> namePool) {
     if (json is! Map) return null;

@@ -17,8 +17,8 @@ SimWorld _match(int seed, {ObjectMix? objects = _mix}) => SimWorld.newMatch(
   terrain: flatMap(w: 3000),
   waterLevel: 560,
   rosters: const [
-    [UnitSpec(familyId: 'cat', breedId: 'catBengal')],
-    [UnitSpec(familyId: 'dog', breedId: 'dogHusky')],
+    [UnitSpec(familyId: 'cat')],
+    [UnitSpec(familyId: 'dog')],
   ],
   timings: testTimings,
   objects: objects,

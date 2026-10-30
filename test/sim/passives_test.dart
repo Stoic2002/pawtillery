@@ -16,7 +16,7 @@ import 'sim_test_utils.dart';
 const _selfHit = Fire(weaponId: 'rock', angleDeg: 270, powerPercent: 5);
 
 void main() {
-  test('every family has a passive, a signature weapon and breeds', () {
+  test('every family has a passive and a signature weapon', () {
     expect(Families.all, hasLength(10));
     for (final f in Families.all) {
       final w = Weapons.byId(f.signatureWeaponId);

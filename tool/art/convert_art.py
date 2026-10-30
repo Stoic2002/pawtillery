@@ -46,6 +46,8 @@ WORLD = (3600, 1200)
 ART_SCALE = 2
 # Unsharp mask on the painting (radius, percent, threshold).
 SHARPEN = (1.5, 70, 2)
+# WebP quality of the painting: as low as it looks the same in play.
+ART_QUALITY = 72
 MAPS = ['backyard', 'castle', 'wreck', 'ruins']
 FAMILIES = [
     'cat', 'dog', 'rabbit', 'bird', 'hamster',
@@ -211,7 +213,7 @@ def convert_map(name):
     mask = Image.new('RGBA', (w, h))
     mask.putdata([(0, 0, 0, 255) if s else (0, 0, 0, 0) for s in solid])
     mask.save(out / 'mask.png', optimize=True)
-    art.save(out / 'art.webp', quality=88, alpha_quality=100, method=6)
+    art.save(out / 'art.webp', quality=ART_QUALITY, alpha_quality=100, method=6)
     print(f'{name}: {w}x{h} (art {big_size[0]}x{big_size[1]}), ground {sum(solid) * 100 // (w * h)} %, '
           f'{dropped} specks dropped, {filled} pin holes filled, '
           f'art {(out / "art.webp").stat().st_size // 1024} KB')
