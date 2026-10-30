@@ -1328,8 +1328,8 @@ From a playtest:
   between and the animation runs.
 - **AVIF: no.** On `ruins` art (7200 × 2400) WebP q88 is 2048 KB, WebP q70
   1246 KB, AVIF q55 919 KB. But Flutter's engine has no AVIF decoder we can
-  rely on across Android versions; it would need a native package, whose
-  library adds to every APK and eats the 1.2 MB or so saved across the four
-  maps compared with WebP at lower quality, and decoding is slower. Instead
+  rely on across Android versions; it would need a native package, adding a
+  library to the APK (size not measured) to save about 1.6 MB across the four
+  maps over WebP at lower quality, and AVIF decodes more slowly. Instead
   `ART_QUALITY` went from 88 to 72: the four maps fell from 7.7 to 4.9 MB
   with no visible change at play zoom.
