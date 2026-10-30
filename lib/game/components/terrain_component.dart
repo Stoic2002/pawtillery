@@ -18,6 +18,7 @@ class TerrainComponent extends PositionComponent {
     this.materials,
     this.art,
     this.artScale = 1,
+    this.artTop = 0,
     this.visible,
   }) : super(size: Vector2(mask.width.toDouble(), mask.height.toDouble()));
 
@@ -27,6 +28,9 @@ class TerrainComponent extends PositionComponent {
   /// The painting is this many times finer than the mask, and so are the
   /// chunk images (a world px is [artScale] image px each way).
   final int artScale;
+
+  /// Rows of the painting left out at its top (see MapData.artTop).
+  final int artTop;
 
   /// Image px per world px in the chunk images.
   int get _scale => art == null ? 1 : artScale;
@@ -110,6 +114,7 @@ class TerrainComponent extends PositionComponent {
             w + 2 * g,
             h + 2 * g,
             scale: s,
+            artTop: artTop,
           )
         : buildChunkPixels(
             mask,
@@ -285,8 +290,10 @@ class TerrainComponent extends PositionComponent {
       if (!mask.isSolid(x, y)) continue;
       // A painted map: the painting's own colour there.
       if (art case final a?) {
-        final i = ((y * mask.width * artScale + x) * artScale) * 4;
-        if (a[i + 3] >= 128) {
+        final i =
+            ((y * artScale - artTop) * mask.width * artScale + x * artScale) *
+            4;
+        if (i >= 0 && a[i + 3] >= 128) {
           colors.add(0xFF000000 | a[i] << 16 | a[i + 1] << 8 | a[i + 2]);
           continue;
         }

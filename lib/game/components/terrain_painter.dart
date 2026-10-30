@@ -667,7 +667,8 @@ abstract final class PaintKitless {
 /// The chunk is (x0, y0, w, h) in world px; the painting is [scale] times
 /// finer than the mask, and so is the result (w * scale by h * scale).
 /// There, ground keeps the painting's own fine edge inside each mask
-/// pixel instead of filling the whole pixel.
+/// pixel instead of filling the whole pixel. [art] lacks its first [artTop]
+/// rows, the empty sky.
 Uint8List? buildArtChunkPixels(
   TerrainMask mask,
   MapDef map,
@@ -677,6 +678,7 @@ Uint8List? buildArtChunkPixels(
   int w,
   int h, {
   int scale = 1,
+  int artTop = 0,
 }) {
   final ow = w * scale;
   final oh = h * scale;
@@ -688,7 +690,9 @@ Uint8List? buildArtChunkPixels(
   /// The painting covers mask pixel (x, y): what made it ground.
   bool coversPixel(int x, int y) {
     for (var sy = 0; sy < scale; sy++) {
-      final row = (y * scale + sy) * artWidth + x * scale;
+      final ay = y * scale + sy - artTop;
+      if (ay < 0) continue;
+      final row = ay * artWidth + x * scale;
       for (var sx = 0; sx < scale; sx++) {
         if (art[(row + sx) * 4 + 3] >= 128) return true;
       }
@@ -718,9 +722,9 @@ Uint8List? buildArtChunkPixels(
       if (ax < 0) continue;
       final x = ax ~/ scale;
       if (x >= mask.width) continue;
-      final i = (ay * artWidth + ax) * 4;
+      final i = ((ay - artTop) * artWidth + ax) * 4;
       final o = (ly * ow + lx) * 4;
-      final a = art[i + 3];
+      final a = i < 0 ? 0 : art[i + 3];
       if (mask.isSolid(x, y)) {
         any = true;
         if (scale == 1 ? a >= 128 : covered(x, y)) {

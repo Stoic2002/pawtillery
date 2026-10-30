@@ -3,10 +3,11 @@
 
 Sources are WebP or PNG (a PNG wins when both are there).
 
-Maps: art/src/<map>.webp (3:1, landscape on #FF00FF) becomes
+Maps: art/src/<map>.webp (3:2, landscape on #FF00FF) becomes
   assets/maps/<map>/mask.png  the sim's ground (alpha > 128 = ground)
-  assets/maps/<map>/art.webp  what is drawn, ART_SCALE times as big
-scaled to the world size (3600 x 1200).
+  assets/maps/<map>/art.webp  what is drawn, ART_SCALE times as big, without
+                              the empty sky above the land
+scaled to the world size (3600 x 2400).
 
 Pets: art/src/pet_<family>.webp (four poses in a row on #FF00FF) becomes
 assets/pets/<family>_<pose>.webp, lined up to swap without the pet moving.
@@ -40,7 +41,7 @@ from PIL import Image, ImageChops, ImageFilter
 ROOT = Path(__file__).resolve().parents[2]
 SRC = ROOT / 'art' / 'src'
 
-WORLD = (3600, 1200)
+WORLD = (3600, 2400)
 # The painting is kept this many times finer than the world (and its
 # mask), so it stays sharp when the camera zooms in.
 ART_SCALE = 2
@@ -240,6 +241,10 @@ def convert_map(name):
     mask = Image.new('RGBA', (w, h))
     mask.putdata([(0, 0, 0, 255) if s else (0, 0, 0, 0) for s in solid])
     mask.save(out / 'mask.png', optimize=True)
+    # The empty sky above the land isn't kept: the game takes the painting
+    # to sit at the bottom of the map, so it holds less of it in memory.
+    top = art.getchannel('A').getbbox()[1]
+    art = art.crop((0, top, *art.size))
     art.save(out / 'art.webp', quality=ART_QUALITY, alpha_quality=100, method=6)
     print(f'{name}: {w}x{h} (art {big_size[0]}x{big_size[1]}), ground {sum(solid) * 100 // (w * h)} %, '
           f'{dropped} specks dropped, {filled} pin holes filled, '

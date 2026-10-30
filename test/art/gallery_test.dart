@@ -210,6 +210,7 @@ void main() {
                 mask.width,
                 mask.height,
                 scale: data.artScale,
+                artTop: data.artTop,
               )!
             : buildChunkPixels(
                 mask,

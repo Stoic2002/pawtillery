@@ -1429,3 +1429,25 @@ the sim, so Wi-Fi protocol 24.
 the Rules tab offers off, from the start, 5, 10 or 15 minutes. It stays a rule,
 not a separate mode screen; other modes will be chosen in the same tab, until
 there are enough of them to justify a screen of their own.
+
+## New map shapes, 3:2 (2026-10-31)
+
+All four maps were one strip of land from edge to edge, differing only in theme.
+The developer generated new ones at 3:2 with a silhouette each: Backyard two
+islands, Castle a crag and two islands joined by rope bridges, Wreck five
+islands, Ruins a deep U split by a narrow gap. Cliffs at both ends leave water at
+the sides.
+
+- World 3600 × 2400 (was 1200), water at 2160, camera 500 px above the map (was
+  1200 above a shorter one). Sources upscaled 4× with the anime model.
+- The empty sky above the land is cut from `art.webp`; the loader takes the
+  painting to sit at the bottom of the map (`MapData.artTop`), which saves 13–32
+  MB. The painting decodes to 106–125 MB in Dart and the chunks that hold ground
+  take up to 103–120 MB on the GPU, about 210–245 MB together; the earlier 2x
+  maps were about 140. Not yet measured on a phone.
+- Painted caves, tunnels and crypts are solid ground: only the magenta in the
+  source is empty. They can be dug into, not walked into.
+- CPU against CPU (3 a side, Hard against Normal, 12 matches over the four maps):
+  all finished, hits land across the gaps, one drowning. Most last 2–7 minutes;
+  two ran 18–20, the last pets stuck apart until the ground crumbled at 15.
+  Wi-Fi protocol 25.

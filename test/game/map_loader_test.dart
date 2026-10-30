@@ -40,10 +40,11 @@ void main() {
         data = await loadMapData(map.maskAsset, artAsset: map.artAsset);
       });
       final mask = data.mask;
-      expect((mask.width, mask.height), (3600, 1200));
+      expect((mask.width, mask.height), (3600, 2400));
       // Painted twice as fine as the mask (tool/art/convert_art.py).
       expect(data.artScale, 2);
-      expect(data.art, hasLength(7200 * 2400 * 4), reason: 'painted');
+      expect(data.art!.length ~/ (7200 * 4), 4800 - data.artTop);
+      expect(data.artTop, greaterThan(0), reason: 'no empty sky kept');
       for (var seed = 0; seed < 20; seed++) {
         final points = findSpawnPoints(
           terrain: mask,
