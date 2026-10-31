@@ -1096,7 +1096,11 @@ class _MapCard extends StatelessWidget {
                         ),
                       )
                     else
-                      CustomPaint(painter: _MapThumbPainter(Maps.byId(id))),
+                      Image.asset(
+                        Maps.byId(id).thumbAsset,
+                        fit: BoxFit.cover,
+                        filterQuality: FilterQuality.medium,
+                      ),
                     if (selected)
                       Positioned(
                         top: 4,
@@ -1126,11 +1130,10 @@ class _MapCard extends StatelessWidget {
                 decoration: const BoxDecoration(
                   border: Border(top: BorderSide(color: Paw.ink, width: 2)),
                 ),
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Paw.text(13),
+                // Shrinks to fit: every name is shown whole.
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(name, maxLines: 1, style: Paw.text(13)),
                 ),
               ),
             ],
@@ -1139,60 +1142,6 @@ class _MapCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// A tiny landscape in the map's own sky and ground colours.
-class _MapThumbPainter extends CustomPainter {
-  _MapThumbPainter(this.map);
-  final MapDef map;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final rect = Offset.zero & size;
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(map.skyTopArgb), Color(map.skyBottomArgb)],
-        ).createShader(rect),
-    );
-    final seed = map.id.codeUnits.fold(0, (a, b) => a + b);
-    final ground = Path()..moveTo(0, h);
-    for (var x = 0.0; x <= w; x += 4) {
-      final t = x / w;
-      final y =
-          h *
-          (0.55 +
-              0.12 * sin(t * 6.3 + seed) +
-              0.06 * sin(t * 17 + seed * 0.7) +
-              (t > 0.42 && t < 0.58 ? 0.25 : 0));
-      ground.lineTo(x, y.clamp(h * 0.25, h * 0.95));
-    }
-    ground
-      ..lineTo(w, h)
-      ..close();
-    canvas
-      ..drawRect(
-        Rect.fromLTWH(0, h * 0.86, w, h * 0.14),
-        Paint()..color = Color(map.waterArgb).withValues(alpha: 1),
-      )
-      ..drawPath(ground, Paint()..color = Color(map.dirtArgb))
-      ..drawPath(
-        ground,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 3
-          ..strokeJoin = StrokeJoin.round
-          ..color = Color(map.grassArgb),
-      );
-  }
-
-  @override
-  bool shouldRepaint(_MapThumbPainter old) => old.map != map;
 }
 
 // ------------------------------------------------------------ unit editor

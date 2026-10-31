@@ -81,6 +81,9 @@ class MapDef {
   /// layers. Null = code-drawn.
   final String? backgroundAsset;
 
+  /// The small picture on the Setup screen (tool/art/convert_art.py).
+  String get thumbAsset => 'assets/maps/$id/thumb.webp';
+
   /// World y of the water surface; everything below is water.
   final int waterLevel;
 

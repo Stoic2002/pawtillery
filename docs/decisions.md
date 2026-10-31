@@ -1470,3 +1470,7 @@ the sides.
 - **Modes.** A Mode row heads the Rules tab: Classic, Crumbling ground, Random
   weapons, Chaos (both). A mode isn't stored, it is read off the rules, which stay
   adjustable; so saves, Wi-Fi and the CPU needed no change.
+
+Setup's map tiles now show `thumb.webp` (480 × 320, about 30 KB each), made by
+the converter from the background, the land and a band of water, instead of a
+code-drawn hill that no longer matched the maps. Long names shrink to fit.

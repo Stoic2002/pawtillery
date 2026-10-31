@@ -60,6 +60,11 @@ POSES = ['idle', 'walkA', 'walkB', 'air']
 # terrain, the menu's the screen.
 BG_WIDTH = 4000
 MENU_WIDTH = 2880
+# The small pictures on the Setup screen: size, share of the height that is
+# water (2160 of a map's 2400 is above it), its colour.
+THUMB = (480, 320)
+THUMB_WATER = 0.1
+THUMB_WATER_RGBA = (24, 52, 72, 215)
 # The out-of-focus menu painting behind the other screens.
 SOFT_WIDTH = 960
 SOFT_BLUR = 7
@@ -264,6 +269,28 @@ def convert_background(name):
           f'{out.stat().st_size // 1024} KB')
 
 
+def convert_thumb(name):
+    """assets/maps/<map>/thumb.webp, the Setup screen's small picture: the
+    converted background, land and a band of water, as the match shows them."""
+    folder = ROOT / 'assets' / 'maps' / name
+    art = Image.open(folder / 'art.webp').convert('RGBA')
+    bg = Image.open(folder / 'background.webp').convert('RGB')
+    w, h = THUMB
+    k = max(w / bg.width, h / bg.height)
+    bg = bg.resize((round(bg.width * k), round(bg.height * k)), Image.LANCZOS)
+    out = bg.crop(((bg.width - w) // 2, (bg.height - h) // 2,
+                   (bg.width - w) // 2 + w, (bg.height - h) // 2 + h))
+    out = out.convert('RGBA')
+    # The art lacks the empty sky: it sits at the bottom of the thumbnail.
+    k = w / art.width
+    land = resize(art, (w, round(art.height * k)))
+    out.alpha_composite(land, (0, h - land.height))
+    water = Image.new('RGBA', (w, round(h * THUMB_WATER)), THUMB_WATER_RGBA)
+    out.alpha_composite(water, (0, h - water.height))
+    out.convert('RGB').save(folder / 'thumb.webp', quality=82, method=6)
+    print(f'{name} thumb: {(folder / "thumb.webp").stat().st_size // 1024} KB')
+
+
 def convert_menu():
     img = source('menu_bg').convert('RGB')
     out = ROOT / 'assets' / 'menu'
@@ -456,6 +483,7 @@ def convert_pet(family):
 
 if __name__ == '__main__':
     targets = sys.argv[1:] or (MAPS + [f'{m}_bg' for m in MAPS] +
+                               [f'{m}_thumb' for m in MAPS] +
                                [f'pet_{f}' for f in FAMILIES] +
                                list(SHEETS) + ['menu_bg'])
     for t in targets:
@@ -465,6 +493,8 @@ if __name__ == '__main__':
             convert_menu()
         elif t in SHEETS:
             convert_sheet(t)
+        elif t.endswith('_thumb'):
+            convert_thumb(t[:-6])
         elif t.endswith('_bg'):
             convert_background(t[:-3])
         else:
