@@ -191,7 +191,13 @@ extension _Weapons on SimWorld {
         )..body = body);
     }
 
-    if (weapon.isSignature) {
+    final parked = weapon.delivery is BoardMachine
+        ? objectNear(unit, ObjectKind.machine)
+        : null;
+    if (parked != null) {
+      // Climbed into one standing here: nothing spent.
+      parked.destroyed = true;
+    } else if (weapon.isSignature) {
       unit.signatureUsed = true;
     } else if (randomWeapons) {
       // A drawn weapon is free.

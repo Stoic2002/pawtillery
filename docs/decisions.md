@@ -1549,3 +1549,25 @@ entered would need more art. The CPU doesn't seek rooms out.
 
 `art/src/equipment.webp` gives the war machine, mounted gun, material crate, jetpack,
 shell and craft icon. Protocol 30.
+
+## After the first play of rooms and tools (2026-11-01)
+
+- **Mask.** Small green rooms had been shut in the mask but drawn dark: they looked like
+  openings and were walls (about 53,000 px on Ruins). Green is now empty at any size,
+  so what looks like a hole is one. Doorways stop at 360 px, shafts count as nearly
+  level: long cuts ran as black bars across cliff tops. So more of the deepest rooms
+  need digging, or a blast.
+- **Arrange HUD** moved from the pause menu to Settings, on stand-ins for the parts,
+  since nobody arranges a HUD mid-match. Dragging flickered because every move went
+  through settings, a save and frames found a frame late; the screen now keeps the layout
+  itself, each piece is its own frame, and it saves when a gesture ends.
+- **Use here.** Nobody could tell a mounted gun worked: it sat in the Tools tab. A
+  button now appears by the action buttons when the pet stands at a gun, a parked
+  machine, or is in one. One war machine now stands on each map, free to climb into;
+  it had only been craftable. Reach for objects is up with their size.
+- **Crafting** explains itself: where materials come from, what you own, and after
+  making something, a button to use it now.
+- **Sizes:** pets 50 px (hitbox unchanged), machine 130 wide, barrel 44, crates 34–36,
+  gun 72, mines 38. Object blast and pick-up reach grew with them. Protocol 31.
+- Fixed: `_Pressable` could call `setState` after being removed (seen in a release log,
+  harmless); the wind number wrapped at two digits.

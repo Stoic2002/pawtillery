@@ -50,9 +50,12 @@ class SettingsStore extends ChangeNotifier {
   set sfxVolume(double v) => _set(() => _prefs.setDouble(_kSfx, v.clamp(0, 1)));
 
   /// Where the match HUD's parts are and how big.
-  HudLayout get hudLayout => HudLayout.decode(_prefs.getString(_kHudLayout));
-  set hudLayout(HudLayout v) =>
-      _set(() => _prefs.setString(_kHudLayout, v.encode()));
+  late HudLayout _hudLayout = HudLayout.decode(_prefs.getString(_kHudLayout));
+  HudLayout get hudLayout => _hudLayout;
+  set hudLayout(HudLayout v) {
+    _hudLayout = v;
+    _set(() => _prefs.setString(_kHudLayout, v.encode()));
+  }
 
   bool get haptics => _prefs.getBool(_kHaptics) ?? true;
   set haptics(bool v) => _set(() => _prefs.setBool(_kHaptics, v));

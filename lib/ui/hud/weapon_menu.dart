@@ -65,6 +65,9 @@ class _WeaponPanelState extends State<_WeaponPanel> {
   late WeaponGroup _group = Weapons.groupOf(game.weapon);
   bool _crafting = false;
 
+  /// The last thing made, offered for use right away.
+  String? _made;
+
   static String _groupLabel(AppLocalizations l10n, WeaponGroup g) =>
       switch (g) {
         WeaponGroup.thrown => l10n.weaponGroupThrown,
@@ -73,6 +76,37 @@ class _WeaponPanelState extends State<_WeaponPanel> {
         WeaponGroup.close => l10n.weaponGroupClose,
         WeaponGroup.tools => l10n.weaponGroupTools,
       };
+
+  /// How crafting works, or what was just made with the way to use it.
+  Widget _craftInfo(AppLocalizations l10n) {
+    final made = _made;
+    if (made == null) return Text(l10n.craftHint, style: Paw.text(13, weight: 600));
+    final weapon = Weapons.byId(made);
+    return Row(
+      children: [
+        WeaponIcon(weapon: weapon, size: 30),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            '${l10n.craftMade}: ${l10n.byKey(weapon.nameKey)}',
+            style: Paw.text(13),
+          ),
+        ),
+        PawButton(
+          label: l10n.craftUse,
+          fill: Paw.green,
+          height: 38,
+          fontSize: 13,
+          shadow: 2,
+          padding: 12,
+          onPressed: () {
+            game.selectWeapon(made);
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+  }
 
   /// What the team's materials can make; a tap makes one, for use now or
   /// later in the match.
@@ -96,11 +130,15 @@ class _WeaponPanelState extends State<_WeaponPanel> {
                   child: _RecipeTile(
                     weapon: Weapons.byId(id),
                     cost: cost,
+                    owned: unit == null
+                        ? 0
+                        : game.sim.ammoLeft(unit.team, Weapons.byId(id)) ?? 0,
                     onTap: have < cost || !game.canAim
                         ? null
                         : () async {
                             AppServices.of(context).audio.play(Sfx.ui);
                             game.craft(id);
+                            setState(() => _made = id);
                             // The sim takes it on its next tick.
                             await Future<void>.delayed(
                               const Duration(milliseconds: 60),
@@ -257,7 +295,9 @@ class _WeaponPanelState extends State<_WeaponPanel> {
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(color: Paw.ink, width: 2),
                 ),
-                child: current.playerFuse
+                child: _crafting
+                    ? _craftInfo(l10n)
+                    : current.playerFuse
                     ? Row(
                         children: [
                           Expanded(
@@ -311,10 +351,16 @@ class _WeaponPanelState extends State<_WeaponPanel> {
 }
 
 class _RecipeTile extends StatelessWidget {
-  const _RecipeTile({required this.weapon, required this.cost, this.onTap});
+  const _RecipeTile({
+    required this.weapon,
+    required this.cost,
+    required this.owned,
+    this.onTap,
+  });
 
   final WeaponDef weapon;
   final int cost;
+  final int owned;
   final VoidCallback? onTap;
 
   @override
@@ -335,13 +381,25 @@ class _RecipeTile extends StatelessWidget {
             WeaponIcon(weapon: weapon, size: 34),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(
-                l10n.byKey(weapon.nameKey),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Paw.text(13, height: 1.15),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.byKey(weapon.nameKey),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Paw.text(13, height: 1.15),
+                  ),
+                  Text(
+                    '${l10n.craftOwned}: $owned',
+                    style: Paw.text(11, weight: 600, color: Paw.muted),
+                  ),
+                ],
               ),
             ),
+            PawIcon(Icons.build_rounded, size: 14),
+            const SizedBox(width: 2),
             Text('$cost', style: Paw.title(18, color: Paw.orangeDeep)),
           ],
         ),

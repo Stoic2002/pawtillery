@@ -84,6 +84,21 @@ void main() {
     expect(me.hp, hp, reason: 'the last hit stops at the machine');
   });
 
+  test('a parked machine can be climbed into for free, once', () {
+    final w = _duel();
+    toAction(w);
+    final me = w.units[0];
+    expect(w.canUse(me, Weapons.warMachine), isFalse);
+    w.addObject(ObjectKind.machine, 220, 400);
+    expect(w.canUse(me, Weapons.warMachine), isTrue);
+    w.step(const [Fire(weaponId: 'warMachine')]);
+    w.step(const []);
+    expect(me.inMachine, isTrue);
+    expect(w.ammoLeft(0, Weapons.warMachine), 0, reason: 'nothing spent');
+    expect(w.objects.where((o) => o.kind == ObjectKind.machine), isEmpty);
+    expect(w.turn.allowsFire, isTrue, reason: 'it can still fire');
+  });
+
   test('a craft input crosses the wire', () {
     final back = decodeInput(encodeInput(const Craft('jetpack')));
     expect(back, isA<Craft>());

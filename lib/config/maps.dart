@@ -141,6 +141,7 @@ abstract final class Maps {
       healthCrates: 1,
       weaponCrates: 1,
       guns: 2,
+      machines: 1,
     ),
   );
 
@@ -166,6 +167,7 @@ abstract final class Maps {
       healthCrates: 1,
       weaponCrates: 2,
       guns: 2,
+      machines: 1,
     ),
   );
 
@@ -191,6 +193,7 @@ abstract final class Maps {
       healthCrates: 1,
       weaponCrates: 1,
       guns: 2,
+      machines: 1,
     ),
   );
 
@@ -216,6 +219,7 @@ abstract final class Maps {
       healthCrates: 2,
       weaponCrates: 1,
       guns: 2,
+      machines: 1,
     ),
   );
 

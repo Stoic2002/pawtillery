@@ -22,6 +22,7 @@ extension _Impacts on SimWorld {
       for (var i = 0; i < mix.healthCrates; i++) ObjectKind.healthCrate,
       for (var i = 0; i < mix.weaponCrates; i++) ObjectKind.weaponCrate,
       for (var i = 0; i < mix.guns; i++) ObjectKind.gun,
+      for (var i = 0; i < mix.machines; i++) ObjectKind.machine,
     ];
     for (var i = 0; i < points.length; i++) {
       final (x, y) = points[i];
@@ -150,7 +151,11 @@ extension _Impacts on SimWorld {
         }
         continue;
       }
-      if (o.kind == ObjectKind.barrel || o.kind == ObjectKind.gun) continue;
+      if (o.kind == ObjectKind.barrel ||
+          o.kind == ObjectKind.gun ||
+          o.kind == ObjectKind.machine) {
+        continue;
+      }
       for (final u in _units) {
         if (!u.alive) continue;
         final dx = u.centerX - o.x;

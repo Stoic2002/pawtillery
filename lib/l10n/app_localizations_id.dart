@@ -1365,9 +1365,6 @@ class AppLocalizationsId extends AppLocalizations {
   String get hudJetHint => 'Arahkan dengan joystick';
 
   @override
-  String get pauseHudLayout => 'Atur HUD';
-
-  @override
   String get hudEditHint =>
       'Geser bagian untuk memindahkan. Ketuk satu, lalu atur ukurannya.';
 
@@ -1400,4 +1397,26 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get weaponMachineCannonDesc =>
       'Meriam mesin tempur. Cepat dan datar, tanpa batas.';
+
+  @override
+  String get settingsHudLayout => 'Tata letak HUD match';
+
+  @override
+  String get settingsHudLayoutOpen => 'Atur';
+
+  @override
+  String get hudBoardMachine => 'Naik';
+
+  @override
+  String get craftOwned => 'Punya';
+
+  @override
+  String get craftMade => 'Dibuat';
+
+  @override
+  String get craftUse => 'Pakai sekarang';
+
+  @override
+  String get craftHint =>
+      'Bahan (angka di tombol) didapat dari peti bergambar gerigi. Ketuk senjata untuk membuat satu: hasilnya masuk ke daftar senjatamu untuk match ini.';
 }

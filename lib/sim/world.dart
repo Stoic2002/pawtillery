@@ -324,9 +324,12 @@ class SimWorld implements SimContext {
   int materials(int team) => _materials[team];
 
   /// The mounted gun [unit] stands at, if any.
-  MapObject? gunNear(Unit unit) {
+  MapObject? gunNear(Unit unit) => objectNear(unit, ObjectKind.gun);
+
+  /// A [kind] of object within reach of [unit], if any.
+  MapObject? objectNear(Unit unit, ObjectKind kind) {
     for (final o in _objects) {
-      if (o.kind != ObjectKind.gun || o.destroyed) continue;
+      if (o.kind != kind || o.destroyed) continue;
       final dx = unit.centerX - o.x;
       final dy = unit.centerY - o.centerY;
       const r = ObjectConfig.gunReach;
@@ -342,6 +345,10 @@ class SimWorld implements SimContext {
     if (!loadout.enabled(weapon)) return false;
     if (weapon.id == Weapons.mountedGun.id) return gunNear(unit) != null;
     if (weapon.id == Weapons.machineCannon.id) return unit.inMachine;
+    if (weapon.id == Weapons.warMachine.id) {
+      if (unit.inMachine) return false;
+      if (objectNear(unit, ObjectKind.machine) != null) return true;
+    }
     if (randomWeapons) {
       return weapon.id == _drawn || weapon.delivery is SkipTurn;
     }

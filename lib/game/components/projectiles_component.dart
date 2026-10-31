@@ -238,7 +238,7 @@ class ProjectilesComponent extends Component {
       final rate = m.countdown != null ? 14.0 : 2.0;
       if (armed && (_time * rate).floor().isEven) {
         _light.color = const ui.Color(0xFFFF1744);
-        canvas.drawCircle(ui.Offset(m.x, m.y - (small ? 13 : 16)), 2.2, _light);
+        canvas.drawCircle(ui.Offset(m.x, m.y - (small ? 19 : 22)), 2.2, _light);
       }
     }
   }

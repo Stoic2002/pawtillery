@@ -18,7 +18,6 @@ import '../widgets/paw/paw_widgets.dart';
 import 'tutorial.dart';
 import 'weapon_menu.dart';
 import '../widgets/paw/paw_icon.dart';
-import 'hud_editor.dart';
 import 'hud_layout.dart';
 
 /// Arena HUD (redesign prototype): pause and team HP pills top left, the
@@ -36,8 +35,6 @@ class ArenaHud extends StatelessWidget {
     required this.onPause,
     this.tutorial,
     this.otherTurnLabel,
-    this.editing,
-    this.onEditDone,
   });
 
   final PawtilleryGame game;
@@ -54,14 +51,6 @@ class ArenaHud extends StatelessWidget {
   /// the controls are here.
   final String? Function()? otherTurnLabel;
 
-  /// Moving and resizing the HUD's parts (the match is paused meanwhile).
-  final ValueListenable<bool>? editing;
-  final VoidCallback? onEditDone;
-
-  static final Map<HudGroup, GlobalKey> _keys = {
-    for (final g in HudGroup.values) g: GlobalKey(),
-  };
-
   /// A part of the HUD at its corner, where the player put it.
   Widget _piece(
     HudLayout layout,
@@ -77,7 +66,7 @@ class ArenaHud extends StatelessWidget {
         child: Transform.scale(
           scale: p.scale,
           alignment: corner,
-          child: KeyedSubtree(key: _keys[group], child: child),
+          child: child,
         ),
       ),
     );
@@ -95,13 +84,7 @@ class ArenaHud extends StatelessWidget {
         child: SizedBox(
           width: box.maxWidth / scale,
           height: box.maxHeight / scale,
-          child: ListenableBuilder(
-            listenable: Listenable.merge([
-              AppServices.of(context).settings,
-              ?editing,
-            ]),
-            builder: (context, _) => _hud(context),
-          ),
+          child: _hud(context),
         ),
       ),
     );
@@ -129,9 +112,8 @@ class ArenaHud extends StatelessWidget {
                 (weapon.aim == AimMode.angleAndPower ||
                     weapon.aim == AimMode.direction);
             final teamColor = Color(game.teamColors[hud.activeTeam]);
-            final isEditing = editing?.value ?? false;
             final layout = AppServices.of(context).settings.hudLayout;
-            final remote = isEditing ? null : otherTurnLabel?.call();
+            final remote = otherTurnLabel?.call();
             final digging = remote == null && game.digging;
             return Stack(
               children: [
@@ -249,17 +231,13 @@ class ArenaHud extends StatelessWidget {
                     controller: tutorial!,
                     visible: hud.phase == TurnPhase.action,
                   ),
-                if (hud.phase == TurnPhase.turnStart && !isEditing)
+                if (hud.phase == TurnPhase.turnStart)
                   _TurnBanner(
                     name: teamNames[hud.activeTeam],
                     unitName: _activeName(game),
                     color: teamColor,
                     symbol: teamSymbols[hud.activeTeam],
                     drawnWeaponId: game.sim.drawnWeaponId,
-                  ),
-                if (isEditing)
-                  Positioned.fill(
-                    child: HudEditor(keys: _keys, onDone: onEditDone!),
                   ),
               ],
             );
@@ -877,9 +855,10 @@ class _TopRight extends StatelessWidget {
                       color: Paw.ink,
                     ),
                     SizedBox(
-                      width: 34,
+                      width: 46,
                       child: Text(
                         wind > 0 ? '+$wind' : '$wind',
+                        softWrap: false,
                         textAlign: TextAlign.right,
                         style: Paw.title(22, weight: 800, height: 1),
                       ),
@@ -1000,7 +979,8 @@ class _Actions extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final unit = game.sim.activeUnit;
     final ready = acting && (aim.active || weapon.aim == AimMode.none);
-    return Row(
+    final here = hud.hereWeaponId;
+    final row = Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -1044,6 +1024,28 @@ class _Actions extends StatelessWidget {
             onPressed: ready ? game.fire : null,
           ),
         ],
+      ],
+    );
+    if (here == null || !acting) return row;
+    // Something to use right where the pet stands.
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        PawButton(
+          label: here == Weapons.warMachine.id
+              ? l10n.hudBoardMachine
+              : '${l10n.hudUse}: ${l10n.byKey(Weapons.byId(here).nameKey)}',
+          icon: Icons.star_rounded,
+          fill: Paw.yellow,
+          height: 46,
+          fontSize: 15,
+          shadow: 3,
+          padding: 12,
+          onPressed: game.useHere,
+        ),
+        const SizedBox(height: 8),
+        row,
       ],
     );
   }

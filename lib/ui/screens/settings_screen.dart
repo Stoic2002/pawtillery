@@ -8,6 +8,7 @@ import '../../l10n/app_localizations.dart';
 import '../widgets/paw/paw_backdrop.dart';
 import '../widgets/paw/paw_widgets.dart';
 import '../widgets/paw/paw_icon.dart';
+import 'hud_layout_screen.dart';
 
 /// Settings (redesign prototype): one card of rows, each with an icon,
 /// a label and its control. Changes are saved immediately.
@@ -130,6 +131,22 @@ class SettingsScreen extends StatelessWidget {
                                       ),
                                     );
                                   },
+                                ),
+                              ),
+                              _Row(
+                                icon: Icons.tune_rounded,
+                                label: l10n.settingsHudLayout,
+                                child: PawButton(
+                                  label: l10n.settingsHudLayoutOpen,
+                                  height: 40,
+                                  fontSize: 14,
+                                  shadow: 3,
+                                  radius: 12,
+                                  onPressed: () => Navigator.of(context).push(
+                                    MaterialPageRoute<void>(
+                                      builder: (_) => const HudLayoutScreen(),
+                                    ),
+                                  ),
                                 ),
                               ),
                               _Row(

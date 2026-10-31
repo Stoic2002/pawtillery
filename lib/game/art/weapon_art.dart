@@ -142,7 +142,7 @@ abstract final class WeaponArt {
   /// A mine lying on the ground (origin = resting point).
   static void mine(ui.Canvas canvas, {required bool small}) {
     if (Sprites.of(small ? 'obj_seedMine' : 'obj_mine') case final sprite?) {
-      final longest = small ? 16.0 : 28.0;
+      final longest = small ? 24.0 : 38.0;
       final size = Sprites.sizeOf(sprite, longest);
       Sprites.draw(
         canvas,

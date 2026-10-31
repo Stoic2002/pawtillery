@@ -411,7 +411,6 @@
   "weaponJetpack": "Jetpack",
   "weaponJetpackDesc": "Terbang ke mana saja dengan joystick selama 4 detik, sampai bahan bakar habis.",
   "hudJetHint": "Arahkan dengan joystick",
-  "pauseHudLayout": "Atur HUD",
   "hudEditHint": "Geser bagian untuk memindahkan. Ketuk satu, lalu atur ukurannya.",
   "hudEditSize": "Ukuran",
   "hudEditReset": "Atur ulang",
@@ -421,5 +420,12 @@
   "weaponWarMachine": "Mesin Tempur",
   "weaponWarMachineDesc": "Naik ke dalamnya: menahan serangan selama tiga giliranmu, melaju dua kali lebih cepat, dan punya meriam sendiri. Tidak bisa melompat.",
   "weaponMachineCannon": "Meriam Mesin",
-  "weaponMachineCannonDesc": "Meriam mesin tempur. Cepat dan datar, tanpa batas."
+  "weaponMachineCannonDesc": "Meriam mesin tempur. Cepat dan datar, tanpa batas.",
+  "settingsHudLayout": "Tata letak HUD match",
+  "settingsHudLayoutOpen": "Atur",
+  "hudBoardMachine": "Naik",
+  "craftOwned": "Punya",
+  "craftMade": "Dibuat",
+  "craftUse": "Pakai sekarang",
+  "craftHint": "Bahan (angka di tombol) didapat dari peti bergambar gerigi. Ketuk senjata untuk membuat satu: hasilnya masuk ke daftar senjatamu untuk match ini."
 }

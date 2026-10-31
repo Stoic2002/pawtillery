@@ -1545,7 +1545,6 @@
   "weaponJetpack": "Jetpack",
   "weaponJetpackDesc": "Fly anywhere with the joystick for 4 s, until the fuel runs out.",
   "hudJetHint": "Steer with the joystick",
-  "pauseHudLayout": "Arrange HUD",
   "hudEditHint": "Drag a part to move it. Tap one, then set its size.",
   "hudEditSize": "Size",
   "hudEditReset": "Reset",
@@ -1555,5 +1554,12 @@
   "weaponWarMachine": "War Machine",
   "weaponWarMachineDesc": "Climb in: it takes the hits for three of your turns, rolls twice as fast and has its own cannon. It can't jump.",
   "weaponMachineCannon": "Machine Cannon",
-  "weaponMachineCannonDesc": "The war machine's gun. Fast and flat, as often as you like."
+  "weaponMachineCannonDesc": "The war machine's gun. Fast and flat, as often as you like.",
+  "settingsHudLayout": "Match HUD layout",
+  "settingsHudLayoutOpen": "Arrange",
+  "hudBoardMachine": "Climb in",
+  "craftOwned": "You have",
+  "craftMade": "Made",
+  "craftUse": "Use now",
+  "craftHint": "Materials (the number on the button) come from crates with a gear on them. Tap a weapon to make one: it goes into your weapon list for this match."
 }

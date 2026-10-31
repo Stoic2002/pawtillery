@@ -14,6 +14,7 @@ class ObjectMix {
     this.healthCrates = 0,
     this.weaponCrates = 0,
     this.guns = 0,
+    this.machines = 0,
   });
 
   final int mines;
@@ -24,7 +25,10 @@ class ObjectMix {
   /// Mounted guns (one per map side at most is plenty).
   final int guns;
 
-  int get total => mines + barrels + healthCrates + weaponCrates + guns;
+  /// War machines standing ready to be climbed into.
+  final int machines;
+
+  int get total => mines + barrels + healthCrates + weaponCrates + guns + machines;
 
   /// The mix for [amount], or null for none.
   ObjectMix? forAmount(ObjectAmount amount) => switch (amount) {
@@ -36,20 +40,21 @@ class ObjectMix {
       healthCrates: healthCrates * 2,
       weaponCrates: weaponCrates * 2,
       guns: guns,
+      machines: machines,
     ),
   };
 }
 
 abstract final class ObjectConfig {
   /// Barrels and crates are about this wide and tall (px).
-  static const int size = 16;
+  static const int size = 28;
 
   /// A barrel caught in a blast (or a beam) blows up this much later, so
   /// chains go off one after another.
   static const int barrelFuseTicks = 24;
 
   /// A unit whose body centre comes this close picks a crate up.
-  static const double pickupRadius = 22;
+  static const double pickupRadius = 32;
 
   /// HP a health crate gives (never above the unit's maximum).
   static const int healthAmount = 25;
@@ -63,7 +68,7 @@ abstract final class ObjectConfig {
   static const int dropHealthIn = 3;
 
   /// A pet this close to a mounted gun can fire it; it has [gunShots] shots.
-  static const double gunReach = 44;
+  static const double gunReach = 70;
   static const int gunShots = 3;
 
   /// Objects keep at least this far from units and from each other.

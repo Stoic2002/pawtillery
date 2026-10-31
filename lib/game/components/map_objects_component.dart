@@ -68,7 +68,7 @@ class MapObjectsComponent extends Component {
       if (lit && (_time * 14).floor().isOdd) {
         // A blinking white-hot barrel about to go.
         canvas.saveLayer(
-          const ui.Rect.fromLTRB(-30, -45, 30, 10),
+          const ui.Rect.fromLTRB(-40, -62, 40, 10),
           ui.Paint()
             ..colorFilter = const ui.ColorFilter.mode(
               Color(0x88FFFFFF),
@@ -126,8 +126,8 @@ class MapObjectsComponent extends Component {
 
   /// A patched canopy over a crate coming down, swaying a little.
   void _drawParachute(ui.Canvas canvas) {
-    const top = -62.0;
-    const bottom = -28.0;
+    const top = -84.0;
+    const bottom = -40.0;
     final sway = math.sin(_time * 1.8) * 2;
     final canopy = ui.Path()
       ..moveTo(-24 + sway, top + 16)
@@ -156,14 +156,14 @@ class MapObjectsComponent extends Component {
     final flicker = 0.75 + 0.25 * math.sin(_time * 40);
     final h = 9 * flicker;
     final flame = ui.Path()
-      ..moveTo(-3, -30)
-      ..quadraticBezierTo(-3.5, -30 - h * 0.6, 0, -30 - h)
-      ..quadraticBezierTo(3.5, -30 - h * 0.6, 3, -30)
+      ..moveTo(-4, -42)
+      ..quadraticBezierTo(-4.5, -42 - h * 0.6, 0, -42 - h)
+      ..quadraticBezierTo(4.5, -42 - h * 0.6, 4, -42)
       ..close();
     _flame.color = const Color(0xDDFF8A2A);
     canvas.drawPath(flame, _flame);
     _flame.color = const Color(0xEEFFE08A);
-    canvas.drawCircle(Offset(0, -31 - h * 0.25), 1.6, _flame);
+    canvas.drawCircle(Offset(0, -43 - h * 0.25), 1.6, _flame);
   }
 }
 

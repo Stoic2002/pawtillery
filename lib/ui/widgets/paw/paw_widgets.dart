@@ -35,7 +35,7 @@ class _PressableState extends State<_Pressable> {
   bool get _enabled => widget.onPressed != null || widget.onHold != null;
 
   void _set(bool down) {
-    if (_down == down) return;
+    if (_down == down || !mounted) return;
     setState(() => _down = down);
     widget.onHold?.call(down);
   }

@@ -167,7 +167,7 @@ class UnitsComponent extends Component {
     _machineArmour(canvas, u, spec);
   }
 
-  static const double _machineWidth = 82;
+  static const double _machineWidth = 130;
 
   void _machineArmour(ui.Canvas canvas, Unit u, BoardMachine spec) {
     const ink = ui.Color(0xFF2B2118);
@@ -254,7 +254,7 @@ class UnitsComponent extends Component {
       canvas
         ..save()
         // In a machine the pet rides on top.
-        ..translate(u.centerX, u.y - (u.inMachine ? 34 : 0))
+        ..translate(u.centerX, u.y - (u.inMachine ? 52 : 0))
         ..scale(scale * u.facing, scale * breathe);
       AnimalArt.draw(
         canvas,

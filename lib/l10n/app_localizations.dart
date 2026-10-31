@@ -2564,12 +2564,6 @@ abstract class AppLocalizations {
   /// **'Steer with the joystick'**
   String get hudJetHint;
 
-  /// No description provided for @pauseHudLayout.
-  ///
-  /// In en, this message translates to:
-  /// **'Arrange HUD'**
-  String get pauseHudLayout;
-
   /// No description provided for @hudEditHint.
   ///
   /// In en, this message translates to:
@@ -2629,6 +2623,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The war machine\'s gun. Fast and flat, as often as you like.'**
   String get weaponMachineCannonDesc;
+
+  /// No description provided for @settingsHudLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Match HUD layout'**
+  String get settingsHudLayout;
+
+  /// No description provided for @settingsHudLayoutOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange'**
+  String get settingsHudLayoutOpen;
+
+  /// No description provided for @hudBoardMachine.
+  ///
+  /// In en, this message translates to:
+  /// **'Climb in'**
+  String get hudBoardMachine;
+
+  /// No description provided for @craftOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'You have'**
+  String get craftOwned;
+
+  /// No description provided for @craftMade.
+  ///
+  /// In en, this message translates to:
+  /// **'Made'**
+  String get craftMade;
+
+  /// No description provided for @craftUse.
+  ///
+  /// In en, this message translates to:
+  /// **'Use now'**
+  String get craftUse;
+
+  /// No description provided for @craftHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Materials (the number on the button) come from crates with a gear on them. Tap a weapon to make one: it goes into your weapon list for this match.'**
+  String get craftHint;
 }
 
 class _AppLocalizationsDelegate

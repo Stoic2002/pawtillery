@@ -14,11 +14,12 @@ abstract final class ObjectArt {
 
   /// The painted sprite and its height, px.
   static (String, double) _painted(ObjectKind kind) => switch (kind) {
-    ObjectKind.barrel => ('obj_barrel', 32),
-    ObjectKind.healthCrate => ('obj_healthCrate', 24),
-    ObjectKind.weaponCrate => ('obj_weaponCrate', 25),
-    ObjectKind.materialCrate => ('obj_materialCrate', 25),
-    ObjectKind.gun => ('obj_gun', 44),
+    ObjectKind.barrel => ('obj_barrel', 44),
+    ObjectKind.healthCrate => ('obj_healthCrate', 34),
+    ObjectKind.weaponCrate => ('obj_weaponCrate', 36),
+    ObjectKind.materialCrate => ('obj_materialCrate', 36),
+    ObjectKind.gun => ('obj_gun', 72),
+    ObjectKind.machine => ('craft_machine', 96),
   };
 
   static void draw(ui.Canvas canvas, ObjectKind kind) {
@@ -45,7 +46,7 @@ abstract final class ObjectArt {
             _weaponCrate(c);
           case ObjectKind.materialCrate:
             _materialCrate(c);
-          case ObjectKind.gun:
+          case ObjectKind.gun || ObjectKind.machine:
             _gun(c);
         }
         return recorder.endRecording();

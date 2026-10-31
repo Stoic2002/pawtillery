@@ -1361,9 +1361,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get hudJetHint => 'Steer with the joystick';
 
   @override
-  String get pauseHudLayout => 'Arrange HUD';
-
-  @override
   String get hudEditHint =>
       'Drag a part to move it. Tap one, then set its size.';
 
@@ -1396,4 +1393,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get weaponMachineCannonDesc =>
       'The war machine\'s gun. Fast and flat, as often as you like.';
+
+  @override
+  String get settingsHudLayout => 'Match HUD layout';
+
+  @override
+  String get settingsHudLayoutOpen => 'Arrange';
+
+  @override
+  String get hudBoardMachine => 'Climb in';
+
+  @override
+  String get craftOwned => 'You have';
+
+  @override
+  String get craftMade => 'Made';
+
+  @override
+  String get craftUse => 'Use now';
+
+  @override
+  String get craftHint =>
+      'Materials (the number on the button) come from crates with a gear on them. Tap a weapon to make one: it goes into your weapon list for this match.';
 }

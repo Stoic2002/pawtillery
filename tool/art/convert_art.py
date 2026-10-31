@@ -46,20 +46,18 @@ WORLD = (3600, 2400)
 # mask), so it stays sharp when the camera zooms in.
 ART_SCALE = 2
 # Rooms in a map's source are painted pure green: green this far above red
-# and blue. Their edge is grown by ROOM_EDGE px; rooms under ROOM_MIN world px
-# (windows) stay shut; the back wall is the land's colours blurred by BACK_BLUR
+# and blue. Their edge is grown by ROOM_EDGE px; the back wall is the land's colours blurred by BACK_BLUR
 # (in eighths) and darkened to BACK_SHADE; ROOM_ALPHA marks it in art.webp.
 ROOM_GREEN = 120
 ROOM_EDGE = 5
-ROOM_MIN = 6000
 # Doorways: world px tall, longest, looked for this far up from a room's floor,
 # and how much further open air may be than another room.
 DOOR_HEIGHT = 36
-DOOR_MAX = 900
+DOOR_MAX = 360
 DOOR_SEARCH = 30
 DOOR_PREFER_SKY = 200
 # A shaft down into a room counts as this much longer than a level passage.
-DOOR_SHAFT = 500
+DOOR_SHAFT = 60
 # How tall a pet's body is, and the smallest room worth a doorway.
 PET_BODY = 24
 DOOR_ROOM_MIN = 2500
@@ -387,10 +385,10 @@ def convert_map(name):
     for region in list(components(solid, w, h, 0)):
         touches_edge = any(i % w in (0, w - 1) or i // w in (0, h - 1)
                            for i in region)
-        # Rooms too small for a pet, like windows, stay shut.
+        # Green stays empty at any size (a window is a hole too): what looks
+        # like an opening must be one.
         in_room = sum(1 for i in region if world_rooms[i])
-        small_room = in_room * 2 > len(region) and len(region) < ROOM_MIN
-        if small_room or (not touches_edge and len(region) < SPECK):
+        if in_room * 2 <= len(region) and not touches_edge and len(region) < SPECK:
             filled += 1
             for i in region:
                 solid[i] = 1

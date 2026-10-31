@@ -19,6 +19,7 @@ import '../net/lockstep.dart';
 import '../sim/events.dart';
 import '../sim/inputs.dart';
 import '../sim/physics.dart';
+import '../sim/map_object.dart';
 import '../sim/match_setup.dart';
 import '../sim/turn_manager.dart';
 import '../sim/unit.dart';
@@ -295,6 +296,35 @@ class PawtilleryGame extends FlameGame {
   /// Dig mode joystick: a direction in degrees (0 = right, 90 = up), or
   /// null when released.
   void setDig(int? angleDeg) => _digAngle = angleDeg;
+
+  /// What the active pet could use where it stands, unless it is holding it.
+  String? _hereWeapon() {
+    final unit = sim.activeUnit;
+    if (unit == null || !hasControl) return null;
+    for (final w in [
+      Weapons.machineCannon,
+      Weapons.mountedGun,
+      if (sim.objectNear(unit, ObjectKind.machine) != null) Weapons.warMachine,
+    ]) {
+      if (sim.canUse(unit, w) && aim.value.weaponId != w.id) return w.id;
+    }
+    return null;
+  }
+
+  /// The HUD's button for [HudState.hereWeaponId]: a machine is climbed into
+  /// at once, then its cannon is in hand; a gun is taken up to aim.
+  void useHere() {
+    final id = _hereWeapon();
+    if (id == null || !canAim) return;
+    if (id == Weapons.warMachine.id) {
+      _pendingInputs.add(Fire(weaponId: id));
+      _boarding = true;
+    } else {
+      selectWeapon(id);
+    }
+  }
+
+  bool _boarding = false;
 
   /// Spends the team's materials on one more of a weapon.
   void craft(String weaponId) => _pendingInputs.add(Craft(weaponId));
@@ -593,6 +623,12 @@ class PawtilleryGame extends FlameGame {
     } else if (!aim.value.active && canAim && weapon.aim == AimMode.none) {
       aim.value = aim.value.copyWith(active: true);
     }
+    final unit = sim.activeUnit;
+    if (hasControl && unit != null && unit.inMachine &&
+        (_boarding || aim.value.weaponId == Weapons.warMachine.id)) {
+      _boarding = false;
+      selectWeapon(Weapons.machineCannon.id);
+    }
     // Holes made by this frame's steps show this frame, not the next.
     _terrain.flush();
     // The HUD only shows sim state, so skip the work on frames without a
@@ -871,6 +907,7 @@ class PawtilleryGame extends FlameGame {
       suddenDeath: sim.suddenDeath,
       frozenSkip: sim.frozenSkip,
       shotgunLeft: sim.shotgunShotsLeft,
+      hereWeaponId: _hereWeapon(),
       winnerTeam:
           sim.turn.phase == TurnPhase.matchOver ? sim.turn.winnerTeam : null,
     );

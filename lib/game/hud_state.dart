@@ -17,7 +17,12 @@ class HudState {
     this.suddenDeath = false,
     this.frozenSkip = false,
     this.shotgunLeft = 0,
+    this.hereWeaponId,
   });
+
+  /// What the active pet can use right where it stands: a mounted gun, a
+  /// war machine to climb into, or the cannon of the one it is in.
+  final String? hereWeaponId;
 
   final TurnPhase phase;
   final int activeTeam;
@@ -51,6 +56,7 @@ class HudState {
       other.activeTeam == activeTeam &&
       other.clockSeconds == clockSeconds &&
       other.wind == wind &&
+      other.hereWeaponId == hereWeaponId &&
       listEquals(other.teamHp, teamHp) &&
       listEquals(other.teamMaxHp, teamMaxHp) &&
       other.suddenDeath == suddenDeath &&
@@ -59,7 +65,7 @@ class HudState {
       other.winnerTeam == winnerTeam;
 
   @override
-  int get hashCode => Object.hash(phase, activeTeam, clockSeconds, wind,
+  int get hashCode => Object.hash(phase, activeTeam, clockSeconds, wind, hereWeaponId,
       Object.hashAll(teamHp), Object.hashAll(teamMaxHp), winnerTeam,
       suddenDeath, frozenSkip, shotgunLeft);
 }
