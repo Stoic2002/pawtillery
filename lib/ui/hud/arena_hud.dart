@@ -494,8 +494,11 @@ class _TeamBar extends StatelessWidget {
                   child: TweenAnimationBuilder<double>(
                     tween: Tween(end: fraction),
                     duration: const Duration(milliseconds: 400),
+                    // Both factors: the Container's alignment loosens the
+                    // constraints, and a loose ColoredBox has no height.
                     builder: (context, f, _) => FractionallySizedBox(
                       widthFactor: f,
+                      heightFactor: 1,
                       child: ColoredBox(color: color),
                     ),
                   ),

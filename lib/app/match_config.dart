@@ -9,6 +9,10 @@ import '../config/teams.dart';
 import '../config/weapons.dart';
 import '../sim/match_setup.dart';
 
+/// A named set of rules, picked in one tap. Not stored: it is read off the
+/// rules themselves, which stay adjustable one by one.
+enum MatchMode { classic, crumbling, randomWeapons, chaos }
+
 /// One unit on the setup screen.
 class UnitEntry {
   const UnitEntry({
@@ -236,6 +240,29 @@ class MatchConfig {
     return UnitEntry(
       familyId: family.id,
       name: namePool.isEmpty ? '' : namePool[i % namePool.length],
+    );
+  }
+
+  /// Which [MatchMode] these rules amount to.
+  MatchMode get mode {
+    final fromStart = suddenDeathMinutes == 0;
+    return randomWeapons
+        ? (fromStart ? MatchMode.chaos : MatchMode.randomWeapons)
+        : (fromStart ? MatchMode.crumbling : MatchMode.classic);
+  }
+
+  /// These rules set to mode [m]; leaving "from the start" puts the ground
+  /// back to the usual delay, a chosen delay is otherwise kept.
+  MatchConfig withMode(MatchMode m) {
+    final crumbles = m == MatchMode.crumbling || m == MatchMode.chaos;
+    return copyWith(
+      randomWeapons: m == MatchMode.randomWeapons || m == MatchMode.chaos,
+      suddenDeathMinutes: crumbles
+          ? 0
+          : suddenDeathMinutes == 0
+          ? MatchDefaults.suddenDeathMinutes
+          : suddenDeathMinutes,
+      suddenDeathOff: !crumbles && suddenDeathMinutes == null,
     );
   }
 

@@ -1311,4 +1311,13 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get setupFromStart => 'Dari awal';
+
+  @override
+  String get setupMode => 'Mode';
+
+  @override
+  String get setupModeClassic => 'Klasik';
+
+  @override
+  String get setupModeChaos => 'Kacau';
 }

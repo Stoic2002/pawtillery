@@ -2467,6 +2467,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'From start'**
   String get setupFromStart;
+
+  /// No description provided for @setupMode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get setupMode;
+
+  /// No description provided for @setupModeClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'Classic'**
+  String get setupModeClassic;
+
+  /// No description provided for @setupModeChaos.
+  ///
+  /// In en, this message translates to:
+  /// **'Chaos'**
+  String get setupModeChaos;
 }
 
 class _AppLocalizationsDelegate

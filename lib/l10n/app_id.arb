@@ -394,5 +394,8 @@
   "loadingTip4": "Air adalah cara tercepat kehilangan hewan, juga memenangkan pertandingan.",
   "loadingTip5": "Setiap hewan punya kemampuan dan senjata khasnya sendiri.",
   "loadingTip6": "Peti jatuh dari langit. Ambil sebelum lawan mendahului.",
-  "setupFromStart": "Dari awal"
+  "setupFromStart": "Dari awal",
+  "setupMode": "Mode",
+  "setupModeClassic": "Klasik",
+  "setupModeChaos": "Kacau"
 }

@@ -35,7 +35,7 @@ void main() {
     var bounces = 0;
     final e = _fireWatching(
       w,
-      const Fire(weaponId: 'bottleRocket', angleDeg: 10, powerPercent: 50),
+      const Fire(weaponId: 'bottleRocket', angleDeg: 10, powerPercent: 43),
       () {
         for (final p in w.projectiles) {
           if (p.mode > bounces) bounces = p.mode;

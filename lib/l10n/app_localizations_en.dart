@@ -1309,4 +1309,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupFromStart => 'From start';
+
+  @override
+  String get setupMode => 'Mode';
+
+  @override
+  String get setupModeClassic => 'Classic';
+
+  @override
+  String get setupModeChaos => 'Chaos';
 }

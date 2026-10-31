@@ -691,6 +691,20 @@ class _RulesTab extends StatelessWidget {
             child: ListView(
               children: [
                 row(
+                  l10n.setupMode,
+                  PawPillToggle<MatchMode>(
+                    values: MatchMode.values,
+                    selected: config.mode,
+                    label: (m) => switch (m) {
+                      MatchMode.classic => l10n.setupModeClassic,
+                      MatchMode.crumbling => l10n.setupSuddenDeath,
+                      MatchMode.randomWeapons => l10n.setupRandomWeapons,
+                      MatchMode.chaos => l10n.setupModeChaos,
+                    },
+                    onSelect: (m) => onChanged(config.withMode(m)),
+                  ),
+                ),
+                row(
                   l10n.setupTeamCount,
                   PawStepper(
                     value: teams,

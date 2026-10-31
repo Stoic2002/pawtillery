@@ -10,7 +10,7 @@ abstract final class NetConfig {
   /// rejoining after a restart; 18 = eggs arm on their first touch;
   /// 19 = lighter flowerpots, reshaped caves and trees; 20 = painted
   /// maps (3600 x 2400).
-  static const int protocolVersion = 25;
+  static const int protocolVersion = 26;
 
   /// UDP port the host's room beacon is sent to.
   static const int discoveryPort = 47820;

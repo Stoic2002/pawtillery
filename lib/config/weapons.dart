@@ -685,6 +685,7 @@ abstract final class Weapons {
     playerFuse: true,
     ammo: 5,
     placeholderArgb: 0xFF2E7D32,
+    launchSpeedScale: 0.9,
   );
 
   static const cluster = WeaponDef(
@@ -700,6 +701,7 @@ abstract final class Weapons {
     radius: 35,
     ammo: 2,
     placeholderArgb: 0xFFC62828,
+    launchSpeedScale: 0.85,
   );
 
   static const twinSling = WeaponDef(
@@ -713,6 +715,7 @@ abstract final class Weapons {
     gravityScale: 0.1,
     ammo: 3,
     placeholderArgb: 0xFF6D4C41,
+    launchSpeedScale: 1.3,
   );
 
   static const punch = WeaponDef(
@@ -761,7 +764,7 @@ abstract final class Weapons {
     maxDamage: 34,
     radius: 42,
     gravityScale: 0.35,
-    launchSpeedScale: 1.2,
+    launchSpeedScale: 1.4,
     ammo: 3,
     placeholderArgb: 0xFF3B82F6,
   );
@@ -773,7 +776,7 @@ abstract final class Weapons {
     nameKey: 'weaponSnifferRocket',
     aim: AimMode.angleAndPower,
     delivery: Launch(),
-    flight: Homing(delayTicks: 45, speed: 330, steer: 0.08),
+    flight: Homing(delayTicks: 45, speed: 520, steer: 0.11),
     affectedByWind: true,
     maxDamage: 30,
     radius: 40,
@@ -815,7 +818,7 @@ abstract final class Weapons {
     maxDamage: 9,
     radius: 14,
     gravityScale: 0.25,
-    launchSpeedScale: 1.1,
+    launchSpeedScale: 1.3,
     ammo: 2,
     placeholderArgb: 0xFF7A9A3A,
   );
@@ -832,6 +835,7 @@ abstract final class Weapons {
     fuseTicks: 4 * 60,
     ammo: 1,
     placeholderArgb: 0xFFE2681C,
+    launchSpeedScale: 0.9,
   );
 
   /// Five flowerpots fall across the chosen spot.
@@ -899,7 +903,7 @@ abstract final class Weapons {
       childId: 'meteor',
       count: 6,
       spread: 100,
-      speed: 240,
+      speed: 460,
       gap: 110,
     ),
     ammo: 1,
@@ -941,6 +945,7 @@ abstract final class Weapons {
     terrainDamage: false,
     ammo: 1,
     placeholderArgb: 0xFFFF6A1A,
+    launchSpeedScale: 0.85,
   );
 
   /// A canister of poison gas: a drifting cloud that poisons pets.
@@ -953,6 +958,7 @@ abstract final class Weapons {
     affectedByWind: true,
     ammo: 1,
     placeholderArgb: 0xFF7BC74D,
+    launchSpeedScale: 0.85,
   );
 
   /// A bomber drops three gas canisters across the chosen spot.
@@ -983,7 +989,7 @@ abstract final class Weapons {
     maxDamage: 50,
     radius: 85,
     knockbackScale: 1.4,
-    launchSpeedScale: 0.85,
+    launchSpeedScale: 0.75,
     ammo: 1,
     placeholderArgb: 0xFFF5B700,
   );
@@ -1010,6 +1016,7 @@ abstract final class Weapons {
     maxDamage: 8,
     ammo: 1,
     placeholderArgb: 0xFF8FD8FF,
+    launchSpeedScale: 0.9,
   );
 
   /// Hook the ground and get reeled to it, then still take your shot.
@@ -1032,7 +1039,7 @@ abstract final class Weapons {
     delivery: AirRaid(
       childId: 'missile',
       count: 1,
-      speed: 460,
+      speed: 640,
       altitude: -190,
       leadIn: 560,
       releaseAhead: 420,
@@ -1071,6 +1078,7 @@ abstract final class Weapons {
     radius: 48,
     ammo: 1,
     placeholderArgb: 0xFF3B2A5C,
+    launchSpeedScale: 0.7,
   );
 
   /// Sticks to the first unit (or ground) it touches; blows up after 3 s.
@@ -1085,6 +1093,7 @@ abstract final class Weapons {
     fuseTicks: 3 * 60,
     ammo: 2,
     placeholderArgb: 0xFF6CBF3A,
+    launchSpeedScale: 0.9,
   );
 
   /// Builds ground where it lands: bridges, walls, burying an enemy.
@@ -1096,6 +1105,7 @@ abstract final class Weapons {
     flight: Ballistic(onImpact: AddGround(radius: 30)),
     ammo: 2,
     placeholderArgb: 0xFFB0764A,
+    launchSpeedScale: 0.8,
   );
 
   /// Tap a unit: you and it trade places.
@@ -1185,6 +1195,7 @@ abstract final class Weapons {
     flight: Ballistic(onImpact: ScatterMines(mineId: 'seedMine', count: 3)),
     affectedByWind: true,
     placeholderArgb: 0xFFD7B56D,
+    launchSpeedScale: 0.85,
   );
 
   static const boomDuck = WeaponDef(
@@ -1244,6 +1255,7 @@ abstract final class Weapons {
     radius: 52,
     gravityScale: 1.5,
     placeholderArgb: 0xFF6D4C41,
+    launchSpeedScale: 0.8,
   );
 
   // ---- sub-munitions ---------------------------------------------------
@@ -1320,8 +1332,8 @@ abstract final class Weapons {
     delivery: Launch(),
     flight: Homing(
       delayTicks: 15,
-      speed: 380,
-      steer: 0.12,
+      speed: 720,
+      steer: 0.17,
       chosenTarget: true,
       fuelTicks: 4 * 60,
     ),

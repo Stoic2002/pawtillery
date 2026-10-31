@@ -100,7 +100,7 @@ void main() {
     // Lob it to land about 100 px short of the enemy.
     final e = <SimEvent>[
       ...w.step(const [
-        Fire(weaponId: 'blackHole', angleDeg: 45, powerPercent: 58),
+        Fire(weaponId: 'blackHole', angleDeg: 45, powerPercent: 83),
       ]),
     ];
     final x0 = w.units[1].x;

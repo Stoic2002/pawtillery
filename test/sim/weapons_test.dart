@@ -419,12 +419,13 @@ void main() {
 // Then (→ 4258472990) it also covers shields and shotgun pulls; same play.
 // Then (→ 1362962014) it also covers poison gas and poisoned pets; same play.
 // Then (→ 1693201566) the ammo of two new weapons; same play.
-// Re-pinned 2026-10-29 (→ 2920681301): play changed on purpose. Pets have
+// Re-pinned 2026-10-31 (→ 2451456931): weapon speeds retuned; before that
+// 2026-10-29: play changed on purpose. Pets have
 // their own, heavier gravity and walk slower; gas bites while a pet stays
 // in it; damage was rebalanced (lower, lightning most); the bottle rocket,
 // twin sling, coconut, flowerpots, meteors, eggs and hairball got their own
 // mechanics; sudden death crumbles the ground instead of raising water.
-const _pinnedWeaponsHash = 2920681301;
+const _pinnedWeaponsHash = 2451456931;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

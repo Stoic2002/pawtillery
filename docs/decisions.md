@@ -1451,3 +1451,22 @@ the sides.
   all finished, hits land across the gaps, one drowning. Most last 2–7 minutes;
   two ran 18–20, the last pets stuck apart until the ground crumbled at 15.
   Wi-Fi protocol 25.
+
+## Team bars, weapon speeds, modes (2026-10-31)
+
+- **Team bars never filled.** The bar's fill is a `ColoredBox` in a
+  `FractionallySizedBox` under a Container with an alignment, which loosens the
+  height to 0, so the bar stayed white whatever the team's HP. `heightFactor: 1`.
+  Bug since the HUD was built; no test looks at it.
+- **Zoom** 0.35–0.8, starting at 0.7.
+- **Speeds.** Everything thrown left at 900 px/s at full power, while the guided
+  missile flew at 380, slower than a stone. Now speed follows the thing, against a
+  stone's 1.0: bottle rocket 1.4, twin sling and seed spitter 1.3; grenade, sticky
+  bomb, ice and firecracker 0.9; cluster, napalm, gas and seed mines 0.85; clay
+  and coconut 0.8; mini nuke 0.75; black hole 0.7. Slower also means a shorter
+  throw, which suits the heavy ones. Missile 720 (steer 0.17, so it can still
+  turn), its jet 640, sniffer rocket 520, meteors 460. Hash re-pinned, Wi-Fi
+  protocol 26.
+- **Modes.** A Mode row heads the Rules tab: Classic, Crumbling ground, Random
+  weapons, Chaos (both). A mode isn't stored, it is read off the rules, which stay
+  adjustable; so saves, Wi-Fi and the CPU needed no change.

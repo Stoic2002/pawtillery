@@ -1528,5 +1528,8 @@
   "loadingTip4": "Water is the fastest way to lose a pet, and to win a match.",
   "loadingTip5": "Every animal has its own ability and signature weapon.",
   "loadingTip6": "Crates fall from the sky. Grab them before your rival does.",
-  "setupFromStart": "From start"
+  "setupFromStart": "From start",
+  "setupMode": "Mode",
+  "setupModeClassic": "Classic",
+  "setupModeChaos": "Chaos"
 }

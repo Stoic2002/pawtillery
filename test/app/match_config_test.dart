@@ -11,6 +11,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 const _names = ['Milo', 'Luna', 'Bobo', 'Kiki', 'Coco'];
 
 void main() {
+  modeTests();
   test('defaults follow the PRD', () {
     final c = MatchConfig.defaults(_names);
     expect(c.teams, hasLength(MatchDefaults.teamCount));
@@ -83,5 +84,23 @@ void main() {
     expect(again.haptics, isFalse);
     expect(again.musicVolume, 0.25);
     expect(again.lastMatch(_names)!.turnSeconds, 30);
+  });
+}
+
+void modeTests() {
+  test('a mode is read off the rules, and setting one keeps the others', () {
+    var c = MatchConfig.defaults(_names);
+    expect(c.mode, MatchMode.classic);
+    c = c.withMode(MatchMode.crumbling);
+    expect((c.suddenDeathMinutes, c.randomWeapons), (0, false));
+    expect(c.mode, MatchMode.crumbling);
+    c = c.withMode(MatchMode.chaos);
+    expect((c.suddenDeathMinutes, c.randomWeapons), (0, true));
+    c = c.withMode(MatchMode.randomWeapons);
+    expect(c.suddenDeathMinutes, MatchDefaults.suddenDeathMinutes);
+    expect(c.mode, MatchMode.randomWeapons);
+    c = c.copyWith(suddenDeathOff: true).withMode(MatchMode.classic);
+    expect(c.suddenDeathMinutes, isNull, reason: 'off stays off');
+    expect(c.mode, MatchMode.classic);
   });
 }
