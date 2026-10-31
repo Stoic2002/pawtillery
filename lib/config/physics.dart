@@ -7,6 +7,20 @@ abstract final class PhysicsConfig {
   /// Downward acceleration, px/s².
   static const double gravity = 500;
 
+  /// Gravity of the match being played, as a share of normal, for pets,
+  /// shots and mines alike (SimWorld sets it: only one match runs at a time,
+  /// and passing it through every step would touch the whole sim).
+  static double gravityScale = 1;
+
+  /// Moon mode's [gravityScale].
+  static const double moonGravity = 0.45;
+
+  /// Storm mode: strongest wind, and every [stormShiftTicks] it moves by up
+  /// to [stormShift].
+  static const int stormWind = 20;
+  static const int stormShiftTicks = 4 * MatchDefaults.ticksPerSecond;
+  static const int stormShift = 6;
+
   /// Projectile launch speed at 100 % power, px/s.
   static const double maxLaunchSpeed = 900;
 

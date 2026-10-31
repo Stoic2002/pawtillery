@@ -397,5 +397,15 @@
   "setupFromStart": "Dari awal",
   "setupMode": "Mode",
   "setupModeClassic": "Klasik",
-  "setupModeChaos": "Kacau"
+  "setupModeChaos": "Kacau",
+  "setupModeOneHit": "Sekali Kena",
+  "setupModeStorm": "Badai",
+  "setupModeMoon": "Bulan",
+  "modeInfoClassic": "Aturan biasa.",
+  "modeInfoCrumbling": "Tanah runtuh sejak ronde pertama.",
+  "modeInfoRandom": "Satu senjata diundi untukmu setiap giliran.",
+  "modeInfoChaos": "Senjata acak di atas tanah yang runtuh.",
+  "modeInfoOneHit": "Sekali kena serangan, hewan langsung tumbang. Jatuh dan racun tetap hanya melukai.",
+  "modeInfoStorm": "Angin kencang yang berubah-ubah saat giliran berjalan.",
+  "modeInfoMoon": "Gravitasi rendah: lompatan tinggi, tembakan melayang jauh."
 }

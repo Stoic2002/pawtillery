@@ -1474,3 +1474,21 @@ the sides.
 Setup's map tiles now show `thumb.webp` (480 × 320, about 30 KB each), made by
 the converter from the background, the land and a band of water, instead of a
 code-drawn hill that no longer matched the maps. Long names shrink to fit.
+
+## Three more modes (2026-10-31)
+
+One Hit, Storm and Moon join the Mode picker (`MatchTwist`, a rule in the sim, saved
+with the setup and sent over Wi-Fi; protocol 27). With seven modes the row of pills
+became wrapping chips, with a line saying what the chosen one does.
+
+- **One Hit:** any damage but falls and poison takes all a pet's HP. The cat's save
+  and shields still work. The CPU doesn't plan for it specially; 3 a side, it was
+  over in about 5–7 turns.
+- **Storm:** wind up to ±20 (usually ±10), moving by up to 6 every 4 s, drawn from the
+  sim's random numbers so all phones agree. The CPU plans with the wind it sees.
+- **Moon:** gravity × 0.45 for pets, shots and mines. `PhysicsConfig.gravityScale` is
+  a static set by `SimWorld` at creation and each step, since passing it through
+  every physics call would touch the whole sim; it relies on one match running at a
+  time.
+
+Twelve CPU matches on two maps all finished; three ran 15–27 minutes.

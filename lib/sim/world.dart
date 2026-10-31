@@ -47,6 +47,7 @@ class SimWorld implements SimContext {
     this.suddenDeathAfterTicks,
     this.loadout = WeaponLoadout.standard,
     this.randomWeapons = false,
+    this.twist = MatchTwist.none,
   })  : _waterLevel = waterLevel,
         _units = units,
         turn = TurnManager(teamCount: teamCount, timings: timings),
@@ -57,9 +58,13 @@ class SimWorld implements SimContext {
                 if (loadout.ammoOf(w) case final int n) w.id: n,
             },
         ] {
+    _applyGravity();
     _beginTurn();
     _events.clear();
   }
+
+  void _applyGravity() => PhysicsConfig.gravityScale =
+      twist == MatchTwist.moon ? PhysicsConfig.moonGravity : 1;
 
   /// A new match from team rosters, units on random flat ground.
   factory SimWorld.newMatch({
@@ -72,6 +77,7 @@ class SimWorld implements SimContext {
     WeaponLoadout loadout = WeaponLoadout.standard,
     ObjectMix? objects,
     bool randomWeapons = false,
+    MatchTwist twist = MatchTwist.none,
   }) {
     final rng = SimRng(seed);
     final count = rosters.fold(0, (n, r) => n + r.length);
@@ -105,6 +111,7 @@ class SimWorld implements SimContext {
       suddenDeathAfterTicks: suddenDeathAfterTicks,
       loadout: loadout,
       randomWeapons: randomWeapons,
+      twist: twist,
     );
     if (objects != null && objects.total > 0) {
       world._placeObjects(objects, points);
@@ -123,6 +130,7 @@ class SimWorld implements SimContext {
     int? suddenDeathAfterTicks,
     WeaponLoadout loadout = WeaponLoadout.standard,
     bool randomWeapons = false,
+    MatchTwist twist = MatchTwist.none,
   }) {
     return SimWorld._(
       seed: seed,
@@ -144,6 +152,7 @@ class SimWorld implements SimContext {
       suddenDeathAfterTicks: suddenDeathAfterTicks,
       loadout: loadout,
       randomWeapons: randomWeapons,
+      twist: twist,
     );
   }
 
@@ -152,6 +161,9 @@ class SimWorld implements SimContext {
   /// Random weapons rule: each turn draws one weapon (from the loadout,
   /// tools left out) and that is the turn's only weapon, free of ammo.
   final bool randomWeapons;
+
+  /// A rule changing the whole match (see [MatchTwist]).
+  final MatchTwist twist;
   String? _drawn;
 
   /// This turn's weapon under [randomWeapons]; null otherwise.
@@ -347,8 +359,14 @@ class SimWorld implements SimContext {
   /// Advances exactly one fixed step (1 / [MatchDefaults.ticksPerSecond] s)
   /// and returns the events produced during it.
   List<SimEvent> step(List<SimInput> inputs) {
+    _applyGravity();
     _tick++;
     _events.clear();
+    if (twist == MatchTwist.storm && _tick % PhysicsConfig.stormShiftTicks == 0) {
+      _wind = (_wind +
+              rng.nextIntInRange(-PhysicsConfig.stormShift, PhysicsConfig.stormShift))
+          .clamp(-PhysicsConfig.stormWind, PhysicsConfig.stormWind);
+    }
     for (final p in _projectiles) {
       p
         ..prevX = p.x
@@ -807,7 +825,9 @@ class SimWorld implements SimContext {
             if (u.team == team) (u.id, u.alive),
         ],
     ]);
-    _wind = rng.nextIntInRange(PhysicsConfig.windMin, PhysicsConfig.windMax);
+    _wind = twist == MatchTwist.storm
+        ? rng.nextIntInRange(-PhysicsConfig.stormWind, PhysicsConfig.stormWind)
+        : rng.nextIntInRange(PhysicsConfig.windMin, PhysicsConfig.windMax);
     // A shield lasts until its pet's own next turn.
     final active = _units[turn.activeUnitId];
     if (randomWeapons) _drawWeapon(active);
@@ -910,6 +930,7 @@ class SimWorld implements SimContext {
       ..add(_shotgunLeft)
       ..add(_nextCloudId);
     // Only with the rule on, so hashes of other matches stay as they were.
+    if (twist != MatchTwist.none) h.add(twist.index);
     if (randomWeapons) {
       h.add(_drawn == null ? -1 : Weapons.all.indexWhere((w) => w.id == _drawn));
     }

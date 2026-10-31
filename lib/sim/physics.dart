@@ -68,7 +68,10 @@ abstract final class ProjectilePhysics {
     if (p.weapon.affectedByWind) {
       p.vx += wind * PhysicsConfig.windAccelPerUnit * _dt;
     }
-    p.vy += PhysicsConfig.gravity * p.weapon.gravityScale * _dt;
+    p.vy += PhysicsConfig.gravity *
+        PhysicsConfig.gravityScale *
+        p.weapon.gravityScale *
+        _dt;
     final firstTick = p.ageTicks == 0;
     p.ageTicks++;
     return sweep(p, terrain, p.vx * _dt, p.vy * _dt,

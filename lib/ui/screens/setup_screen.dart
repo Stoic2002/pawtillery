@@ -168,7 +168,8 @@ class _SetupScreenState extends State<SetupScreen> {
                             config.turnSeconds,
                             _mapName(l10n, config.mapId),
                           ),
-                          if (config.randomWeapons) l10n.setupRandomWeapons,
+                          if (config.mode != MatchMode.classic)
+                            _modeName(l10n, config.mode),
                         ].join(' · '),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -690,19 +691,9 @@ class _RulesTab extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: ListView(
               children: [
-                row(
-                  l10n.setupMode,
-                  PawPillToggle<MatchMode>(
-                    values: MatchMode.values,
-                    selected: config.mode,
-                    label: (m) => switch (m) {
-                      MatchMode.classic => l10n.setupModeClassic,
-                      MatchMode.crumbling => l10n.setupSuddenDeath,
-                      MatchMode.randomWeapons => l10n.setupRandomWeapons,
-                      MatchMode.chaos => l10n.setupModeChaos,
-                    },
-                    onSelect: (m) => onChanged(config.withMode(m)),
-                  ),
+                _ModePicker(
+                  mode: config.mode,
+                  onSelect: (m) => onChanged(config.withMode(m)),
                 ),
                 row(
                   l10n.setupTeamCount,
@@ -1139,6 +1130,88 @@ class _MapCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+String _modeName(AppLocalizations l10n, MatchMode m) => switch (m) {
+  MatchMode.classic => l10n.setupModeClassic,
+  MatchMode.crumbling => l10n.setupSuddenDeath,
+  MatchMode.randomWeapons => l10n.setupRandomWeapons,
+  MatchMode.chaos => l10n.setupModeChaos,
+  MatchMode.oneHit => l10n.setupModeOneHit,
+  MatchMode.storm => l10n.setupModeStorm,
+  MatchMode.moon => l10n.setupModeMoon,
+};
+
+/// The Rules tab's first row: every mode as a chip (too many for one line of
+/// pills), and what the chosen one does.
+class _ModePicker extends StatelessWidget {
+  const _ModePicker({required this.mode, required this.onSelect});
+
+  final MatchMode mode;
+  final ValueChanged<MatchMode> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Container(
+      padding: const EdgeInsets.only(top: 6, bottom: 8),
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Paw.peach, width: 2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.setupMode, style: Paw.text(16)),
+          const SizedBox(height: 6),
+          Wrap(
+            spacing: 6,
+            runSpacing: 6,
+            children: [
+              for (final m in MatchMode.values)
+                Semantics(
+                  button: true,
+                  selected: m == mode,
+                  child: GestureDetector(
+                    onTap: () => onSelect(m),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      decoration: BoxDecoration(
+                        color: m == mode ? Paw.ink : Paw.peach,
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(color: Paw.ink, width: 2),
+                      ),
+                      child: Text(
+                        _modeName(l10n, m),
+                        style: Paw.text(
+                          13,
+                          color: m == mode ? Paw.cream : Paw.ink,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            switch (mode) {
+              MatchMode.classic => l10n.modeInfoClassic,
+              MatchMode.crumbling => l10n.modeInfoCrumbling,
+              MatchMode.randomWeapons => l10n.modeInfoRandom,
+              MatchMode.chaos => l10n.modeInfoChaos,
+              MatchMode.oneHit => l10n.modeInfoOneHit,
+              MatchMode.storm => l10n.modeInfoStorm,
+              MatchMode.moon => l10n.modeInfoMoon,
+            },
+            style: Paw.text(13, weight: 600, color: Paw.muted),
+          ),
+        ],
       ),
     );
   }

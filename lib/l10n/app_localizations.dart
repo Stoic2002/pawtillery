@@ -2485,6 +2485,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chaos'**
   String get setupModeChaos;
+
+  /// No description provided for @setupModeOneHit.
+  ///
+  /// In en, this message translates to:
+  /// **'One Hit'**
+  String get setupModeOneHit;
+
+  /// No description provided for @setupModeStorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Storm'**
+  String get setupModeStorm;
+
+  /// No description provided for @setupModeMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Moon'**
+  String get setupModeMoon;
+
+  /// No description provided for @modeInfoClassic.
+  ///
+  /// In en, this message translates to:
+  /// **'The usual rules.'**
+  String get modeInfoClassic;
+
+  /// No description provided for @modeInfoCrumbling.
+  ///
+  /// In en, this message translates to:
+  /// **'The ground gives way from the first round.'**
+  String get modeInfoCrumbling;
+
+  /// No description provided for @modeInfoRandom.
+  ///
+  /// In en, this message translates to:
+  /// **'One weapon is drawn for you every turn.'**
+  String get modeInfoRandom;
+
+  /// No description provided for @modeInfoChaos.
+  ///
+  /// In en, this message translates to:
+  /// **'Random weapons on crumbling ground.'**
+  String get modeInfoChaos;
+
+  /// No description provided for @modeInfoOneHit.
+  ///
+  /// In en, this message translates to:
+  /// **'Any hit knocks a pet out. Falls and poison still only hurt.'**
+  String get modeInfoOneHit;
+
+  /// No description provided for @modeInfoStorm.
+  ///
+  /// In en, this message translates to:
+  /// **'Strong wind that shifts during the turn.'**
+  String get modeInfoStorm;
+
+  /// No description provided for @modeInfoMoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Low gravity: high jumps, and shots float far.'**
+  String get modeInfoMoon;
 }
 
 class _AppLocalizationsDelegate

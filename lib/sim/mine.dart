@@ -55,7 +55,10 @@ abstract final class MinePhysics {
       if (t.isSolid(m.x.floor(), m.y.floor())) return MineMove.resting;
       m.grounded = false;
     }
-    m.vy = min(m.vy + PhysicsConfig.gravity * _dt, UnitConfig.maxFallSpeed);
+    m.vy = min(
+      m.vy + PhysicsConfig.gravity * PhysicsConfig.gravityScale * _dt,
+      UnitConfig.maxFallSpeed,
+    );
     final dx = m.vx * _dt;
     final dy = m.vy * _dt;
     final samples = max(1, sqrt(dx * dx + dy * dy).ceil());

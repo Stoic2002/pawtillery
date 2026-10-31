@@ -1531,5 +1531,15 @@
   "setupFromStart": "From start",
   "setupMode": "Mode",
   "setupModeClassic": "Classic",
-  "setupModeChaos": "Chaos"
+  "setupModeChaos": "Chaos",
+  "setupModeOneHit": "One Hit",
+  "setupModeStorm": "Storm",
+  "setupModeMoon": "Moon",
+  "modeInfoClassic": "The usual rules.",
+  "modeInfoCrumbling": "The ground gives way from the first round.",
+  "modeInfoRandom": "One weapon is drawn for you every turn.",
+  "modeInfoChaos": "Random weapons on crumbling ground.",
+  "modeInfoOneHit": "Any hit knocks a pet out. Falls and poison still only hurt.",
+  "modeInfoStorm": "Strong wind that shifts during the turn.",
+  "modeInfoMoon": "Low gravity: high jumps, and shots float far."
 }

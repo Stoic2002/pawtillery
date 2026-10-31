@@ -1320,4 +1320,37 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get setupModeChaos => 'Kacau';
+
+  @override
+  String get setupModeOneHit => 'Sekali Kena';
+
+  @override
+  String get setupModeStorm => 'Badai';
+
+  @override
+  String get setupModeMoon => 'Bulan';
+
+  @override
+  String get modeInfoClassic => 'Aturan biasa.';
+
+  @override
+  String get modeInfoCrumbling => 'Tanah runtuh sejak ronde pertama.';
+
+  @override
+  String get modeInfoRandom => 'Satu senjata diundi untukmu setiap giliran.';
+
+  @override
+  String get modeInfoChaos => 'Senjata acak di atas tanah yang runtuh.';
+
+  @override
+  String get modeInfoOneHit =>
+      'Sekali kena serangan, hewan langsung tumbang. Jatuh dan racun tetap hanya melukai.';
+
+  @override
+  String get modeInfoStorm =>
+      'Angin kencang yang berubah-ubah saat giliran berjalan.';
+
+  @override
+  String get modeInfoMoon =>
+      'Gravitasi rendah: lompatan tinggi, tembakan melayang jauh.';
 }

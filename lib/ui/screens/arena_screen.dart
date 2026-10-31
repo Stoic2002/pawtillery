@@ -265,6 +265,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
       lockstep: _lockstep,
       cpuTeams: net == null ? config.cpuTeams() : const {},
       randomWeapons: config.randomWeapons,
+      twist: config.twist,
     );
     game.hud.addListener(_onHudChanged);
     final services = AppServices.of(context);

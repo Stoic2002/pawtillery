@@ -91,6 +91,7 @@ class PawtilleryGame extends FlameGame {
     this.objects,
     this.cpuTeams = const {},
     this.randomWeapons = false,
+    this.twist = MatchTwist.none,
   });
 
   final int seed;
@@ -123,6 +124,9 @@ class PawtilleryGame extends FlameGame {
 
   /// Random weapons rule (see [SimWorld.randomWeapons]).
   final bool randomWeapons;
+
+  /// See [SimWorld.twist].
+  final MatchTwist twist;
 
   /// Teams the computer plays (hotseat only), by sim team index.
   final Map<int, CpuLevel> cpuTeams;
@@ -196,6 +200,7 @@ class PawtilleryGame extends FlameGame {
       loadout: loadout,
       objects: objects,
       randomWeapons: randomWeapons,
+      twist: twist,
     );
     stats = MatchStats(sim);
     lockstep?.attach(sim);

@@ -1318,4 +1318,35 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get setupModeChaos => 'Chaos';
+
+  @override
+  String get setupModeOneHit => 'One Hit';
+
+  @override
+  String get setupModeStorm => 'Storm';
+
+  @override
+  String get setupModeMoon => 'Moon';
+
+  @override
+  String get modeInfoClassic => 'The usual rules.';
+
+  @override
+  String get modeInfoCrumbling => 'The ground gives way from the first round.';
+
+  @override
+  String get modeInfoRandom => 'One weapon is drawn for you every turn.';
+
+  @override
+  String get modeInfoChaos => 'Random weapons on crumbling ground.';
+
+  @override
+  String get modeInfoOneHit =>
+      'Any hit knocks a pet out. Falls and poison still only hurt.';
+
+  @override
+  String get modeInfoStorm => 'Strong wind that shifts during the turn.';
+
+  @override
+  String get modeInfoMoon => 'Low gravity: high jumps, and shots float far.';
 }

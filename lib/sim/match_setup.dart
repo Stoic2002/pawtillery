@@ -1,3 +1,17 @@
+/// A rule that changes how a whole match plays.
+enum MatchTwist {
+  none,
+
+  /// Any hit knocks a pet out (not a fall or poison).
+  oneHit,
+
+  /// Stronger wind that keeps shifting during the turn.
+  storm,
+
+  /// Low gravity: higher jumps, shots that float far.
+  moon,
+}
+
 /// One unit's identity in a match roster.
 class UnitSpec {
   const UnitSpec({required this.familyId});

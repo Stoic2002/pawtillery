@@ -6,6 +6,7 @@ import 'package:pawtillery/app/match_config.dart';
 import 'package:pawtillery/config/families.dart';
 import 'package:pawtillery/config/match_defaults.dart';
 import 'package:pawtillery/services/settings_store.dart';
+import 'package:pawtillery/sim/match_setup.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 const _names = ['Milo', 'Luna', 'Bobo', 'Kiki', 'Coco'];
@@ -102,5 +103,14 @@ void modeTests() {
     c = c.copyWith(suddenDeathOff: true).withMode(MatchMode.classic);
     expect(c.suddenDeathMinutes, isNull, reason: 'off stays off');
     expect(c.mode, MatchMode.classic);
+    c = c.withMode(MatchMode.moon);
+    expect(c.twist, MatchTwist.moon);
+    expect(c.mode, MatchMode.moon);
+    final back = MatchConfig.fromJson(
+      jsonDecode(jsonEncode(c.toJson())),
+      _names,
+    )!;
+    expect(back.twist, MatchTwist.moon);
+    expect(c.withMode(MatchMode.classic).twist, MatchTwist.none);
   });
 }

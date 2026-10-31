@@ -265,7 +265,10 @@ abstract final class UnitPhysics {
     final h = u.stats.bodyHeight;
     final maxFall =
         u.gliding ? UnitConfig.glideFallSpeed : UnitConfig.maxFallSpeed;
-    u.vy = min(u.vy + UnitConfig.gravity * _dt, maxFall);
+    u.vy = min(
+      u.vy + UnitConfig.gravity * PhysicsConfig.gravityScale * _dt,
+      maxFall,
+    );
     if (u.gliding) {
       u.vx = u.vx.clamp(-UnitConfig.glideSpeedX, UnitConfig.glideSpeedX);
     }

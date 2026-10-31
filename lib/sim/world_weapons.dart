@@ -204,7 +204,9 @@ extension _Weapons on SimWorld {
   /// the wind, aimed to reach the marked height at its landing column.
   void _meteorShower(Unit unit, MeteorShower spec, int tx, int ty) {
     final child = Weapons.byId(spec.childId);
-    final g = PhysicsConfig.gravity * child.gravityScale;
+    final g = PhysicsConfig.gravity *
+        PhysicsConfig.gravityScale *
+        child.gravityScale;
     final windDir = _wind >= 0 ? 1 : -1;
     final vx = spec.speed * 0.45;
     for (var i = 0; i < spec.count; i++) {
@@ -439,7 +441,11 @@ extension _Weapons on SimWorld {
       }
       final height = ground - raid.altitude;
       final fallSeconds = height > 0
-          ? sqrt(2 * height / (PhysicsConfig.gravity * payload.gravityScale))
+          ? sqrt(2 *
+              height /
+              (PhysicsConfig.gravity *
+                  PhysicsConfig.gravityScale *
+                  payload.gravityScale))
           : 0.0;
       lead = raid.speed * fallSeconds;
     }

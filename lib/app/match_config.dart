@@ -11,7 +11,7 @@ import '../sim/match_setup.dart';
 
 /// A named set of rules, picked in one tap. Not stored: it is read off the
 /// rules themselves, which stay adjustable one by one.
-enum MatchMode { classic, crumbling, randomWeapons, chaos }
+enum MatchMode { classic, crumbling, randomWeapons, chaos, oneHit, storm, moon }
 
 /// One unit on the setup screen.
 class UnitEntry {
@@ -96,6 +96,7 @@ class MatchConfig {
     this.weapons = WeaponLoadout.standard,
     this.objects = ObjectAmount.few,
     this.randomWeapons = false,
+    this.twist = MatchTwist.none,
   });
 
   /// [mapId] value meaning "pick one at random".
@@ -115,6 +116,7 @@ class MatchConfig {
 
   /// Random weapons rule: one drawn weapon per turn.
   final bool randomWeapons;
+  final MatchTwist twist;
 
   /// PRD defaults: 2 teams × 3 units, 45 s, random map, sudden death 15 min.
   factory MatchConfig.defaults(List<String> namePool) {
@@ -138,6 +140,7 @@ class MatchConfig {
     WeaponLoadout? weapons,
     ObjectAmount? objects,
     bool? randomWeapons,
+    MatchTwist? twist,
   }) =>
       MatchConfig(
         teams: teams ?? this.teams,
@@ -150,6 +153,7 @@ class MatchConfig {
         weapons: weapons ?? this.weapons,
         objects: objects ?? this.objects,
         randomWeapons: randomWeapons ?? this.randomWeapons,
+        twist: twist ?? this.twist,
       );
 
   /// Adds or removes teams; new teams get the first unused colour and
@@ -245,6 +249,16 @@ class MatchConfig {
 
   /// Which [MatchMode] these rules amount to.
   MatchMode get mode {
+    switch (twist) {
+      case MatchTwist.oneHit:
+        return MatchMode.oneHit;
+      case MatchTwist.storm:
+        return MatchMode.storm;
+      case MatchTwist.moon:
+        return MatchMode.moon;
+      case MatchTwist.none:
+        break;
+    }
     final fromStart = suddenDeathMinutes == 0;
     return randomWeapons
         ? (fromStart ? MatchMode.chaos : MatchMode.randomWeapons)
@@ -257,6 +271,12 @@ class MatchConfig {
     final crumbles = m == MatchMode.crumbling || m == MatchMode.chaos;
     return copyWith(
       randomWeapons: m == MatchMode.randomWeapons || m == MatchMode.chaos,
+      twist: switch (m) {
+        MatchMode.oneHit => MatchTwist.oneHit,
+        MatchMode.storm => MatchTwist.storm,
+        MatchMode.moon => MatchTwist.moon,
+        _ => MatchTwist.none,
+      },
       suddenDeathMinutes: crumbles
           ? 0
           : suddenDeathMinutes == 0
@@ -298,6 +318,7 @@ class MatchConfig {
         'weapons': weapons.toJson(),
         'objects': objects.name,
         'randomWeapons': randomWeapons,
+        'twist': twist.name,
       };
 
   /// Restores a saved config; anything invalid (old data)
@@ -362,6 +383,7 @@ class MatchConfig {
       objects: ObjectAmount.values.asNameMap()[json['objects']] ??
           ObjectAmount.few,
       randomWeapons: json['randomWeapons'] == true,
+      twist: MatchTwist.values.asNameMap()[json['twist']] ?? MatchTwist.none,
     );
   }
 }

@@ -186,6 +186,12 @@ extension _Impacts on SimWorld {
       dealt = (amount * u.stats.explosionDamageScale).round();
       if (dealt < 1) dealt = 1;
     }
+    if (twist == MatchTwist.oneHit &&
+        dealt > 0 &&
+        cause != DamageCause.fall &&
+        cause != DamageCause.poison) {
+      dealt = u.hp;
+    }
     if (u.hp > 0 && u.hp - dealt <= 0 && u.lethalSavesLeft > 0) {
       dealt = u.hp - 1;
       u.lethalSavesLeft--;
