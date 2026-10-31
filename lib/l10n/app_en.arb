@@ -1544,5 +1544,9 @@
   "modeInfoMoon": "Low gravity: high jumps, and shots float far.",
   "weaponJetpack": "Jetpack",
   "weaponJetpackDesc": "Fly anywhere with the joystick for 4 s, until the fuel runs out.",
-  "hudJetHint": "Steer with the joystick"
+  "hudJetHint": "Steer with the joystick",
+  "pauseHudLayout": "Arrange HUD",
+  "hudEditHint": "Drag a part to move it. Tap one, then set its size.",
+  "hudEditSize": "Size",
+  "hudEditReset": "Reset"
 }

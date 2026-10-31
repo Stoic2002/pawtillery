@@ -410,5 +410,9 @@
   "modeInfoMoon": "Gravitasi rendah: lompatan tinggi, tembakan melayang jauh.",
   "weaponJetpack": "Jetpack",
   "weaponJetpackDesc": "Terbang ke mana saja dengan joystick selama 4 detik, sampai bahan bakar habis.",
-  "hudJetHint": "Arahkan dengan joystick"
+  "hudJetHint": "Arahkan dengan joystick",
+  "pauseHudLayout": "Atur HUD",
+  "hudEditHint": "Geser bagian untuk memindahkan. Ketuk satu, lalu atur ukurannya.",
+  "hudEditSize": "Ukuran",
+  "hudEditReset": "Atur ulang"
 }

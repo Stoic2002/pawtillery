@@ -1359,4 +1359,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hudJetHint => 'Steer with the joystick';
+
+  @override
+  String get pauseHudLayout => 'Arrange HUD';
+
+  @override
+  String get hudEditHint =>
+      'Drag a part to move it. Tap one, then set its size.';
+
+  @override
+  String get hudEditSize => 'Size';
+
+  @override
+  String get hudEditReset => 'Reset';
 }

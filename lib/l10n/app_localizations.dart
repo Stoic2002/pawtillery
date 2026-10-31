@@ -2563,6 +2563,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Steer with the joystick'**
   String get hudJetHint;
+
+  /// No description provided for @pauseHudLayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrange HUD'**
+  String get pauseHudLayout;
+
+  /// No description provided for @hudEditHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag a part to move it. Tap one, then set its size.'**
+  String get hudEditHint;
+
+  /// No description provided for @hudEditSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get hudEditSize;
+
+  /// No description provided for @hudEditReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get hudEditReset;
 }
 
 class _AppLocalizationsDelegate

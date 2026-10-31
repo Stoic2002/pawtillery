@@ -4,7 +4,7 @@ import '../../app/paw_palette.dart';
 import '../../l10n/app_localizations.dart';
 import '../widgets/paw/paw_widgets.dart';
 
-enum PauseChoice { resume, settings, exit }
+enum PauseChoice { resume, settings, hudLayout, exit }
 
 /// Pause menu (PRD: Jeda — Lanjut, Settings, Keluar ke menu; redesign
 /// prototype): a card with Resume, Settings and a red Quit. Closing it any
@@ -43,6 +43,14 @@ Future<PauseChoice> showPauseDialog(BuildContext context) async {
             height: 48,
             fontSize: 15,
             onPressed: () => Navigator.of(context).pop(PauseChoice.settings),
+          ),
+          const SizedBox(height: 12),
+          PawButton(
+            label: l10n.pauseHudLayout,
+            icon: Icons.tune_rounded,
+            height: 48,
+            fontSize: 15,
+            onPressed: () => Navigator.of(context).pop(PauseChoice.hudLayout),
           ),
           const SizedBox(height: 12),
           PawButton(

@@ -1500,3 +1500,11 @@ somewhere on the map, drifting with the wind; the turn doesn't wait for it. Jetp
 (2 per match): 4 s of flight on the dig joystick, reusing the `Dig` and `StopDigging`
 inputs, so the wire format is unchanged; landing while flying does no harm, running
 out of fuel high up does. Zoom in now stops at 0.65×, starting at 0.6×. Protocol 28.
+
+## Arrange the HUD (2026-10-31)
+
+Pause → Arrange HUD: the top left, top centre, top right, walk and action parts each
+get a frame to drag and a size slider (0.6–1.6×), saved in the settings as the player
+goes. `_piece` applies it; the dig or jetpack joystick follows the walk part, the aim
+panel the action part. Only in a match, since the parts need its state. Driven through
+the real arena in a throwaway test: the drag moved and saved, the team bars filled.

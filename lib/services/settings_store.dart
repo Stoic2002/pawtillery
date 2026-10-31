@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../app/match_config.dart';
 import '../app/match_history.dart';
 import '../net/protocol.dart' show RejoinTicket;
+import '../ui/hud/hud_layout.dart';
 
 /// Player settings and the last team setup, kept on the device
 /// (PRD: Settings tersimpan; konfigurasi tim terakhir disimpan lokal).
@@ -17,6 +18,7 @@ class SettingsStore extends ChangeNotifier {
 
   final SharedPreferences _prefs;
 
+  static const _kHudLayout = 'hudLayout';
   static const _kLanguage = 'language';
   static const _kMusic = 'musicVolume';
   static const _kSfx = 'sfxVolume';
@@ -46,6 +48,11 @@ class SettingsStore extends ChangeNotifier {
 
   double get sfxVolume => _prefs.getDouble(_kSfx) ?? 0.9;
   set sfxVolume(double v) => _set(() => _prefs.setDouble(_kSfx, v.clamp(0, 1)));
+
+  /// Where the match HUD's parts are and how big.
+  HudLayout get hudLayout => HudLayout.decode(_prefs.getString(_kHudLayout));
+  set hudLayout(HudLayout v) =>
+      _set(() => _prefs.setString(_kHudLayout, v.encode()));
 
   bool get haptics => _prefs.getBool(_kHaptics) ?? true;
   set haptics(bool v) => _set(() => _prefs.setBool(_kHaptics, v));

@@ -397,6 +397,9 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
     if (state == AppLifecycleState.hidden && widget.net == null) _pause();
   }
 
+  final ValueNotifier<bool> _editingHud = ValueNotifier(false);
+  Completer<void>? _hudEditDone;
+
   Future<void> _pause() async {
     final game = _game;
     if (game == null || _paused || _finished) return;
@@ -414,6 +417,15 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
         ).push(MaterialPageRoute<void>(builder: (_) => const SettingsScreen()));
         if (!mounted) return;
         game.showAimGuide = AppServices.of(context).settings.showAimGuide;
+        continue;
+      }
+      if (choice == PauseChoice.hudLayout) {
+        final done = Completer<void>();
+        _hudEditDone = done;
+        _editingHud.value = true;
+        await done.future;
+        if (!mounted) return;
+        _editingHud.value = false;
         continue;
       }
       if (choice == PauseChoice.exit) {
@@ -504,6 +516,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _editingHud.dispose();
     ScreenAwake.set(on: false);
     widget.net?.detachMatch();
     _waitTimer?.cancel();
@@ -548,6 +561,8 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
                       teamNames: _teamNames,
                       teamSymbols: _teamSymbols,
                       onPause: _pause,
+                      editing: _editingHud,
+                      onEditDone: () => _hudEditDone?.complete(),
                       tutorial: _tutorial,
                       otherTurnLabel: () => _otherTurnLabel(game),
                     )

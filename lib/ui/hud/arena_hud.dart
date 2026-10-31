@@ -18,6 +18,8 @@ import '../widgets/paw/paw_widgets.dart';
 import 'tutorial.dart';
 import 'weapon_menu.dart';
 import '../widgets/paw/paw_icon.dart';
+import 'hud_editor.dart';
+import 'hud_layout.dart';
 
 /// Arena HUD (redesign prototype): pause and team HP pills top left, the
 /// turn timer and active unit top centre, wind and the camera button top
@@ -34,6 +36,8 @@ class ArenaHud extends StatelessWidget {
     required this.onPause,
     this.tutorial,
     this.otherTurnLabel,
+    this.editing,
+    this.onEditDone,
   });
 
   final PawtilleryGame game;
@@ -50,6 +54,35 @@ class ArenaHud extends StatelessWidget {
   /// the controls are here.
   final String? Function()? otherTurnLabel;
 
+  /// Moving and resizing the HUD's parts (the match is paused meanwhile).
+  final ValueListenable<bool>? editing;
+  final VoidCallback? onEditDone;
+
+  static final Map<HudGroup, GlobalKey> _keys = {
+    for (final g in HudGroup.values) g: GlobalKey(),
+  };
+
+  /// A part of the HUD at its corner, where the player put it.
+  Widget _piece(
+    HudLayout layout,
+    HudGroup group,
+    Alignment corner,
+    Widget child,
+  ) {
+    final p = layout.of(group);
+    return Align(
+      alignment: corner,
+      child: Transform.translate(
+        offset: p.offset,
+        child: Transform.scale(
+          scale: p.scale,
+          alignment: corner,
+          child: KeyedSubtree(key: _keys[group], child: child),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     // Laid out on a larger canvas, then shrunk to fit: every piece is
@@ -62,7 +95,13 @@ class ArenaHud extends StatelessWidget {
         child: SizedBox(
           width: box.maxWidth / scale,
           height: box.maxHeight / scale,
-          child: _hud(context),
+          child: ListenableBuilder(
+            listenable: Listenable.merge([
+              AppServices.of(context).settings,
+              ?editing,
+            ]),
+            builder: (context, _) => _hud(context),
+          ),
         ),
       ),
     );
@@ -90,7 +129,9 @@ class ArenaHud extends StatelessWidget {
                 (weapon.aim == AimMode.angleAndPower ||
                     weapon.aim == AimMode.direction);
             final teamColor = Color(game.teamColors[hud.activeTeam]);
-            final remote = otherTurnLabel?.call();
+            final isEditing = editing?.value ?? false;
+            final layout = AppServices.of(context).settings.hudLayout;
+            final remote = isEditing ? null : otherTurnLabel?.call();
             final digging = remote == null && game.digging;
             return Stack(
               children: [
@@ -99,18 +140,22 @@ class ArenaHud extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
                     child: Stack(
                       children: [
-                        Align(
-                          alignment: Alignment.topLeft,
-                          child: _TopLeft(
+                        _piece(
+                          layout,
+                          HudGroup.topLeft,
+                          Alignment.topLeft,
+                          _TopLeft(
                             hud: hud,
                             game: game,
                             symbols: teamSymbols,
                             onPause: onPause,
                           ),
                         ),
-                        Align(
-                          alignment: Alignment.topCenter,
-                          child: _TopCentre(
+                        _piece(
+                          layout,
+                          HudGroup.topCentre,
+                          Alignment.topCenter,
+                          _TopCentre(
                             hud: hud,
                             game: game,
                             teamColor: teamColor,
@@ -118,9 +163,11 @@ class ArenaHud extends StatelessWidget {
                             hint: hint,
                           ),
                         ),
-                        Align(
-                          alignment: Alignment.topRight,
-                          child: _TopRight(game: game, hud: hud, seed: seed),
+                        _piece(
+                          layout,
+                          HudGroup.topRight,
+                          Alignment.topRight,
+                          _TopRight(game: game, hud: hud, seed: seed),
                         ),
                         if (!hud.isOver && remote != null)
                           Align(
@@ -128,19 +175,25 @@ class ArenaHud extends StatelessWidget {
                             child: _RemoteTurn(label: remote, color: teamColor),
                           ),
                         if (!hud.isOver && digging) ...[
-                          Align(
-                            alignment: Alignment.bottomLeft,
-                            child: _DigJoystick(game: game),
+                          _piece(
+                            layout,
+                            HudGroup.walk,
+                            Alignment.bottomLeft,
+                            _DigJoystick(game: game),
                           ),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: _DigDone(game: game),
+                          _piece(
+                            layout,
+                            HudGroup.actions,
+                            Alignment.bottomRight,
+                            _DigDone(game: game),
                           ),
                         ],
                         if (!hud.isOver && remote == null && !digging) ...[
-                          Align(
-                            alignment: Alignment.bottomLeft,
-                            child: _Walk(
+                          _piece(
+                            layout,
+                            HudGroup.walk,
+                            Alignment.bottomLeft,
+                            _Walk(
                               game: game,
                               hud: hud,
                               dim: aiming,
@@ -148,9 +201,11 @@ class ArenaHud extends StatelessWidget {
                                   tutorial?.complete(TutorialStep.walk),
                             ),
                           ),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: targeting
+                          _piece(
+                            layout,
+                            HudGroup.actions,
+                            Alignment.bottomRight,
+                            targeting
                                 ? _TargetActions(
                                     game: game,
                                     aim: aim,
@@ -173,8 +228,11 @@ class ArenaHud extends StatelessWidget {
                           ),
                           if (aiming)
                             Positioned(
-                              right: 0,
-                              bottom: 96,
+                              // Sits on the action buttons, wherever they are.
+                              right: -layout.of(HudGroup.actions).offset.dx,
+                              bottom:
+                                  96 * layout.of(HudGroup.actions).scale -
+                                  layout.of(HudGroup.actions).offset.dy,
                               child: _AimPanel(
                                 game: game,
                                 aim: aim,
@@ -191,13 +249,17 @@ class ArenaHud extends StatelessWidget {
                     controller: tutorial!,
                     visible: hud.phase == TurnPhase.action,
                   ),
-                if (hud.phase == TurnPhase.turnStart)
+                if (hud.phase == TurnPhase.turnStart && !isEditing)
                   _TurnBanner(
                     name: teamNames[hud.activeTeam],
                     unitName: _activeName(game),
                     color: teamColor,
                     symbol: teamSymbols[hud.activeTeam],
                     drawnWeaponId: game.sim.drawnWeaponId,
+                  ),
+                if (isEditing)
+                  Positioned.fill(
+                    child: HudEditor(keys: _keys, onDone: onEditDone!),
                   ),
               ],
             );

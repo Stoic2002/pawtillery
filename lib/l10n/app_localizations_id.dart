@@ -1363,4 +1363,17 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get hudJetHint => 'Arahkan dengan joystick';
+
+  @override
+  String get pauseHudLayout => 'Atur HUD';
+
+  @override
+  String get hudEditHint =>
+      'Geser bagian untuk memindahkan. Ketuk satu, lalu atur ukurannya.';
+
+  @override
+  String get hudEditSize => 'Ukuran';
+
+  @override
+  String get hudEditReset => 'Atur ulang';
 }
