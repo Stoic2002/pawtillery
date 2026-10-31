@@ -124,6 +124,10 @@ extension _Weapons on SimWorld {
             (weapon.delivery as DigMode).carveRadius);
       case JetpackMode(:final fuelTicks):
         unit.jetTicks = fuelTicks;
+      case BoardMachine(:final hp, :final turns):
+        unit
+          ..machineHp = hp
+          ..machineTurns = turns;
       case SwapPlaces():
         final other = ProjectilePhysics.unitAt(
             tx!.toDouble(), ty!.toDouble(), _units)!;
@@ -195,6 +199,13 @@ extension _Weapons on SimWorld {
       _ammo[unit.team][weapon.id] = left - 1;
     }
     _events.add(WeaponUsed(unit.id, weapon.id));
+    // Getting in takes no time: the pet can still drive and fire.
+    if (weapon.delivery is BoardMachine) return;
+    if (weapon.id == Weapons.mountedGun.id) {
+      if (gunNear(unit) case final gun?) {
+        if (--gun.shots <= 0) gun.destroyed = true;
+      }
+    }
     turn.hasFired = true;
     // Digging keeps the action phase (and its clock) until it ends.
     if (weapon.delivery is DigMode || weapon.delivery is JetpackMode) return;
@@ -391,6 +402,18 @@ extension _Weapons on SimWorld {
       ..digLeft = 0;
     UnitPhysics.launch(unit, 0, 0);
     if (turn.phase == TurnPhase.action) _setPhase(TurnPhase.retreat);
+  }
+
+  /// Spends materials on one more of [id], for the unit's team.
+  void _craft(Unit unit, String id) {
+    final cost = CraftConfig.recipes[id];
+    if (cost == null || randomWeapons || _materials[unit.team] < cost) return;
+    final weapon = Weapons.byId(id);
+    if (!loadout.enabled(weapon)) return;
+    _materials[unit.team] -= cost;
+    final ammo = _ammo[unit.team];
+    if (ammo[id] case final int left) ammo[id] = left + 1;
+    _events.add(WeaponCrafted(unit.id, id));
   }
 
   /// One tick of the jetpack's thrust towards [angleDeg].

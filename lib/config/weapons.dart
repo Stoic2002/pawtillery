@@ -220,6 +220,14 @@ final class DigMode extends Delivery {
   final int carveRadius;
 }
 
+/// Climb into a war machine: armour that takes the hits for [hp] damage, for
+/// [turns] of the pet's own turns, faster on its feet, and its own cannon.
+final class BoardMachine extends Delivery {
+  const BoardMachine({required this.hp, required this.turns});
+  final int hp;
+  final int turns;
+}
+
 /// Fly with the joystick until the fuel runs out or the player is done.
 final class JetpackMode extends Delivery {
   const JetpackMode({
@@ -1090,6 +1098,45 @@ abstract final class Weapons {
     placeholderArgb: 0xFF6B7280,
   );
 
+  /// Fired from a gun that stands on the map, by a pet right next to it.
+  static const mountedGun = WeaponDef(
+    id: 'mountedGun',
+    nameKey: 'weaponMountedGun',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Ballistic(),
+    maxDamage: 42,
+    radius: 48,
+    gravityScale: 0.7,
+    launchSpeedScale: 1.25,
+    placeholderArgb: 0xFF4B5563,
+  );
+
+  /// Climb into a rickety war machine.
+  static const warMachine = WeaponDef(
+    id: 'warMachine',
+    nameKey: 'weaponWarMachine',
+    aim: AimMode.none,
+    delivery: BoardMachine(hp: 60, turns: 3),
+    knockbackScale: 0,
+    ammo: 0,
+    placeholderArgb: 0xFF92400E,
+  );
+
+  /// The war machine's own gun: usable only inside one.
+  static const machineCannon = WeaponDef(
+    id: 'machineCannon',
+    nameKey: 'weaponMachineCannon',
+    aim: AimMode.angleAndPower,
+    delivery: Launch(),
+    flight: Ballistic(),
+    maxDamage: 30,
+    radius: 38,
+    gravityScale: 0.5,
+    launchSpeedScale: 1.5,
+    placeholderArgb: 0xFF92400E,
+  );
+
   // ---- unique arsenal (2026-10-20, docs/decisions.md) ----------------
 
   /// Lands, then pulls everyone nearby in for two seconds and collapses.
@@ -1448,6 +1495,9 @@ abstract final class Weapons {
     mine,
     digClaws,
     jetpack,
+    mountedGun,
+    warMachine,
+    machineCannon,
     grapple,
     shield,
     firstAid,
@@ -1522,6 +1572,9 @@ abstract final class Weapons {
     'headbutt': WeaponGroup.close,
     'seedSpitter': WeaponGroup.close,
     'jetpack': WeaponGroup.tools,
+    'mountedGun': WeaponGroup.tools,
+    'warMachine': WeaponGroup.tools,
+    'machineCannon': WeaponGroup.tools,
     'digClaws': WeaponGroup.tools,
     'grapple': WeaponGroup.tools,
     'shield': WeaponGroup.tools,
@@ -1544,6 +1597,22 @@ abstract final class Weapons {
 /// (setup's Weapons tab). [ammo] overrides a weapon's default: null =
 /// unlimited, 0 = off; weapons not listed keep [WeaponDef.ammo]. Skip
 /// Turn is always on. [signatures] turns every family weapon on or off.
+/// Crafting: materials come from crates and buy weapons during a turn.
+abstract final class CraftConfig {
+  static const int startMaterials = 2;
+  static const int crateMaterials = 2;
+
+  /// What can be made, and how many materials it takes.
+  static const Map<String, int> recipes = {
+    'warMachine': 4,
+    'bomber': 5,
+    'miniNuke': 4,
+    'homingMissile': 3,
+    'jetpack': 2,
+    'shield': 2,
+  };
+}
+
 class WeaponLoadout {
   const WeaponLoadout({this.ammo = const {}, this.signatures = true});
 
@@ -1573,7 +1642,14 @@ class WeaponLoadout {
 
   /// Weapons whose ammo the player can change (all shared but Skip).
   static List<WeaponDef> get editable =>
-      [for (final w in Weapons.shared) if (w.id != Weapons.skip.id) w];
+      [
+        for (final w in Weapons.shared)
+          if (w.id != Weapons.skip.id &&
+              w.id != Weapons.mountedGun.id &&
+              w.id != Weapons.machineCannon.id &&
+              w.id != Weapons.warMachine.id)
+            w,
+      ];
 
   /// Starting ammo of [weapon] per team; null = unlimited.
   int? ammoOf(WeaponDef weapon) {
@@ -1585,6 +1661,8 @@ class WeaponLoadout {
   bool enabled(WeaponDef weapon) {
     if (weapon.hidden) return false;
     if (weapon.isSignature) return signatures;
+    // Only ever crafted: starts at none.
+    if (weapon.id == Weapons.warMachine.id) return true;
     return ammoOf(weapon) != 0;
   }
 

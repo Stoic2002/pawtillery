@@ -449,7 +449,7 @@ List<int>? _owners(Object? json, MatchConfig? config) {
 
 /// Inputs as short lists: [0, dir] walk, [1, kind] jump, [2, weapon,
 /// angle, power, fuse, x, y] fire (nulls for unused fields), [3, angle]
-/// dig, [4] stop digging.
+/// dig, [4] stop digging, [5, weapon] craft.
 Object encodeInput(SimInput input) => switch (input) {
   Walk(:final direction) => [0, direction],
   Jump(:final kind) => [1, kind.index],
@@ -464,6 +464,7 @@ Object encodeInput(SimInput input) => switch (input) {
   ],
   Dig(:final angleDeg) => [3, angleDeg],
   StopDigging() => [4],
+  Craft(:final weaponId) => [5, weaponId],
 };
 
 SimInput? decodeInput(Object? json) {
@@ -475,6 +476,8 @@ SimInput? decodeInput(Object? json) {
       final k = json[1];
       if (k is! int || k < 0 || k >= JumpKind.values.length) return null;
       return Jump(JumpKind.values[k]);
+    case 5 when json.length == 2 && json[1] is String:
+      return Craft(json[1] as String);
     case 3 when json.length == 2:
       final a = json[1];
       if (a is! int || a < 0 || a >= 360) return null;

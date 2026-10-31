@@ -1372,4 +1372,28 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get hudEditReset => 'Reset';
+
+  @override
+  String get craftTitle => 'Craft';
+
+  @override
+  String get weaponMountedGun => 'Mounted Gun';
+
+  @override
+  String get weaponMountedGunDesc =>
+      'A heavy gun standing on the map: stand next to it to fire. Three shots, then it is spent.';
+
+  @override
+  String get weaponWarMachine => 'War Machine';
+
+  @override
+  String get weaponWarMachineDesc =>
+      'Climb in: it takes the hits for three of your turns, rolls twice as fast and has its own cannon. It can\'t jump.';
+
+  @override
+  String get weaponMachineCannon => 'Machine Cannon';
+
+  @override
+  String get weaponMachineCannonDesc =>
+      'The war machine\'s gun. Fast and flat, as often as you like.';
 }

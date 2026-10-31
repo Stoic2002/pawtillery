@@ -135,7 +135,13 @@ abstract final class Maps {
     rimArgb: 0xFFFFB27A,
     theme: MapTheme.backyard,
     // Gas canisters by the fence.
-    objects: ObjectMix(mines: 2, barrels: 3, healthCrates: 1, weaponCrates: 1),
+    objects: ObjectMix(
+      mines: 2,
+      barrels: 3,
+      healthCrates: 1,
+      weaponCrates: 1,
+      guns: 2,
+    ),
   );
 
   static const castle = MapDef(
@@ -154,7 +160,13 @@ abstract final class Maps {
     rimArgb: 0xFFAFC2FF,
     baseMaterial: TerrainMaterial.soil,
     // Powder kegs on the battlements.
-    objects: ObjectMix(mines: 1, barrels: 3, healthCrates: 1, weaponCrates: 2),
+    objects: ObjectMix(
+      mines: 1,
+      barrels: 3,
+      healthCrates: 1,
+      weaponCrates: 2,
+      guns: 2,
+    ),
   );
 
   static const wreck = MapDef(
@@ -173,7 +185,13 @@ abstract final class Maps {
     theme: MapTheme.wreck,
     baseMaterial: TerrainMaterial.rock,
     // Sea mines washed up on the hull.
-    objects: ObjectMix(mines: 4, barrels: 2, healthCrates: 1, weaponCrates: 1),
+    objects: ObjectMix(
+      mines: 4,
+      barrels: 2,
+      healthCrates: 1,
+      weaponCrates: 1,
+      guns: 2,
+    ),
   );
 
   static const ruins = MapDef(
@@ -192,7 +210,13 @@ abstract final class Maps {
     rimArgb: 0xFFFF9A55,
     theme: MapTheme.ruins,
     // Old traps among the stones, and supplies left behind.
-    objects: ObjectMix(mines: 3, barrels: 2, healthCrates: 2, weaponCrates: 1),
+    objects: ObjectMix(
+      mines: 3,
+      barrels: 2,
+      healthCrates: 2,
+      weaponCrates: 1,
+      guns: 2,
+    ),
   );
 
   /// Test bench from M1; used by tests, not offered to players.

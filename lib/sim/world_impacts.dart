@@ -21,6 +21,7 @@ extension _Impacts on SimWorld {
       for (var i = 0; i < mix.barrels; i++) ObjectKind.barrel,
       for (var i = 0; i < mix.healthCrates; i++) ObjectKind.healthCrate,
       for (var i = 0; i < mix.weaponCrates; i++) ObjectKind.weaponCrate,
+      for (var i = 0; i < mix.guns; i++) ObjectKind.gun,
     ];
     for (var i = 0; i < points.length; i++) {
       final (x, y) = points[i];
@@ -96,9 +97,11 @@ extension _Impacts on SimWorld {
         top++;
       }
       if (top >= waterLevel) continue;
-      final kind = rng.nextIntInRange(1, ObjectConfig.dropHealthIn) == 1
-          ? ObjectKind.healthCrate
-          : ObjectKind.weaponCrate;
+      final kind = switch (rng.nextIntInRange(1, ObjectConfig.dropHealthIn)) {
+        1 => ObjectKind.healthCrate,
+        2 => ObjectKind.materialCrate,
+        _ => ObjectKind.weaponCrate,
+      };
       final y = max(top - ObjectConfig.dropHeight, -100);
       addObject(kind, x, y)
         ..grounded = false
@@ -147,7 +150,7 @@ extension _Impacts on SimWorld {
         }
         continue;
       }
-      if (o.kind == ObjectKind.barrel) continue;
+      if (o.kind == ObjectKind.barrel || o.kind == ObjectKind.gun) continue;
       for (final u in _units) {
         if (!u.alive) continue;
         final dx = u.centerX - o.x;
@@ -170,6 +173,13 @@ extension _Impacts on SimWorld {
   /// Health crate: HP up to the unit's maximum. Weapon crate: one more of
   /// a random limited weapon this match uses, for the unit's team.
   void _collect(Unit u, MapObject crate) {
+    if (crate.kind == ObjectKind.materialCrate) {
+      _materials[u.team] += CraftConfig.crateMaterials;
+      _events.add(
+        CrateCollected(u.id, health: false, materials: CraftConfig.crateMaterials),
+      );
+      return;
+    }
     if (crate.kind == ObjectKind.healthCrate) {
       final before = u.hp;
       u
@@ -204,6 +214,18 @@ extension _Impacts on SimWorld {
       u.shielded = false;
       _lastHitTick = _tick;
       _events.add(ShieldPopped(u.id, blocked: true));
+      return false;
+    }
+    if (u.inMachine && cause != DamageCause.water) {
+      // The machine takes it; a fall doesn't even dent it.
+      if (cause == DamageCause.fall) return false;
+      final dealt = twist == MatchTwist.oneHit ? u.machineHp : amount;
+      u.machineHp = max(0, u.machineHp - dealt);
+      _lastHitTick = _tick;
+      if (u.machineHp == 0) {
+        u.machineTurns = 0;
+        _events.add(MachineLeft(u.id));
+      }
       return false;
     }
     var dealt = amount;
@@ -309,6 +331,8 @@ extension _Impacts on SimWorld {
       } else {
         if (walkDir != 0 && u == active) {
           UnitPhysics.walk(u, walkDir, terrain);
+          // A war machine rolls twice as fast.
+          if (u.inMachine) UnitPhysics.walk(u, walkDir, terrain);
         }
         UnitPhysics.checkSupport(u, terrain);
         if (!u.grounded) {

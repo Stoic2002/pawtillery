@@ -55,6 +55,12 @@ final class Dig extends SimInput {
   final int angleDeg;
 }
 
+/// Spends materials to make one of [weaponId]; the turn goes on.
+final class Craft extends SimInput {
+  const Craft(this.weaponId);
+  final String weaponId;
+}
+
 /// Dig mode: done digging (the retreat starts).
 final class StopDigging extends SimInput {
   const StopDigging();

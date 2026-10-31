@@ -1376,4 +1376,28 @@ class AppLocalizationsId extends AppLocalizations {
 
   @override
   String get hudEditReset => 'Atur ulang';
+
+  @override
+  String get craftTitle => 'Rakit';
+
+  @override
+  String get weaponMountedGun => 'Meriam Terpasang';
+
+  @override
+  String get weaponMountedGunDesc =>
+      'Meriam berat di peta: berdiri di dekatnya untuk menembak. Tiga tembakan, lalu habis.';
+
+  @override
+  String get weaponWarMachine => 'Mesin Tempur';
+
+  @override
+  String get weaponWarMachineDesc =>
+      'Naik ke dalamnya: menahan serangan selama tiga giliranmu, melaju dua kali lebih cepat, dan punya meriam sendiri. Tidak bisa melompat.';
+
+  @override
+  String get weaponMachineCannon => 'Meriam Mesin';
+
+  @override
+  String get weaponMachineCannonDesc =>
+      'Meriam mesin tempur. Cepat dan datar, tanpa batas.';
 }

@@ -296,6 +296,9 @@ class PawtilleryGame extends FlameGame {
   /// null when released.
   void setDig(int? angleDeg) => _digAngle = angleDeg;
 
+  /// Spends the team's materials on one more of a weapon.
+  void craft(String weaponId) => _pendingInputs.add(Craft(weaponId));
+
   /// Dig mode's Done button.
   void stopDigging() {
     _digAngle = null;
@@ -337,7 +340,14 @@ class PawtilleryGame extends FlameGame {
         if (family != null) Weapons.byId(family.signatureWeaponId),
       ])
         // Random weapons: only the drawn one (and skip) is on offer.
-        if (loadout.enabled(w) && (!randomWeapons || sim.canUse(unit, w)))
+        // Guns on the map and in a machine show only when at hand; what
+        // can only be crafted shows once there is one.
+        if (loadout.enabled(w) &&
+            (!randomWeapons || sim.canUse(unit, w)) &&
+            ((w.id != Weapons.mountedGun.id &&
+                    w.id != Weapons.machineCannon.id &&
+                    w.id != Weapons.warMachine.id) ||
+                sim.canUse(unit, w)))
           WeaponChoice(
             weapon: w,
             ammoLeft: sim.ammoLeft(unit.team, w),
@@ -787,11 +797,19 @@ class PawtilleryGame extends FlameGame {
         case UnitTeleported(:final unitId):
           final u = sim.units[unitId];
           particles.sparkle(u.centerX, u.centerY, argb: 0xFFB98CFF);
+        case MachineLeft(:final unitId):
+          final u = sim.units[unitId];
+          particles.dust(u.centerX, u.y, strength: 1);
+        case WeaponCrafted(:final unitId):
+          final u = sim.units[unitId];
+          particles.sparkle(u.centerX, u.centerY, argb: 0xFFFFD25A);
         case CrateCollected(:final unitId, :final health, :final hp,
-              :final weaponId):
+              :final weaponId, :final materials):
           final u = sim.units[unitId];
           _objects.popup(u.centerX, u.y,
-              hp: health ? hp : null, weaponId: weaponId);
+              hp: health ? hp : null,
+              weaponId: weaponId,
+              materials: materials);
           particles.sparkle(u.centerX, u.centerY,
               argb: health ? 0xFF3CCB6C : 0xFFFFD25A);
         case ProjectileLaunched() ||

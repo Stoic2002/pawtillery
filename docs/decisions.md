@@ -1508,3 +1508,23 @@ get a frame to drag and a size slider (0.6–1.6×), saved in the settings as th
 goes. `_piece` applies it; the dig or jetpack joystick follows the walk part, the aim
 panel the action part. Only in a match, since the parts need its state. Driven through
 the real arena in a throwaway test: the drag moved and saved, the team bars filled.
+
+## Mounted guns, crafting, war machines (2026-10-31)
+
+Kept simple on purpose, and our own take rather than a copy.
+
+- **Mounted gun:** two on each map (with map objects on). A pet within 44 px can fire
+  it: 42 damage, three shots, then it is spent; a blast breaks it. The shot leaves
+  from the pet, not the barrel, which also keeps the CPU's planning right.
+- **Materials and crafting:** every team starts with 2; a third of falling crates give
+  2 more. The Craft button in the weapon menu turns them into a war machine (4),
+  bomber (5), mini nuke (4), homing missile (3), jetpack (2) or shield (2). Takes no
+  time. New `Craft` input on the wire; off under random weapons.
+- **War machine:** only crafted. It is summoned around the pet rather than found and
+  boarded, which would need map placement, an enter action and an empty state: 60
+  armour that takes all hits but water, no fall damage, twice the walk, no jumping,
+  an unlimited cannon, gone after three of its own turns. Hit points, not the pet's.
+- The CPU doesn't craft, drive or fly; it fires a mounted gun only if it happens to
+  stand by one and rates the shot best. Gun, machine and crate art are code-drawn, and
+  the new tools have stand-in icons, until painted. Protocol 29.
+- **Not done: entering buildings.** Painted rooms are solid ground; it needs new art.

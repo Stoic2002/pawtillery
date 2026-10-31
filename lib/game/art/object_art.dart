@@ -17,6 +17,8 @@ abstract final class ObjectArt {
     ObjectKind.barrel => ('obj_barrel', 32),
     ObjectKind.healthCrate => ('obj_healthCrate', 24),
     ObjectKind.weaponCrate => ('obj_weaponCrate', 25),
+    ObjectKind.materialCrate => ('obj_materialCrate', 25),
+    ObjectKind.gun => ('obj_gun', 44),
   };
 
   static void draw(ui.Canvas canvas, ObjectKind kind) {
@@ -41,9 +43,58 @@ abstract final class ObjectArt {
             _healthCrate(c);
           case ObjectKind.weaponCrate:
             _weaponCrate(c);
+          case ObjectKind.materialCrate:
+            _materialCrate(c);
+          case ObjectKind.gun:
+            _gun(c);
         }
         return recorder.endRecording();
       }));
+
+  /// A crate strapped in orange, with a gear on it.
+  static void _materialCrate(ui.Canvas c) {
+    _weaponCrate(c);
+    c
+      ..drawCircle(
+        const ui.Offset(0, -8),
+        6,
+        ui.Paint()..color = const ui.Color(0xFFE2681C),
+      )
+      ..drawCircle(
+        const ui.Offset(0, -8),
+        2.2,
+        ui.Paint()..color = const ui.Color(0xFF2B2118),
+      );
+  }
+
+  /// A heavy gun on a wooden stand, its barrel tilted up.
+  static void _gun(ui.Canvas c) {
+    const wood = 0xFF8C5E3A;
+    const metal = 0xFF4B5563;
+    final base = ui.RRect.fromRectAndRadius(
+      const ui.Rect.fromLTWH(-16, -12, 32, 12),
+      const ui.Radius.circular(2),
+    );
+    c
+      ..drawRRect(base, PaintKit.lit(base.outerRect, wood, light: 0.3))
+      ..drawRRect(base, PaintKit.edge(wood, 1))
+      ..save()
+      ..translate(-2, -14)
+      ..rotate(-0.5);
+    final barrel = ui.RRect.fromRectAndRadius(
+      const ui.Rect.fromLTWH(-6, -5, 32, 10),
+      const ui.Radius.circular(3),
+    );
+    c
+      ..drawRRect(barrel, PaintKit.lit(barrel.outerRect, metal, light: 0.35))
+      ..drawRRect(barrel, PaintKit.edge(metal, 1))
+      ..restore()
+      ..drawCircle(
+        const ui.Offset(-2, -14),
+        7,
+        ui.Paint()..color = ui.Color(metal),
+      );
+  }
 
   /// A red steel drum with two ribs and a yellow flame label.
   static void _barrel(ui.Canvas c) {

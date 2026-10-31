@@ -139,6 +139,11 @@ class Unit {
   double digLeft = 0;
   bool get isDigging => digTicks > 0;
 
+  /// War machine: damage it can still take, and own turns left in it.
+  int machineHp = 0;
+  int machineTurns = 0;
+  bool get inMachine => machineHp > 0;
+
   /// Jetpack: ticks of fuel left; 0 = not flying.
   int jetTicks = 0;
   bool get isJetting => jetTicks > 0;

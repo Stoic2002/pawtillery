@@ -63,6 +63,7 @@ class _WeaponPanelState extends State<_WeaponPanel> {
   PawtilleryGame get game => widget.game;
 
   late WeaponGroup _group = Weapons.groupOf(game.weapon);
+  bool _crafting = false;
 
   static String _groupLabel(AppLocalizations l10n, WeaponGroup g) =>
       switch (g) {
@@ -72,6 +73,48 @@ class _WeaponPanelState extends State<_WeaponPanel> {
         WeaponGroup.close => l10n.weaponGroupClose,
         WeaponGroup.tools => l10n.weaponGroupTools,
       };
+
+  /// What the team's materials can make; a tap makes one, for use now or
+  /// later in the match.
+  Widget _recipes(AppLocalizations l10n) {
+    final unit = game.sim.activeUnit;
+    final have = unit == null ? 0 : game.sim.materials(unit.team);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final tileW = (box.maxWidth - 2 * 10) / 3;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.only(top: 8),
+          child: Wrap(
+            spacing: 10,
+            runSpacing: 12,
+            children: [
+              for (final MapEntry(key: id, value: cost)
+                  in CraftConfig.recipes.entries)
+                SizedBox(
+                  width: tileW,
+                  height: 60,
+                  child: _RecipeTile(
+                    weapon: Weapons.byId(id),
+                    cost: cost,
+                    onTap: have < cost || !game.canAim
+                        ? null
+                        : () async {
+                            AppServices.of(context).audio.play(Sfx.ui);
+                            game.craft(id);
+                            // The sim takes it on its next tick.
+                            await Future<void>.delayed(
+                              const Duration(milliseconds: 60),
+                            );
+                            if (mounted) setState(() {});
+                          },
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -121,6 +164,20 @@ class _WeaponPanelState extends State<_WeaponPanel> {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  if (unit != null && !game.randomWeapons) ...[
+                    PawButton(
+                      label:
+                          '${l10n.craftTitle} · ${game.sim.materials(unit.team)}',
+                      icon: Icons.tune_rounded,
+                      fill: _crafting ? Paw.orange : Paw.cream,
+                      height: 40,
+                      fontSize: 14,
+                      shadow: 3,
+                      padding: 12,
+                      onPressed: () => setState(() => _crafting = !_crafting),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
                   PawCircleButton(
                     icon: Icons.close_rounded,
                     tooltip: l10n.dialogClose,
@@ -130,7 +187,7 @@ class _WeaponPanelState extends State<_WeaponPanel> {
                 ],
               ),
               const SizedBox(height: 6),
-              if (groups.length > 1)
+              if (groups.length > 1 && !_crafting)
                 SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: PawPillToggle<WeaponGroup>(
@@ -145,7 +202,7 @@ class _WeaponPanelState extends State<_WeaponPanel> {
                 ),
               const SizedBox(height: 4),
               Expanded(
-                child: LayoutBuilder(
+                child: _crafting ? _recipes(l10n) : LayoutBuilder(
                   builder: (context, box) {
                     const cols = 3;
                     final rows = (choices.length / cols).ceil();
@@ -249,6 +306,46 @@ class _WeaponPanelState extends State<_WeaponPanel> {
           ),
         );
       },
+    );
+  }
+}
+
+class _RecipeTile extends StatelessWidget {
+  const _RecipeTile({required this.weapon, required this.cost, this.onTap});
+
+  final WeaponDef weapon;
+  final int cost;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: onTap == null ? Paw.line : Paw.cream,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: Paw.ink, width: 2),
+          boxShadow: Paw.drop(3),
+        ),
+        child: Row(
+          children: [
+            WeaponIcon(weapon: weapon, size: 34),
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(
+                l10n.byKey(weapon.nameKey),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Paw.text(13, height: 1.15),
+              ),
+            ),
+            Text('$cost', style: Paw.title(18, color: Paw.orangeDeep)),
+          ],
+        ),
+      ),
     );
   }
 }

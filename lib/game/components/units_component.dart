@@ -6,6 +6,7 @@ import 'package:flutter/painting.dart';
 
 import '../../config/teams.dart';
 import '../../config/units.dart';
+import '../../config/weapons.dart';
 import '../../sim/turn_manager.dart';
 import '../../sim/unit.dart';
 import '../../sim/world.dart';
@@ -110,6 +111,58 @@ class UnitsComponent extends Component {
   /// Phases of the walk (stride, together, stride, together) per second.
   static const double _stepsPerSecond = 8;
 
+  /// A rickety war machine under the pet, its gun forward, and what armour
+  /// it has left.
+  void _machine(ui.Canvas canvas, Unit u) {
+    final spec = Weapons.warMachine.delivery as BoardMachine;
+    canvas
+      ..save()
+      ..translate(u.centerX, u.y)
+      ..scale(u.facing.toDouble(), 1);
+    const wood = ui.Color(0xFF8C5E3A);
+    const ink = ui.Color(0xFF2B2118);
+    const metal = ui.Color(0xFF4B5563);
+    final edge = ui.Paint()
+      ..style = ui.PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = ink;
+    final barrel = ui.RRect.fromRectAndRadius(
+      const ui.Rect.fromLTWH(10, -20, 30, 8),
+      const ui.Radius.circular(2),
+    );
+    final body = ui.RRect.fromRectAndRadius(
+      const ui.Rect.fromLTWH(-30, -22, 58, 16),
+      const ui.Radius.circular(3),
+    );
+    canvas
+      ..drawRRect(barrel, ui.Paint()..color = metal)
+      ..drawRRect(barrel, edge)
+      ..drawRRect(body, ui.Paint()..color = wood)
+      ..drawRRect(body, edge);
+    final turn = (_lastX[u.id] ?? 0) * 0.3;
+    for (final x in const [-20.0, 20.0]) {
+      canvas
+        ..drawCircle(ui.Offset(x, -7), 7, ui.Paint()..color = metal)
+        ..drawCircle(ui.Offset(x, -7), 7, edge)
+        ..drawLine(
+          ui.Offset(x - 5 * math.cos(turn), -7 - 5 * math.sin(turn)),
+          ui.Offset(x + 5 * math.cos(turn), -7 + 5 * math.sin(turn)),
+          edge,
+        );
+    }
+    canvas.restore();
+    final left = u.machineHp / spec.hp;
+    canvas
+      ..drawRect(
+        ui.Rect.fromLTWH(u.centerX - 24, u.y + 2, 48, 4),
+        ui.Paint()..color = ink,
+      )
+      ..drawRect(
+        ui.Rect.fromLTWH(u.centerX - 23, u.y + 3, 46 * left, 2),
+        ui.Paint()..color = const ui.Color(0xFFF5B700),
+      );
+  }
+
   /// A jetpack's pack on the pet's back and its flame.
   void _jetFlame(ui.Canvas canvas, Unit u, double scale) {
     final x = u.centerX - u.facing * 12 * scale;
@@ -171,7 +224,8 @@ class UnitsComponent extends Component {
       if (u.isJetting) _jetFlame(canvas, u, scale);
       canvas
         ..save()
-        ..translate(u.centerX, u.y)
+        // In a machine the pet rides on top.
+        ..translate(u.centerX, u.y - (u.inMachine ? 12 : 0))
         ..scale(scale * u.facing, scale * breathe);
       AnimalArt.draw(
         canvas,
@@ -180,6 +234,7 @@ class UnitsComponent extends Component {
         pose: pose,
       );
       canvas.restore();
+      if (u.inMachine) _machine(canvas, u);
       if (u.frozen) _iceBlock(canvas, u, scale);
       if (u.shielded) _bubble(canvas, u, scale);
       if (u.poisoned) _poisonBubbles(canvas, u, scale);

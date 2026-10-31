@@ -40,8 +40,13 @@ class MapObjectsComponent extends Component {
   double _time = 0;
 
   /// A crate was picked up by the unit at ([x], [y]).
-  void popup(double x, double y, {int? hp, String? weaponId}) =>
-      _popups.add(_Popup(x, y, hp, weaponId));
+  void popup(
+    double x,
+    double y, {
+    int? hp,
+    String? weaponId,
+    int materials = 0,
+  }) => _popups.add(_Popup(x, y, hp, weaponId, materials));
 
   @override
   void update(double dt) {
@@ -102,6 +107,18 @@ class MapObjectsComponent extends Component {
         WeaponArt.icon(canvas, weapon, 22);
         canvas.restore();
         _plus.render(canvas, '+1', Vector2(p.x + 10, y), anchor: Anchor.center);
+      } else if (p.materials > 0) {
+        _plus.render(
+          canvas,
+          '+${p.materials}',
+          Vector2(p.x + 10, y),
+          anchor: Anchor.center,
+        );
+        canvas.drawCircle(
+          Offset(p.x - 9, y),
+          7,
+          _flame..color = const Color(0xFFE2681C),
+        );
       }
       canvas.restore();
     }
@@ -151,10 +168,11 @@ class MapObjectsComponent extends Component {
 }
 
 class _Popup {
-  _Popup(this.x, this.y, this.hp, this.weaponId);
+  _Popup(this.x, this.y, this.hp, this.weaponId, this.materials);
   final double x;
   final double y;
   final int? hp;
   final String? weaponId;
+  final int materials;
   double age = 0;
 }

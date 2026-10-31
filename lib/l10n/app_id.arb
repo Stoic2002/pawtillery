@@ -414,5 +414,12 @@
   "pauseHudLayout": "Atur HUD",
   "hudEditHint": "Geser bagian untuk memindahkan. Ketuk satu, lalu atur ukurannya.",
   "hudEditSize": "Ukuran",
-  "hudEditReset": "Atur ulang"
+  "hudEditReset": "Atur ulang",
+  "craftTitle": "Rakit",
+  "weaponMountedGun": "Meriam Terpasang",
+  "weaponMountedGunDesc": "Meriam berat di peta: berdiri di dekatnya untuk menembak. Tiga tembakan, lalu habis.",
+  "weaponWarMachine": "Mesin Tempur",
+  "weaponWarMachineDesc": "Naik ke dalamnya: menahan serangan selama tiga giliranmu, melaju dua kali lebih cepat, dan punya meriam sendiri. Tidak bisa melompat.",
+  "weaponMachineCannon": "Meriam Mesin",
+  "weaponMachineCannonDesc": "Meriam mesin tempur. Cepat dan datar, tanpa batas."
 }

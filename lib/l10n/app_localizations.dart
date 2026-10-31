@@ -2587,6 +2587,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Reset'**
   String get hudEditReset;
+
+  /// No description provided for @craftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Craft'**
+  String get craftTitle;
+
+  /// No description provided for @weaponMountedGun.
+  ///
+  /// In en, this message translates to:
+  /// **'Mounted Gun'**
+  String get weaponMountedGun;
+
+  /// No description provided for @weaponMountedGunDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'A heavy gun standing on the map: stand next to it to fire. Three shots, then it is spent.'**
+  String get weaponMountedGunDesc;
+
+  /// No description provided for @weaponWarMachine.
+  ///
+  /// In en, this message translates to:
+  /// **'War Machine'**
+  String get weaponWarMachine;
+
+  /// No description provided for @weaponWarMachineDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Climb in: it takes the hits for three of your turns, rolls twice as fast and has its own cannon. It can\'t jump.'**
+  String get weaponWarMachineDesc;
+
+  /// No description provided for @weaponMachineCannon.
+  ///
+  /// In en, this message translates to:
+  /// **'Machine Cannon'**
+  String get weaponMachineCannon;
+
+  /// No description provided for @weaponMachineCannonDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'The war machine\'s gun. Fast and flat, as often as you like.'**
+  String get weaponMachineCannonDesc;
 }
 
 class _AppLocalizationsDelegate

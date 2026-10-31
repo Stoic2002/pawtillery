@@ -55,6 +55,8 @@ abstract final class WeaponArt {
     'gasBomb': _Painted('obj_gas', 28, turn: -90, back: 8),
     'miniNuke': _Painted('icon_miniNuke', 46, back: 18),
     'iceBomb': _Painted('icon_iceBomb', 22),
+    'mountedGun': _Painted('craft_bomb', 34, turn: -90, back: 12),
+    'machineCannon': _Painted('craft_bomb', 28, turn: -90, back: 10),
   };
 
   static final Map<String, ui.Picture> _cache = {};
@@ -239,6 +241,8 @@ abstract final class WeaponArt {
       hasMotor(id) ||
       id == 'bomberBomb' ||
       id == 'gasBomb' ||
+      id == 'mountedGun' ||
+      id == 'machineCannon' ||
       // Painted with a tail or a nose.
       ((id == 'meteor' || id == 'miniNuke') &&
           Sprites.of(_painted[id]!.sprite) != null);
@@ -903,6 +907,19 @@ abstract final class WeaponArt {
     c.restore();
   }
 
+  /// A plain stand-in until these tools are painted: a body and an accent.
+  static void _toolIcon(ui.Canvas c, int body, int accent) {
+    final box = ui.RRect.fromRectAndRadius(
+      const ui.Rect.fromLTWH(-9, -11, 18, 18),
+      const ui.Radius.circular(4),
+    );
+    c
+      ..drawRRect(box, PaintKit.lit(box.outerRect, body, light: 0.35))
+      ..drawRRect(box, PaintKit.edge(body, 1.2))
+      ..drawCircle(const ui.Offset(-5, 10), 4, ui.Paint()..color = ui.Color(accent))
+      ..drawCircle(const ui.Offset(5, 10), 4, ui.Paint()..color = ui.Color(accent));
+  }
+
   static void _coconut(ui.Canvas c) {
     const husk = 0xFF6B4A30;
     _ball(c, 7.5, husk, light: 0.3);
@@ -1197,6 +1214,12 @@ abstract final class WeaponArt {
             ..rotate(-0.75);
           _missile(c);
         }, 1.2);
+      case 'jetpack':
+        _toolIcon(c, 0xFF6B7280, 0xFFFF8A2A);
+      case 'mountedGun' || 'machineCannon':
+        _toolIcon(c, 0xFF4B5563, 0xFF2B2118);
+      case 'warMachine':
+        _toolIcon(c, 0xFF92400E, 0xFF2B2118);
       default:
         big(() => _rock(c, 6, 0xFF9E9A94));
     }

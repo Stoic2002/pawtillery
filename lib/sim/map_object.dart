@@ -1,6 +1,6 @@
 import 'mine.dart';
 
-enum ObjectKind { barrel, healthCrate, weaponCrate }
+enum ObjectKind { barrel, healthCrate, weaponCrate, materialCrate, gun }
 
 /// A starter object on the map: a fuel barrel that blows up when caught in
 /// a blast, or a crate a unit picks up by touching it. Mines use [Mine].
@@ -14,6 +14,9 @@ class MapObject extends GroundBody {
 
   final int id;
   final ObjectKind kind;
+
+  /// Mounted gun: shots it has left.
+  int shots = 0;
 
   /// Barrel: ticks until it explodes; null = not lit.
   int? fuse;

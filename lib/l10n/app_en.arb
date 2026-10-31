@@ -1548,5 +1548,12 @@
   "pauseHudLayout": "Arrange HUD",
   "hudEditHint": "Drag a part to move it. Tap one, then set its size.",
   "hudEditSize": "Size",
-  "hudEditReset": "Reset"
+  "hudEditReset": "Reset",
+  "craftTitle": "Craft",
+  "weaponMountedGun": "Mounted Gun",
+  "weaponMountedGunDesc": "A heavy gun standing on the map: stand next to it to fire. Three shots, then it is spent.",
+  "weaponWarMachine": "War Machine",
+  "weaponWarMachineDesc": "Climb in: it takes the hits for three of your turns, rolls twice as fast and has its own cannon. It can't jump.",
+  "weaponMachineCannon": "Machine Cannon",
+  "weaponMachineCannonDesc": "The war machine's gun. Fast and flat, as often as you like."
 }

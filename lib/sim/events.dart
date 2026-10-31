@@ -251,13 +251,27 @@ final class ObjectRemoved extends SimEvent {
 
 /// A unit picked up a crate: [hp] healed (health crate) or one more of
 /// [weaponId] for its team (weapon crate; null if it held nothing).
+/// A war machine ran out of turns or was wrecked.
+final class MachineLeft extends SimEvent {
+  const MachineLeft(this.unitId);
+  final int unitId;
+}
+
+final class WeaponCrafted extends SimEvent {
+  const WeaponCrafted(this.unitId, this.weaponId);
+  final int unitId;
+  final String weaponId;
+}
+
 final class CrateCollected extends SimEvent {
   const CrateCollected(
     this.unitId, {
     required this.health,
     this.hp = 0,
     this.weaponId,
+    this.materials = 0,
   });
+  final int materials;
   final int unitId;
   final bool health;
   final int hp;

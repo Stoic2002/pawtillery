@@ -13,6 +13,7 @@ class ObjectMix {
     this.barrels = 0,
     this.healthCrates = 0,
     this.weaponCrates = 0,
+    this.guns = 0,
   });
 
   final int mines;
@@ -20,7 +21,10 @@ class ObjectMix {
   final int healthCrates;
   final int weaponCrates;
 
-  int get total => mines + barrels + healthCrates + weaponCrates;
+  /// Mounted guns (one per map side at most is plenty).
+  final int guns;
+
+  int get total => mines + barrels + healthCrates + weaponCrates + guns;
 
   /// The mix for [amount], or null for none.
   ObjectMix? forAmount(ObjectAmount amount) => switch (amount) {
@@ -31,6 +35,7 @@ class ObjectMix {
       barrels: barrels * 2,
       healthCrates: healthCrates * 2,
       weaponCrates: weaponCrates * 2,
+      guns: guns,
     ),
   };
 }
@@ -56,6 +61,10 @@ abstract final class ObjectConfig {
   static const double dropSpeed = 110;
   static const int dropHeight = 700;
   static const int dropHealthIn = 3;
+
+  /// A pet this close to a mounted gun can fire it; it has [gunShots] shots.
+  static const double gunReach = 44;
+  static const int gunShots = 3;
 
   /// Objects keep at least this far from units and from each other.
   static const int minDistanceFromUnits = 90;

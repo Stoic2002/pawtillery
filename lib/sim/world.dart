@@ -208,6 +208,8 @@ class SimWorld implements SimContext {
   int _lastHitTick = -1;
 
   int _wind = 0;
+  late final List<int> _materials =
+      List.filled(teamCount, CraftConfig.startMaterials);
   @override
   int get wind => _wind;
 
@@ -281,7 +283,9 @@ class SimWorld implements SimContext {
       kind: kind,
       x: x.toDouble(),
       y: y.toDouble(),
-    )..grounded = terrain.isSolid(x, y);
+    )
+      ..grounded = terrain.isSolid(x, y)
+      ..shots = kind == ObjectKind.gun ? ObjectConfig.gunShots : 0;
     _objects.add(o);
     return o;
   }
@@ -316,11 +320,28 @@ class SimWorld implements SimContext {
   int? ammoLeft(int team, WeaponDef weapon) =>
       weapon.isSignature ? null : _ammo[team][weapon.id];
 
+  /// Materials [team] has for crafting.
+  int materials(int team) => _materials[team];
+
+  /// The mounted gun [unit] stands at, if any.
+  MapObject? gunNear(Unit unit) {
+    for (final o in _objects) {
+      if (o.kind != ObjectKind.gun || o.destroyed) continue;
+      final dx = unit.centerX - o.x;
+      final dy = unit.centerY - o.centerY;
+      const r = ObjectConfig.gunReach;
+      if (dx * dx + dy * dy <= r * r) return o;
+    }
+    return null;
+  }
+
   /// Whether [unit] may use [weapon] right now (ignoring the turn phase).
   bool canUse(Unit unit, WeaponDef weapon) {
     // Mid-shotgun: only its second pull.
     if (_shotgunLeft > 0) return weapon.delivery is Shotgun;
     if (!loadout.enabled(weapon)) return false;
+    if (weapon.id == Weapons.mountedGun.id) return gunNear(unit) != null;
+    if (weapon.id == Weapons.machineCannon.id) return unit.inMachine;
     if (randomWeapons) {
       return weapon.id == _drawn || weapon.delivery is SkipTurn;
     }
@@ -407,9 +428,13 @@ class SimWorld implements SimContext {
         case Walk(:final direction):
           if (turn.allowsMovement && !busy) walkDir = direction;
         case Jump(:final kind):
-          if (turn.allowsMovement && !busy) _jump(unit, kind);
+          if (turn.allowsMovement && !busy && !unit.inMachine) {
+            _jump(unit, kind);
+          }
         case Fire():
           if (turn.allowsFire && !busy) _fire(unit, input);
+        case Craft(:final weaponId):
+          if (turn.allowsFire && !busy) _craft(unit, weaponId);
         case Dig(:final angleDeg):
           if (unit.isDigging) _dig(unit, angleDeg);
           if (unit.isJetting) _thrust(unit, angleDeg);
@@ -842,6 +867,10 @@ class SimWorld implements SimContext {
     // A shield lasts until its pet's own next turn.
     final active = _units[turn.activeUnitId];
     if (randomWeapons) _drawWeapon(active);
+    if (active.inMachine && --active.machineTurns <= 0) {
+      active.machineHp = 0;
+      _events.add(MachineLeft(active.id));
+    }
     if (crateDrops && turn.turnNumber % ObjectConfig.dropEveryTurns == 0) {
       _dropCrate();
     }
@@ -992,7 +1021,7 @@ class SimWorld implements SimContext {
         ..add(u.signatureUsed ? 1 : 0)
         ..add(u.dashDir)
         ..addDouble(u.dashRemaining)
-        ..add(u.digTicks + u.jetTicks)
+        ..add(u.digTicks + u.jetTicks + u.machineHp * 1000 + u.machineTurns)
         ..addDouble(u.digLeft)
         ..add(u.grappleTicks)
         ..add(u.frozenTurns)
@@ -1038,6 +1067,12 @@ class SimWorld implements SimContext {
     }
     h.add(_nextObjectId);
     h.add(_objects.length);
+    for (final m in _materials) {
+      if (m != CraftConfig.startMaterials) h.add(m);
+    }
+    for (final o in _objects) {
+      if (o.kind == ObjectKind.gun) h.add(o.shots);
+    }
     if (crateDrops) {
       for (final o in _objects) {
         h.add(o.parachute ? 1 : 0);
