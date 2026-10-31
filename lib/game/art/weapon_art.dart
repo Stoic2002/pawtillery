@@ -55,8 +55,8 @@ abstract final class WeaponArt {
     'gasBomb': _Painted('obj_gas', 28, turn: -90, back: 8),
     'miniNuke': _Painted('icon_miniNuke', 46, back: 18),
     'iceBomb': _Painted('icon_iceBomb', 22),
-    'mountedGun': _Painted('craft_bomb', 34, turn: -90, back: 12),
-    'machineCannon': _Painted('craft_bomb', 28, turn: -90, back: 10),
+    'mountedGun': _Painted('craft_shell', 30, back: 12),
+    'machineCannon': _Painted('craft_shell', 24, back: 10),
   };
 
   static final Map<String, ui.Picture> _cache = {};
@@ -161,7 +161,13 @@ abstract final class WeaponArt {
   /// Menu icon for weapon [id], fitting a [size]-px box centred on the
   /// origin.
   static void icon(ui.Canvas canvas, String id, double size) {
-    if (Sprites.of('icon_$id') case final sprite?) {
+    final name = switch (id) {
+      'warMachine' => 'craft_machine',
+      'mountedGun' => 'obj_gun',
+      'machineCannon' => 'craft_shell',
+      _ => 'icon_$id',
+    };
+    if (Sprites.of(name) case final sprite?) {
       Sprites.draw(canvas, sprite, size);
       return;
     }

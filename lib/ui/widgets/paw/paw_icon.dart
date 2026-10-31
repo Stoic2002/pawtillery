@@ -61,6 +61,7 @@ class PawIcon extends StatelessWidget {
     Icons.replay_rounded: ('replay', flip: false),
     Icons.tune_rounded: ('sliders', flip: false),
     Icons.logout_rounded: ('exit', flip: false),
+    Icons.build_rounded: ('craft', flip: false),
   };
 
   @override

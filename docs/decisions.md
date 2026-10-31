@@ -1528,3 +1528,24 @@ Kept simple on purpose, and our own take rather than a copy.
   stand by one and rates the shot best. Gun, machine and crate art are code-drawn, and
   the new tools have stand-in icons, until painted. Protocol 29.
 - **Not done: entering buildings.** Painted rooms are solid ground; it needs new art.
+
+## Rooms you can walk into; painted equipment (2026-10-31)
+
+The developer marked rooms on the four maps in pure green (image edits of the maps).
+The edits redrew Wreck and Ruins a little, so they replace the map sources rather than
+being laid over them. The converter clears green from the ground and paints a back wall
+in the art (the land's colours blurred and darkened, marked with alpha 200, drawn
+though there's no ground, and cleared by blasts like everything else). Rooms under 6000
+px, like windows, stay shut.
+
+The generator left most rooms sealed, so `open_rooms` cuts doorways: a level passage 36
+px tall from near the floor to the nearest air a pet fits in, or a shaft from the roof
+if nothing level is close. "Outside" is what touches the top or sides, since the air
+under a bridge reaches the bottom yet is walled off. By flood fill with a pet's body,
+81 / 51 / 76 / 66 % of room area on Backyard / Castle / Wreck / Ruins can be reached on
+foot; the rest needs digging or a blast. Passages are straight cuts with hard edges and
+are the roughest part of the art. Rooms show from outside; a front that fades when
+entered would need more art. The CPU doesn't seek rooms out.
+
+`art/src/equipment.webp` gives the war machine, mounted gun, material crate, jetpack,
+shell and craft icon. Protocol 30.

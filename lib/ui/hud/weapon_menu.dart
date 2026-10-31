@@ -168,7 +168,7 @@ class _WeaponPanelState extends State<_WeaponPanel> {
                     PawButton(
                       label:
                           '${l10n.craftTitle} · ${game.sim.materials(unit.team)}',
-                      icon: Icons.tune_rounded,
+                      icon: Icons.build_rounded,
                       fill: _crafting ? Paw.orange : Paw.cream,
                       height: 40,
                       fontSize: 14,

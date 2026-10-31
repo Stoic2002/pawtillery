@@ -11,6 +11,7 @@ import '../../sim/turn_manager.dart';
 import '../../sim/unit.dart';
 import '../../sim/world.dart';
 import '../art/animal_art.dart';
+import '../art/sprites.dart';
 
 /// Draws every unit with its pet art and, as in the redesign's arena
 /// (redesign/ArenaScene.dc.html), a dark translucent tag above it: the
@@ -119,6 +120,18 @@ class UnitsComponent extends Component {
       ..save()
       ..translate(u.centerX, u.y)
       ..scale(u.facing.toDouble(), 1);
+    if (Sprites.of('craft_machine') case final sprite?) {
+      final size = Sprites.sizeOf(sprite, _machineWidth);
+      Sprites.draw(
+        canvas,
+        sprite,
+        _machineWidth,
+        center: ui.Offset(4, -size.height / 2 + 1),
+      );
+      canvas.restore();
+      _machineArmour(canvas, u, spec);
+      return;
+    }
     const wood = ui.Color(0xFF8C5E3A);
     const ink = ui.Color(0xFF2B2118);
     const metal = ui.Color(0xFF4B5563);
@@ -151,6 +164,13 @@ class UnitsComponent extends Component {
         );
     }
     canvas.restore();
+    _machineArmour(canvas, u, spec);
+  }
+
+  static const double _machineWidth = 82;
+
+  void _machineArmour(ui.Canvas canvas, Unit u, BoardMachine spec) {
+    const ink = ui.Color(0xFF2B2118);
     final left = u.machineHp / spec.hp;
     canvas
       ..drawRect(
@@ -167,6 +187,15 @@ class UnitsComponent extends Component {
   void _jetFlame(ui.Canvas canvas, Unit u, double scale) {
     final x = u.centerX - u.facing * 12 * scale;
     final y = u.y - 22 * scale;
+    if (Sprites.of('icon_jetpack') case final pack?) {
+      Sprites.draw(
+        canvas,
+        pack,
+        34 * scale,
+        center: ui.Offset(x, y + 6 * scale),
+      );
+      return;
+    }
     final len = (15 + 5 * math.sin(_time * 50)) * scale;
     canvas
       ..drawPath(
@@ -225,7 +254,7 @@ class UnitsComponent extends Component {
       canvas
         ..save()
         // In a machine the pet rides on top.
-        ..translate(u.centerX, u.y - (u.inMachine ? 12 : 0))
+        ..translate(u.centerX, u.y - (u.inMachine ? 34 : 0))
         ..scale(scale * u.facing, scale * breathe);
       AnimalArt.draw(
         canvas,

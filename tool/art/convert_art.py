@@ -45,6 +45,27 @@ WORLD = (3600, 2400)
 # The painting is kept this many times finer than the world (and its
 # mask), so it stays sharp when the camera zooms in.
 ART_SCALE = 2
+# Rooms in a map's source are painted pure green: green this far above red
+# and blue. Their edge is grown by ROOM_EDGE px; rooms under ROOM_MIN world px
+# (windows) stay shut; the back wall is the land's colours blurred by BACK_BLUR
+# (in eighths) and darkened to BACK_SHADE; ROOM_ALPHA marks it in art.webp.
+ROOM_GREEN = 120
+ROOM_EDGE = 5
+ROOM_MIN = 6000
+# Doorways: world px tall, longest, looked for this far up from a room's floor,
+# and how much further open air may be than another room.
+DOOR_HEIGHT = 36
+DOOR_MAX = 900
+DOOR_SEARCH = 30
+DOOR_PREFER_SKY = 200
+# A shaft down into a room counts as this much longer than a level passage.
+DOOR_SHAFT = 500
+# How tall a pet's body is, and the smallest room worth a doorway.
+PET_BODY = 24
+DOOR_ROOM_MIN = 2500
+BACK_BLUR = 30
+BACK_SHADE = 0.42
+ROOM_ALPHA = 200
 # Unsharp mask on the painting (radius, percent, threshold).
 SHARPEN = (1.5, 70, 2)
 # WebP quality of the painting: as low as it looks the same in play.
@@ -123,6 +144,10 @@ SHEETS = {
         'speed', 'aimPath', 'school', 'person',
         'robot', 'shuffle', 'trash', 'shield',
         'group', 'replay', 'sliders', 'exit']),
+    # Named in full: these go to several kinds of sprite.
+    'equipment': (3, 2, '', 400, [
+        'craft_machine', 'obj_gun', 'obj_materialCrate',
+        'icon_jetpack', 'craft_shell', 'ui_craft']),
     'objects': (4, 2, 'obj', 160, [
         'gas', 'bomblet', 'hairballBomb', 'seedMine',
         'mine', 'barrel', 'healthCrate', 'weaponCrate']),
@@ -199,10 +224,154 @@ def components(solid, w, h, want):
         yield region
 
 
+def key_rooms(src):
+    """The land keyed as usual, with green rooms (see the map prompts) clear
+    too, and a mask of those rooms."""
+    data = src.tobytes()
+    n = len(data) // 3
+    room = bytearray(n)
+    for j in range(n):
+        g = data[3 * j + 1]
+        if g - max(data[3 * j], data[3 * j + 2]) >= ROOM_GREEN:
+            room[j] = 255
+    rooms = Image.frombytes('L', src.size, bytes(room)).filter(
+        ImageFilter.MaxFilter(ROOM_EDGE))
+    keyed = key(src)
+    # No green rim: within the edge, green goes out of the colour.
+    r, g, b, a = keyed.split()
+    top = ImageChops.lighter(r, b)
+    keyed = Image.merge('RGBA', (r, Image.composite(top, g, rooms), b, a))
+    keyed.putalpha(ImageChops.subtract(a, rooms))
+    return keyed, rooms
+
+
+def open_rooms(solid, rooms, w, h):
+    """Doorways: the generator leaves most rooms sealed, so each is joined to
+    the open air, or to a room that is, by the shortest level passage from
+    near its floor. Clears [solid]; returns the passages' mask."""
+    # Air counts where a pet's body fits, so a slit doesn't join two rooms.
+    blocked = bytearray(w * h)
+    for x in range(w):
+        run = 0
+        for y in range(h):
+            i = y * w + x
+            run = 0 if solid[i] else run + 1
+            blocked[i] = 0 if run >= PET_BODY else 1
+    label = [0] * (w * h)
+    regions = []
+    for region in components(blocked, w, h, 0):
+        regions.append(region)
+        for i in region:
+            label[i] = len(regions)
+    parent = list(range(len(regions) + 1))
+
+    def find(a):
+        while parent[a] != a:
+            parent[a] = parent[parent[a]]
+            a = parent[a]
+        return a
+
+    outside = set()
+    for n, region in enumerate(regions, 1):
+        # Not the bottom edge: the air under a bridge reaches it, walled off
+        # from where the pets walk.
+        if any(i % w in (0, w - 1) or i // w == 0 for i in region):
+            outside.add(n)
+    for n in sorted(outside):
+        parent[find(n)] = find(next(iter(outside)))
+    sky = find(next(iter(outside))) if outside else 0
+    opened = bytearray(w * h)
+    sealed = [n for n in range(1, len(regions) + 1)
+              if n not in outside and
+              len(regions[n - 1]) >= DOOR_ROOM_MIN and
+              sum(1 for i in regions[n - 1] if rooms[i]) * 2 > len(regions[n - 1])]
+    made = 0
+    for _ in range(4):
+        for n in sealed:
+            if find(n) == sky:
+                continue
+            region = regions[n - 1]
+            bottom = max(i // w for i in region)
+            rows = {}
+            for i in region:
+                y = i // w
+                if y >= bottom - DOOR_SEARCH:
+                    x = i % w
+                    lo, hi = rows.get(y, (x, x))
+                    rows[y] = (min(lo, x), max(hi, x))
+            best = None
+            for y, (lo, hi) in rows.items():
+                for x0, step in ((lo, -1), (hi, 1)):
+                    x = x0 + step
+                    while 0 <= x < w and (blocked[y * w + x] or
+                                          find(label[y * w + x]) == find(n)):
+                        x += step
+                    if not 0 <= x < w:
+                        continue
+                    other = find(label[y * w + x])
+                    # Towards open air first, when it's about as near.
+                    cost = abs(x - x0) + (bottom - y) * 2 + (
+                        0 if other == sky else DOOR_PREFER_SKY)
+                    if abs(x - x0) <= DOOR_MAX and (best is None or
+                                                    cost < best[0]):
+                        best = (cost, y, min(x0, x), max(x0, x), other)
+            # Or a shaft up from its roof: a way in from above.
+            tops = {}
+            for i in region:
+                x, y = i % w, i // w
+                tops[x] = min(tops.get(x, y), y)
+            for x in sorted(tops)[::8]:
+                y = tops[x] - 1
+                while y >= 0 and (blocked[y * w + x] or
+                                  find(label[y * w + x]) == find(n)):
+                    y -= 1
+                if y < 0 or tops[x] - y > DOOR_MAX:
+                    continue
+                other = find(label[y * w + x])
+                cost = tops[x] - y + DOOR_SHAFT + (
+                    0 if other == sky else DOOR_PREFER_SKY)
+                if best is None or cost < best[0]:
+                    half = DOOR_HEIGHT // 2 + 4
+                    best = (cost, tops[x], x - half, x + half, other, y)
+            if best is None:
+                continue
+            _, y, x0, x1, other, *shaft = best
+            rows_cut = (range(shaft[0], y + 1) if shaft else
+                        range(max(0, y - DOOR_HEIGHT), y + 1))
+            for py in rows_cut:
+                for px in range(max(0, x0), min(w, x1 + 1)):
+                    i = py * w + px
+                    blocked[i] = 0
+                    if solid[i]:
+                        solid[i] = 0
+                        opened[i] = 255
+            parent[find(n)] = other
+            sky = find(sky)
+            made += 1
+    left = sum(1 for n in sealed if find(n) != sky)
+    print(f'  rooms: {len(sealed)} sealed, {made} doorways, {left} still shut')
+    return opened
+
+
+def back_wall(keyed, size):
+    """The colours of the land around, blurred and in shadow."""
+    w, h = keyed.size
+    small = keyed.convert('RGBa').resize((w // 8, h // 8), Image.BOX)
+    r, g, b, a = small.split()
+    k = BACK_BLUR
+    blur = [c.filter(ImageFilter.GaussianBlur(k)) for c in (r, g, b, a)]
+    soft = Image.merge('RGBa', blur).convert('RGBA').convert('RGB')
+    return soft.resize(size, Image.BILINEAR).point(
+        lambda v: int(v * BACK_SHADE)).convert('RGBA')
+
+
 def convert_map(name):
-    keyed = key(source(name))
+    src = source(name).convert('RGB')
+    keyed, rooms = key_rooms(src)
     art = resize(keyed, WORLD)
     w, h = art.size
+    world_rooms = rooms.resize((w, h), Image.BILINEAR).point(
+        lambda v: 255 if v >= 128 else 0).tobytes()
     alpha = bytearray(art.getchannel('A').tobytes())
     solid = bytearray(1 if a > 128 else 0 for a in alpha)
 
@@ -218,11 +387,16 @@ def convert_map(name):
     for region in list(components(solid, w, h, 0)):
         touches_edge = any(i % w in (0, w - 1) or i // w in (0, h - 1)
                            for i in region)
-        if not touches_edge and len(region) < SPECK:
+        # Rooms too small for a pet, like windows, stay shut.
+        in_room = sum(1 for i in region if world_rooms[i])
+        small_room = in_room * 2 > len(region) and len(region) < ROOM_MIN
+        if small_room or (not touches_edge and len(region) < SPECK):
             filled += 1
             for i in region:
                 solid[i] = 1
                 fill[i] = 255
+
+    opened = open_rooms(solid, world_rooms, w, h)
 
     # What is drawn: ART_SCALE times finer than the mask, with the same
     # specks dropped and pin holes filled.
@@ -230,16 +404,30 @@ def convert_map(name):
     art = resize(keyed, big_size)
     up = [Image.frombytes('L', (w, h), bytes(m)).resize(big_size,
                                                        Image.NEAREST)
-          for m in (drop, fill)]
-    big_alpha = ImageChops.lighter(
-        ImageChops.subtract(art.getchannel('A'), up[0]), up[1])
-    art.putalpha(big_alpha)
+          for m in (drop, fill, opened)]
+    land = ImageChops.subtract(art.getchannel('A'), up[2])
+    art.putalpha(ImageChops.subtract(land, up[0]))
+    # Behind the land in rooms and shut holes: their back wall.
+    area = ImageChops.lighter(
+        rooms.resize(big_size, Image.BILINEAR).point(
+            lambda v: 255 if v >= 128 else 0), ImageChops.lighter(up[1], up[2]))
+    wall = back_wall(keyed, big_size)
+    wall.putalpha(area)
+    wall.alpha_composite(art)
+    art = wall
+    big_alpha = art.getchannel('A')
     # A light sharpen, inside the ground only: across the soft edge it
     # would pull in the clear pixels' black.
     sharp = art.convert('RGB').filter(ImageFilter.UnsharpMask(*SHARPEN))
     sharp.putalpha(big_alpha)
     inside = big_alpha.point(lambda a: 255 if a == 255 else 0)
     art = Image.composite(sharp, art, inside)
+    # Back wall is marked, so the game draws it though there's no ground.
+    bare = art.getchannel('A')
+    not_land = ImageChops.subtract(
+        area, land.point(lambda a: 255 if a == 255 else 0))
+    art.putalpha(Image.composite(
+        Image.new('L', big_size, ROOM_ALPHA), bare, not_land))
 
     out = ROOT / 'assets' / 'maps' / name
     out.mkdir(parents=True, exist_ok=True)
@@ -358,9 +546,10 @@ def convert_sheet(sheet):
         scale = min(1, longest / max(cw, ch))
         if scale < 1:
             item = resize(item, (round(cw * scale), round(ch * scale)))
-        path = out / f'{prefix}_{name}.webp'
+        full = f'{prefix}_{name}' if prefix else name
+        path = out / f'{full}.webp'
         item.save(path, quality=90, alpha_quality=100, method=6)
-        print(f'{prefix}_{name}: {item.size[0]}x{item.size[1]}, '
+        print(f'{full}: {item.size[0]}x{item.size[1]}, '
               f'{path.stat().st_size // 1024} KB')
 
 

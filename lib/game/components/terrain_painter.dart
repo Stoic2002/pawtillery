@@ -659,6 +659,10 @@ abstract final class PaintKitless {
   }
 }
 
+/// Alpha that marks a room's back wall in a painted map
+/// (tool/art/convert_art.py).
+const int artRoomAlpha = 200;
+
 /// A painted map's chunk: the painting where there is ground (premultiplied
 /// for the engine), its soft edge where the mask has none, and ground the
 /// painting doesn't cover (added since, Benteng or Tanah Liat) in the map's
@@ -725,6 +729,15 @@ Uint8List? buildArtChunkPixels(
       final i = ((ay - artTop) * artWidth + ax) * 4;
       final o = (ly * ow + lx) * 4;
       final a = i < 0 ? 0 : art[i + 3];
+      if (a == artRoomAlpha) {
+        // A room's back wall: no ground, but drawn (a blast clears it).
+        any = true;
+        out[o] = art[i];
+        out[o + 1] = art[i + 1];
+        out[o + 2] = art[i + 2];
+        out[o + 3] = 255;
+        continue;
+      }
       if (mask.isSolid(x, y)) {
         any = true;
         if (scale == 1 ? a >= 128 : covered(x, y)) {
