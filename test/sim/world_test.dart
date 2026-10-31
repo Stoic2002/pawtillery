@@ -328,9 +328,10 @@ int _explosions(List<SimEvent> e) => e.whereType<ExplosionEvent>().length;
 // Then (→ 2120106523) it also covers shields and shotgun pulls; same play.
 // Then (→ 607334203) it also covers poison gas and poisoned pets; same play.
 // Then (→ 4033724603) the ammo of two new weapons; same play.
-// Re-pinned 2026-10-29 (→ 282814417): play changed on purpose. Pets have
+// Re-pinned 2026-10-29 (→ 78619985): play changed on purpose. Pets have
 // their own, heavier gravity and walk slower; gas bites while a pet stays
 // in it; damage was rebalanced (lower, lightning most); the bottle rocket,
 // twin sling, coconut, flowerpots, meteors, eggs and hairball got their own
 // mechanics; sudden death crumbles the ground instead of raising water.
-const _pinnedScriptHash = 282814417;
+// Re-pinned 2026-10-31: the jetpack joined the ammo in the hash; same play.
+const _pinnedScriptHash = 78619985;

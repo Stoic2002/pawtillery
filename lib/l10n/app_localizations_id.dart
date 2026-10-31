@@ -1353,4 +1353,14 @@ class AppLocalizationsId extends AppLocalizations {
   @override
   String get modeInfoMoon =>
       'Gravitasi rendah: lompatan tinggi, tembakan melayang jauh.';
+
+  @override
+  String get weaponJetpack => 'Jetpack';
+
+  @override
+  String get weaponJetpackDesc =>
+      'Terbang ke mana saja dengan joystick selama 4 detik, sampai bahan bakar habis.';
+
+  @override
+  String get hudJetHint => 'Arahkan dengan joystick';
 }

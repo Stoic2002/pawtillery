@@ -110,8 +110,37 @@ class UnitsComponent extends Component {
   /// Phases of the walk (stride, together, stride, together) per second.
   static const double _stepsPerSecond = 8;
 
+  /// A jetpack's pack on the pet's back and its flame.
+  void _jetFlame(ui.Canvas canvas, Unit u, double scale) {
+    final x = u.centerX - u.facing * 12 * scale;
+    final y = u.y - 22 * scale;
+    final len = (15 + 5 * math.sin(_time * 50)) * scale;
+    canvas
+      ..drawPath(
+        ui.Path()
+          ..moveTo(x - 4, y + 9)
+          ..quadraticBezierTo(x, y + 9 + len * 1.3, x + 4, y + 9)
+          ..close(),
+        ui.Paint()..color = const ui.Color(0xDDFF8A2A),
+      )
+      ..drawPath(
+        ui.Path()
+          ..moveTo(x - 2, y + 9)
+          ..quadraticBezierTo(x, y + 9 + len * 0.7, x + 2, y + 9)
+          ..close(),
+        ui.Paint()..color = const ui.Color(0xEEFFE08A),
+      )
+      ..drawRRect(
+        ui.RRect.fromRectAndRadius(
+          ui.Rect.fromCenter(center: ui.Offset(x, y), width: 9, height: 18),
+          const ui.Radius.circular(3),
+        ),
+        ui.Paint()..color = const ui.Color(0xFF6B7280),
+      );
+  }
+
   AnimalPose _pose(Unit u) {
-    if (!u.grounded || u.isDashing) return AnimalPose.air;
+    if (!u.grounded || u.isDashing || u.isJetting) return AnimalPose.air;
     final t = _walkTime[u.id] ?? 0;
     if (t == 0) return AnimalPose.idle;
     // A stride, feet together, the other stride, feet together.
@@ -139,6 +168,7 @@ class UnitsComponent extends Component {
       final breathe = pose == AnimalPose.idle
           ? 1 + 0.025 * math.sin(_time * 2.6 + u.id)
           : 1.0;
+      if (u.isJetting) _jetFlame(canvas, u, scale);
       canvas
         ..save()
         ..translate(u.centerX, u.y)

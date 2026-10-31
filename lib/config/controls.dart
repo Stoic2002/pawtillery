@@ -17,8 +17,8 @@ abstract final class ControlsConfig {
 
   /// Camera zoom limits (1 = one world px per logical px).
   static const double minZoom = 0.35;
-  static const double maxZoom = 0.8;
-  static const double defaultZoom = 0.7;
+  static const double maxZoom = 0.65;
+  static const double defaultZoom = 0.6;
 
   /// How far the camera may look past the map edges, world px; above, room
   /// for aircraft clear of the highest ground of a 3600 x 2400 map.

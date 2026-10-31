@@ -92,6 +92,7 @@ class PawtilleryGame extends FlameGame {
     this.cpuTeams = const {},
     this.randomWeapons = false,
     this.twist = MatchTwist.none,
+    this.crateDrops = false,
   });
 
   final int seed;
@@ -127,6 +128,9 @@ class PawtilleryGame extends FlameGame {
 
   /// See [SimWorld.twist].
   final MatchTwist twist;
+
+  /// See [SimWorld.crateDrops].
+  final bool crateDrops;
 
   /// Teams the computer plays (hotseat only), by sim team index.
   final Map<int, CpuLevel> cpuTeams;
@@ -201,6 +205,7 @@ class PawtilleryGame extends FlameGame {
       objects: objects,
       randomWeapons: randomWeapons,
       twist: twist,
+      crateDrops: crateDrops,
     );
     stats = MatchStats(sim);
     lockstep?.attach(sim);
@@ -282,7 +287,10 @@ class PawtilleryGame extends FlameGame {
   void jump(JumpKind kind) => _pendingInputs.add(Jump(kind));
 
   /// The active unit is in dig mode and this phone controls it.
-  bool get digging => hasControl && (sim.activeUnit?.isDigging ?? false);
+  bool get digging =>
+      hasControl &&
+      ((sim.activeUnit?.isDigging ?? false) ||
+          (sim.activeUnit?.isJetting ?? false));
 
   /// Dig mode joystick: a direction in degrees (0 = right, 90 = up), or
   /// null when released.

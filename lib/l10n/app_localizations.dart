@@ -2545,6 +2545,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Low gravity: high jumps, and shots float far.'**
   String get modeInfoMoon;
+
+  /// No description provided for @weaponJetpack.
+  ///
+  /// In en, this message translates to:
+  /// **'Jetpack'**
+  String get weaponJetpack;
+
+  /// No description provided for @weaponJetpackDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Fly anywhere with the joystick for 4 s, until the fuel runs out.'**
+  String get weaponJetpackDesc;
+
+  /// No description provided for @hudJetHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Steer with the joystick'**
+  String get hudJetHint;
 }
 
 class _AppLocalizationsDelegate

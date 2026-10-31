@@ -87,6 +87,26 @@ extension _Impacts on SimWorld {
     }
   }
 
+  /// A crate comes down over some ground, somewhere on the map.
+  void _dropCrate() {
+    for (var tries = 0; tries < 12; tries++) {
+      final x = rng.nextIntInRange(60, terrain.width - 61);
+      var top = 0;
+      while (top < waterLevel && !terrain.isSolid(x, top)) {
+        top++;
+      }
+      if (top >= waterLevel) continue;
+      final kind = rng.nextIntInRange(1, ObjectConfig.dropHealthIn) == 1
+          ? ObjectKind.healthCrate
+          : ObjectKind.weaponCrate;
+      final y = max(top - ObjectConfig.dropHeight, -100);
+      addObject(kind, x, y)
+        ..grounded = false
+        ..parachute = true;
+      return;
+    }
+  }
+
   /// Caught in a blast or a beam: a barrel lights (and blows up shortly),
   /// a crate breaks.
   void _hitObject(MapObject o) {
@@ -105,11 +125,16 @@ extension _Impacts on SimWorld {
       if (i >= _objects.length) continue;
       final o = _objects[i];
       if (o.destroyed) continue;
+      if (o.parachute) {
+        o.vy = min(o.vy, ObjectConfig.dropSpeed);
+        o.x = (o.x + _wind * PhysicsConfig.dt).clamp(2.0, terrain.width - 3.0);
+      }
       final move = MinePhysics.step(o, terrain, waterLevel);
       if (move == MineMove.water || move == MineMove.outOfBounds) {
         o.destroyed = true;
         continue;
       }
+      if (o.grounded) o.parachute = false;
       final fuse = o.fuse;
       if (fuse != null) {
         if (fuse <= 1) {
@@ -270,6 +295,13 @@ extension _Impacts on SimWorld {
             turn.phase != TurnPhase.action) {
           _stopDigging(u);
         }
+      } else if (u.isJetting) {
+        // Flying: gravity and thrust; a landing here does no harm.
+        u.jetTicks--;
+        UnitPhysics.checkSupport(u, terrain);
+        if (!u.grounded) UnitPhysics.stepAirborne(u, terrain);
+        u.peakY = u.y;
+        if (u.jetTicks <= 0 || turn.phase != TurnPhase.action) _stopJet(u);
       } else if (u.isDashing) {
         _stepDash(u);
       } else if (u.isGrappling) {

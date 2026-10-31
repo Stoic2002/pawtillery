@@ -1492,3 +1492,11 @@ became wrapping chips, with a line saying what the chosen one does.
   time.
 
 Twelve CPU matches on two maps all finished; three ran 15–27 minutes.
+
+## Falling crates and a jetpack (2026-10-31)
+
+With map objects on, a crate comes down under a parachute every 4 turns, over ground
+somewhere on the map, drifting with the wind; the turn doesn't wait for it. Jetpack
+(2 per match): 4 s of flight on the dig joystick, reusing the `Dig` and `StopDigging`
+inputs, so the wire format is unchanged; landing while flying does no harm, running
+out of fuel high up does. Zoom in now stops at 0.65×, starting at 0.6×. Protocol 28.

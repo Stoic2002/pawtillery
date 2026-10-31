@@ -407,5 +407,8 @@
   "modeInfoChaos": "Senjata acak di atas tanah yang runtuh.",
   "modeInfoOneHit": "Sekali kena serangan, hewan langsung tumbang. Jatuh dan racun tetap hanya melukai.",
   "modeInfoStorm": "Angin kencang yang berubah-ubah saat giliran berjalan.",
-  "modeInfoMoon": "Gravitasi rendah: lompatan tinggi, tembakan melayang jauh."
+  "modeInfoMoon": "Gravitasi rendah: lompatan tinggi, tembakan melayang jauh.",
+  "weaponJetpack": "Jetpack",
+  "weaponJetpackDesc": "Terbang ke mana saja dengan joystick selama 4 detik, sampai bahan bakar habis.",
+  "hudJetHint": "Arahkan dengan joystick"
 }

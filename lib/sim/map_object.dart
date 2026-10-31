@@ -18,6 +18,9 @@ class MapObject extends GroundBody {
   /// Barrel: ticks until it explodes; null = not lit.
   int? fuse;
 
+  /// Coming down from the sky: falls slowly, and the turn doesn't wait for it.
+  bool parachute = false;
+
   /// Crate: destroyed by a blast (removed at the end of the step).
   bool destroyed = false;
 

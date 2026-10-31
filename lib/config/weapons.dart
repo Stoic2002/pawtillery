@@ -220,6 +220,20 @@ final class DigMode extends Delivery {
   final int carveRadius;
 }
 
+/// Fly with the joystick until the fuel runs out or the player is done.
+final class JetpackMode extends Delivery {
+  const JetpackMode({
+    required this.fuelTicks,
+    required this.thrust,
+    required this.maxSpeed,
+  });
+  final int fuelTicks;
+
+  /// Acceleration, px/s²; a pet's gravity is 1100.
+  final double thrust;
+  final double maxSpeed;
+}
+
 /// Adds a [width] × [height] block of ground centred on the target.
 final class BuildWall extends Delivery {
   const BuildWall({required this.width, required this.height});
@@ -1065,6 +1079,17 @@ abstract final class Weapons {
     placeholderArgb: 0xFF8D6E63,
   );
 
+  /// Fly anywhere for a few seconds with the joystick.
+  static const jetpack = WeaponDef(
+    id: 'jetpack',
+    nameKey: 'weaponJetpack',
+    aim: AimMode.none,
+    delivery: JetpackMode(fuelTicks: 4 * 60, thrust: 1900, maxSpeed: 320),
+    knockbackScale: 0,
+    ammo: 2,
+    placeholderArgb: 0xFF6B7280,
+  );
+
   // ---- unique arsenal (2026-10-20, docs/decisions.md) ----------------
 
   /// Lands, then pulls everyone nearby in for two seconds and collapses.
@@ -1422,6 +1447,7 @@ abstract final class Weapons {
     punch,
     mine,
     digClaws,
+    jetpack,
     grapple,
     shield,
     firstAid,
@@ -1495,6 +1521,7 @@ abstract final class Weapons {
     'startleCrow': WeaponGroup.close,
     'headbutt': WeaponGroup.close,
     'seedSpitter': WeaponGroup.close,
+    'jetpack': WeaponGroup.tools,
     'digClaws': WeaponGroup.tools,
     'grapple': WeaponGroup.tools,
     'shield': WeaponGroup.tools,

@@ -139,6 +139,10 @@ class Unit {
   double digLeft = 0;
   bool get isDigging => digTicks > 0;
 
+  /// Jetpack: ticks of fuel left; 0 = not flying.
+  int jetTicks = 0;
+  bool get isJetting => jetTicks > 0;
+
   /// Grappling hook: ticks left of being reeled in to the anchor.
   int grappleTicks = 0;
   double grappleX = 0;

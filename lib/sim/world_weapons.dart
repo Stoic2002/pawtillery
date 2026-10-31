@@ -122,6 +122,8 @@ extension _Weapons on SimWorld {
         // Digging starts with a hole around the body.
         carveTunnel(unit.centerX.round(), unit.centerY.round(),
             (weapon.delivery as DigMode).carveRadius);
+      case JetpackMode(:final fuelTicks):
+        unit.jetTicks = fuelTicks;
       case SwapPlaces():
         final other = ProjectilePhysics.unitAt(
             tx!.toDouble(), ty!.toDouble(), _units)!;
@@ -195,7 +197,7 @@ extension _Weapons on SimWorld {
     _events.add(WeaponUsed(unit.id, weapon.id));
     turn.hasFired = true;
     // Digging keeps the action phase (and its clock) until it ends.
-    if (weapon.delivery is DigMode) return;
+    if (weapon.delivery is DigMode || weapon.delivery is JetpackMode) return;
     _setPhase(weapon.endsTurn ? TurnPhase.settling : TurnPhase.retreat);
   }
 
@@ -388,6 +390,31 @@ extension _Weapons on SimWorld {
       ..digTicks = 0
       ..digLeft = 0;
     UnitPhysics.launch(unit, 0, 0);
+    if (turn.phase == TurnPhase.action) _setPhase(TurnPhase.retreat);
+  }
+
+  /// One tick of the jetpack's thrust towards [angleDeg].
+  void _thrust(Unit unit, int angleDeg) {
+    final spec = Weapons.jetpack.delivery as JetpackMode;
+    final a = spec.thrust * PhysicsConfig.dt;
+    final vx = (unit.vx + SimTrig.cosDeg(angleDeg) * a)
+        .clamp(-spec.maxSpeed, spec.maxSpeed);
+    final vy = (unit.vy - SimTrig.sinDeg(angleDeg) * a)
+        .clamp(-spec.maxSpeed, spec.maxSpeed);
+    if (vx.abs() > 1) unit.facing = vx > 0 ? 1 : -1;
+    if (unit.grounded) {
+      if (SimTrig.sinDeg(angleDeg) > 0.1) UnitPhysics.launch(unit, vx, vy);
+      return;
+    }
+    unit
+      ..vx = vx
+      ..vy = vy;
+  }
+
+  /// Out of fuel, or done: the unit drops from where it is, and the retreat
+  /// starts.
+  void _stopJet(Unit unit) {
+    unit.jetTicks = 0;
     if (turn.phase == TurnPhase.action) _setPhase(TurnPhase.retreat);
   }
 

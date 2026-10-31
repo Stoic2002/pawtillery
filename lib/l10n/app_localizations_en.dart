@@ -1349,4 +1349,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get modeInfoMoon => 'Low gravity: high jumps, and shots float far.';
+
+  @override
+  String get weaponJetpack => 'Jetpack';
+
+  @override
+  String get weaponJetpackDesc =>
+      'Fly anywhere with the joystick for 4 s, until the fuel runs out.';
+
+  @override
+  String get hudJetHint => 'Steer with the joystick';
 }

@@ -327,9 +327,13 @@ class _DigDone extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final unit = game.sim.activeUnit;
     final spec = Weapons.digClaws.delivery as DigMode;
+    final jet = Weapons.jetpack.delivery as JetpackMode;
+    final flying = unit?.isJetting ?? false;
     final time = unit == null ? 0.0 : unit.digTicks / spec.durationTicks;
     final distance = unit == null ? 0.0 : unit.digLeft / spec.maxDistance;
-    final left = math.min(time, distance).clamp(0.0, 1.0);
+    final left = flying
+        ? unit!.jetTicks / jet.fuelTicks
+        : math.min(time, distance).clamp(0.0, 1.0);
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.end,
@@ -346,7 +350,10 @@ class _DigDone extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(l10n.hudDigHint, style: Paw.text(12)),
+              Text(
+                flying ? l10n.hudJetHint : l10n.hudDigHint,
+                style: Paw.text(12),
+              ),
               const SizedBox(height: 4),
               ClipRRect(
                 borderRadius: BorderRadius.circular(999),

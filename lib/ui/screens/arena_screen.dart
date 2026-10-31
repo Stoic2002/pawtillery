@@ -9,6 +9,7 @@ import '../../app/match_config.dart';
 import '../../app/match_history.dart';
 import '../../app/paw_palette.dart';
 import '../../config/controls.dart';
+import '../../config/map_objects.dart';
 import '../../config/maps.dart';
 import '../../config/match_defaults.dart';
 import '../../config/teams.dart';
@@ -266,6 +267,7 @@ class _ArenaScreenState extends State<ArenaScreen> with WidgetsBindingObserver {
       cpuTeams: net == null ? config.cpuTeams() : const {},
       randomWeapons: config.randomWeapons,
       twist: config.twist,
+      crateDrops: config.objects != ObjectAmount.off,
     );
     game.hud.addListener(_onHudChanged);
     final services = AppServices.of(context);

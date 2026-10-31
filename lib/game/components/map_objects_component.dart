@@ -59,6 +59,7 @@ class MapObjectsComponent extends Component {
       canvas
         ..save()
         ..translate(o.x, o.y);
+      if (o.parachute) _drawParachute(canvas);
       if (lit && (_time * 14).floor().isOdd) {
         // A blinking white-hot barrel about to go.
         canvas.saveLayer(
@@ -105,6 +106,34 @@ class MapObjectsComponent extends Component {
       canvas.restore();
     }
   }
+
+  /// A patched canopy over a crate coming down, swaying a little.
+  void _drawParachute(ui.Canvas canvas) {
+    const top = -62.0;
+    const bottom = -28.0;
+    final sway = math.sin(_time * 1.8) * 2;
+    final canopy = ui.Path()
+      ..moveTo(-24 + sway, top + 16)
+      ..quadraticBezierTo(sway, top - 16, 24 + sway, top + 16)
+      ..quadraticBezierTo(12 + sway, top + 10, sway, top + 16)
+      ..quadraticBezierTo(-12 + sway, top + 10, -24 + sway, top + 16)
+      ..close();
+    _flame.color = const Color(0xFFE5484D);
+    canvas.drawPath(canopy, _flame);
+    canvas.drawPath(canopy, _chute);
+    for (final x in const [-24.0, 0.0, 24.0]) {
+      canvas.drawLine(
+        Offset(x + sway, top + 16),
+        Offset(x * 0.3, bottom + 4),
+        _chute,
+      );
+    }
+  }
+
+  final ui.Paint _chute = ui.Paint()
+    ..style = ui.PaintingStyle.stroke
+    ..strokeWidth = 1.4
+    ..color = const Color(0xFF2B2118);
 
   void _drawFlame(ui.Canvas canvas) {
     final flicker = 0.75 + 0.25 * math.sin(_time * 40);

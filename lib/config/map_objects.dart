@@ -49,6 +49,14 @@ abstract final class ObjectConfig {
   /// HP a health crate gives (never above the unit's maximum).
   static const int healthAmount = 25;
 
+  /// Crates fall from the sky every [dropEveryTurns] turns, under a parachute
+  /// at about [dropSpeed] px/s from up to [dropHeight] px above the ground.
+  /// Out of [dropHealthIn] crates, one is a health crate.
+  static const int dropEveryTurns = 4;
+  static const double dropSpeed = 110;
+  static const int dropHeight = 700;
+  static const int dropHealthIn = 3;
+
   /// Objects keep at least this far from units and from each other.
   static const int minDistanceFromUnits = 90;
   static const int minDistanceBetween = 45;

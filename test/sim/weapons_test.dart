@@ -425,7 +425,8 @@ void main() {
 // in it; damage was rebalanced (lower, lightning most); the bottle rocket,
 // twin sling, coconut, flowerpots, meteors, eggs and hairball got their own
 // mechanics; sudden death crumbles the ground instead of raising water.
-const _pinnedWeaponsHash = 2451456931;
+// Re-pinned 2026-10-31: the jetpack joined the ammo in the hash; same play.
+const _pinnedWeaponsHash = 82948131;
 
 /// Minimal [SimContext] that records what a behaviour does.
 class _FakeContext implements SimContext {

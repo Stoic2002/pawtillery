@@ -48,6 +48,7 @@ class SimWorld implements SimContext {
     this.loadout = WeaponLoadout.standard,
     this.randomWeapons = false,
     this.twist = MatchTwist.none,
+    this.crateDrops = false,
   })  : _waterLevel = waterLevel,
         _units = units,
         turn = TurnManager(teamCount: teamCount, timings: timings),
@@ -78,6 +79,7 @@ class SimWorld implements SimContext {
     ObjectMix? objects,
     bool randomWeapons = false,
     MatchTwist twist = MatchTwist.none,
+    bool crateDrops = false,
   }) {
     final rng = SimRng(seed);
     final count = rosters.fold(0, (n, r) => n + r.length);
@@ -112,6 +114,7 @@ class SimWorld implements SimContext {
       loadout: loadout,
       randomWeapons: randomWeapons,
       twist: twist,
+      crateDrops: crateDrops,
     );
     if (objects != null && objects.total > 0) {
       world._placeObjects(objects, points);
@@ -131,6 +134,7 @@ class SimWorld implements SimContext {
     WeaponLoadout loadout = WeaponLoadout.standard,
     bool randomWeapons = false,
     MatchTwist twist = MatchTwist.none,
+    bool crateDrops = false,
   }) {
     return SimWorld._(
       seed: seed,
@@ -153,6 +157,7 @@ class SimWorld implements SimContext {
       loadout: loadout,
       randomWeapons: randomWeapons,
       twist: twist,
+      crateDrops: crateDrops,
     );
   }
 
@@ -164,6 +169,9 @@ class SimWorld implements SimContext {
 
   /// A rule changing the whole match (see [MatchTwist]).
   final MatchTwist twist;
+
+  /// Crates come down from the sky during the match.
+  final bool crateDrops;
   String? _drawn;
 
   /// This turn's weapon under [randomWeapons]; null otherwise.
@@ -392,7 +400,8 @@ class SimWorld implements SimContext {
     final unit = activeUnit;
     if (unit == null || !unit.alive) return 0;
     var walkDir = 0;
-    final busy = unit.isDashing || unit.isDigging || unit.isGrappling;
+    final busy =
+        unit.isDashing || unit.isDigging || unit.isGrappling || unit.isJetting;
     for (final input in inputs) {
       switch (input) {
         case Walk(:final direction):
@@ -403,8 +412,10 @@ class SimWorld implements SimContext {
           if (turn.allowsFire && !busy) _fire(unit, input);
         case Dig(:final angleDeg):
           if (unit.isDigging) _dig(unit, angleDeg);
+          if (unit.isJetting) _thrust(unit, angleDeg);
         case StopDigging():
           if (unit.isDigging) _stopDigging(unit);
+          if (unit.isJetting) _stopJet(unit);
       }
     }
     return walkDir;
@@ -771,7 +782,7 @@ class SimWorld implements SimContext {
                   !u.isDigging &&
                   !u.isGrappling)) &&
       _mines.every((m) => m.grounded && m.countdown == null) &&
-      _objects.every((o) => o.grounded && o.fuse == null);
+      _objects.every((o) => (o.grounded || o.parachute) && o.fuse == null);
 
   /// Deaths from HP are resolved only once everything is at rest, then the
   /// winner check runs (PRD: Core loop).
@@ -831,6 +842,9 @@ class SimWorld implements SimContext {
     // A shield lasts until its pet's own next turn.
     final active = _units[turn.activeUnitId];
     if (randomWeapons) _drawWeapon(active);
+    if (crateDrops && turn.turnNumber % ObjectConfig.dropEveryTurns == 0) {
+      _dropCrate();
+    }
     if (active.shielded) {
       active.shielded = false;
       _events.add(ShieldPopped(active.id, blocked: false));
@@ -978,7 +992,7 @@ class SimWorld implements SimContext {
         ..add(u.signatureUsed ? 1 : 0)
         ..add(u.dashDir)
         ..addDouble(u.dashRemaining)
-        ..add(u.digTicks)
+        ..add(u.digTicks + u.jetTicks)
         ..addDouble(u.digLeft)
         ..add(u.grappleTicks)
         ..add(u.frozenTurns)
@@ -1024,6 +1038,11 @@ class SimWorld implements SimContext {
     }
     h.add(_nextObjectId);
     h.add(_objects.length);
+    if (crateDrops) {
+      for (final o in _objects) {
+        h.add(o.parachute ? 1 : 0);
+      }
+    }
     for (final o in _objects) {
       h
         ..add(o.id)
